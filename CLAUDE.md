@@ -61,9 +61,46 @@ ddev exec vendor/bin/phpstan analyse <file>
 
 ## Git
 
+### Commits
+
 Format: `<type>(scope): description` — Types: `feat`, `fix`, `chore`, `refactor`, `docs`
 No `Co-Authored-By`.
 **Always** reference the issue: append `#N` in the message body or use `fixes #N` to auto-close.
+
+### Branching
+
+**Never push directly to `main`.** All work goes through a branch + PR.
+
+- Branch naming: `<type>/<issue-number>-<short-description>` (e.g. `feat/2-entities`, `fix/15-score-calc`)
+- One branch = one issue (1:1 mapping)
+- Branch from `main`, merge back to `main`
+- Delete branch after merge
+
+### Pull Requests
+
+- Every issue closes via a PR, not a direct commit
+- PR title follows commit format: `<type>(scope): description`
+- PR body: summary + `fixes #N`
+- Merge strategy: **squash merge** (`--squash`) → one commit per issue on main
+- Request code review (agent) before merge
+
+### Tags & Releases
+
+Semantic versioning: `vMAJOR.MINOR.PATCH`
+- Tag after a coherent set of issues is merged (milestone)
+- Release notes generated from CHANGELOG.md
+- No release per PR — only at milestones
+
+```bash
+# Workflow for each issue:
+git checkout -b feat/N-description main     # 1. Create branch
+# ... TDD, commits referencing #N ...       # 2. Develop
+git push -u origin feat/N-description       # 3. Push branch
+gh pr create --title "..." --body "..."     # 4. Create PR (fixes #N)
+# ... code review ...                       # 5. Review
+gh pr merge N --squash --delete-branch      # 6. Squash merge + cleanup
+# Issue auto-closes via "fixes #N"          # 7. Done
+```
 
 ## GitHub Issues & Project
 
@@ -74,9 +111,9 @@ No `Co-Authored-By`.
 ### Rules
 
 1. **All work starts from an issue.** Check existing issues first; create if none exists.
-2. **Move issues** through the board: `Todo` → `In Progress` (start) → `Done` (complete).
+2. **Move issues** through the board: `Todo` → `In Progress` (start) → `Done` (via PR merge).
 3. **New ideas** without immediate implementation → `Backlog`.
-4. **Close issues** with `fixes #N` in commit message.
+4. **Close issues** via PR with `fixes #N` in PR body (auto-closes on merge).
 5. **Labels**: use existing (`enhancement`, `bug`, etc.). Don't create new ones without asking.
 
 ### Quick reference
@@ -85,7 +122,19 @@ No `Co-Authored-By`.
 # Issues
 gh issue list --repo Soviann/tarot
 gh issue create --repo Soviann/tarot --title "..." --body "..." --label "..."
-gh issue close N --repo Soviann/tarot
+
+# Branches
+git checkout -b <type>/<N>-<desc> main
+git push -u origin <type>/<N>-<desc>
+
+# Pull Requests
+gh pr create --title "<type>(scope): desc" --body "fixes #N"
+gh pr merge <PR_NUMBER> --squash --delete-branch
+
+# Tags & Releases
+git tag -a vX.Y.Z -m "vX.Y.Z"
+git push origin vX.Y.Z
+gh release create vX.Y.Z --generate-notes
 
 # Project board — move item to a column
 # 1. Get item ID:  gh project item-list 2 --owner Soviann --format json
