@@ -1,0 +1,12 @@
+api_platform:
+    defaults:
+        cache_headers:
+            vary: ['Content-Type', 'Authorization', 'Accept']
+        extra_properties:
+            rfc_7807_compliant_errors: true
+            standard_put: true
+        stateless: true
+    formats:
+        jsonld: ['application/ld+json']
+    title: 'Tarot API'
+    version: '1.0.0'
