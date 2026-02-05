@@ -63,6 +63,7 @@ ddev exec vendor/bin/phpstan analyse <file>
 
 Format: `<type>(scope): description` — Types: `feat`, `fix`, `chore`, `refactor`, `docs`
 No `Co-Authored-By`.
+**Always** reference the issue: append `#N` in the message body or use `fixes #N` to auto-close.
 
 ## GitHub Issues & Project
 
