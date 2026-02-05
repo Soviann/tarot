@@ -19,7 +19,7 @@ class Player
     #[ORM\Column(length: 50, unique: true)]
     private string $name;
 
-    #[ORM\Column]
+    #[ORM\Column(type: 'datetime_immutable')]
     private \DateTimeImmutable $createdAt;
 
     public function __construct()

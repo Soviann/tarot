@@ -29,7 +29,7 @@ class Game
     #[ORM\Column(enumType: Contract::class)]
     private Contract $contract;
 
-    #[ORM\Column]
+    #[ORM\Column(type: 'datetime_immutable')]
     private \DateTimeImmutable $createdAt;
 
     #[ORM\Column(nullable: true)]
@@ -200,6 +200,23 @@ class Game
     public function getScoreEntries(): Collection
     {
         return $this->scoreEntries;
+    }
+
+    public function addScoreEntry(ScoreEntry $scoreEntry): static
+    {
+        if (!$this->scoreEntries->contains($scoreEntry)) {
+            $this->scoreEntries->add($scoreEntry);
+            $scoreEntry->setGame($this);
+        }
+
+        return $this;
+    }
+
+    public function removeScoreEntry(ScoreEntry $scoreEntry): static
+    {
+        $this->scoreEntries->removeElement($scoreEntry);
+
+        return $this;
     }
 
     public function getSession(): Session
