@@ -18,7 +18,7 @@ class Session
     #[ORM\CustomIdGenerator(class: 'doctrine.uuid_generator')]
     private ?Uuid $id = null;
 
-    #[ORM\Column]
+    #[ORM\Column(type: 'datetime_immutable')]
     private \DateTimeImmutable $createdAt;
 
     /** @var Collection<int, Game> */
@@ -58,6 +58,23 @@ class Session
     public function getGames(): Collection
     {
         return $this->games;
+    }
+
+    public function addGame(Game $game): static
+    {
+        if (!$this->games->contains($game)) {
+            $this->games->add($game);
+            $game->setSession($this);
+        }
+
+        return $this;
+    }
+
+    public function removeGame(Game $game): static
+    {
+        $this->games->removeElement($game);
+
+        return $this;
     }
 
     public function isActive(): bool
