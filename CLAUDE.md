@@ -11,8 +11,8 @@
 
 ```
 tarot/
+├── .ddev/            # DDEV config (repo root = project root)
 ├── backend/          # Symfony API — PHP 8.3
-│   ├── .ddev/
 │   ├── src/Entity/   # Player, Session, Game, ScoreEntry
 │   ├── src/Enum/     # Contract, Poignee, PetitAuBout, Chelem, GameStatus
 │   ├── src/Service/  # ScoreCalculator
@@ -49,10 +49,10 @@ ddev exec bin/console doctrine:migrations:diff -n  # Generate migration
 ddev exec bin/console doctrine:migrations:migrate -n  # Run migrations
 ddev exec bin/phpunit                           # Backend tests
 
-# Frontend
-cd frontend && npm run dev                      # Dev server
-cd frontend && npm test                         # Vitest
-cd frontend && npm run build                    # Production build
+# Frontend (run via DDEV or from frontend/ directory)
+ddev exec bash -c 'cd /var/www/html/frontend && npm run dev'    # Dev server (auto-started by daemon)
+ddev exec bash -c 'cd /var/www/html/frontend && npm test'       # Vitest
+ddev exec bash -c 'cd /var/www/html/frontend && npm run build'  # Production build
 
 # Quality — only on modified files
 ddev exec vendor/bin/php-cs-fixer fix <file>
@@ -106,3 +106,9 @@ Format: `- **Name**: Description`
 - **Backend enums**: PHP backed enums for all fixed value sets
 - **API responses**: use API Platform serialization groups, not custom DTOs unless needed
 - **Frontend**: functional components, custom hooks for API calls, TypeScript strict mode
+
+## Language
+
+- **CLAUDE.md**: English only
+- **All other files** (README, CHANGELOG, docs, UI text, comments): French
+- **Code identifiers** (variables, functions, classes): English
