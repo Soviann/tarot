@@ -4,60 +4,107 @@ declare(strict_types=1);
 
 namespace App\Entity;
 
+use ApiPlatform\Metadata\ApiResource;
+use ApiPlatform\Metadata\Get;
+use ApiPlatform\Metadata\GetCollection;
+use ApiPlatform\Metadata\Link;
+use ApiPlatform\Metadata\Patch;
+use ApiPlatform\Metadata\Post;
 use App\Enum\Chelem;
 use App\Enum\Contract;
 use App\Enum\GameStatus;
 use App\Enum\Poignee;
 use App\Enum\Side;
+use App\State\GameCompleteProcessor;
+use App\State\GameCreateProcessor;
+use App\Validator\OnlyLastGameEditable;
+use App\Validator\PlayersBelongToSession;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Bridge\Doctrine\IdGenerator\UuidGenerator;
 use Symfony\Bridge\Doctrine\Types\UuidType;
+use Symfony\Component\Serializer\Attribute\Groups;
 use Symfony\Component\Uid\Uuid;
 use Symfony\Component\Uid\UuidV7;
 
+#[ApiResource(
+    operations: [
+        new Get(),
+        new Patch(
+            processor: GameCompleteProcessor::class,
+            validationContext: ['groups' => ['Default', 'game:patch']],
+        ),
+    ],
+    normalizationContext: ['groups' => ['game:read']],
+    denormalizationContext: ['groups' => ['game:complete']],
+)]
+#[ApiResource(
+    uriTemplate: '/sessions/{sessionId}/games',
+    uriVariables: [
+        'sessionId' => new Link(fromClass: Session::class, toProperty: 'session'),
+    ],
+    operations: [
+        new GetCollection(),
+        new Post(read: false, processor: GameCreateProcessor::class, denormalizationContext: ['groups' => ['game:create']]),
+    ],
+    normalizationContext: ['groups' => ['game:read']],
+)]
+#[OnlyLastGameEditable(groups: ['game:patch'])]
 #[ORM\Entity]
+#[PlayersBelongToSession(groups: ['game:patch'])]
 class Game
 {
+    #[Groups(['game:read'])]
     #[ORM\Id]
     #[ORM\Column(type: UuidType::NAME)]
     #[ORM\GeneratedValue(strategy: 'CUSTOM')]
     #[ORM\CustomIdGenerator(class: UuidGenerator::class)]
     private ?Uuid $id = null;
 
+    #[Groups(['game:read', 'game:complete'])]
     #[ORM\Column(enumType: Chelem::class)]
     private Chelem $chelem = Chelem::None;
 
+    #[Groups(['game:read', 'game:create'])]
     #[ORM\Column(enumType: Contract::class)]
     private Contract $contract;
 
+    #[Groups(['game:read'])]
     #[ORM\Column(type: 'datetime_immutable')]
     private \DateTimeImmutable $createdAt;
 
+    #[Groups(['game:read', 'game:complete'])]
     #[ORM\Column(nullable: true)]
     private ?int $oudlers = null;
 
+    #[Groups(['game:read', 'game:complete'])]
     #[ORM\ManyToOne(targetEntity: Player::class)]
     #[ORM\JoinColumn(nullable: true)]
     private ?Player $partner = null;
 
+    #[Groups(['game:read', 'game:complete'])]
     #[ORM\Column(enumType: Side::class)]
     private Side $petitAuBout = Side::None;
 
+    #[Groups(['game:read', 'game:complete'])]
     #[ORM\Column(enumType: Poignee::class)]
     private Poignee $poignee = Poignee::None;
 
+    #[Groups(['game:read', 'game:complete'])]
     #[ORM\Column(enumType: Side::class)]
     private Side $poigneeOwner = Side::None;
 
+    #[Groups(['game:read', 'game:complete'])]
     #[ORM\Column(nullable: true)]
     private ?float $points = null;
 
+    #[Groups(['game:read'])]
     #[ORM\Column]
     private int $position;
 
     /** @var Collection<int, ScoreEntry> */
+    #[Groups(['game:read'])]
     #[ORM\OneToMany(targetEntity: ScoreEntry::class, mappedBy: 'game', cascade: ['persist', 'remove'])]
     private Collection $scoreEntries;
 
@@ -65,9 +112,11 @@ class Game
     #[ORM\JoinColumn(nullable: false)]
     private Session $session;
 
+    #[Groups(['game:read', 'game:complete'])]
     #[ORM\Column(enumType: GameStatus::class)]
     private GameStatus $status = GameStatus::InProgress;
 
+    #[Groups(['game:read', 'game:create'])]
     #[ORM\ManyToOne(targetEntity: Player::class)]
     #[ORM\JoinColumn(nullable: false)]
     private Player $taker;
