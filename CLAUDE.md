@@ -14,7 +14,7 @@ tarot/
 ├── .ddev/            # DDEV config (repo root = project root)
 ├── backend/          # Symfony API — PHP 8.3
 │   ├── src/Entity/   # Player, Session, Game, ScoreEntry
-│   ├── src/Enum/     # Contract, Poignee, PetitAuBout, Chelem, GameStatus
+│   ├── src/Enum/     # Contract, Poignee, Side, Chelem, GameStatus
 │   ├── src/Service/  # ScoreCalculator
 │   └── tests/
 ├── frontend/         # React PWA — TypeScript
@@ -116,6 +116,7 @@ gh pr merge N --squash --delete-branch      # 6. Squash merge + cleanup
 3. **New ideas** without immediate implementation → `Backlog`.
 4. **Close issues** via PR with `fixes #N` in PR body (auto-closes on merge).
 5. **Labels**: use existing (`enhancement`, `bug`, etc.). Don't create new ones without asking.
+6. **Avoid unnecessary GitHub API calls**: issue list, project board state, and project IDs are cached in auto memory (`MEMORY.md`). Consult memory first; only call the API when you need fresh data or are performing a write operation (create/update issue, move card, create PR).
 
 ### Quick reference
 
