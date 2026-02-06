@@ -36,14 +36,11 @@ describe("SearchInput", () => {
     expect(handleSearch).toHaveBeenCalledWith("alice");
   });
 
-  it("does not call onSearch with new value before debounce delay", () => {
+  it("does not call onSearch before debounce delay", () => {
     const handleSearch = vi.fn();
     renderWithProviders(
       <SearchInput debounceMs={300} onSearch={handleSearch} />,
     );
-
-    // Reset after initial mount call with ""
-    handleSearch.mockClear();
 
     fireEvent.change(screen.getByRole("searchbox"), {
       target: { value: "alice" },
@@ -53,7 +50,20 @@ describe("SearchInput", () => {
       vi.advanceTimersByTime(100);
     });
 
-    expect(handleSearch).not.toHaveBeenCalledWith("alice");
+    expect(handleSearch).not.toHaveBeenCalled();
+  });
+
+  it("does not call onSearch on mount", () => {
+    const handleSearch = vi.fn();
+    renderWithProviders(
+      <SearchInput debounceMs={300} onSearch={handleSearch} />,
+    );
+
+    act(() => {
+      vi.advanceTimersByTime(300);
+    });
+
+    expect(handleSearch).not.toHaveBeenCalled();
   });
 
   it("shows clear button when input has value", () => {
@@ -73,8 +83,14 @@ describe("SearchInput", () => {
     const input = screen.getByRole("searchbox") as HTMLInputElement;
     fireEvent.change(input, { target: { value: "test" } });
 
-    fireEvent.click(screen.getByRole("button", { name: /effacer/i }));
+    // Let debounced value settle to "test" first
+    act(() => {
+      vi.advanceTimersByTime(300);
+    });
+    expect(handleSearch).toHaveBeenCalledWith("test");
+    handleSearch.mockClear();
 
+    fireEvent.click(screen.getByRole("button", { name: /effacer/i }));
     expect(input.value).toBe("");
 
     act(() => {

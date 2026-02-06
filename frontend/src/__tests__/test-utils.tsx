@@ -18,5 +18,3 @@ export function renderWithProviders(
 ) {
   return render(ui, { wrapper: AllProviders, ...options });
 }
-
-export { render };

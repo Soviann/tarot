@@ -1,5 +1,5 @@
 import { Search, X } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useDebounce } from "../../hooks/useDebounce";
 
 interface SearchInputProps {
@@ -17,8 +17,13 @@ export default function SearchInput({
 }: SearchInputProps) {
   const [query, setQuery] = useState("");
   const debounced = useDebounce(query, debounceMs);
+  const isFirstRender = useRef(true);
 
   useEffect(() => {
+    if (isFirstRender.current) {
+      isFirstRender.current = false;
+      return;
+    }
     onSearch(debounced);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [debounced]);

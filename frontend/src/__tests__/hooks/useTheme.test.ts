@@ -56,6 +56,38 @@ describe("useTheme", () => {
     expect(document.documentElement.classList.contains("dark")).toBe(true);
   });
 
+  it("respects prefers-color-scheme when no localStorage value", () => {
+    Object.defineProperty(window, "matchMedia", {
+      value: (query: string) => ({
+        addEventListener: () => {},
+        dispatchEvent: () => false,
+        matches: query === "(prefers-color-scheme: dark)",
+        media: query,
+        onchange: null,
+        removeEventListener: () => {},
+      }),
+      writable: true,
+    });
+
+    const { result } = renderHook(() => useTheme(), { wrapper });
+
+    expect(result.current.isDark).toBe(true);
+    expect(document.documentElement.classList.contains("dark")).toBe(true);
+
+    // Restore
+    Object.defineProperty(window, "matchMedia", {
+      value: (query: string) => ({
+        addEventListener: () => {},
+        dispatchEvent: () => false,
+        matches: false,
+        media: query,
+        onchange: null,
+        removeEventListener: () => {},
+      }),
+      writable: true,
+    });
+  });
+
   it("throws when used outside ThemeProvider", () => {
     expect(() => renderHook(() => useTheme())).toThrow();
   });

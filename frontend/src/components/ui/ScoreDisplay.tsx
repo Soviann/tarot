@@ -28,7 +28,7 @@ export default function ScoreDisplay({
 
   return (
     <span
-      className={`${getColorClass(displayed)} tabular-nums font-semibold ${className}`.trim()}
+      className={`${getColorClass(value)} tabular-nums font-semibold ${className}`.trim()}
     >
       {formatScore(displayed)}
     </span>

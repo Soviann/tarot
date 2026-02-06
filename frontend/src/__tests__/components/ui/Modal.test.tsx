@@ -45,7 +45,7 @@ describe("Modal", () => {
       </Modal>,
     );
 
-    fireEvent.keyDown(screen.getByRole("dialog"), { key: "Escape" });
+    fireEvent.keyDown(document, { key: "Escape" });
     expect(handleClose).toHaveBeenCalledOnce();
   });
 
@@ -57,7 +57,6 @@ describe("Modal", () => {
       </Modal>,
     );
 
-    // Click the backdrop (the outer overlay div)
     const dialog = screen.getByRole("dialog");
     fireEvent.click(dialog.parentElement!);
     expect(handleClose).toHaveBeenCalledOnce();
@@ -83,17 +82,57 @@ describe("Modal", () => {
     );
 
     const dialog = screen.getByRole("dialog");
-    // The portal renders directly on body, not inside #root
     expect(dialog.closest("#root")).toBeNull();
   });
 
-  it("has aria-modal attribute", () => {
+  it("has aria-modal and aria-labelledby attributes", () => {
     renderWithProviders(
       <Modal onClose={() => {}} open title="Titre">
         <p>Contenu</p>
       </Modal>,
     );
 
-    expect(screen.getByRole("dialog")).toHaveAttribute("aria-modal", "true");
+    const dialog = screen.getByRole("dialog");
+    expect(dialog).toHaveAttribute("aria-modal", "true");
+
+    const labelledBy = dialog.getAttribute("aria-labelledby");
+    expect(labelledBy).toBeTruthy();
+    const heading = document.getElementById(labelledBy!);
+    expect(heading?.textContent).toBe("Titre");
+  });
+
+  it("traps focus: Tab wraps from last to first focusable element", () => {
+    renderWithProviders(
+      <Modal onClose={() => {}} open title="Titre">
+        <button type="button">Action 1</button>
+        <button type="button">Action 2</button>
+      </Modal>,
+    );
+
+    const action2 = screen.getByText("Action 2");
+    action2.focus();
+
+    fireEvent.keyDown(document, { key: "Tab" });
+
+    // After Tab from the last button, focus wraps to the first focusable (close button)
+    const closeBtn = screen.getByRole("button", { name: /fermer/i });
+    expect(document.activeElement).toBe(closeBtn);
+  });
+
+  it("traps focus: Shift+Tab wraps from first to last focusable element", () => {
+    renderWithProviders(
+      <Modal onClose={() => {}} open title="Titre">
+        <button type="button">Action 1</button>
+        <button type="button">Action 2</button>
+      </Modal>,
+    );
+
+    const closeBtn = screen.getByRole("button", { name: /fermer/i });
+    closeBtn.focus();
+
+    fireEvent.keyDown(document, { key: "Tab", shiftKey: true });
+
+    const action2 = screen.getByText("Action 2");
+    expect(document.activeElement).toBe(action2);
   });
 });

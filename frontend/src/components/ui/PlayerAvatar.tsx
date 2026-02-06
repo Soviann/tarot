@@ -38,7 +38,11 @@ export default function PlayerAvatar({
   playerId,
   size = "md",
 }: PlayerAvatarProps) {
-  const initials = name.slice(0, 2).toUpperCase();
+  const parts = name.split(/[\s-]+/);
+  const initials =
+    parts.length > 1
+      ? (parts[0][0] + parts[1][0]).toUpperCase()
+      : name.slice(0, 2).toUpperCase();
   const colorIndex = playerId !== undefined ? playerId % 10 : hashCode(name) % 10;
   const colorClass = avatarColors[colorIndex];
 

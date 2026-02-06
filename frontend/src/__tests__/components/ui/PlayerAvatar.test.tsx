@@ -15,6 +15,18 @@ describe("PlayerAvatar", () => {
     expect(screen.getByText("A")).toBeInTheDocument();
   });
 
+  it("extracts initials from compound names with space", () => {
+    renderWithProviders(<PlayerAvatar name="Alice Martin" />);
+
+    expect(screen.getByText("AM")).toBeInTheDocument();
+  });
+
+  it("extracts initials from hyphenated names", () => {
+    renderWithProviders(<PlayerAvatar name="Jean-Pierre" />);
+
+    expect(screen.getByText("JP")).toBeInTheDocument();
+  });
+
   it("has role=img with accessible label", () => {
     renderWithProviders(<PlayerAvatar name="Bob" />);
 

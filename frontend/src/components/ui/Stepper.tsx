@@ -18,7 +18,11 @@ export default function Stepper({
   value,
 }: StepperProps) {
   return (
-    <div className={`flex items-center gap-3 ${className}`.trim()}>
+    <div
+      aria-label={label}
+      className={`flex items-center gap-3 ${className}`.trim()}
+      role="group"
+    >
       <button
         aria-label="Diminuer"
         className="flex size-11 items-center justify-center rounded-full border border-surface-border bg-surface-primary text-text-primary transition-colors hover:bg-surface-tertiary disabled:opacity-40"
@@ -28,7 +32,7 @@ export default function Stepper({
       >
         <Minus size={18} />
       </button>
-      <div className="min-w-12 text-center">
+      <div aria-valuemax={max} aria-valuemin={min} aria-valuenow={value} className="min-w-12 text-center" role="status">
         <div className="text-lg font-semibold tabular-nums text-text-primary">{value}</div>
         <div className="text-xs text-text-secondary">{label}</div>
       </div>

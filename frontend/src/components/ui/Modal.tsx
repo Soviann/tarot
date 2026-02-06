@@ -1,6 +1,6 @@
 import { X } from "lucide-react";
 import type { ReactNode } from "react";
-import { useCallback, useEffect, useRef } from "react";
+import { useCallback, useEffect, useId, useRef } from "react";
 import { createPortal } from "react-dom";
 
 interface ModalProps {
@@ -10,8 +10,12 @@ interface ModalProps {
   title: string;
 }
 
+const FOCUSABLE_SELECTOR =
+  'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"]), [contenteditable]';
+
 export default function Modal({ children, onClose, open, title }: ModalProps) {
   const dialogRef = useRef<HTMLDivElement>(null);
+  const titleId = useId();
 
   const handleKeyDown = useCallback(
     (e: KeyboardEvent) => {
@@ -21,9 +25,8 @@ export default function Modal({ children, onClose, open, title }: ModalProps) {
       }
 
       if (e.key === "Tab" && dialogRef.current) {
-        const focusable = dialogRef.current.querySelectorAll<HTMLElement>(
-          'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])',
-        );
+        const focusable =
+          dialogRef.current.querySelectorAll<HTMLElement>(FOCUSABLE_SELECTOR);
         if (focusable.length === 0) return;
 
         const first = focusable[0];
@@ -47,11 +50,9 @@ export default function Modal({ children, onClose, open, title }: ModalProps) {
     document.addEventListener("keydown", handleKeyDown);
     const previouslyFocused = document.activeElement as HTMLElement | null;
 
-    // Focus the first focusable element in the dialog
     const timer = setTimeout(() => {
-      const first = dialogRef.current?.querySelector<HTMLElement>(
-        'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])',
-      );
+      const first =
+        dialogRef.current?.querySelector<HTMLElement>(FOCUSABLE_SELECTOR);
       first?.focus();
     }, 0);
 
@@ -71,7 +72,7 @@ export default function Modal({ children, onClose, open, title }: ModalProps) {
       onClick={onClose}
     >
       <div
-        aria-label={title}
+        aria-labelledby={titleId}
         aria-modal="true"
         className="w-full max-w-lg rounded-t-2xl bg-surface-primary p-6 shadow-xl sm:rounded-2xl"
         onClick={(e) => e.stopPropagation()}
@@ -79,7 +80,9 @@ export default function Modal({ children, onClose, open, title }: ModalProps) {
         role="dialog"
       >
         <div className="mb-4 flex items-center justify-between">
-          <h2 className="text-lg font-semibold text-text-primary">{title}</h2>
+          <h2 className="text-lg font-semibold text-text-primary" id={titleId}>
+            {title}
+          </h2>
           <button
             aria-label="Fermer"
             className="rounded-full p-1 text-text-secondary transition-colors hover:bg-surface-tertiary"

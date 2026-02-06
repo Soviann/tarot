@@ -14,16 +14,17 @@ export function useAnimatedCounter(
   { animated = true, duration = 500 }: UseAnimatedCounterOptions = {},
 ): number {
   const [current, setCurrent] = useState(animated ? 0 : target);
+  const currentRef = useRef(animated ? 0 : target);
   const startRef = useRef<number | null>(null);
-  const fromRef = useRef(0);
 
   useEffect(() => {
     if (!animated) {
+      currentRef.current = target;
       setCurrent(target);
       return;
     }
 
-    fromRef.current = current;
+    const from = currentRef.current;
     startRef.current = null;
 
     const animate = (timestamp: number) => {
@@ -34,8 +35,9 @@ export function useAnimatedCounter(
       const elapsed = timestamp - startRef.current;
       const progress = Math.min(elapsed / duration, 1);
       const eased = easeOutCubic(progress);
-      const value = Math.round(fromRef.current + (target - fromRef.current) * eased);
+      const value = Math.round(from + (target - from) * eased);
 
+      currentRef.current = value;
       setCurrent(value);
 
       if (progress < 1) {
@@ -46,7 +48,6 @@ export function useAnimatedCounter(
     let frameId = requestAnimationFrame(animate);
 
     return () => cancelAnimationFrame(frameId);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [animated, duration, target]);
 
   return current;
