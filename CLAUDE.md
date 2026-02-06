@@ -19,7 +19,13 @@ tarot/
 │   └── tests/
 ├── frontend/         # React PWA — TypeScript
 │   └── src/
-├── docs/plans/       # Design documents
+│       ├── components/ui/  # Reusable UI components (design system)
+│       ├── hooks/          # Custom React hooks
+│       └── types/          # TypeScript enums mirroring backend
+├── docs/
+│   ├── plans/              # Design documents
+│   ├── frontend-usage.md   # Developer reference: components, hooks, tokens
+│   └── user-guide.md       # End-user guide: how to use the app
 ├── CLAUDE.md
 ├── README.md
 └── CHANGELOG.md
@@ -149,6 +155,13 @@ gh release create vX.Y.Z --generate-notes
 
 Update `CHANGELOG.md` under `## [Unreleased]`: `### Added|Changed|Fixed|Removed`
 Format: `- **Name**: Description`
+
+## Documentation
+
+Two living docs in `docs/` must be maintained:
+
+- **`docs/user-guide.md`** — end-user guide: update when features, screens, or workflows change
+- **`docs/frontend-usage.md`** — developer reference: update when components, hooks, or types are added/modified/removed
 
 ## Code Conventions
 

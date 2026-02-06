@@ -6,12 +6,21 @@ Le format est basé sur [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/)
 
 ## [Unreleased]
 
-### Changed
-
-- **Identifiants** : remplacement des UUID par des ID auto-incrémentés sur toutes les entités
-
 ### Added
 
+- **Design system** : thème Tailwind CSS 4 complet avec tokens de couleur (accent, surface, texte, score, contrat, avatar) et support du mode sombre via `@custom-variant dark`
+- **ThemeProvider** : contexte React + hook `useTheme` pour basculer light/dark avec persistance localStorage et respect de `prefers-color-scheme`
+- **Types frontend** : miroir TypeScript des enums backend (Contract, Chelem, GameStatus, Poignee, Side) en `as const`
+- **PlayerAvatar** : composant avatar avec initiales (support noms composés), couleur déterministe (10 couleurs) et 3 tailles (sm/md/lg)
+- **ContractBadge** : badge coloré par type de contrat (Petite/Garde/Garde Sans/Garde Contre)
+- **ScoreDisplay** : affichage de score avec couleur positive/négative/neutre, animation rAF et tabular-nums
+- **FAB** : bouton d'action flottant fixe, 56px, couleur accent, support disabled
+- **Modal** : dialogue en portail avec focus trap, fermeture Escape/backdrop, `aria-labelledby`, plein écran mobile
+- **Stepper** : contrôle incrémental −/+ avec bornes min/max, ARIA `role=group` et tap targets 44px
+- **SearchInput** : champ de recherche avec debounce configurable et bouton clear
+- **Hooks utilitaires** : `useAnimatedCounter` (animation rAF), `useDebounce` (délai configurable)
+- **Documentation** : guide utilisateur (`docs/user-guide.md`) et référence développeur (`docs/frontend-usage.md`)
+- **Tests frontend** : 61 tests (12 fichiers) couvrant tous les composants et hooks
 - **Initialisation du projet** : CLAUDE.md, README.md, CHANGELOG.md, document de conception
 - **Document de conception** : architecture complète et design UI de l'application de scores au Tarot
 - **Projet GitHub** : 12 issues créées et organisées sur le tableau Tarot - Roadmap
