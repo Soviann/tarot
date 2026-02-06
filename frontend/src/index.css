@@ -1,1 +1,70 @@
 @import "tailwindcss";
+@custom-variant dark (&:where(.dark, .dark *));
+
+@theme {
+  --animate-fade-in: fade-in 200ms ease-out;
+
+  --color-accent-50: #eef3f9;
+  --color-accent-100: #d5e1f0;
+  --color-accent-200: #aac3e1;
+  --color-accent-300: #7fa5d2;
+  --color-accent-400: #5487c3;
+  --color-accent-500: #1e3a5f;
+  --color-accent-600: #1a3354;
+  --color-accent-700: #152b48;
+  --color-accent-800: #11233d;
+  --color-accent-900: #0d1b31;
+
+  --color-avatar-0: #ef4444;
+  --color-avatar-1: #f97316;
+  --color-avatar-2: #eab308;
+  --color-avatar-3: #22c55e;
+  --color-avatar-4: #14b8a6;
+  --color-avatar-5: #3b82f6;
+  --color-avatar-6: #6366f1;
+  --color-avatar-7: #a855f7;
+  --color-avatar-8: #ec4899;
+  --color-avatar-9: #78716c;
+
+  --color-contract-garde: #2563eb;
+  --color-contract-garde-contre: #dc2626;
+  --color-contract-garde-sans: #ea580c;
+  --color-contract-petite: #16a34a;
+
+  --color-score-negative: #dc2626;
+  --color-score-positive: #16a34a;
+
+  --color-surface-border: #e5e7eb;
+  --color-surface-elevated: #ffffff;
+  --color-surface-primary: #ffffff;
+  --color-surface-secondary: #f9fafb;
+  --color-surface-tertiary: #f3f4f6;
+
+  --color-text-inverse: #ffffff;
+  --color-text-muted: #9ca3af;
+  --color-text-primary: #111827;
+  --color-text-secondary: #6b7280;
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+    translate: 0 4px;
+  }
+}
+
+@layer base {
+  .dark {
+    --color-score-negative: #f87171;
+    --color-score-positive: #4ade80;
+    --color-surface-border: #374151;
+    --color-surface-elevated: #1f2937;
+    --color-surface-primary: #111827;
+    --color-surface-secondary: #1f2937;
+    --color-surface-tertiary: #374151;
+    --color-text-inverse: #111827;
+    --color-text-muted: #6b7280;
+    --color-text-primary: #f9fafb;
+    --color-text-secondary: #9ca3af;
+  }
+}
