@@ -1,28 +1,30 @@
+import { BarChart3, Home, Users } from "lucide-react";
+import type { LucideIcon } from "lucide-react";
 import { NavLink } from "react-router-dom";
 
-const tabs = [
-  { icon: "\u{1F3E0}", label: "Accueil", to: "/" },
-  { icon: "\u{1F4CA}", label: "Stats", to: "/stats" },
-  { icon: "\u{1F465}", label: "Joueurs", to: "/players" },
-] as const;
+const tabs: ReadonlyArray<{ Icon: LucideIcon; label: string; to: string }> = [
+  { Icon: Home, label: "Accueil", to: "/" },
+  { Icon: BarChart3, label: "Stats", to: "/stats" },
+  { Icon: Users, label: "Joueurs", to: "/players" },
+];
 
 export default function BottomNav() {
   return (
-    <nav className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 pb-safe">
+    <nav className="fixed bottom-0 left-0 right-0 border-t border-surface-border bg-surface-primary pb-safe">
       <div className="flex justify-around">
-        {tabs.map(({ icon, label, to }) => (
+        {tabs.map(({ Icon, label, to }) => (
           <NavLink
             key={to}
             to={to}
             className={({ isActive }) =>
-              `flex flex-col items-center py-2 px-4 text-xs ${
+              `flex flex-col items-center px-4 py-2 text-xs transition-colors ${
                 isActive
-                  ? "text-[#1e3a5f] font-semibold"
-                  : "text-gray-500"
+                  ? "font-semibold text-accent-500"
+                  : "text-text-secondary"
               }`
             }
           >
-            <span className="text-xl">{icon}</span>
+            <Icon className="mb-0.5" size={20} />
             <span>{label}</span>
           </NavLink>
         ))}
