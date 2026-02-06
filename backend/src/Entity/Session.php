@@ -13,11 +13,7 @@ use App\State\SessionDetailProvider;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
-use Symfony\Bridge\Doctrine\IdGenerator\UuidGenerator;
-use Symfony\Bridge\Doctrine\Types\UuidType;
 use Symfony\Component\Serializer\Attribute\Groups;
-use Symfony\Component\Uid\Uuid;
-use Symfony\Component\Uid\UuidV7;
 use Symfony\Component\Validator\Constraints as Assert;
 
 #[ApiResource(
@@ -37,10 +33,9 @@ class Session
 {
     #[Groups(['session:read'])]
     #[ORM\Id]
-    #[ORM\Column(type: UuidType::NAME)]
-    #[ORM\GeneratedValue(strategy: 'CUSTOM')]
-    #[ORM\CustomIdGenerator(class: UuidGenerator::class)]
-    private ?Uuid $id = null;
+    #[ORM\Column]
+    #[ORM\GeneratedValue]
+    private ?int $id = null;
 
     #[Groups(['session:read'])]
     #[ORM\Column(type: 'datetime_immutable')]
@@ -66,7 +61,7 @@ class Session
     /**
      * Scores cumulés par joueur — propriété non persistée, alimentée par SessionDetailProvider.
      *
-     * @var array<array{playerId: string, playerName: string, score: int}>|null
+     * @var array<array{playerId: int, playerName: string, score: int}>|null
      */
     #[Groups(['session:detail'])]
     private ?array $cumulativeScores = null;
@@ -75,11 +70,10 @@ class Session
     {
         $this->createdAt = new \DateTimeImmutable();
         $this->games = new ArrayCollection();
-        $this->id = new UuidV7();
         $this->players = new ArrayCollection();
     }
 
-    public function getId(): ?Uuid
+    public function getId(): ?int
     {
         return $this->id;
     }
@@ -151,7 +145,7 @@ class Session
     }
 
     /**
-     * @return array<array{playerId: string, playerName: string, score: int}>|null
+     * @return array<array{playerId: int, playerName: string, score: int}>|null
      */
     public function getCumulativeScores(): ?array
     {
@@ -159,7 +153,7 @@ class Session
     }
 
     /**
-     * @param array<array{playerId: string, playerName: string, score: int}> $cumulativeScores
+     * @param array<array{playerId: int, playerName: string, score: int}> $cumulativeScores
      */
     public function setCumulativeScores(array $cumulativeScores): static
     {

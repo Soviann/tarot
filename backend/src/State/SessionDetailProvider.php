@@ -38,7 +38,7 @@ final readonly class SessionDetailProvider implements ProviderInterface
     }
 
     /**
-     * @return array<array{playerId: string, playerName: string, score: int}>
+     * @return array<array{playerId: int, playerName: string, score: int}>
      */
     private function computeCumulativeScores(Session $session): array
     {
@@ -52,9 +52,9 @@ final readonly class SessionDetailProvider implements ProviderInterface
             ORDER BY p.name ASC
             DQL;
 
-        /** @var array<array{playerId: string, playerName: string, totalScore: string}> $results */
+        /** @var array<array{playerId: int, playerName: string, totalScore: string}> $results */
         $results = $this->em->createQuery($dql)
-            ->setParameter('session', $session->getId()?->toBinary())
+            ->setParameter('session', $session->getId())
             ->getResult();
 
         return \array_map(static fn (array $row) => [
