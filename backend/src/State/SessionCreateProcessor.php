@@ -33,7 +33,7 @@ final readonly class SessionCreateProcessor implements ProcessorInterface
         foreach ($data->getPlayers() as $player) {
             $id = $player->getId();
             \assert(null !== $id);
-            $playerIds[] = $id->toBinary();
+            $playerIds[] = $id;
         }
 
         $existing = $this->findActiveSessionWithSamePlayers($playerIds, \count($playerIds));
@@ -46,9 +46,9 @@ final readonly class SessionCreateProcessor implements ProcessorInterface
     }
 
     /**
-     * @param string[] $playerIdBinaries
+     * @param int[] $playerIds
      */
-    private function findActiveSessionWithSamePlayers(array $playerIdBinaries, int $count): ?Session
+    private function findActiveSessionWithSamePlayers(array $playerIds, int $count): ?Session
     {
         $dql = <<<'DQL'
             SELECT s FROM App\Entity\Session s
@@ -62,7 +62,7 @@ final readonly class SessionCreateProcessor implements ProcessorInterface
         /** @var Session[] $candidates */
         $candidates = $this->em->createQuery($dql)
             ->setParameter('count', $count)
-            ->setParameter('playerIds', $playerIdBinaries)
+            ->setParameter('playerIds', $playerIds)
             ->getResult();
 
         // Vérifier qu'une session candidate a exactement le bon nombre de joueurs (pas plus)

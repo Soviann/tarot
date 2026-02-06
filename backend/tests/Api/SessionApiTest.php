@@ -42,7 +42,7 @@ class SessionApiTest extends ApiTestCase
     {
         // Créer la session directement pour garantir l'état initial
         $session = $this->createSessionWithPlayers('Alice', 'Bob', 'Charlie', 'Diana', 'Eve');
-        $sessionId = $session->getId()->toString();
+        $sessionId = $session->getId();
 
         // Récupérer les IRIs des joueurs de la session
         $playerIris = [];

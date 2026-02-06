@@ -6,6 +6,10 @@ Le format est basé sur [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/)
 
 ## [Unreleased]
 
+### Changed
+
+- **Identifiants** : remplacement des UUID par des ID auto-incrémentés sur toutes les entités
+
 ### Added
 
 - **Initialisation du projet** : CLAUDE.md, README.md, CHANGELOG.md, document de conception
