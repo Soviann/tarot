@@ -1,0 +1,19 @@
+{
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "for f in $CLAUDE_FILE_PATHS; do [[ \"$f\" == *.php ]] && rel=\"${f#$PWD/}\" && [[ \"$rel\" == backend/* ]] && ddev exec bash -c \"cd /var/www/html/backend && vendor/bin/php-cs-fixer fix --quiet '${rel#backend/}'\" 2>/dev/null; done; exit 0"
+          },
+          {
+            "type": "command",
+            "command": "for f in $CLAUDE_FILE_PATHS; do [[ \"$f\" == *.php ]] && rel=\"${f#$PWD/}\" && [[ \"$rel\" == backend/* ]] && ddev exec bash -c \"cd /var/www/html/backend && vendor/bin/phpstan analyse --no-progress '${rel#backend/}'\"; done; exit 0"
+          }
+        ]
+      }
+    ]
+  }
+}
