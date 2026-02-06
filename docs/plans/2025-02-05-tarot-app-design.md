@@ -13,7 +13,7 @@ A mobile-first PWA for tracking scores in 5-player French Tarot following offici
 
 | Field     | Type   | Notes          |
 |-----------|--------|----------------|
-| id        | UUID   | PK             |
+| id        | int    | PK, auto-increment |
 | name      | string | unique, required |
 | createdAt | datetime |              |
 
@@ -21,7 +21,7 @@ A mobile-first PWA for tracking scores in 5-player French Tarot following offici
 
 | Field     | Type     | Notes                          |
 |-----------|----------|--------------------------------|
-| id        | UUID     | PK                             |
+| id        | int      | PK, auto-increment             |
 | createdAt | datetime |                                |
 | isActive  | bool     | default true                   |
 | players   | M2M      | exactly 5 Players (ordered)    |
@@ -30,7 +30,7 @@ A mobile-first PWA for tracking scores in 5-player French Tarot following offici
 
 | Field        | Type   | Notes                                              |
 |--------------|--------|-----------------------------------------------------|
-| id           | UUID   | PK                                                  |
+| id           | int    | PK, auto-increment                                  |
 | session      | M2O    | → Session                                           |
 | status       | enum   | in_progress, completed                              |
 | taker        | M2O    | → Player                                            |
@@ -49,7 +49,7 @@ A mobile-first PWA for tracking scores in 5-player French Tarot following offici
 
 | Field  | Type | Notes                                  |
 |--------|------|----------------------------------------|
-| id     | UUID | PK                                     |
+| id     | int  | PK, auto-increment                     |
 | game   | M2O  | → Game                                 |
 | player | M2O  | → Player                               |
 | score  | int  | points gained/lost for this game       |
@@ -234,7 +234,7 @@ Not part of initial implementation. Data model extension planned:
 
 ```
 StarEvent
-├── id (uuid)
+├── id (int, auto-increment)
 ├── session (M2O → Session)
 ├── player (M2O → Player)
 ├── createdAt
