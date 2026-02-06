@@ -54,9 +54,10 @@ ddev exec bash -c 'cd /var/www/html/frontend && npm run dev'    # Dev server (au
 ddev exec bash -c 'cd /var/www/html/frontend && npm test'       # Vitest
 ddev exec bash -c 'cd /var/www/html/frontend && npm run build'  # Production build
 
-# Quality — only on modified files
-ddev exec vendor/bin/php-cs-fixer fix <file>
-ddev exec vendor/bin/phpstan analyse <file>
+# Quality (auto-run via PostToolUse hook on Write/Edit of .php files)
+# Manual usage if needed:
+ddev exec bash -c 'cd /var/www/html/backend && vendor/bin/php-cs-fixer fix <file>'
+ddev exec bash -c 'cd /var/www/html/backend && vendor/bin/phpstan analyse <file>'
 ```
 
 ## Git
@@ -153,6 +154,7 @@ Format: `- **Name**: Description`
 - **Alphabetical ordering**: constructor assignments, associative array keys, YAML keys
 - **DRY**: extract at 3+ occurrences (2 if complex)
 - **Backend enums**: PHP backed enums for all fixed value sets
+- **Backend quality**: PHP CS Fixer (`@Symfony` + `@Symfony:risky`) and PHPStan (level max) — auto-enforced by PostToolUse hook
 - **API responses**: use API Platform serialization groups, not custom DTOs unless needed
 - **Frontend**: functional components, custom hooks for API calls, TypeScript strict mode
 
