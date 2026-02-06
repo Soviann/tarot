@@ -42,7 +42,7 @@ final readonly class GameCreateProcessor implements ProcessorInterface
         $inProgress = $this->em->createQuery(
             'SELECT COUNT(g.id) FROM App\Entity\Game g WHERE g.session = :sessionId AND g.status = :status'
         )
-            ->setParameter('sessionId', $session->getId()?->toBinary())
+            ->setParameter('sessionId', $session->getId())
             ->setParameter('status', GameStatus::InProgress)
             ->getSingleScalarResult();
 
@@ -54,7 +54,7 @@ final readonly class GameCreateProcessor implements ProcessorInterface
         $maxPosition = $this->em->createQuery(
             'SELECT MAX(g.position) FROM App\Entity\Game g WHERE g.session = :sessionId'
         )
-            ->setParameter('sessionId', $session->getId()?->toBinary())
+            ->setParameter('sessionId', $session->getId())
             ->getSingleScalarResult();
 
         $data->setPosition(((int) $maxPosition) + 1);

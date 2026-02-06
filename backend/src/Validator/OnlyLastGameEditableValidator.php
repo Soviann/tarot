@@ -30,7 +30,7 @@ class OnlyLastGameEditableValidator extends ConstraintValidator
         $maxPosition = (int) $this->em->createQuery(
             'SELECT MAX(g.position) FROM App\Entity\Game g WHERE g.session = :sessionId'
         )
-            ->setParameter('sessionId', $value->getSession()->getId()?->toBinary())
+            ->setParameter('sessionId', $value->getSession()->getId())
             ->getSingleScalarResult();
 
         if ($value->getPosition() < $maxPosition) {
