@@ -153,21 +153,27 @@ Accessible via l'onglet **Stats** dans la barre de navigation.
 
 ### Classement global
 
-- Classement de tous les joueurs par score total
-- Nombre de parties jouées
-- Taux de victoire
+L'écran principal des statistiques affiche :
+
+- **Métriques** : nombre total de donnes et de sessions jouées
+- **Classement** : tous les joueurs triés par score total décroissant, avec nombre de donnes jouées et taux de victoire en tant que preneur
+- **Répartition des contrats** : graphique à barres horizontales montrant combien de donnes ont été jouées par type de contrat (Petite, Garde, etc.)
+
+Appuyer sur un joueur dans le classement pour voir ses statistiques détaillées.
 
 ### Statistiques par joueur
 
-- Nombre de parties jouées
-- Score moyen
-- Répartition des contrats pris
-- Meilleure et pire donne
+L'écran de détail d'un joueur affiche :
 
-### Statistiques par session
+- **Métriques clés** : donnes jouées, taux de victoire (en tant que preneur), score moyen, sessions jouées
+- **Meilleur et pire score** : les scores extrêmes du joueur
+- **Répartition des rôles** : barre visuelle montrant combien de fois le joueur a été preneur, partenaire ou défenseur
+- **Contrats pris** : graphique à barres des contrats joués en tant que preneur
+- **Évolution des scores** : graphique linéaire des 50 derniers scores
 
-- Évolution des scores au fil des donnes
-- Détail donne par donne
+### Évolution des scores en session
+
+Depuis l'**écran de session**, un graphique d'évolution apparaît automatiquement dès qu'au moins **2 donnes sont terminées**. Il montre les scores cumulés de chaque joueur au fil des donnes, avec une ligne de couleur par joueur.
 
 ---
 

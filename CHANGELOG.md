@@ -8,6 +8,13 @@ Le format est basé sur [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/)
 
 ### Added
 
+- **Statistiques globales** : écran `/stats` avec classement des joueurs (score total, taux de victoire), métriques clés (total donnes/sessions) et répartition des contrats en barres horizontales
+- **Statistiques par joueur** : écran `/stats/player/:id` avec métriques (donnes jouées, score moyen, meilleur/pire), répartition des rôles, contrats pris et graphique d'évolution des scores récents
+- **Évolution des scores en session** : graphique linéaire dans `SessionPage` montrant les scores cumulés de chaque joueur au fil des donnes (visible à partir de 2 donnes terminées)
+- **API statistiques backend** : `GET /api/statistics` (classement, répartition contrats, totaux) et `GET /api/statistics/players/{id}` (statistiques détaillées par joueur)
+- **Composants graphiques** : `Leaderboard`, `ContractDistributionChart`, `ScoreTrendChart`, `ScoreEvolutionChart` (Recharts)
+- **Hooks** : `useGlobalStats`, `usePlayerStats` pour la récupération des données statistiques via TanStack Query
+- **Types API** : `GlobalStatistics`, `LeaderboardEntry`, `ContractDistributionEntry`, `PlayerStatistics`, `PlayerContractEntry`, `RecentScoreEntry`
 - **Formulaire de saisie des donnes** : wizard en 2 étapes — NewGameModal (preneur + contrat) et CompleteGameModal (partenaire, oudlers, points, bonus, aperçu scores)
 - **Hook `useCompleteGame`** : mutation PATCH avec `application/merge-patch+json` pour compléter ou modifier une donne, avec invalidation du cache session
 - **Service `calculateScore`** : miroir frontend du ScoreCalculator backend pour aperçu des scores en temps réel (base, poignée, petit au bout, chelem, distribution preneur/partenaire/défenseurs)

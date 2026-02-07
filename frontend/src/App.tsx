@@ -5,6 +5,7 @@ import Layout from "./components/Layout";
 import { ThemeProvider } from "./hooks/useTheme";
 import Home from "./pages/Home";
 import Players from "./pages/Players";
+import PlayerStats from "./pages/PlayerStats";
 import SessionPage from "./pages/SessionPage";
 import Stats from "./pages/Stats";
 
@@ -21,6 +22,7 @@ export default function App() {
               <Route path="/players" element={<Players />} />
               <Route path="/sessions/:id" element={<SessionPage />} />
               <Route path="/stats" element={<Stats />} />
+              <Route path="/stats/player/:id" element={<PlayerStats />} />
             </Route>
           </Routes>
         </BrowserRouter>

@@ -69,6 +69,12 @@ import type { HydraCollection, Player } from "./types/api";
 | `Session` | `id: number`, `createdAt: string`, `isActive: boolean`, `players: SessionPlayer[]` |
 | `SessionDetail` | `id`, `createdAt`, `isActive`, `players: GamePlayer[]`, `games: Game[]`, `cumulativeScores: CumulativeScore[]` |
 | `SessionPlayer` | `name: string` |
+| `ContractDistributionEntry` | `contract: Contract`, `count: number`, `percentage: number` |
+| `GlobalStatistics` | `contractDistribution: ContractDistributionEntry[]`, `leaderboard: LeaderboardEntry[]`, `totalGames`, `totalSessions` |
+| `LeaderboardEntry` | `gamesAsTaker`, `gamesPlayed`, `playerId`, `playerName`, `totalScore`, `winRate`, `wins` |
+| `PlayerContractEntry` | `contract: Contract`, `count`, `winRate`, `wins` |
+| `PlayerStatistics` | `averageScore`, `bestGameScore`, `contractDistribution`, `gamesAsDefender`, `gamesAsPartner`, `gamesAsTaker`, `gamesPlayed`, `player`, `recentScores`, `sessionsPlayed`, `winRateAsTaker`, `worstGameScore` |
+| `RecentScoreEntry` | `date: string`, `gameId: number`, `score: number`, `sessionId: number` |
 
 ### `ApiError`
 
@@ -259,6 +265,38 @@ completeGame.mutate({
 | `isError` | `boolean` | `true` si erreur |
 | `error` | `ApiError \| null` | Détails de l'erreur |
 
+### `useGlobalStats`
+
+**Fichier** : `hooks/useGlobalStats.ts`
+
+Récupère les statistiques globales (classement, répartition des contrats, totaux) via l'API.
+
+```ts
+const { isPending, stats } = useGlobalStats();
+```
+
+| Retour | Type | Description |
+|--------|------|-------------|
+| `stats` | `GlobalStatistics \| null` | Statistiques globales (`null` pendant le chargement) |
+| `isPending` | `boolean` | `true` pendant le chargement initial |
+| …autres | — | Tous les champs de `UseQueryResult` |
+
+### `usePlayerStats`
+
+**Fichier** : `hooks/usePlayerStats.ts`
+
+Récupère les statistiques détaillées d'un joueur via l'API.
+
+```ts
+const { isPending, stats } = usePlayerStats(playerId);
+```
+
+| Retour | Type | Description |
+|--------|------|-------------|
+| `stats` | `PlayerStatistics \| null` | Statistiques du joueur (`null` pendant le chargement) |
+| `isPending` | `boolean` | `true` pendant le chargement initial |
+| …autres | — | Tous les champs de `UseQueryResult` |
+
 ### `useDebounce`
 
 **Fichier** : `hooks/useDebounce.ts`
@@ -337,6 +375,43 @@ const { isPending, sessions } = useSessions();
 
 **Hooks utilisés** : `usePlayers`, `useCreatePlayer`
 
+### Statistiques globales (`Stats`)
+
+**Fichier** : `pages/Stats.tsx`
+
+Écran de statistiques globales avec classement, métriques et répartition des contrats.
+
+**Route** : `/stats`
+
+**Fonctionnalités** :
+- Métriques clés : total de donnes et de sessions
+- Classement (`Leaderboard`) trié par score total décroissant
+- Répartition des contrats (`ContractDistributionChart`) en barres horizontales
+- Navigation vers le détail d'un joueur au clic
+- États : chargement, erreur
+
+**Hooks utilisés** : `useGlobalStats`, `useNavigate`
+
+### Statistiques joueur (`PlayerStats`)
+
+**Fichier** : `pages/PlayerStats.tsx`
+
+Écran de statistiques détaillées d'un joueur.
+
+**Route** : `/stats/player/:id`
+
+**Fonctionnalités** :
+- Avatar, nom du joueur
+- Métriques clés : donnes jouées, taux de victoire, score moyen, sessions
+- Meilleur et pire score
+- Répartition des rôles (preneur / partenaire / défenseur) en barre visuelle
+- Répartition des contrats pris (`ContractDistributionChart`)
+- Évolution des scores récents (`ScoreTrendChart`)
+- Bouton retour vers `/stats`
+- États : chargement, joueur introuvable
+
+**Hooks utilisés** : `usePlayerStats`, `useNavigate`
+
 ### Session (`SessionPage`)
 
 **Fichier** : `pages/SessionPage.tsx`
@@ -347,6 +422,7 @@ const { isPending, sessions } = useSessions();
 
 **Fonctionnalités** :
 - Tableau des scores cumulés (composant `Scoreboard`) avec avatars et scores colorés
+- Graphique d'évolution des scores (`ScoreEvolutionChart`) visible quand ≥ 2 donnes terminées
 - Bandeau « donne en cours » (`InProgressBanner`) si une donne est au statut `in_progress`
 - Historique des donnes terminées (`GameList`) en ordre anti-chronologique
 - Bouton FAB (+) pour démarrer une nouvelle donne (désactivé si donne en cours)
@@ -478,6 +554,50 @@ Modal de complétion (étape 2) ou modification d'une donne. Titre dynamique sel
 - Section bonus repliable (poignée, petit au bout, chelem)
 - Aperçu des scores en temps réel via `calculateScore`
 - Pré-remplissage automatique en mode édition (donne complétée)
+
+### `Leaderboard`
+
+**Fichier** : `components/Leaderboard.tsx`
+
+Liste classée des joueurs avec rang, avatar, nom, score total, nombre de donnes et taux de victoire.
+
+| Prop | Type | Description |
+|------|------|-------------|
+| `entries` | `LeaderboardEntry[]` | *requis* — classement trié par score décroissant |
+| `onPlayerClick` | `(id: number) => void` | *requis* — callback au clic sur un joueur |
+
+### `ContractDistributionChart`
+
+**Fichier** : `components/ContractDistributionChart.tsx`
+
+Graphique à barres horizontales (Recharts) affichant la répartition des contrats.
+
+| Prop | Type | Description |
+|------|------|-------------|
+| `data` | `ContractDistributionEntry[]` | *requis* — données de répartition |
+
+### `ScoreTrendChart`
+
+**Fichier** : `components/ScoreTrendChart.tsx`
+
+Graphique linéaire (Recharts) affichant l'évolution des scores récents d'un joueur avec ligne de référence y=0.
+
+| Prop | Type | Description |
+|------|------|-------------|
+| `data` | `RecentScoreEntry[]` | *requis* — scores récents (ordre chronologique inversé depuis l'API, le composant les remet en ordre) |
+
+### `ScoreEvolutionChart`
+
+**Fichier** : `components/ScoreEvolutionChart.tsx`
+
+Graphique linéaire (Recharts) affichant l'évolution des scores cumulés de tous les joueurs au fil des donnes. Une ligne par joueur, colorée par couleur d'avatar.
+
+| Prop | Type | Description |
+|------|------|-------------|
+| `games` | `Game[]` | *requis* — toutes les donnes de la session |
+| `players` | `GamePlayer[]` | *requis* — les 5 joueurs de la session |
+
+**Fonction utilitaire exportée** : `computeScoreEvolution(games, players)` — calcule les scores cumulés par position de donne.
 
 ---
 
