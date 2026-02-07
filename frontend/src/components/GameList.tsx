@@ -3,10 +3,11 @@ import { ContractBadge, PlayerAvatar, ScoreDisplay } from "./ui";
 
 interface GameListProps {
   games: Game[];
+  onDeleteLast: () => void;
   onEditLast: () => void;
 }
 
-export default function GameList({ games, onEditLast }: GameListProps) {
+export default function GameList({ games, onDeleteLast, onEditLast }: GameListProps) {
   if (games.length === 0) {
     return (
       <p className="py-8 text-center text-sm text-text-muted">
@@ -49,13 +50,22 @@ export default function GameList({ games, onEditLast }: GameListProps) {
             <div className="flex items-center gap-2">
               <ScoreDisplay animated={false} value={takerScore} />
               {game.position === maxPosition && (
-                <button
-                  className="rounded-lg bg-surface-elevated px-2 py-1 text-xs font-medium text-text-secondary"
-                  onClick={onEditLast}
-                  type="button"
-                >
-                  Modifier
-                </button>
+                <>
+                  <button
+                    className="rounded-lg bg-surface-elevated px-2 py-1 text-xs font-medium text-text-secondary"
+                    onClick={onEditLast}
+                    type="button"
+                  >
+                    Modifier
+                  </button>
+                  <button
+                    className="rounded-lg bg-red-500/10 px-2 py-1 text-xs font-medium text-red-500"
+                    onClick={onDeleteLast}
+                    type="button"
+                  >
+                    Supprimer
+                  </button>
+                </>
               )}
             </div>
           </li>

@@ -3,12 +3,14 @@ import userEvent from "@testing-library/user-event";
 import SessionPage from "../../pages/SessionPage";
 import * as useCompleteGameModule from "../../hooks/useCompleteGame";
 import * as useCreateGameModule from "../../hooks/useCreateGame";
+import * as useDeleteGameModule from "../../hooks/useDeleteGame";
 import * as useSessionModule from "../../hooks/useSession";
 import { renderWithProviders } from "../test-utils";
 import type { SessionDetail } from "../../types/api";
 
 vi.mock("../../hooks/useCompleteGame");
 vi.mock("../../hooks/useCreateGame");
+vi.mock("../../hooks/useDeleteGame");
 vi.mock("../../hooks/useSession");
 
 const mockNavigate = vi.fn();
@@ -138,6 +140,25 @@ function setupMocks(overrides?: {
     submittedAt: 0,
     variables: undefined,
   } as unknown as ReturnType<typeof useCompleteGameModule.useCompleteGame>);
+
+  vi.mocked(useDeleteGameModule.useDeleteGame).mockReturnValue({
+    context: undefined,
+    data: undefined,
+    error: null,
+    failureCount: 0,
+    failureReason: null,
+    isError: false,
+    isIdle: true,
+    isPaused: false,
+    isPending: false,
+    isSuccess: false,
+    mutate: vi.fn(),
+    mutateAsync: vi.fn(),
+    reset: vi.fn(),
+    status: "idle",
+    submittedAt: 0,
+    variables: undefined,
+  } as unknown as ReturnType<typeof useDeleteGameModule.useDeleteGame>);
 
   return { createGameMutate };
 }
@@ -305,5 +326,25 @@ describe("SessionPage", () => {
     await userEvent.click(screen.getByRole("button", { name: "Modifier" }));
 
     expect(screen.getByText("Modifier la donne")).toBeInTheDocument();
+  });
+
+  it("opens delete modal when Supprimer is clicked on last completed game", async () => {
+    setupMocks();
+    renderWithProviders(<SessionPage />);
+
+    await userEvent.click(screen.getByRole("button", { name: "Supprimer" }));
+
+    expect(screen.getByText("Supprimer la donne")).toBeInTheDocument();
+  });
+
+  it("opens delete modal when Annuler is clicked on in-progress game", async () => {
+    setupMocks({
+      useSession: { data: mockSessionWithInProgress, session: mockSessionWithInProgress },
+    });
+    renderWithProviders(<SessionPage />);
+
+    await userEvent.click(screen.getByRole("button", { name: "Annuler" }));
+
+    expect(screen.getByText("Supprimer la donne")).toBeInTheDocument();
   });
 });

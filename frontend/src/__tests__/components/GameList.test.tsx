@@ -49,7 +49,7 @@ const games: Game[] = [
 describe("GameList", () => {
   it("renders games in reverse position order (latest first)", () => {
     renderWithProviders(
-      <GameList games={games} onEditLast={() => {}} />,
+      <GameList games={games} onDeleteLast={() => {}} onEditLast={() => {}} />,
     );
 
     const items = screen.getAllByRole("listitem");
@@ -61,7 +61,7 @@ describe("GameList", () => {
 
   it("shows taker name for each game", () => {
     renderWithProviders(
-      <GameList games={games} onEditLast={() => {}} />,
+      <GameList games={games} onDeleteLast={() => {}} onEditLast={() => {}} />,
     );
 
     expect(screen.getByText("Alice")).toBeInTheDocument();
@@ -70,7 +70,7 @@ describe("GameList", () => {
 
   it("shows partner name or Seul", () => {
     renderWithProviders(
-      <GameList games={games} onEditLast={() => {}} />,
+      <GameList games={games} onDeleteLast={() => {}} onEditLast={() => {}} />,
     );
 
     expect(screen.getByText("avec Bob")).toBeInTheDocument();
@@ -79,7 +79,7 @@ describe("GameList", () => {
 
   it("shows taker score from scoreEntries", () => {
     renderWithProviders(
-      <GameList games={games} onEditLast={() => {}} />,
+      <GameList games={games} onDeleteLast={() => {}} onEditLast={() => {}} />,
     );
 
     // Charlie's score in game 1: +120, Alice's score in game 2: +200
@@ -90,7 +90,7 @@ describe("GameList", () => {
   it("shows edit button only on the last game (highest position)", async () => {
     const onEditLast = vi.fn();
     renderWithProviders(
-      <GameList games={games} onEditLast={onEditLast} />,
+      <GameList games={games} onDeleteLast={() => {}} onEditLast={onEditLast} />,
     );
 
     const editButtons = screen.getAllByRole("button", { name: "Modifier" });
@@ -100,9 +100,22 @@ describe("GameList", () => {
     expect(onEditLast).toHaveBeenCalledOnce();
   });
 
+  it("shows delete button only on the last game and calls onDeleteLast", async () => {
+    const onDeleteLast = vi.fn();
+    renderWithProviders(
+      <GameList games={games} onDeleteLast={onDeleteLast} onEditLast={() => {}} />,
+    );
+
+    const deleteButtons = screen.getAllByRole("button", { name: "Supprimer" });
+    expect(deleteButtons).toHaveLength(1);
+
+    await userEvent.click(deleteButtons[0]);
+    expect(onDeleteLast).toHaveBeenCalledOnce();
+  });
+
   it("renders empty state when no games", () => {
     renderWithProviders(
-      <GameList games={[]} onEditLast={() => {}} />,
+      <GameList games={[]} onDeleteLast={() => {}} onEditLast={() => {}} />,
     );
 
     expect(screen.getByText("Aucune donne jouée")).toBeInTheDocument();
