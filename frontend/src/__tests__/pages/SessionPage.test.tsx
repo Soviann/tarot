@@ -1,13 +1,15 @@
 import { screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import SessionPage from "../../pages/SessionPage";
-import * as useSessionModule from "../../hooks/useSession";
+import * as useCompleteGameModule from "../../hooks/useCompleteGame";
 import * as useCreateGameModule from "../../hooks/useCreateGame";
+import * as useSessionModule from "../../hooks/useSession";
 import { renderWithProviders } from "../test-utils";
 import type { SessionDetail } from "../../types/api";
 
-vi.mock("../../hooks/useSession");
+vi.mock("../../hooks/useCompleteGame");
 vi.mock("../../hooks/useCreateGame");
+vi.mock("../../hooks/useSession");
 
 const mockNavigate = vi.fn();
 vi.mock("react-router-dom", async (importOriginal) => {
@@ -117,6 +119,25 @@ function setupMocks(overrides?: {
     variables: undefined,
     ...overrides?.createGame,
   } as unknown as ReturnType<typeof useCreateGameModule.useCreateGame>);
+
+  vi.mocked(useCompleteGameModule.useCompleteGame).mockReturnValue({
+    context: undefined,
+    data: undefined,
+    error: null,
+    failureCount: 0,
+    failureReason: null,
+    isError: false,
+    isIdle: true,
+    isPaused: false,
+    isPending: false,
+    isSuccess: false,
+    mutate: vi.fn(),
+    mutateAsync: vi.fn(),
+    reset: vi.fn(),
+    status: "idle",
+    submittedAt: 0,
+    variables: undefined,
+  } as unknown as ReturnType<typeof useCompleteGameModule.useCompleteGame>);
 
   return { createGameMutate };
 }
@@ -255,5 +276,34 @@ describe("SessionPage", () => {
     await userEvent.click(screen.getByRole("button", { name: "Retour" }));
 
     expect(mockNavigate).toHaveBeenCalledWith("/");
+  });
+
+  it("opens NewGameModal when FAB is clicked", async () => {
+    setupMocks();
+    renderWithProviders(<SessionPage />);
+
+    await userEvent.click(screen.getByRole("button", { name: "Nouvelle donne" }));
+
+    expect(screen.getByText("Nouvelle donne", { selector: "h2" })).toBeInTheDocument();
+  });
+
+  it("opens CompleteGameModal when Compléter is clicked", async () => {
+    setupMocks({
+      useSession: { data: mockSessionWithInProgress, session: mockSessionWithInProgress },
+    });
+    renderWithProviders(<SessionPage />);
+
+    await userEvent.click(screen.getByRole("button", { name: "Compléter" }));
+
+    expect(screen.getByText("Compléter la donne")).toBeInTheDocument();
+  });
+
+  it("opens edit modal when Modifier is clicked on last game", async () => {
+    setupMocks();
+    renderWithProviders(<SessionPage />);
+
+    await userEvent.click(screen.getByRole("button", { name: "Modifier" }));
+
+    expect(screen.getByText("Modifier la donne")).toBeInTheDocument();
   });
 });

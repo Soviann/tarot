@@ -8,6 +8,11 @@ Le format est basé sur [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/)
 
 ### Added
 
+- **Formulaire de saisie des donnes** : wizard en 2 étapes — NewGameModal (preneur + contrat) et CompleteGameModal (partenaire, oudlers, points, bonus, aperçu scores)
+- **Hook `useCompleteGame`** : mutation PATCH avec `application/merge-patch+json` pour compléter ou modifier une donne, avec invalidation du cache session
+- **Service `calculateScore`** : miroir frontend du ScoreCalculator backend pour aperçu des scores en temps réel (base, poignée, petit au bout, chelem, distribution preneur/partenaire/défenseurs)
+- **Composant `NewGameModal`** : sélection du preneur (avatars) et du contrat (grille colorée 2×2)
+- **Composant `CompleteGameModal`** : formulaire complet avec section bonus repliable, aperçu des scores, mode édition avec pré-remplissage
 - **Écran de session** : tableau des scores cumulés (Scoreboard), bandeau donne en cours (InProgressBanner), historique des donnes (GameList), bouton FAB nouvelle donne, navigation retour
 - **Hook `useSession`** : récupération du détail d'une session (joueurs, donnes, scores cumulés) via TanStack Query
 - **Hook `useCreateGame`** : mutation POST pour créer une nouvelle donne avec invalidation du cache session
@@ -40,7 +45,7 @@ Le format est basé sur [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/)
 - **SearchInput** : champ de recherche avec debounce configurable et bouton clear
 - **Hooks utilitaires** : `useAnimatedCounter` (animation rAF), `useDebounce` (délai configurable)
 - **Documentation** : guide utilisateur (`docs/user-guide.md`) et référence développeur (`docs/frontend-usage.md`)
-- **Tests frontend** : 117 tests (20 fichiers) couvrant tous les composants, hooks et pages
+- **Tests frontend** : 207 tests (30 fichiers) couvrant tous les composants, hooks, services et pages
 - **Initialisation du projet** : CLAUDE.md, README.md, CHANGELOG.md, document de conception
 - **Document de conception** : architecture complète et design UI de l'application de scores au Tarot
 - **Projet GitHub** : 12 issues créées et organisées sur le tableau Tarot - Roadmap
