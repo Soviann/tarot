@@ -36,11 +36,14 @@ Application mobile-first (PWA) pour le suivi des scores au Tarot à 5 joueurs, s
 git clone git@github.com:Soviann/tarot.git
 cd tarot
 
-# Démarrer l'environnement
+# Démarrer l'environnement (installe les dépendances PHP et Node automatiquement)
 ddev start
 ddev composer install
-ddev exec bin/console doctrine:migrations:migrate -n
+ddev exec bin/console doctrine:database:create -n   # Créer la base de données
+ddev exec bin/console doctrine:migrations:migrate -n # Appliquer les migrations
 ```
+
+> **Note** : le serveur de développement frontend (Vite) est lancé automatiquement par DDEV via un daemon configuré dans `.ddev/config.yaml`. Pas besoin de le démarrer manuellement.
 
 ### Accès
 
@@ -71,4 +74,7 @@ Les issues et la roadmap sont suivies sur le tableau [Tarot - Roadmap](https://g
 
 ## Documentation
 
+- [Guide utilisateur](docs/user-guide.md) — comment utiliser l'application
+- [Guide de déploiement](docs/deployment.md) — héberger sur un VPS OVH
+- [Référence frontend](docs/frontend-usage.md) — composants, hooks et types
 - [Document de conception](docs/plans/2025-02-05-tarot-app-design.md) — architecture et choix de conception
