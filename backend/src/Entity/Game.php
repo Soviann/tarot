@@ -51,55 +51,55 @@ use Symfony\Component\Serializer\Attribute\Groups;
 #[PlayersBelongToSession(groups: ['game:patch'])]
 class Game
 {
-    #[Groups(['game:read'])]
+    #[Groups(['game:read', 'session:detail'])]
     #[ORM\Id]
     #[ORM\Column]
     #[ORM\GeneratedValue]
     private ?int $id = null;
 
-    #[Groups(['game:read', 'game:complete'])]
+    #[Groups(['game:read', 'game:complete', 'session:detail'])]
     #[ORM\Column(enumType: Chelem::class)]
     private Chelem $chelem = Chelem::None;
 
-    #[Groups(['game:read', 'game:create'])]
+    #[Groups(['game:read', 'game:create', 'session:detail'])]
     #[ORM\Column(enumType: Contract::class)]
     private Contract $contract;
 
-    #[Groups(['game:read'])]
+    #[Groups(['game:read', 'session:detail'])]
     #[ORM\Column(type: 'datetime_immutable')]
     private \DateTimeImmutable $createdAt;
 
-    #[Groups(['game:read', 'game:complete'])]
+    #[Groups(['game:read', 'game:complete', 'session:detail'])]
     #[ORM\Column(nullable: true)]
     private ?int $oudlers = null;
 
-    #[Groups(['game:read', 'game:complete'])]
+    #[Groups(['game:read', 'game:complete', 'session:detail'])]
     #[ORM\ManyToOne(targetEntity: Player::class)]
     #[ORM\JoinColumn(nullable: true)]
     private ?Player $partner = null;
 
-    #[Groups(['game:read', 'game:complete'])]
+    #[Groups(['game:read', 'game:complete', 'session:detail'])]
     #[ORM\Column(enumType: Side::class)]
     private Side $petitAuBout = Side::None;
 
-    #[Groups(['game:read', 'game:complete'])]
+    #[Groups(['game:read', 'game:complete', 'session:detail'])]
     #[ORM\Column(enumType: Poignee::class)]
     private Poignee $poignee = Poignee::None;
 
-    #[Groups(['game:read', 'game:complete'])]
+    #[Groups(['game:read', 'game:complete', 'session:detail'])]
     #[ORM\Column(enumType: Side::class)]
     private Side $poigneeOwner = Side::None;
 
-    #[Groups(['game:read', 'game:complete'])]
+    #[Groups(['game:read', 'game:complete', 'session:detail'])]
     #[ORM\Column(nullable: true)]
     private ?float $points = null;
 
-    #[Groups(['game:read'])]
+    #[Groups(['game:read', 'session:detail'])]
     #[ORM\Column]
     private int $position;
 
     /** @var Collection<int, ScoreEntry> */
-    #[Groups(['game:read'])]
+    #[Groups(['game:read', 'session:detail'])]
     #[ORM\OneToMany(targetEntity: ScoreEntry::class, mappedBy: 'game', cascade: ['persist', 'remove'])]
     private Collection $scoreEntries;
 
@@ -107,11 +107,11 @@ class Game
     #[ORM\JoinColumn(nullable: false)]
     private Session $session;
 
-    #[Groups(['game:read', 'game:complete'])]
+    #[Groups(['game:read', 'game:complete', 'session:detail'])]
     #[ORM\Column(enumType: GameStatus::class)]
     private GameStatus $status = GameStatus::InProgress;
 
-    #[Groups(['game:read', 'game:create'])]
+    #[Groups(['game:read', 'game:create', 'session:detail'])]
     #[ORM\ManyToOne(targetEntity: Player::class)]
     #[ORM\JoinColumn(nullable: false)]
     private Player $taker;

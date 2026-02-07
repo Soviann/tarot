@@ -28,14 +28,14 @@ use Symfony\Component\Validator\Constraints as Assert;
 #[UniqueEntity('name')]
 class Player
 {
-    #[Groups(['player:read'])]
+    #[Groups(['player:read', 'session:detail'])]
     #[ORM\Id]
     #[ORM\Column]
     #[ORM\GeneratedValue]
     private ?int $id = null;
 
     #[Assert\NotBlank]
-    #[Groups(['game:read', 'player:read', 'player:write', 'score-entry:read', 'session:read'])]
+    #[Groups(['game:read', 'player:read', 'player:write', 'score-entry:read', 'session:detail', 'session:read'])]
     #[ORM\Column(length: 50, unique: true)]
     private string $name;
 
