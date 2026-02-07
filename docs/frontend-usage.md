@@ -60,9 +60,14 @@ import type { HydraCollection, Player } from "./types/api";
 
 | Type | Champs |
 |------|--------|
+| `CumulativeScore` | `playerId: number`, `playerName: string`, `score: number` |
+| `Game` | `id`, `chelem`, `contract`, `createdAt`, `oudlers`, `partner`, `petitAuBout`, `poignee`, `poigneeOwner`, `points`, `position`, `scoreEntries`, `status`, `taker` |
+| `GamePlayer` | `id: number`, `name: string` |
 | `HydraCollection<T>` | `member: T[]`, `totalItems: number` |
 | `Player` | `id: number`, `name: string`, `createdAt: string` |
+| `ScoreEntry` | `id: number`, `player: GamePlayer`, `score: number` |
 | `Session` | `id: number`, `createdAt: string`, `isActive: boolean`, `players: SessionPlayer[]` |
+| `SessionDetail` | `id`, `createdAt`, `isActive`, `players: GamePlayer[]`, `games: Game[]`, `cumulativeScores: CumulativeScore[]` |
 | `SessionPlayer` | `name: string` |
 
 ### `ApiError`
@@ -205,6 +210,26 @@ createSession.mutate([1, 2, 3, 4, 5], {
 | `isError` | `boolean` | `true` si erreur |
 | `error` | `ApiError \| null` | Détails de l'erreur |
 
+### `useCreateGame`
+
+**Fichier** : `hooks/useCreateGame.ts`
+
+Mutation pour créer une nouvelle donne dans une session. Envoie un POST avec le contrat et l'IRI du preneur.
+Invalide le cache `["session", sessionId]` en cas de succès.
+
+```ts
+const createGame = useCreateGame(sessionId);
+
+createGame.mutate({ contract: "garde", takerId: 3 });
+```
+
+| Retour | Type | Description |
+|--------|------|-------------|
+| `mutate` | `(input: { contract: Contract, takerId: number }) => void` | Lance la création |
+| `isPending` | `boolean` | `true` pendant la requête |
+| `isError` | `boolean` | `true` si erreur |
+| `error` | `ApiError \| null` | Détails de l'erreur |
+
 ### `useDebounce`
 
 **Fichier** : `hooks/useDebounce.ts`
@@ -214,6 +239,23 @@ Retourne une valeur retardée qui ne se met à jour qu'après un délai sans cha
 ```ts
 const debouncedQuery = useDebounce(searchQuery, 300);
 ```
+
+### `useSession`
+
+**Fichier** : `hooks/useSession.ts`
+
+Récupère le détail d'une session (joueurs, donnes, scores cumulés) via l'API.
+
+```ts
+const { isPending, session } = useSession(sessionId);
+```
+
+| Retour | Type | Description |
+|--------|------|-------------|
+| `session` | `SessionDetail \| null` | Détail de la session (`null` pendant le chargement) |
+| `isPending` | `boolean` | `true` pendant le chargement initial |
+| `isSuccess` | `boolean` | `true` quand les données sont disponibles |
+| …autres | — | Tous les champs de `UseQueryResult` |
 
 ### `useSessions`
 
@@ -270,9 +312,19 @@ const { isPending, sessions } = useSessions();
 
 **Fichier** : `pages/SessionPage.tsx`
 
-Stub pour l'écran de session (à venir — issue #8). Affiche l'ID de la session.
+Écran principal de suivi d'une session de Tarot : tableau des scores, donne en cours, historique.
 
 **Route** : `/sessions/:id`
+
+**Fonctionnalités** :
+- Tableau des scores cumulés (composant `Scoreboard`) avec avatars et scores colorés
+- Bandeau « donne en cours » (`InProgressBanner`) si une donne est au statut `in_progress`
+- Historique des donnes terminées (`GameList`) en ordre anti-chronologique
+- Bouton FAB (+) pour démarrer une nouvelle donne (désactivé si donne en cours)
+- Bouton retour vers l'accueil
+- États : chargement, session introuvable
+
+**Hooks utilisés** : `useSession`, `useCreateGame`, `useNavigate`
 
 ---
 
@@ -313,6 +365,44 @@ Liste des sessions récentes sous forme de cartes cliquables.
 - États : chargement, vide (« Aucune session »), liste
 
 **Hooks utilisés** : `useSessions`
+
+### `Scoreboard`
+
+**Fichier** : `components/Scoreboard.tsx`
+
+Bandeau horizontal scrollable affichant les 5 joueurs avec avatar, nom et score cumulé.
+
+| Prop | Type | Description |
+|------|------|-------------|
+| `players` | `GamePlayer[]` | *requis* — les 5 joueurs de la session |
+| `cumulativeScores` | `CumulativeScore[]` | *requis* — scores cumulés par joueur |
+
+### `InProgressBanner`
+
+**Fichier** : `components/InProgressBanner.tsx`
+
+Bandeau pour une donne en cours, affichant le preneur, le contrat et un bouton « Compléter ».
+
+| Prop | Type | Description |
+|------|------|-------------|
+| `game` | `Game` | *requis* — la donne en cours |
+| `onComplete` | `() => void` | *requis* — action au clic sur « Compléter » |
+
+### `GameList`
+
+**Fichier** : `components/GameList.tsx`
+
+Liste des donnes terminées en ordre anti-chronologique (position décroissante).
+
+| Prop | Type | Description |
+|------|------|-------------|
+| `games` | `Game[]` | *requis* — donnes terminées |
+| `onEditLast` | `() => void` | *requis* — action pour modifier la dernière donne |
+
+**Fonctionnalités** :
+- Chaque carte : avatar preneur, nom, badge contrat, « avec [partenaire] » ou « Seul », score du preneur
+- Bouton « Modifier » uniquement sur la dernière donne (position la plus élevée)
+- État vide : « Aucune donne jouée »
 
 ---
 
