@@ -5,6 +5,7 @@ import Layout from "./components/Layout";
 import { ThemeProvider } from "./hooks/useTheme";
 import Home from "./pages/Home";
 import Players from "./pages/Players";
+import SessionPage from "./pages/SessionPage";
 import Stats from "./pages/Stats";
 
 const queryClient = new QueryClient();
@@ -18,6 +19,7 @@ export default function App() {
             <Route element={<Layout />}>
               <Route path="/" element={<Home />} />
               <Route path="/players" element={<Players />} />
+              <Route path="/sessions/:id" element={<SessionPage />} />
               <Route path="/stats" element={<Stats />} />
             </Route>
           </Routes>

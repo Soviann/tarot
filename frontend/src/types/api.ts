@@ -8,3 +8,14 @@ export interface Player {
   id: number;
   name: string;
 }
+
+export interface Session {
+  createdAt: string;
+  id: number;
+  isActive: boolean;
+  players: SessionPlayer[];
+}
+
+export interface SessionPlayer {
+  name: string;
+}
