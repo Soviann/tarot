@@ -8,12 +8,20 @@ Le format est basé sur [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/)
 
 ### Added
 
+- **Écran de session** : tableau des scores cumulés (Scoreboard), bandeau donne en cours (InProgressBanner), historique des donnes (GameList), bouton FAB nouvelle donne, navigation retour
+- **Hook `useSession`** : récupération du détail d'une session (joueurs, donnes, scores cumulés) via TanStack Query
+- **Hook `useCreateGame`** : mutation POST pour créer une nouvelle donne avec invalidation du cache session
+- **Composant `Scoreboard`** : bandeau horizontal scrollable avec avatars et scores cumulés colorés
+- **Composant `InProgressBanner`** : carte pour donne en cours avec preneur, contrat et bouton Compléter
+- **Composant `GameList`** : liste des donnes terminées avec preneur, partenaire, contrat, score et bouton modifier
+- **Types `Game`, `GamePlayer`, `ScoreEntry`, `SessionDetail`, `CumulativeScore`** : interfaces TypeScript pour le détail de session
+- **Sérialisation backend** : ajout du groupe `session:detail` sur Player.id/name, Game et ScoreEntry pour que `GET /api/sessions/{id}` retourne les objets imbriqués
 - **Écran d'accueil** : sélection de 5 joueurs (avec chips, recherche, création inline), démarrage/reprise de session, liste des sessions récentes
 - **Hook `useSessions`** : récupération des sessions via TanStack Query
 - **Hook `useCreateSession`** : mutation POST avec conversion des IDs en IRIs et invalidation du cache
 - **Composant `PlayerSelector`** : sélection contrôlée de joueurs avec chips, limite à 5, création inline via modal
 - **Composant `SessionList`** : liste cliquable des sessions récentes avec noms des joueurs, date et badge "En cours"
-- **Page `SessionPage`** : stub pour l'écran de session (à venir — issue #8)
+- **Page `SessionPage`** : écran complet de session avec scoreboard, donne en cours, historique et FAB
 - **Route `/sessions/:id`** : navigation vers une session spécifique
 - **Types `Session` et `SessionPlayer`** : interfaces TypeScript pour les réponses API
 - **Gestion des joueurs** : écran complet avec liste, recherche par nom, ajout via formulaire modal, gestion des doublons (erreur 422)

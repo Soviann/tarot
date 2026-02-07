@@ -10,7 +10,7 @@ use Symfony\Component\Serializer\Attribute\Groups;
 #[ORM\Entity]
 class ScoreEntry
 {
-    #[Groups(['game:read', 'score-entry:read'])]
+    #[Groups(['game:read', 'score-entry:read', 'session:detail'])]
     #[ORM\Id]
     #[ORM\Column]
     #[ORM\GeneratedValue]
@@ -20,12 +20,12 @@ class ScoreEntry
     #[ORM\JoinColumn(nullable: false)]
     private Game $game;
 
-    #[Groups(['game:read', 'score-entry:read'])]
+    #[Groups(['game:read', 'score-entry:read', 'session:detail'])]
     #[ORM\ManyToOne(targetEntity: Player::class)]
     #[ORM\JoinColumn(nullable: false)]
     private Player $player;
 
-    #[Groups(['game:read', 'score-entry:read'])]
+    #[Groups(['game:read', 'score-entry:read', 'session:detail'])]
     #[ORM\Column]
     private int $score;
 
