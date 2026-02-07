@@ -1,6 +1,6 @@
 export interface HydraCollection<T> {
-  "member": T[];
-  "totalItems": number;
+  member: T[];
+  totalItems: number;
 }
 
 export interface Player {

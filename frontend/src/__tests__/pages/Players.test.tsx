@@ -1,4 +1,4 @@
-import { fireEvent, screen, waitFor } from "@testing-library/react";
+import { screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import Players from "../../pages/Players";
 import * as useCreatePlayerModule from "../../hooks/useCreatePlayer";
@@ -154,6 +154,18 @@ describe("Players page", () => {
     await userEvent.click(screen.getByRole("button", { name: "Ajouter un joueur" }));
 
     expect(screen.getByText("Ce nom est déjà utilisé.")).toBeInTheDocument();
+  });
+
+  it("shows generic error message on non-422 error", async () => {
+    const error = new Error("Network error");
+    setupMocks({
+      createPlayer: { error, isError: true },
+    });
+    renderWithProviders(<Players />);
+
+    await userEvent.click(screen.getByRole("button", { name: "Ajouter un joueur" }));
+
+    expect(screen.getByText("Erreur lors de la création.")).toBeInTheDocument();
   });
 
   it("displays empty state when no players", () => {

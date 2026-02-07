@@ -109,6 +109,11 @@ export default function Players() {
                 Ce nom est déjà utilisé.
               </p>
             )}
+            {createPlayer.isError && !isDuplicate && (
+              <p className="mt-1 text-sm text-red-500">
+                Erreur lors de la création.
+              </p>
+            )}
           </div>
           <button
             className="rounded-lg bg-accent-500 px-4 py-2 font-medium text-white transition-colors hover:bg-accent-600 disabled:opacity-50"
