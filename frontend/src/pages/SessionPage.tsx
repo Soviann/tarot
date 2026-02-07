@@ -5,6 +5,7 @@ import GameList from "../components/GameList";
 import InProgressBanner from "../components/InProgressBanner";
 import NewGameModal from "../components/NewGameModal";
 import Scoreboard from "../components/Scoreboard";
+import ScoreEvolutionChart from "../components/ScoreEvolutionChart";
 import { FAB } from "../components/ui";
 import { useCreateGame } from "../hooks/useCreateGame";
 import { useSession } from "../hooks/useSession";
@@ -91,6 +92,18 @@ export default function SessionPage() {
           game={inProgressGame}
           onComplete={() => setCompleteModalOpen(true)}
         />
+      )}
+
+      {completedGames.length >= 2 && (
+        <section>
+          <h2 className="mb-2 text-sm font-semibold text-text-secondary">
+            Évolution des scores
+          </h2>
+          <ScoreEvolutionChart
+            games={session.games}
+            players={session.players}
+          />
+        </section>
       )}
 
       <div>

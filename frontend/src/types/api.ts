@@ -1,5 +1,11 @@
 import type { Chelem, Contract, GameStatus, Poignee, Side } from "./enums";
 
+export interface ContractDistributionEntry {
+  contract: Contract;
+  count: number;
+  percentage: number;
+}
+
 export interface CumulativeScore {
   playerId: number;
   playerName: string;
@@ -28,15 +34,61 @@ export interface GamePlayer {
   name: string;
 }
 
+export interface GlobalStatistics {
+  contractDistribution: ContractDistributionEntry[];
+  leaderboard: LeaderboardEntry[];
+  totalGames: number;
+  totalSessions: number;
+}
+
 export interface HydraCollection<T> {
   member: T[];
   totalItems: number;
+}
+
+export interface LeaderboardEntry {
+  gamesAsTaker: number;
+  gamesPlayed: number;
+  playerId: number;
+  playerName: string;
+  totalScore: number;
+  winRate: number;
+  wins: number;
 }
 
 export interface Player {
   createdAt: string;
   id: number;
   name: string;
+}
+
+export interface PlayerContractEntry {
+  contract: Contract;
+  count: number;
+  winRate: number;
+  wins: number;
+}
+
+export interface PlayerStatistics {
+  averageScore: number;
+  bestGameScore: number;
+  contractDistribution: PlayerContractEntry[];
+  gamesAsDefender: number;
+  gamesAsPartner: number;
+  gamesAsTaker: number;
+  gamesPlayed: number;
+  player: GamePlayer;
+  recentScores: RecentScoreEntry[];
+  sessionsPlayed: number;
+  winRateAsTaker: number;
+  worstGameScore: number;
+}
+
+export interface RecentScoreEntry {
+  date: string;
+  gameId: number;
+  score: number;
+  sessionId: number;
 }
 
 export interface ScoreEntry {

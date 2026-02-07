@@ -1,0 +1,151 @@
+import { useNavigate, useParams } from "react-router-dom";
+import ContractDistributionChart from "../components/ContractDistributionChart";
+import ScoreTrendChart from "../components/ScoreTrendChart";
+import { PlayerAvatar, ScoreDisplay } from "../components/ui";
+import { usePlayerStats } from "../hooks/usePlayerStats";
+
+export default function PlayerStats() {
+  const { id } = useParams<{ id: string }>();
+  const navigate = useNavigate();
+  const playerId = Number(id);
+  const { isPending, stats } = usePlayerStats(playerId);
+
+  if (isPending) {
+    return (
+      <div className="p-4 text-center text-text-muted">Chargement…</div>
+    );
+  }
+
+  if (!stats) {
+    return (
+      <div className="p-4 text-center text-text-muted">
+        Joueur introuvable
+      </div>
+    );
+  }
+
+  const rolesTotal = stats.gamesAsTaker + stats.gamesAsPartner + stats.gamesAsDefender;
+
+  // Map PlayerContractEntry[] to ContractDistributionEntry[] for the shared chart
+  const contractChartData = stats.contractDistribution.map((d) => ({
+    contract: d.contract,
+    count: d.count,
+    percentage: stats.gamesAsTaker > 0
+      ? Math.round((d.count / stats.gamesAsTaker) * 1000) / 10
+      : 0,
+  }));
+
+  return (
+    <div className="flex flex-col gap-6 p-4">
+      <div className="flex items-center gap-3">
+        <button
+          aria-label="Retour"
+          className="rounded-lg p-1 text-text-secondary"
+          onClick={() => navigate("/stats")}
+          type="button"
+        >
+          <svg
+            className="size-6"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth={2}
+            viewBox="0 0 24 24"
+          >
+            <path
+              d="M15 19l-7-7 7-7"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+          </svg>
+        </button>
+        <PlayerAvatar name={stats.player.name} playerId={stats.player.id} size="lg" />
+        <h1 className="text-xl font-bold text-text-primary">{stats.player.name}</h1>
+      </div>
+
+      <div className="grid grid-cols-2 gap-3">
+        <MetricCard label="Donnes jouées" value={String(stats.gamesPlayed)} />
+        <MetricCard label="Victoires (preneur)" value={`${stats.winRateAsTaker}%`} />
+        <MetricCard label="Score moyen" value={String(stats.averageScore)} />
+        <MetricCard label="Sessions" value={String(stats.sessionsPlayed)} />
+      </div>
+
+      <div className="flex gap-3">
+        <div className="flex-1 rounded-xl bg-surface-elevated p-3 text-center">
+          <span className="block text-sm font-semibold text-text-primary">
+            Meilleur
+          </span>
+          <ScoreDisplay animated={false} className="text-lg" value={stats.bestGameScore} />
+        </div>
+        <div className="flex-1 rounded-xl bg-surface-elevated p-3 text-center">
+          <span className="block text-sm font-semibold text-text-primary">
+            Pire
+          </span>
+          <ScoreDisplay animated={false} className="text-lg" value={stats.worstGameScore} />
+        </div>
+      </div>
+
+      {rolesTotal > 0 && (
+        <section>
+          <h2 className="mb-2 text-sm font-semibold text-text-secondary">
+            Répartition des rôles
+          </h2>
+          <div className="flex h-4 overflow-hidden rounded-full">
+            {stats.gamesAsTaker > 0 && (
+              <div
+                className="bg-accent-400"
+                style={{ width: `${(stats.gamesAsTaker / rolesTotal) * 100}%` }}
+                title={`Preneur: ${stats.gamesAsTaker}`}
+              />
+            )}
+            {stats.gamesAsPartner > 0 && (
+              <div
+                className="bg-accent-200"
+                style={{ width: `${(stats.gamesAsPartner / rolesTotal) * 100}%` }}
+                title={`Partenaire: ${stats.gamesAsPartner}`}
+              />
+            )}
+            {stats.gamesAsDefender > 0 && (
+              <div
+                className="bg-surface-tertiary"
+                style={{ width: `${(stats.gamesAsDefender / rolesTotal) * 100}%` }}
+                title={`Défenseur: ${stats.gamesAsDefender}`}
+              />
+            )}
+          </div>
+          <div className="mt-1 flex justify-between text-xs text-text-muted">
+            <span>Preneur: {stats.gamesAsTaker}</span>
+            <span>Partenaire: {stats.gamesAsPartner}</span>
+            <span>Défenseur: {stats.gamesAsDefender}</span>
+          </div>
+        </section>
+      )}
+
+      {stats.contractDistribution.length > 0 && (
+        <section>
+          <h2 className="mb-2 text-sm font-semibold text-text-secondary">
+            Contrats (preneur)
+          </h2>
+          <ContractDistributionChart data={contractChartData} />
+        </section>
+      )}
+
+      {stats.recentScores.length > 0 && (
+        <section>
+          <h2 className="mb-2 text-sm font-semibold text-text-secondary">
+            Évolution des scores récents
+          </h2>
+          <ScoreTrendChart data={stats.recentScores} />
+        </section>
+      )}
+    </div>
+  );
+}
+
+function MetricCard({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="rounded-xl bg-surface-elevated p-3 text-center">
+      <span className="block text-lg font-bold text-text-primary">{value}</span>
+      <span className="text-xs text-text-muted">{label}</span>
+    </div>
+  );
+}
