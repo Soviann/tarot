@@ -8,6 +8,10 @@ Le format est basé sur [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/)
 
 ### Added
 
+- **Gestion des joueurs** : écran complet avec liste, recherche par nom, ajout via formulaire modal, gestion des doublons (erreur 422)
+- **Hook `usePlayers`** : récupération des joueurs via TanStack Query avec filtrage côté client
+- **Hook `useCreatePlayer`** : mutation POST avec invalidation du cache et propagation des erreurs API
+- **Types API** : interfaces `Player`, `HydraCollection<T>` et classe `ApiError` pour les erreurs HTTP enrichies
 - **Design system** : thème Tailwind CSS 4 complet avec tokens de couleur (accent, surface, texte, score, contrat, avatar) et support du mode sombre via `@custom-variant dark`
 - **ThemeProvider** : contexte React + hook `useTheme` pour basculer light/dark avec persistance localStorage et respect de `prefers-color-scheme`
 - **Types frontend** : miroir TypeScript des enums backend (Contract, Chelem, GameStatus, Poignee, Side) en `as const`
