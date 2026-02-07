@@ -8,6 +8,14 @@ Le format est basé sur [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/)
 
 ### Added
 
+- **Écran d'accueil** : sélection de 5 joueurs (avec chips, recherche, création inline), démarrage/reprise de session, liste des sessions récentes
+- **Hook `useSessions`** : récupération des sessions via TanStack Query
+- **Hook `useCreateSession`** : mutation POST avec conversion des IDs en IRIs et invalidation du cache
+- **Composant `PlayerSelector`** : sélection contrôlée de joueurs avec chips, limite à 5, création inline via modal
+- **Composant `SessionList`** : liste cliquable des sessions récentes avec noms des joueurs, date et badge "En cours"
+- **Page `SessionPage`** : stub pour l'écran de session (à venir — issue #8)
+- **Route `/sessions/:id`** : navigation vers une session spécifique
+- **Types `Session` et `SessionPlayer`** : interfaces TypeScript pour les réponses API
 - **Gestion des joueurs** : écran complet avec liste, recherche par nom, ajout via formulaire modal, gestion des doublons (erreur 422)
 - **Hook `usePlayers`** : récupération des joueurs via TanStack Query avec filtrage côté client
 - **Hook `useCreatePlayer`** : mutation POST avec invalidation du cache et propagation des erreurs API
@@ -24,7 +32,7 @@ Le format est basé sur [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/)
 - **SearchInput** : champ de recherche avec debounce configurable et bouton clear
 - **Hooks utilitaires** : `useAnimatedCounter` (animation rAF), `useDebounce` (délai configurable)
 - **Documentation** : guide utilisateur (`docs/user-guide.md`) et référence développeur (`docs/frontend-usage.md`)
-- **Tests frontend** : 61 tests (12 fichiers) couvrant tous les composants et hooks
+- **Tests frontend** : 117 tests (20 fichiers) couvrant tous les composants, hooks et pages
 - **Initialisation du projet** : CLAUDE.md, README.md, CHANGELOG.md, document de conception
 - **Document de conception** : architecture complète et design UI de l'application de scores au Tarot
 - **Projet GitHub** : 12 issues créées et organisées sur le tableau Tarot - Roadmap

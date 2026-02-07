@@ -60,8 +60,10 @@ import type { HydraCollection, Player } from "./types/api";
 
 | Type | Champs |
 |------|--------|
-| `Player` | `id: number`, `name: string`, `createdAt: string` |
 | `HydraCollection<T>` | `member: T[]`, `totalItems: number` |
+| `Player` | `id: number`, `name: string`, `createdAt: string` |
+| `Session` | `id: number`, `createdAt: string`, `isActive: boolean`, `players: SessionPlayer[]` |
+| `SessionPlayer` | `name: string` |
 
 ### `ApiError`
 
@@ -181,6 +183,28 @@ createPlayer.mutate("Alice", {
 | `error` | `ApiError \| null` | Détails de l'erreur |
 | `reset()` | `() => void` | Réinitialise l'état d'erreur |
 
+### `useCreateSession`
+
+**Fichier** : `hooks/useCreateSession.ts`
+
+Mutation pour créer (ou reprendre) une session. Convertit les IDs joueurs en IRIs API Platform.
+Invalide le cache `["sessions"]` en cas de succès.
+
+```ts
+const createSession = useCreateSession();
+
+createSession.mutate([1, 2, 3, 4, 5], {
+  onSuccess: (session) => navigate(`/sessions/${session.id}`),
+});
+```
+
+| Retour | Type | Description |
+|--------|------|-------------|
+| `mutate` | `(playerIds: number[]) => void` | Lance la création |
+| `isPending` | `boolean` | `true` pendant la requête |
+| `isError` | `boolean` | `true` si erreur |
+| `error` | `ApiError \| null` | Détails de l'erreur |
+
 ### `useDebounce`
 
 **Fichier** : `hooks/useDebounce.ts`
@@ -191,9 +215,41 @@ Retourne une valeur retardée qui ne se met à jour qu'après un délai sans cha
 const debouncedQuery = useDebounce(searchQuery, 300);
 ```
 
+### `useSessions`
+
+**Fichier** : `hooks/useSessions.ts`
+
+Récupère la liste des sessions via l'API.
+
+```ts
+const { isPending, sessions } = useSessions();
+```
+
+| Retour | Type | Description |
+|--------|------|-------------|
+| `sessions` | `Session[]` | Liste des sessions (vide pendant le chargement) |
+| `isPending` | `boolean` | `true` pendant le chargement initial |
+| `isSuccess` | `boolean` | `true` quand les données sont disponibles |
+| …autres | — | Tous les champs de `UseQueryResult` |
+
 ---
 
 ## Pages
+
+### Accueil (`Home`)
+
+**Fichier** : `pages/Home.tsx`
+
+Écran principal : sélection de joueurs, création de session, sessions récentes.
+
+**Fonctionnalités** :
+- Sélection de 5 joueurs via `PlayerSelector` (composant contrôlé)
+- Bouton « Démarrer » (disabled si < 5 joueurs ou mutation en cours)
+- Redirection vers `/sessions/:id` après création
+- Message d'erreur si la création échoue
+- Liste des sessions récentes via `SessionList`
+
+**Hooks utilisés** : `useCreateSession`, `useNavigate`
 
 ### Joueurs (`Players`)
 
@@ -209,6 +265,54 @@ const debouncedQuery = useDebounce(searchQuery, 300);
 - États : chargement, liste vide, résultats
 
 **Hooks utilisés** : `usePlayers`, `useCreatePlayer`
+
+### Session (`SessionPage`)
+
+**Fichier** : `pages/SessionPage.tsx`
+
+Stub pour l'écran de session (à venir — issue #8). Affiche l'ID de la session.
+
+**Route** : `/sessions/:id`
+
+---
+
+## Composants métier
+
+### `PlayerSelector`
+
+**Fichier** : `components/PlayerSelector.tsx`
+
+Composant de sélection de joueurs avec limite à 5. Inclut chips, recherche et création inline.
+
+| Prop | Type | Description |
+|------|------|-------------|
+| `selectedPlayerIds` | `number[]` | *requis* — IDs des joueurs sélectionnés |
+| `onSelectionChange` | `(ids: number[]) => void` | *requis* — callback de changement |
+
+**Fonctionnalités** :
+- Chips en haut avec avatar + nom des joueurs sélectionnés (clic = déselection)
+- Placeholders ronds pour les places restantes
+- Compteur « X/5 joueurs sélectionnés »
+- `SearchInput` pour filtrer la liste
+- Liste des joueurs : clic = toggle sélection, `ring-2 ring-accent-500` si sélectionné
+- Joueurs non sélectionnés grisés et désactivés quand 5 sont déjà choisis
+- Bouton « + Nouveau joueur » ouvrant un `Modal` de création
+- Auto-sélection du joueur créé si < 5
+
+**Hooks utilisés** : `usePlayers`, `useCreatePlayer`
+
+### `SessionList`
+
+**Fichier** : `components/SessionList.tsx`
+
+Liste des sessions récentes sous forme de cartes cliquables.
+
+**Fonctionnalités** :
+- Chaque carte : noms des joueurs (jointure « , »), date fr-FR, badge « En cours » si `isActive`
+- Lien vers `/sessions/:id`
+- États : chargement, vide (« Aucune session »), liste
+
+**Hooks utilisés** : `useSessions`
 
 ---
 
