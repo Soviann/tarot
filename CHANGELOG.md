@@ -8,6 +8,7 @@ Le format est basé sur [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/)
 
 ### Added
 
+- **Suppression d'une donne** : suppression de la dernière donne (en cours ou complétée) avec modal de confirmation, recalcul automatique des scores, bouton « Supprimer » dans l'historique et « Annuler » sur le bandeau donne en cours
 - **Statistiques globales** : écran `/stats` avec classement des joueurs (score total, taux de victoire), métriques clés (total donnes/sessions) et répartition des contrats en barres horizontales
 - **Statistiques par joueur** : écran `/stats/player/:id` avec métriques (donnes jouées, score moyen, meilleur/pire), répartition des rôles, contrats pris et graphique d'évolution des scores récents
 - **Évolution des scores en session** : graphique linéaire dans `SessionPage` montrant les scores cumulés de chaque joueur au fil des donnes (visible à partir de 2 donnes terminées)

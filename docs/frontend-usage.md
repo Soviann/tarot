@@ -265,6 +265,27 @@ completeGame.mutate({
 | `isError` | `boolean` | `true` si erreur |
 | `error` | `ApiError \| null` | Détails de l'erreur |
 
+### `useDeleteGame`
+
+**Fichier** : `hooks/useDeleteGame.ts`
+
+Mutation pour supprimer une donne. Envoie un DELETE et invalide le cache session en cas de succès.
+
+```ts
+const deleteGame = useDeleteGame(gameId, sessionId);
+
+deleteGame.mutate(undefined, {
+  onSuccess: () => closeModal(),
+});
+```
+
+| Retour | Type | Description |
+|--------|------|-------------|
+| `mutate` | `() => void` | Lance la suppression |
+| `isPending` | `boolean` | `true` pendant la requête |
+| `isError` | `boolean` | `true` si erreur (ex. pas la dernière donne 422) |
+| `error` | `ApiError \| null` | Détails de l'erreur |
+
 ### `useGlobalStats`
 
 **Fichier** : `hooks/useGlobalStats.ts`
@@ -429,11 +450,12 @@ const { isPending, sessions } = useSessions();
 - Bouton retour vers l'accueil
 - États : chargement, session introuvable
 
-**Hooks utilisés** : `useSession`, `useCreateGame`, `useCompleteGame`, `useNavigate`
+**Hooks utilisés** : `useSession`, `useCreateGame`, `useCompleteGame`, `useDeleteGame`, `useNavigate`
 
 **Modales** :
 - `NewGameModal` : sélection preneur + contrat (étape 1)
 - `CompleteGameModal` : complétion ou modification d'une donne (étape 2)
+- `DeleteGameModal` : confirmation de suppression de la dernière donne
 
 ---
 
@@ -490,11 +512,12 @@ Bandeau horizontal scrollable affichant les 5 joueurs avec avatar, nom et score 
 
 **Fichier** : `components/InProgressBanner.tsx`
 
-Bandeau pour une donne en cours, affichant le preneur, le contrat et un bouton « Compléter ».
+Bandeau pour une donne en cours, affichant le preneur, le contrat, un bouton « Compléter » et un bouton optionnel « Annuler ».
 
 | Prop | Type | Description |
 |------|------|-------------|
 | `game` | `Game` | *requis* — la donne en cours |
+| `onCancel` | `() => void` | *optionnel* — action au clic sur « Annuler » (suppression). Le bouton n'apparaît que si fourni. |
 | `onComplete` | `() => void` | *requis* — action au clic sur « Compléter » |
 
 ### `GameList`
@@ -506,12 +529,32 @@ Liste des donnes terminées en ordre anti-chronologique (position décroissante)
 | Prop | Type | Description |
 |------|------|-------------|
 | `games` | `Game[]` | *requis* — donnes terminées |
+| `onDeleteLast` | `() => void` | *requis* — action pour supprimer la dernière donne |
 | `onEditLast` | `() => void` | *requis* — action pour modifier la dernière donne |
 
 **Fonctionnalités** :
 - Chaque carte : avatar preneur, nom, badge contrat, « avec [partenaire] » ou « Seul », score du preneur
-- Bouton « Modifier » uniquement sur la dernière donne (position la plus élevée)
+- Boutons « Modifier » et « Supprimer » uniquement sur la dernière donne (position la plus élevée)
 - État vide : « Aucune donne jouée »
+
+### `DeleteGameModal`
+
+**Fichier** : `components/DeleteGameModal.tsx`
+
+Modal de confirmation de suppression d'une donne. Appelle `useDeleteGame` en interne.
+
+| Prop | Type | Description |
+|------|------|-------------|
+| `game` | `Game` | *requis* — donne à supprimer |
+| `onClose` | `() => void` | *requis* — fermeture |
+| `open` | `boolean` | *requis* — afficher ou masquer |
+| `sessionId` | `number` | *requis* — ID de la session |
+
+**Fonctionnalités** :
+- Message de confirmation
+- Bouton « Annuler » (ferme la modal) et « Supprimer » (lance la suppression)
+- Bouton « Supprimer » désactivé pendant la suppression
+- Affichage d'erreur si la suppression échoue
 
 ### `NewGameModal`
 

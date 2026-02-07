@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\Tests\Api;
 
 use App\Entity\Game;
-use App\Entity\ScoreEntry;
 use App\Enum\Contract;
 use App\Enum\GameStatus;
 
@@ -24,7 +23,7 @@ class GameApiTest extends ApiTestCase
         $this->em->persist($game);
         $this->em->flush();
 
-        $response = $this->client->request('GET', $this->getIri($session) . '/games');
+        $response = $this->client->request('GET', $this->getIri($session).'/games');
 
         $this->assertResponseIsSuccessful();
         $this->assertJsonContains(['totalItems' => 1]);
@@ -35,7 +34,7 @@ class GameApiTest extends ApiTestCase
         $session = $this->createSessionWithPlayers('Alice', 'Bob', 'Charlie', 'Diana', 'Eve');
         $taker = $session->getPlayers()->first();
 
-        $response = $this->client->request('POST', $this->getIri($session) . '/games', [
+        $response = $this->client->request('POST', $this->getIri($session).'/games', [
             'headers' => ['Content-Type' => 'application/ld+json'],
             'json' => [
                 'contract' => 'petite',
@@ -65,7 +64,7 @@ class GameApiTest extends ApiTestCase
         $this->em->flush();
 
         // Créer une deuxième donne via l'API
-        $response = $this->client->request('POST', $this->getIri($session) . '/games', [
+        $response = $this->client->request('POST', $this->getIri($session).'/games', [
             'headers' => ['Content-Type' => 'application/ld+json'],
             'json' => [
                 'contract' => 'garde',
@@ -93,7 +92,7 @@ class GameApiTest extends ApiTestCase
         $this->em->flush();
 
         // Tenter d'en créer une deuxième → 422
-        $this->client->request('POST', $this->getIri($session) . '/games', [
+        $this->client->request('POST', $this->getIri($session).'/games', [
             'headers' => ['Content-Type' => 'application/ld+json'],
             'json' => [
                 'contract' => 'garde',
@@ -117,7 +116,7 @@ class GameApiTest extends ApiTestCase
         $this->em->persist($game);
         $this->em->flush();
 
-        $response = $this->client->request('GET', '/api/games/' . $game->getId());
+        $response = $this->client->request('GET', '/api/games/'.$game->getId());
 
         $this->assertResponseIsSuccessful();
         $data = $response->toArray();
@@ -142,7 +141,7 @@ class GameApiTest extends ApiTestCase
         $this->em->persist($game);
         $this->em->flush();
 
-        $response = $this->client->request('PATCH', '/api/games/' . $game->getId(), [
+        $response = $this->client->request('PATCH', '/api/games/'.$game->getId(), [
             'headers' => ['Content-Type' => 'application/merge-patch+json'],
             'json' => [
                 'oudlers' => 2,
@@ -191,7 +190,7 @@ class GameApiTest extends ApiTestCase
         $this->em->flush();
 
         // Modifier les points → recalcul
-        $response = $this->client->request('PATCH', '/api/games/' . $game->getId(), [
+        $response = $this->client->request('PATCH', '/api/games/'.$game->getId(), [
             'headers' => ['Content-Type' => 'application/merge-patch+json'],
             'json' => [
                 'points' => 50,
@@ -237,12 +236,149 @@ class GameApiTest extends ApiTestCase
         $this->em->flush();
 
         // Tenter d'éditer la première donne → 422
-        $this->client->request('PATCH', '/api/games/' . $game1->getId(), [
+        $this->client->request('PATCH', '/api/games/'.$game1->getId(), [
             'headers' => ['Content-Type' => 'application/merge-patch+json'],
             'json' => ['points' => 50],
         ]);
 
         $this->assertResponseStatusCodeSame(422);
+    }
+
+    // ---------------------------------------------------------------
+    // Chunk 5 : suppression
+    // ---------------------------------------------------------------
+
+    public function testDeleteLastCompletedGame(): void
+    {
+        $session = $this->createSessionWithPlayers('Alice', 'Bob', 'Charlie', 'Diana', 'Eve');
+        $players = $session->getPlayers()->toArray();
+
+        // Première donne complétée avec scores
+        $game1 = new Game();
+        $game1->setContract(Contract::Petite);
+        $game1->setOudlers(2);
+        $game1->setPartner($players[1]);
+        $game1->setPoints(45);
+        $game1->setPosition(1);
+        $game1->setSession($session);
+        $game1->setStatus(GameStatus::Completed);
+        $game1->setTaker($players[0]);
+        $this->em->persist($game1);
+        $calculator = new \App\Service\ScoreCalculator();
+        foreach ($calculator->compute($game1) as $entry) {
+            $this->em->persist($entry);
+            $game1->addScoreEntry($entry);
+        }
+
+        // Deuxième donne complétée avec scores
+        $game2 = new Game();
+        $game2->setContract(Contract::Garde);
+        $game2->setOudlers(1);
+        $game2->setPartner($players[2]);
+        $game2->setPoints(60);
+        $game2->setPosition(2);
+        $game2->setSession($session);
+        $game2->setStatus(GameStatus::Completed);
+        $game2->setTaker($players[1]);
+        $this->em->persist($game2);
+        foreach ($calculator->compute($game2) as $entry) {
+            $this->em->persist($entry);
+            $game2->addScoreEntry($entry);
+        }
+        $this->em->flush();
+
+        $this->client->disableReboot();
+
+        // Supprimer la dernière donne → 204
+        $this->client->request('DELETE', '/api/games/'.$game2->getId());
+        $this->assertResponseStatusCodeSame(204);
+
+        // Vérifier que la donne est bien supprimée
+        $this->client->request('GET', '/api/games/'.$game2->getId());
+        $this->assertResponseStatusCodeSame(404);
+
+        // Vérifier que la session ne contient plus que la première donne
+        $response = $this->client->request('GET', '/api/sessions/'.$session->getId());
+        $sessionData = $response->toArray();
+        $this->assertCount(1, $sessionData['games']);
+        $this->assertSame($game1->getId(), $sessionData['games'][0]['id']);
+    }
+
+    public function testCannotDeleteNonLastGame(): void
+    {
+        $session = $this->createSessionWithPlayers('Alice', 'Bob', 'Charlie', 'Diana', 'Eve');
+        $players = $session->getPlayers()->toArray();
+
+        $game1 = new Game();
+        $game1->setContract(Contract::Petite);
+        $game1->setPosition(1);
+        $game1->setSession($session);
+        $game1->setStatus(GameStatus::Completed);
+        $game1->setTaker($players[0]);
+        $this->em->persist($game1);
+
+        $game2 = new Game();
+        $game2->setContract(Contract::Garde);
+        $game2->setPosition(2);
+        $game2->setSession($session);
+        $game2->setTaker($players[1]);
+        $this->em->persist($game2);
+        $this->em->flush();
+
+        // Tenter de supprimer la première donne → 422
+        $this->client->request('DELETE', '/api/games/'.$game1->getId());
+        $this->assertResponseStatusCodeSame(422);
+    }
+
+    public function testDeleteInProgressGame(): void
+    {
+        $session = $this->createSessionWithPlayers('Alice', 'Bob', 'Charlie', 'Diana', 'Eve');
+        $players = $session->getPlayers()->toArray();
+
+        // Première donne complétée
+        $game1 = new Game();
+        $game1->setContract(Contract::Petite);
+        $game1->setPosition(1);
+        $game1->setSession($session);
+        $game1->setStatus(GameStatus::Completed);
+        $game1->setTaker($players[0]);
+        $this->em->persist($game1);
+
+        // Deuxième donne en cours
+        $game2 = new Game();
+        $game2->setContract(Contract::Garde);
+        $game2->setPosition(2);
+        $game2->setSession($session);
+        $game2->setTaker($players[1]);
+        $this->em->persist($game2);
+        $this->em->flush();
+
+        $this->client->request('DELETE', '/api/games/'.$game2->getId());
+        $this->assertResponseStatusCodeSame(204);
+    }
+
+    public function testDeleteOnlyGameInSession(): void
+    {
+        $session = $this->createSessionWithPlayers('Alice', 'Bob', 'Charlie', 'Diana', 'Eve');
+        $players = $session->getPlayers()->toArray();
+
+        $game = new Game();
+        $game->setContract(Contract::Petite);
+        $game->setPosition(1);
+        $game->setSession($session);
+        $game->setTaker($players[0]);
+        $this->em->persist($game);
+        $this->em->flush();
+
+        $this->client->disableReboot();
+
+        $this->client->request('DELETE', '/api/games/'.$game->getId());
+        $this->assertResponseStatusCodeSame(204);
+
+        // Session vide
+        $response = $this->client->request('GET', '/api/sessions/'.$session->getId());
+        $sessionData = $response->toArray();
+        $this->assertCount(0, $sessionData['games']);
     }
 
     public function testPartnerMustBelongToSession(): void
@@ -258,7 +394,7 @@ class GameApiTest extends ApiTestCase
         $this->em->persist($game);
         $this->em->flush();
 
-        $this->client->request('PATCH', '/api/games/' . $game->getId(), [
+        $this->client->request('PATCH', '/api/games/'.$game->getId(), [
             'headers' => ['Content-Type' => 'application/merge-patch+json'],
             'json' => [
                 'oudlers' => 2,

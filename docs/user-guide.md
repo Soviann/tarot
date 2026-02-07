@@ -145,6 +145,15 @@ Seule la **dernière donne** de la session est modifiable. Pour la modifier :
 2. Modifier les paramètres souhaités (partenaire, oudlers, points, bonus)
 3. Appuyer sur **Valider** → les scores sont recalculés
 
+### Supprimer la dernière donne
+
+Seule la **dernière donne** peut être supprimée (erreur de saisie, donne annulée). Deux cas :
+
+- **Donne terminée** : appuyer sur le bouton **« Supprimer »** (en rouge) à côté de la dernière donne dans l'historique
+- **Donne en cours** : appuyer sur le bouton **« Annuler »** dans le bandeau de donne en cours
+
+Dans les deux cas, une **confirmation** est demandée. Après suppression, les scores cumulés de la session sont automatiquement recalculés.
+
 ---
 
 ## Consulter les statistiques

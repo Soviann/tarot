@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Entity;
 
 use ApiPlatform\Metadata\ApiResource;
+use ApiPlatform\Metadata\Delete;
 use ApiPlatform\Metadata\Get;
 use ApiPlatform\Metadata\GetCollection;
 use ApiPlatform\Metadata\Link;
@@ -26,6 +27,10 @@ use Symfony\Component\Serializer\Attribute\Groups;
 
 #[ApiResource(
     operations: [
+        new Delete(
+            validate: true,
+            validationContext: ['groups' => ['Default', 'game:delete']],
+        ),
         new Get(),
         new Patch(
             processor: GameCompleteProcessor::class,
@@ -46,7 +51,7 @@ use Symfony\Component\Serializer\Attribute\Groups;
     ],
     normalizationContext: ['groups' => ['game:read']],
 )]
-#[OnlyLastGameEditable(groups: ['game:patch'])]
+#[OnlyLastGameEditable(groups: ['game:delete', 'game:patch'])]
 #[ORM\Entity]
 #[PlayersBelongToSession(groups: ['game:patch'])]
 class Game

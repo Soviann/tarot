@@ -59,4 +59,35 @@ describe("InProgressBanner", () => {
 
     expect(onComplete).toHaveBeenCalledOnce();
   });
+
+  it("does not show Annuler button when onCancel is not provided", () => {
+    renderWithProviders(
+      <InProgressBanner game={mockGame} onComplete={() => {}} />,
+    );
+
+    expect(
+      screen.queryByRole("button", { name: "Annuler" }),
+    ).not.toBeInTheDocument();
+  });
+
+  it("shows Annuler button when onCancel is provided", () => {
+    renderWithProviders(
+      <InProgressBanner game={mockGame} onCancel={() => {}} onComplete={() => {}} />,
+    );
+
+    expect(
+      screen.getByRole("button", { name: "Annuler" }),
+    ).toBeInTheDocument();
+  });
+
+  it("calls onCancel when Annuler button is clicked", async () => {
+    const onCancel = vi.fn();
+    renderWithProviders(
+      <InProgressBanner game={mockGame} onCancel={onCancel} onComplete={() => {}} />,
+    );
+
+    await userEvent.click(screen.getByRole("button", { name: "Annuler" }));
+
+    expect(onCancel).toHaveBeenCalledOnce();
+  });
 });
