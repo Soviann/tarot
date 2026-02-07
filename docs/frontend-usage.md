@@ -230,6 +230,35 @@ createGame.mutate({ contract: "garde", takerId: 3 });
 | `isError` | `boolean` | `true` si erreur |
 | `error` | `ApiError \| null` | Détails de l'erreur |
 
+### `useCompleteGame`
+
+**Fichier** : `hooks/useCompleteGame.ts`
+
+Mutation pour compléter ou modifier une donne. Envoie un PATCH avec `Content-Type: application/merge-patch+json`.
+Invalide le cache `["session", sessionId]` en cas de succès.
+
+```ts
+const completeGame = useCompleteGame(gameId, sessionId);
+
+completeGame.mutate({
+  chelem: "none",
+  oudlers: 2,
+  partnerId: 3,       // null pour self-call
+  petitAuBout: "none",
+  poignee: "none",
+  poigneeOwner: "none",
+  points: 45,
+  status: "completed",
+});
+```
+
+| Retour | Type | Description |
+|--------|------|-------------|
+| `mutate` | `(input: CompleteGameInput) => void` | Lance la complétion |
+| `isPending` | `boolean` | `true` pendant la requête |
+| `isError` | `boolean` | `true` si erreur |
+| `error` | `ApiError \| null` | Détails de l'erreur |
+
 ### `useDebounce`
 
 **Fichier** : `hooks/useDebounce.ts`
@@ -324,7 +353,11 @@ const { isPending, sessions } = useSessions();
 - Bouton retour vers l'accueil
 - États : chargement, session introuvable
 
-**Hooks utilisés** : `useSession`, `useCreateGame`, `useNavigate`
+**Hooks utilisés** : `useSession`, `useCreateGame`, `useCompleteGame`, `useNavigate`
+
+**Modales** :
+- `NewGameModal` : sélection preneur + contrat (étape 1)
+- `CompleteGameModal` : complétion ou modification d'une donne (étape 2)
 
 ---
 
@@ -403,6 +436,89 @@ Liste des donnes terminées en ordre anti-chronologique (position décroissante)
 - Chaque carte : avatar preneur, nom, badge contrat, « avec [partenaire] » ou « Seul », score du preneur
 - Bouton « Modifier » uniquement sur la dernière donne (position la plus élevée)
 - État vide : « Aucune donne jouée »
+
+### `NewGameModal`
+
+**Fichier** : `components/NewGameModal.tsx`
+
+Modal de création de donne (étape 1) : sélection du preneur et du contrat.
+
+| Prop | Type | Description |
+|------|------|-------------|
+| `open` | `boolean` | *requis* — afficher ou masquer |
+| `onClose` | `() => void` | *requis* — fermeture |
+| `players` | `GamePlayer[]` | *requis* — les 5 joueurs de la session |
+| `createGame` | `ReturnType<typeof useCreateGame>` | *requis* — mutation hook |
+
+**Fonctionnalités** :
+- Sélection du preneur via avatars avec highlight `ring-2`
+- 4 boutons contrat colorés en grille 2×2
+- Reset automatique à l'ouverture
+- Bouton Valider désactivé tant que preneur et contrat ne sont pas sélectionnés
+
+### `CompleteGameModal`
+
+**Fichier** : `components/CompleteGameModal.tsx`
+
+Modal de complétion (étape 2) ou modification d'une donne. Titre dynamique selon le statut.
+
+| Prop | Type | Description |
+|------|------|-------------|
+| `open` | `boolean` | *requis* — afficher ou masquer |
+| `onClose` | `() => void` | *requis* — fermeture |
+| `game` | `Game` | *requis* — donne à compléter/modifier |
+| `players` | `GamePlayer[]` | *requis* — les 5 joueurs de la session |
+| `sessionId` | `number` | *requis* — ID de la session |
+
+**Fonctionnalités** :
+- Bandeau info preneur + contrat (lecture seule)
+- Sélection partenaire ou « Seul » (self-call)
+- Stepper oudlers (0-3) avec indication points requis
+- Saisie points avec inputMode numérique
+- Section bonus repliable (poignée, petit au bout, chelem)
+- Aperçu des scores en temps réel via `calculateScore`
+- Pré-remplissage automatique en mode édition (donne complétée)
+
+---
+
+## Services
+
+### `calculateScore`
+
+**Fichier** : `services/scoreCalculator.ts`
+
+Miroir frontend du `ScoreCalculator` backend. Calcule les scores d'une donne en temps réel pour l'aperçu.
+
+```ts
+import { calculateScore } from "./services/scoreCalculator";
+
+const result = calculateScore({
+  chelem: "none",
+  contract: "garde",
+  oudlers: 2,
+  partnerId: 3,       // null pour self-call
+  petitAuBout: "none",
+  poignee: "none",
+  points: 45,
+});
+
+result.attackWins;      // true
+result.takerScore;      // 68
+result.partnerScore;    // 34
+result.defenderScore;   // -34
+```
+
+| Champ retour | Type | Description |
+|-------------|------|-------------|
+| `attackWins` | `boolean` | Le camp attaquant gagne-t-il ? |
+| `baseScore` | `number` | Score de base (avant distribution) |
+| `chelemBonus` | `number` | Bonus chelem |
+| `defenderScore` | `number` | Score de chaque défenseur |
+| `partnerScore` | `number` | Score du partenaire (0 si self-call) |
+| `petitAuBoutBonus` | `number` | Bonus petit au bout |
+| `poigneeBonus` | `number` | Bonus poignée |
+| `takerScore` | `number` | Score du preneur |
+| `totalPerPlayer` | `number` | Total avant distribution |
 
 ---
 

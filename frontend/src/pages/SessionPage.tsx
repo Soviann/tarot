@@ -1,7 +1,9 @@
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
+import CompleteGameModal from "../components/CompleteGameModal";
 import GameList from "../components/GameList";
 import InProgressBanner from "../components/InProgressBanner";
+import NewGameModal from "../components/NewGameModal";
 import Scoreboard from "../components/Scoreboard";
 import { FAB } from "../components/ui";
 import { useCreateGame } from "../hooks/useCreateGame";
@@ -24,6 +26,18 @@ export default function SessionPage() {
     () => session?.games.filter((g) => g.status === GameStatus.Completed) ?? [],
     [session],
   );
+
+  const lastCompletedGame = useMemo(
+    () =>
+      completedGames.length > 0
+        ? completedGames.reduce((a, b) => (a.position > b.position ? a : b))
+        : null,
+    [completedGames],
+  );
+
+  const [completeModalOpen, setCompleteModalOpen] = useState(false);
+  const [editModalOpen, setEditModalOpen] = useState(false);
+  const [newGameModalOpen, setNewGameModalOpen] = useState(false);
 
   if (isPending) {
     return (
@@ -75,9 +89,7 @@ export default function SessionPage() {
       {inProgressGame && (
         <InProgressBanner
           game={inProgressGame}
-          onComplete={() => {
-            // Placeholder — issue #9
-          }}
+          onComplete={() => setCompleteModalOpen(true)}
         />
       )}
 
@@ -87,9 +99,7 @@ export default function SessionPage() {
         </h2>
         <GameList
           games={completedGames}
-          onEditLast={() => {
-            // Placeholder — issue #9
-          }}
+          onEditLast={() => setEditModalOpen(true)}
         />
       </div>
 
@@ -111,10 +121,35 @@ export default function SessionPage() {
             />
           </svg>
         }
-        onClick={() => {
-          // Placeholder — issue #9
-        }}
+        onClick={() => setNewGameModalOpen(true)}
       />
+
+      <NewGameModal
+        createGame={createGame}
+        onClose={() => setNewGameModalOpen(false)}
+        open={newGameModalOpen}
+        players={session.players}
+      />
+
+      {inProgressGame && (
+        <CompleteGameModal
+          game={inProgressGame}
+          onClose={() => setCompleteModalOpen(false)}
+          open={completeModalOpen}
+          players={session.players}
+          sessionId={sessionId}
+        />
+      )}
+
+      {lastCompletedGame && (
+        <CompleteGameModal
+          game={lastCompletedGame}
+          onClose={() => setEditModalOpen(false)}
+          open={editModalOpen}
+          players={session.players}
+          sessionId={sessionId}
+        />
+      )}
     </div>
   );
 }
