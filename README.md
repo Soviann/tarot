@@ -47,8 +47,8 @@ ddev exec bin/console doctrine:migrations:migrate -n # Appliquer les migrations
 
 ### Accès
 
+- **Application** : `https://tarot.ddev.site` (frontend + API sur le même domaine)
 - **API Backend** : `https://tarot.ddev.site/api`
-- **Frontend** : `https://tarot.ddev.site:5173` (serveur de développement Vite)
 
 ## Développement
 
