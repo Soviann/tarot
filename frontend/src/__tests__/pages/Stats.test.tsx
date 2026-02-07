@@ -1,0 +1,111 @@
+import { screen } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
+import * as useGlobalStatsModule from "../../hooks/useGlobalStats";
+import Stats from "../../pages/Stats";
+import { renderWithProviders } from "../test-utils";
+
+const mockNavigate = vi.fn();
+vi.mock("react-router-dom", async (importOriginal) => ({
+  ...(await importOriginal()),
+  useNavigate: () => mockNavigate,
+}));
+
+vi.mock("../../hooks/useGlobalStats");
+
+const mockStats = {
+  contractDistribution: [
+    { contract: "petite" as const, count: 5, percentage: 50.0 },
+    { contract: "garde" as const, count: 5, percentage: 50.0 },
+  ],
+  leaderboard: [
+    {
+      gamesAsTaker: 3,
+      gamesPlayed: 10,
+      playerId: 1,
+      playerName: "Alice",
+      totalScore: 250,
+      winRate: 66.7,
+      wins: 2,
+    },
+    {
+      gamesAsTaker: 2,
+      gamesPlayed: 10,
+      playerId: 2,
+      playerName: "Bob",
+      totalScore: 100,
+      winRate: 50.0,
+      wins: 1,
+    },
+  ],
+  totalGames: 10,
+  totalSessions: 2,
+};
+
+describe("Stats page", () => {
+  afterEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it("shows loading state", () => {
+    vi.mocked(useGlobalStatsModule.useGlobalStats).mockReturnValue({
+      isPending: true,
+      stats: null,
+    } as ReturnType<typeof useGlobalStatsModule.useGlobalStats>);
+
+    renderWithProviders(<Stats />);
+
+    expect(screen.getByText("Chargement…")).toBeInTheDocument();
+  });
+
+  it("shows error state when stats is null", () => {
+    vi.mocked(useGlobalStatsModule.useGlobalStats).mockReturnValue({
+      isPending: false,
+      stats: null,
+    } as ReturnType<typeof useGlobalStatsModule.useGlobalStats>);
+
+    renderWithProviders(<Stats />);
+
+    expect(screen.getByText("Impossible de charger les statistiques")).toBeInTheDocument();
+  });
+
+  it("renders title and metrics", () => {
+    vi.mocked(useGlobalStatsModule.useGlobalStats).mockReturnValue({
+      isPending: false,
+      stats: mockStats,
+    } as ReturnType<typeof useGlobalStatsModule.useGlobalStats>);
+
+    renderWithProviders(<Stats />);
+
+    expect(screen.getByText("Statistiques")).toBeInTheDocument();
+    expect(screen.getByText("10")).toBeInTheDocument();
+    expect(screen.getByText("Donnes")).toBeInTheDocument();
+    expect(screen.getAllByText("2").length).toBeGreaterThanOrEqual(1);
+    expect(screen.getByText("Sessions")).toBeInTheDocument();
+  });
+
+  it("renders leaderboard with player names", () => {
+    vi.mocked(useGlobalStatsModule.useGlobalStats).mockReturnValue({
+      isPending: false,
+      stats: mockStats,
+    } as ReturnType<typeof useGlobalStatsModule.useGlobalStats>);
+
+    renderWithProviders(<Stats />);
+
+    expect(screen.getByText("Alice")).toBeInTheDocument();
+    expect(screen.getByText("Bob")).toBeInTheDocument();
+  });
+
+  it("navigates to player stats on leaderboard click", async () => {
+    const user = userEvent.setup();
+    vi.mocked(useGlobalStatsModule.useGlobalStats).mockReturnValue({
+      isPending: false,
+      stats: mockStats,
+    } as ReturnType<typeof useGlobalStatsModule.useGlobalStats>);
+
+    renderWithProviders(<Stats />);
+
+    await user.click(screen.getByText("Alice"));
+
+    expect(mockNavigate).toHaveBeenCalledWith("/stats/player/1");
+  });
+});
