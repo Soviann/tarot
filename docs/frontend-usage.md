@@ -8,6 +8,7 @@ Il doit être mis à jour à chaque ajout ou modification de composant.
 - [Thème et mode sombre](#thème-et-mode-sombre)
 - [Types / Enums](#types--enums)
 - [Hooks](#hooks)
+- [Pages](#pages)
 - [Composants UI](#composants-ui)
 - [Utilitaire de test](#utilitaire-de-test)
 
@@ -46,6 +47,47 @@ L'application doit être wrappée dans `<ThemeProvider>` (déjà fait dans `App.
 ---
 
 ## Types / Enums
+
+### Types API
+
+**Fichier** : `frontend/src/types/api.ts`
+
+Interfaces TypeScript correspondant aux réponses JSON-LD de l'API :
+
+```ts
+import type { HydraCollection, Player } from "./types/api";
+```
+
+| Type | Champs |
+|------|--------|
+| `Player` | `id: number`, `name: string`, `createdAt: string` |
+| `HydraCollection<T>` | `member: T[]`, `totalItems: number` |
+
+### `ApiError`
+
+**Fichier** : `frontend/src/services/api.ts`
+
+Classe d'erreur enrichie lancée par `apiFetch` quand la réponse HTTP n'est pas `ok` :
+
+```ts
+import { ApiError } from "./services/api";
+
+try {
+  await apiFetch("/players", { method: "POST", body: JSON.stringify({ name }) });
+} catch (err) {
+  if (err instanceof ApiError && err.status === 422) {
+    console.log(err.body); // corps RFC 7807
+  }
+}
+```
+
+| Propriété | Type | Description |
+|-----------|------|-------------|
+| `status` | `number` | Code HTTP (ex. 422) |
+| `body` | `unknown` | Corps de la réponse parsé en JSON |
+| `message` | `string` | Message d'erreur (`"API error: 422"`) |
+
+### Enums
 
 **Fichier** : `frontend/src/types/enums.ts`
 
@@ -100,6 +142,45 @@ const displayed = useAnimatedCounter(score, {
 });
 ```
 
+### `usePlayers`
+
+**Fichier** : `hooks/usePlayers.ts`
+
+Récupère la liste des joueurs via l'API et applique un filtrage côté client.
+
+```ts
+const { isPending, players } = usePlayers(search);
+```
+
+| Retour | Type | Description |
+|--------|------|-------------|
+| `players` | `Player[]` | Liste filtrée (ou complète si `search` vide) |
+| `isPending` | `boolean` | `true` pendant le chargement initial |
+| `isSuccess` | `boolean` | `true` quand les données sont disponibles |
+| …autres | — | Tous les champs de `UseQueryResult` |
+
+### `useCreatePlayer`
+
+**Fichier** : `hooks/useCreatePlayer.ts`
+
+Mutation pour créer un nouveau joueur. Invalide le cache `["players"]` en cas de succès.
+
+```ts
+const createPlayer = useCreatePlayer();
+
+createPlayer.mutate("Alice", {
+  onSuccess: () => closeModal(),
+});
+```
+
+| Retour | Type | Description |
+|--------|------|-------------|
+| `mutate` | `(name: string) => void` | Lance la création |
+| `isPending` | `boolean` | `true` pendant la requête |
+| `isError` | `boolean` | `true` si erreur (ex. doublon 422) |
+| `error` | `ApiError \| null` | Détails de l'erreur |
+| `reset()` | `() => void` | Réinitialise l'état d'erreur |
+
 ### `useDebounce`
 
 **Fichier** : `hooks/useDebounce.ts`
@@ -109,6 +190,25 @@ Retourne une valeur retardée qui ne se met à jour qu'après un délai sans cha
 ```ts
 const debouncedQuery = useDebounce(searchQuery, 300);
 ```
+
+---
+
+## Pages
+
+### Joueurs (`Players`)
+
+**Fichier** : `pages/Players.tsx`
+
+Écran de gestion des joueurs : liste, recherche, ajout.
+
+**Fonctionnalités** :
+- Liste tous les joueurs avec avatar et date de création
+- Recherche par nom (filtrage côté client via `SearchInput`)
+- Bouton FAB (+) pour ouvrir le formulaire d'ajout
+- Formulaire dans un `Modal` avec validation (doublon → message d'erreur)
+- États : chargement, liste vide, résultats
+
+**Hooks utilisés** : `usePlayers`, `useCreatePlayer`
 
 ---
 
@@ -255,9 +355,13 @@ Champ de recherche avec debounce intégré et bouton d'effacement.
 ```tsx
 import { renderWithProviders } from "../__tests__/test-utils";
 
-// Remplace render() de @testing-library/react avec ThemeProvider + MemoryRouter
+// Remplace render() avec ThemeProvider + QueryClientProvider + MemoryRouter
 renderWithProviders(<MonComposant />);
 ```
+
+Le `QueryClientProvider` inclus utilise un `QueryClient` de test (retry désactivé, gcTime infini).
+
+`createTestQueryClient()` est aussi exporté pour les tests de hooks isolés.
 
 ---
 
