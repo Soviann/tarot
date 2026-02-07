@@ -1,6 +1,7 @@
 import { useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import CompleteGameModal from "../components/CompleteGameModal";
+import DeleteGameModal from "../components/DeleteGameModal";
 import GameList from "../components/GameList";
 import InProgressBanner from "../components/InProgressBanner";
 import NewGameModal from "../components/NewGameModal";
@@ -36,7 +37,16 @@ export default function SessionPage() {
     [completedGames],
   );
 
+  const lastGame = useMemo(
+    () =>
+      session?.games.length
+        ? session.games.reduce((a, b) => (a.position > b.position ? a : b))
+        : null,
+    [session],
+  );
+
   const [completeModalOpen, setCompleteModalOpen] = useState(false);
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [editModalOpen, setEditModalOpen] = useState(false);
   const [newGameModalOpen, setNewGameModalOpen] = useState(false);
 
@@ -90,6 +100,7 @@ export default function SessionPage() {
       {inProgressGame && (
         <InProgressBanner
           game={inProgressGame}
+          onCancel={() => setDeleteModalOpen(true)}
           onComplete={() => setCompleteModalOpen(true)}
         />
       )}
@@ -112,6 +123,7 @@ export default function SessionPage() {
         </h2>
         <GameList
           games={completedGames}
+          onDeleteLast={() => setDeleteModalOpen(true)}
           onEditLast={() => setEditModalOpen(true)}
         />
       </div>
@@ -160,6 +172,15 @@ export default function SessionPage() {
           onClose={() => setEditModalOpen(false)}
           open={editModalOpen}
           players={session.players}
+          sessionId={sessionId}
+        />
+      )}
+
+      {lastGame && (
+        <DeleteGameModal
+          game={lastGame}
+          onClose={() => setDeleteModalOpen(false)}
+          open={deleteModalOpen}
           sessionId={sessionId}
         />
       )}
