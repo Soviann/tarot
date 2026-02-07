@@ -35,9 +35,12 @@ export default defineConfig({
     host: "0.0.0.0",
     port: 5173,
     strictPort: true,
-    origin: `${process.env.DDEV_PRIMARY_URL_WITHOUT_PORT}:5173`,
-    cors: {
-      origin: /https?:\/\/([A-Za-z0-9\-\.]+)?(\.ddev\.site)(?::\d+)?$/,
+    origin: process.env.DDEV_PRIMARY_URL,
+    hmr: {
+      // HMR passes through Nginx reverse proxy on the main DDEV port
+      host: process.env.DDEV_HOSTNAME,
+      protocol: "wss",
+      clientPort: 443,
     },
   },
 });
