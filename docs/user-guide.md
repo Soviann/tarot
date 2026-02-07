@@ -103,7 +103,7 @@ Liste des donnes jouées (la plus récente en premier), montrant pour chaque don
 ### Actions
 
 - **Bouton + (FAB)** : démarrer une nouvelle donne (désactivé si une donne est en cours)
-- **Glisser à gauche** sur la dernière donne : modifier ses paramètres
+- **Modifier** : bouton affiché sur la dernière donne pour modifier ses paramètres
 
 ---
 
@@ -125,7 +125,7 @@ La saisie se fait en **2 étapes** :
 
 ### Étape 2 — Fin de la donne
 
-1. **Sélectionner le partenaire** : appuyer sur l'avatar du joueur appelé, ou **« Soi-même »** si le preneur appelle son propre roi
+1. **Sélectionner le partenaire** : appuyer sur l'avatar du joueur appelé, ou **« Seul »** si le preneur appelle son propre roi
 2. **Nombre d'oudlers** : utiliser le stepper (0 à 3)
 3. **Points réalisés** : saisir le total de points du camp attaquant (0 à 91)
 4. **Bonus** (section dépliable, optionnel) :
@@ -141,9 +141,9 @@ La saisie se fait en **2 étapes** :
 
 Seule la **dernière donne** de la session est modifiable. Pour la modifier :
 
-1. Glisser la carte de la dernière donne vers la gauche
-2. Modifier les paramètres souhaités
-3. Revalider → les scores sont recalculés
+1. Appuyer sur le bouton **« Modifier »** affiché à côté de la dernière donne dans l'historique
+2. Modifier les paramètres souhaités (partenaire, oudlers, points, bonus)
+3. Appuyer sur **Valider** → les scores sont recalculés
 
 ---
 
