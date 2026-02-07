@@ -60,8 +60,8 @@ ddev exec bash -c 'cd /var/www/html/frontend && npm run dev'    # Dev server (au
 ddev exec bash -c 'cd /var/www/html/frontend && npm test'       # Vitest
 ddev exec bash -c 'cd /var/www/html/frontend && npm run build'  # Production build
 
-# Quality (auto-run via PostToolUse hook on Write/Edit of .php files)
-# Manual usage if needed:
+# PHPStan (auto-run via PostToolUse hook on Write/Edit of .php files)
+# PHP CS Fixer (run manually before committing on modified files)
 ddev exec bash -c 'cd /var/www/html/backend && vendor/bin/php-cs-fixer fix <file>'
 ddev exec bash -c 'cd /var/www/html/backend && vendor/bin/phpstan analyse <file>'
 ```
@@ -73,6 +73,7 @@ ddev exec bash -c 'cd /var/www/html/backend && vendor/bin/phpstan analyse <file>
 Format: `<type>(scope): description` — Types: `feat`, `fix`, `chore`, `refactor`, `docs`
 No `Co-Authored-By`.
 **Always** reference the issue: append `#N` in the message body or use `fixes #N` to auto-close.
+**Before committing**: run PHP CS Fixer on all staged `.php` files to ensure consistent formatting.
 
 ### Branching
 
@@ -168,7 +169,7 @@ Two living docs in `docs/` must be maintained:
 - **Alphabetical ordering**: constructor assignments, associative array keys, YAML keys
 - **DRY**: extract at 3+ occurrences (2 if complex)
 - **Backend enums**: PHP backed enums for all fixed value sets
-- **Backend quality**: PHP CS Fixer (`@Symfony` + `@Symfony:risky`) and PHPStan (level max) — auto-enforced by PostToolUse hook
+- **Backend quality**: PHPStan (level max) auto-enforced by PostToolUse hook; PHP CS Fixer (`@Symfony` + `@Symfony:risky`) run on all modified PHP files before each commit
 - **API responses**: use API Platform serialization groups, not custom DTOs unless needed
 - **Frontend**: functional components, custom hooks for API calls, TypeScript strict mode
 
