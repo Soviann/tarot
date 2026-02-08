@@ -7,9 +7,11 @@ namespace App\Entity;
 use ApiPlatform\Metadata\ApiResource;
 use ApiPlatform\Metadata\Get;
 use ApiPlatform\Metadata\GetCollection;
+use ApiPlatform\Metadata\Patch;
 use ApiPlatform\Metadata\Post;
 use App\State\SessionCreateProcessor;
 use App\State\SessionDetailProvider;
+use App\Validator\DealerBelongsToSession;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
@@ -23,11 +25,17 @@ use Symfony\Component\Validator\Constraints as Assert;
             provider: SessionDetailProvider::class,
         ),
         new GetCollection(),
+        new Patch(
+            denormalizationContext: ['groups' => ['session:patch']],
+            normalizationContext: ['groups' => ['session:read', 'session:detail']],
+            provider: SessionDetailProvider::class,
+        ),
         new Post(processor: SessionCreateProcessor::class),
     ],
     normalizationContext: ['groups' => ['session:read']],
     denormalizationContext: ['groups' => ['session:write']],
 )]
+#[DealerBelongsToSession]
 #[ORM\Entity]
 class Session
 {
@@ -50,7 +58,7 @@ class Session
     #[ORM\Column]
     private bool $isActive = true;
 
-    #[Groups(['session:detail'])]
+    #[Groups(['session:detail', 'session:patch'])]
     #[ORM\JoinColumn(nullable: true)]
     #[ORM\ManyToOne(targetEntity: Player::class)]
     private ?Player $currentDealer = null;
