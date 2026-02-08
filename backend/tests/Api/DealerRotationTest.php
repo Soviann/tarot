@@ -139,6 +139,51 @@ class DealerRotationTest extends ApiTestCase
         $this->assertSame('Alice', $detail['currentDealer']['name']);
     }
 
+    public function testReEditDoesNotRotateDealerAgain(): void
+    {
+        $session = $this->createSessionWithPlayers('Alice', 'Bob', 'Charlie', 'Diana', 'Eve');
+        $players = $session->getPlayers()->toArray();
+        $session->setCurrentDealer($players[0]); // Alice
+
+        $game = new Game();
+        $game->setContract(Contract::Petite);
+        $game->setDealer($players[0]);
+        $game->setPosition(1);
+        $game->setSession($session);
+        $game->setTaker($players[1]);
+        $this->em->persist($game);
+        $this->em->flush();
+
+        $this->client->disableReboot();
+
+        // Première complétion → rotation de Alice à Bob
+        $this->client->request('PATCH', '/api/games/'.$game->getId(), [
+            'headers' => ['Content-Type' => 'application/merge-patch+json'],
+            'json' => [
+                'oudlers' => 2,
+                'partner' => $this->getIri($players[2]),
+                'points' => 45,
+                'status' => 'completed',
+            ],
+        ]);
+        $this->assertResponseIsSuccessful();
+
+        $detail = $this->client->request('GET', '/api/sessions/'.$session->getId())->toArray();
+        $this->assertSame('Bob', $detail['currentDealer']['name']);
+
+        // Ré-édition de la même donne → pas de rotation supplémentaire
+        $this->client->request('PATCH', '/api/games/'.$game->getId(), [
+            'headers' => ['Content-Type' => 'application/merge-patch+json'],
+            'json' => [
+                'points' => 50,
+            ],
+        ]);
+        $this->assertResponseIsSuccessful();
+
+        $detail = $this->client->request('GET', '/api/sessions/'.$session->getId())->toArray();
+        $this->assertSame('Bob', $detail['currentDealer']['name']);
+    }
+
     public function testDeleteGameDoesNotChangeDealer(): void
     {
         $session = $this->createSessionWithPlayers('Alice', 'Bob', 'Charlie', 'Diana', 'Eve');

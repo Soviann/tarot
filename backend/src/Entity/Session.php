@@ -50,7 +50,7 @@ class Session
     #[ORM\Column]
     private bool $isActive = true;
 
-    #[Groups(['session:read', 'session:detail'])]
+    #[Groups(['session:detail'])]
     #[ORM\JoinColumn(nullable: true)]
     #[ORM\ManyToOne(targetEntity: Player::class)]
     private ?Player $currentDealer = null;
