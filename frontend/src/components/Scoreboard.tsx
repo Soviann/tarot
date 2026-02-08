@@ -61,14 +61,14 @@ export default function Scoreboard({
   const suitPath = useMemo(() => pickRandomSuit(), [currentDealerId]);
 
   return (
-    <div className="flex gap-3 overflow-x-auto pb-2 lg:justify-center lg:gap-6 lg:overflow-visible">
+    <div className="flex gap-2 lg:justify-center lg:gap-6">
       {players.map((player) => {
         const totalStars = starCountMap.get(player.id) ?? 0;
         const currentStars = totalStars % STARS_PER_PENALTY;
 
         return (
           <div
-            className="flex min-w-16 flex-col items-center gap-1 lg:min-w-24"
+            className="flex min-w-0 flex-1 flex-col items-center gap-1 lg:min-w-24 lg:flex-initial"
             key={player.id}
           >
             <div className="relative">
@@ -96,7 +96,7 @@ export default function Scoreboard({
                   </span>
                 ))}
             </div>
-            <span className="max-w-16 truncate text-xs text-text-secondary lg:max-w-24 lg:text-sm">
+            <span className="max-w-full truncate text-xs text-text-secondary lg:max-w-24 lg:text-sm">
               {player.name}
             </span>
             <ScoreDisplay animated={false} value={scoreMap.get(player.id) ?? 0} />
