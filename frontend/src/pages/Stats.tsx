@@ -23,7 +23,7 @@ export default function Stats() {
   }
 
   return (
-    <div className="flex flex-col gap-6 p-4">
+    <div className="flex flex-col gap-6 p-4 lg:p-8">
       <h1 className="text-2xl font-bold text-text-primary">Statistiques</h1>
 
       <div className="flex gap-4">
