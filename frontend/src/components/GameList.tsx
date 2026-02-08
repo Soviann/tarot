@@ -46,6 +46,11 @@ export default function GameList({ games, onDeleteLast, onEditLast }: GameListPr
               <span className="text-xs text-text-muted">
                 {game.partner ? `avec ${game.partner.name}` : "Seul"}
               </span>
+              {game.dealer && (
+                <span className="text-xs text-text-muted">
+                  Donneur : {game.dealer.name}
+                </span>
+              )}
             </div>
             <div className="flex items-center gap-2">
               <ScoreDisplay animated={false} value={takerScore} />

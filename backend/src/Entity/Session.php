@@ -50,6 +50,11 @@ class Session
     #[ORM\Column]
     private bool $isActive = true;
 
+    #[Groups(['session:read', 'session:detail'])]
+    #[ORM\JoinColumn(nullable: true)]
+    #[ORM\ManyToOne(targetEntity: Player::class)]
+    private ?Player $currentDealer = null;
+
     /** @var Collection<int, Player> */
     #[Assert\Count(exactly: 5, exactMessage: 'Une session doit avoir exactement 5 joueurs.')]
     #[Groups(['session:read', 'session:write'])]
@@ -78,9 +83,45 @@ class Session
         return $this->id;
     }
 
+    public function advanceDealer(): void
+    {
+        $players = $this->players->getValues();
+        $count = \count($players);
+
+        if (0 === $count || null === $this->currentDealer) {
+            return;
+        }
+
+        $currentIndex = -1;
+        foreach ($players as $i => $player) {
+            if ($player->getId() === $this->currentDealer->getId()) {
+                $currentIndex = $i;
+                break;
+            }
+        }
+
+        if (-1 === $currentIndex) {
+            return;
+        }
+
+        $this->currentDealer = $players[($currentIndex + 1) % $count];
+    }
+
     public function getCreatedAt(): \DateTimeImmutable
     {
         return $this->createdAt;
+    }
+
+    public function getCurrentDealer(): ?Player
+    {
+        return $this->currentDealer;
+    }
+
+    public function setCurrentDealer(?Player $currentDealer): static
+    {
+        $this->currentDealer = $currentDealer;
+
+        return $this;
     }
 
     /**

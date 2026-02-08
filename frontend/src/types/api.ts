@@ -16,6 +16,7 @@ export interface Game {
   chelem: Chelem;
   contract: Contract;
   createdAt: string;
+  dealer: GamePlayer | null;
   id: number;
   oudlers: number | null;
   partner: GamePlayer | null;
@@ -107,6 +108,7 @@ export interface Session {
 export interface SessionDetail {
   createdAt: string;
   cumulativeScores: CumulativeScore[];
+  currentDealer: GamePlayer | null;
   games: Game[];
   id: number;
   isActive: boolean;

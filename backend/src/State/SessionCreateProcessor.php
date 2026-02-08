@@ -42,7 +42,16 @@ final readonly class SessionCreateProcessor implements ProcessorInterface
             return $existing;
         }
 
-        return $this->persistProcessor->process($data, $operation, $uriVariables, $context);
+        /** @var Session $session */
+        $session = $this->persistProcessor->process($data, $operation, $uriVariables, $context);
+
+        $firstPlayer = $session->getPlayers()->first();
+        if (false !== $firstPlayer) {
+            $session->setCurrentDealer($firstPlayer);
+            $this->em->flush();
+        }
+
+        return $session;
     }
 
     /**
