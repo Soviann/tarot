@@ -106,10 +106,18 @@ cs: ## Corriger le style PHP (modifie les fichiers)
 
 # ── Build ─────────────────────────────────────────
 
-.PHONY: build
+.PHONY: build serve-prod verify-build
 
 build: ## Compiler le frontend pour la production
 	ddev exec bash -c 'cd $(FRONT) && npm run build'
+
+serve-prod: build ## Compiler et servir le build prod (https://tarot.ddev.site:4173)
+	ddev exec bash -c 'cd $(FRONT) && npx vite preview --host 0.0.0.0 --port 4173'
+
+verify-build: build ## Vérifier que le build prod ne contient pas de code de debug
+	@ddev exec bash -c 'cd $(FRONT) && ! grep -q "ReactQueryDevtools" dist/assets/*.js' \
+		&& printf "  $(GREEN)✓$(RESET) Pas de ReactQueryDevtools dans le bundle\n" \
+		|| (printf "  $(CYAN)✗$(RESET) ReactQueryDevtools trouvé dans le bundle !\n" && exit 1)
 
 # ── Symfony ───────────────────────────────────────
 
