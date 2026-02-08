@@ -89,7 +89,7 @@ export default function Scoreboard({
             {onAddStar && (
               <button
                 aria-label={`Ajouter une étoile à ${player.name}`}
-                className="flex items-center gap-0.5 rounded-md px-1 py-0.5 text-xs transition-colors hover:bg-surface-tertiary disabled:opacity-50"
+                className="flex min-h-10 min-w-10 items-center justify-center gap-0.5 rounded-md px-1 py-0.5 text-xs transition-colors hover:bg-surface-tertiary disabled:opacity-50"
                 disabled={addStarPending}
                 onClick={() => onAddStar(player.id)}
                 type="button"
