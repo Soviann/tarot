@@ -571,10 +571,10 @@ Composant de sélection de joueurs avec limite à 5. Inclut chips, recherche et 
 - Chips en haut avec avatar + nom des joueurs sélectionnés (clic = déselection)
 - Placeholders ronds pour les places restantes
 - Compteur « X/5 joueurs sélectionnés »
-- `SearchInput` pour filtrer la liste
+- `SearchInput` pour rechercher des joueurs — la liste n'apparaît que lorsqu'un terme de recherche est saisi
 - Filtre les joueurs inactifs de la liste de sélection (seuls les joueurs actifs sont sélectionnables)
 - Les joueurs déjà sélectionnés restent affichés en chips même s'ils sont inactifs
-- Liste des joueurs : clic = toggle sélection, `ring-2 ring-accent-500` si sélectionné
+- Liste des joueurs (visible uniquement pendant une recherche) : clic = toggle sélection, `ring-2 ring-accent-500` si sélectionné
 - Joueurs non sélectionnés grisés et désactivés quand 5 sont déjà choisis
 - Bouton « + Nouveau joueur » ouvrant un `Modal` de création
 - Pré-remplissage du nom avec le texte de recherche à l'ouverture de la modale
