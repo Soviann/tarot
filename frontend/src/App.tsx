@@ -3,6 +3,7 @@ import { lazy, Suspense } from "react";
 import { BrowserRouter, Route, Routes } from "react-router-dom";
 import Layout from "./components/Layout";
 import { ThemeProvider } from "./hooks/useTheme";
+import Help from "./pages/Help";
 import Home from "./pages/Home";
 import Players from "./pages/Players";
 import PlayerStats from "./pages/PlayerStats";
@@ -27,6 +28,7 @@ export default function App() {
           <Routes>
             <Route element={<Layout />}>
               <Route path="/" element={<Home />} />
+              <Route path="/aide" element={<Help />} />
               <Route path="/players" element={<Players />} />
               <Route path="/sessions/:id" element={<SessionPage />} />
               <Route path="/stats" element={<Stats />} />

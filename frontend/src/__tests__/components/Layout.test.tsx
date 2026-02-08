@@ -15,4 +15,11 @@ describe("Layout", () => {
     const wrapper = container.firstElementChild;
     expect(wrapper?.className).toMatch(/bg-surface-secondary/);
   });
+
+  it("renders a help icon link pointing to /aide", () => {
+    renderWithProviders(<Layout />);
+
+    const helpLink = screen.getByRole("link", { name: /aide/i });
+    expect(helpLink).toHaveAttribute("href", "/aide");
+  });
 });
