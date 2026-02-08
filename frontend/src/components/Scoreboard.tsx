@@ -1,5 +1,5 @@
 import { useMemo } from "react";
-import type { CumulativeScore, GamePlayer } from "../types/api";
+import type { CumulativeScore, GamePlayer, StarEvent } from "../types/api";
 import { PlayerAvatar, ScoreDisplay } from "./ui";
 
 // ♠ Pique, ♣ Trèfle, ♥ Coeur, ♦ Carreau (poids 2 chacun) + 🃏 Joker (poids 1)
@@ -23,16 +23,36 @@ function pickRandomSuit(): string {
   return SUITS[0].path;
 }
 
+const STARS_PER_PENALTY = 3;
+
 interface ScoreboardProps {
+  addStarPending?: boolean;
   cumulativeScores: CumulativeScore[];
   currentDealerId: number | null;
+  onAddStar?: (playerId: number) => void;
   players: GamePlayer[];
+  starEvents?: StarEvent[];
 }
 
-export default function Scoreboard({ cumulativeScores, currentDealerId, players }: ScoreboardProps) {
+export default function Scoreboard({
+  addStarPending = false,
+  cumulativeScores,
+  currentDealerId,
+  onAddStar,
+  players,
+  starEvents = [],
+}: ScoreboardProps) {
   const scoreMap = new Map(
     cumulativeScores.map((s) => [s.playerId, s.score]),
   );
+
+  const starCountMap = useMemo(() => {
+    const map = new Map<number, number>();
+    for (const event of starEvents) {
+      map.set(event.player.id, (map.get(event.player.id) ?? 0) + 1);
+    }
+    return map;
+  }, [starEvents]);
 
   // Nouveau tirage aléatoire uniquement quand le donneur change
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -40,30 +60,55 @@ export default function Scoreboard({ cumulativeScores, currentDealerId, players 
 
   return (
     <div className="flex gap-3 overflow-x-auto pb-2">
-      {players.map((player) => (
-        <div
-          className="flex min-w-16 flex-col items-center gap-1"
-          key={player.id}
-        >
-          <div className="relative">
-            <PlayerAvatar name={player.name} playerId={player.id} size="sm" />
-            {currentDealerId === player.id && (
-              <span
-                className="absolute -bottom-1.5 -right-1.5 flex size-5 items-center justify-center rounded-full bg-accent-500 text-white shadow-sm"
-                title="Donneur"
+      {players.map((player) => {
+        const totalStars = starCountMap.get(player.id) ?? 0;
+        const currentStars = totalStars % STARS_PER_PENALTY;
+
+        return (
+          <div
+            className="flex min-w-16 flex-col items-center gap-1"
+            key={player.id}
+          >
+            <div className="relative">
+              <PlayerAvatar name={player.name} playerId={player.id} size="sm" />
+              {currentDealerId === player.id && (
+                <span
+                  className="absolute -bottom-1.5 -right-1.5 flex size-5 items-center justify-center rounded-full bg-accent-500 text-white shadow-sm"
+                  title="Donneur"
+                >
+                  <svg className="size-3" fill="currentColor" viewBox="0 0 24 24">
+                    <path d={suitPath} />
+                  </svg>
+                </span>
+              )}
+            </div>
+            <span className="max-w-16 truncate text-xs text-text-secondary">
+              {player.name}
+            </span>
+            <ScoreDisplay animated={false} value={scoreMap.get(player.id) ?? 0} />
+            {onAddStar && (
+              <button
+                aria-label={`Ajouter une étoile à ${player.name}`}
+                className="flex items-center gap-0.5 rounded-md px-1 py-0.5 text-xs transition-colors hover:bg-surface-tertiary disabled:opacity-50"
+                disabled={addStarPending}
+                onClick={() => onAddStar(player.id)}
+                type="button"
               >
-                <svg className="size-3" fill="currentColor" viewBox="0 0 24 24">
-                  <path d={suitPath} />
-                </svg>
-              </span>
+                {Array.from({ length: STARS_PER_PENALTY }, (_, i) => (
+                  <svg
+                    className={`size-3 ${i < currentStars ? "text-yellow-400" : "text-text-muted/30"}`}
+                    fill="currentColor"
+                    key={i}
+                    viewBox="0 0 20 20"
+                  >
+                    <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                  </svg>
+                ))}
+              </button>
             )}
           </div>
-          <span className="max-w-16 truncate text-xs text-text-secondary">
-            {player.name}
-          </span>
-          <ScoreDisplay animated={false} value={scoreMap.get(player.id) ?? 0} />
-        </div>
-      ))}
+        );
+      })}
     </div>
   );
 }

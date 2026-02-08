@@ -38,6 +38,14 @@ export default function Stats() {
           </span>
           <span className="text-xs text-text-muted">Sessions</span>
         </div>
+        {stats.totalStars > 0 && (
+          <div className="flex-1 rounded-xl bg-surface-elevated p-3 text-center">
+            <span className="block text-2xl font-bold text-yellow-400">
+              {stats.totalStars}
+            </span>
+            <span className="text-xs text-text-muted">Étoiles</span>
+          </div>
+        )}
       </div>
 
       <section>

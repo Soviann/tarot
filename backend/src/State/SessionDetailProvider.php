@@ -45,9 +45,9 @@ final readonly class SessionDetailProvider implements ProviderInterface
         $dql = <<<'DQL'
             SELECT IDENTITY(se.player) AS playerId, p.name AS playerName, SUM(se.score) AS totalScore
             FROM App\Entity\ScoreEntry se
-            JOIN se.game g
+            LEFT JOIN se.game g
             JOIN se.player p
-            WHERE g.session = :session
+            WHERE g.session = :session OR (se.game IS NULL AND se.session = :session)
             GROUP BY se.player, p.name
             ORDER BY p.name ASC
             DQL;

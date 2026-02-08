@@ -57,8 +57,8 @@ class StatisticsService
             'SELECT IDENTITY(se.player) AS playerId, p.name AS playerName, SUM(se.score) AS totalScore
              FROM App\Entity\ScoreEntry se
              JOIN se.player p
-             JOIN se.game g
-             WHERE g.status = :status
+             LEFT JOIN se.game g
+             WHERE (g IS NOT NULL AND g.status = :status) OR se.game IS NULL
              GROUP BY se.player, p.name
              ORDER BY totalScore DESC'
         )
@@ -136,7 +136,7 @@ class StatisticsService
     }
 
     /**
-     * @return array{averageScore: float, bestGameScore: int, contractDistribution: list<array{contract: string, count: int, winRate: float, wins: int}>, gamesAsDefender: int, gamesAsPartner: int, gamesAsTaker: int, gamesPlayed: int, player: array{id: int|null, name: string}, recentScores: list<array{date: string, gameId: int, score: int, sessionId: int}>, sessionsPlayed: int, winRateAsTaker: float, worstGameScore: int}
+     * @return array{averageScore: float, bestGameScore: int, contractDistribution: list<array{contract: string, count: int, winRate: float, wins: int}>, gamesAsDefender: int, gamesAsPartner: int, gamesAsTaker: int, gamesPlayed: int, player: array{id: int|null, name: string}, recentScores: list<array{date: string, gameId: int, score: int, sessionId: int}>, sessionsPlayed: int, starPenalties: int, totalStars: int, winRateAsTaker: float, worstGameScore: int}
      */
     public function getPlayerStats(Player $player): array
     {
@@ -260,6 +260,14 @@ class StatisticsService
             $recentScores,
         );
 
+        $totalStars = (int) $this->em->createQuery(
+            'SELECT COUNT(se.id) FROM App\Entity\StarEvent se WHERE se.player = :player'
+        )
+            ->setParameter('player', $player)
+            ->getSingleScalarResult();
+
+        $starPenalties = (int) \floor($totalStars / 3);
+
         return [
             'averageScore' => null !== $scoreAgg['averageScore'] ? \round((float) $scoreAgg['averageScore'], 1) : 0.0,
             'bestGameScore' => (int) ($scoreAgg['bestGameScore'] ?? 0),
@@ -271,9 +279,19 @@ class StatisticsService
             'player' => ['id' => $playerId, 'name' => $player->getName()],
             'recentScores' => $formattedRecentScores,
             'sessionsPlayed' => $sessionsPlayed,
+            'starPenalties' => $starPenalties,
+            'totalStars' => $totalStars,
             'winRateAsTaker' => $gamesAsTaker > 0 ? \round($winsAsTaker / $gamesAsTaker * 100, 1) : 0.0,
             'worstGameScore' => (int) ($scoreAgg['worstGameScore'] ?? 0),
         ];
+    }
+
+    public function getTotalStars(): int
+    {
+        return (int) $this->em->createQuery(
+            'SELECT COUNT(se.id) FROM App\Entity\StarEvent se'
+        )
+            ->getSingleScalarResult();
     }
 
     public function getTotalGames(): int

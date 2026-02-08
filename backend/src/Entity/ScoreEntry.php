@@ -10,15 +10,15 @@ use Symfony\Component\Serializer\Attribute\Groups;
 #[ORM\Entity]
 class ScoreEntry
 {
+    #[ORM\ManyToOne(targetEntity: Game::class, inversedBy: 'scoreEntries')]
+    #[ORM\JoinColumn(nullable: true)]
+    private ?Game $game = null;
+
     #[Groups(['game:read', 'score-entry:read', 'session:detail'])]
     #[ORM\Id]
     #[ORM\Column]
     #[ORM\GeneratedValue]
     private ?int $id = null;
-
-    #[ORM\ManyToOne(targetEntity: Game::class, inversedBy: 'scoreEntries')]
-    #[ORM\JoinColumn(nullable: false)]
-    private Game $game;
 
     #[Groups(['game:read', 'score-entry:read', 'session:detail'])]
     #[ORM\ManyToOne(targetEntity: Player::class)]
@@ -29,21 +29,25 @@ class ScoreEntry
     #[ORM\Column]
     private int $score;
 
-    public function getId(): ?int
-    {
-        return $this->id;
-    }
+    #[ORM\JoinColumn(nullable: true)]
+    #[ORM\ManyToOne(targetEntity: Session::class)]
+    private ?Session $session = null;
 
-    public function getGame(): Game
+    public function getGame(): ?Game
     {
         return $this->game;
     }
 
-    public function setGame(Game $game): static
+    public function setGame(?Game $game): static
     {
         $this->game = $game;
 
         return $this;
+    }
+
+    public function getId(): ?int
+    {
+        return $this->id;
     }
 
     public function getPlayer(): Player
@@ -66,6 +70,18 @@ class ScoreEntry
     public function setScore(int $score): static
     {
         $this->score = $score;
+
+        return $this;
+    }
+
+    public function getSession(): ?Session
+    {
+        return $this->session;
+    }
+
+    public function setSession(?Session $session): static
+    {
+        $this->session = $session;
 
         return $this;
     }

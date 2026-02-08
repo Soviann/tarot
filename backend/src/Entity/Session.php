@@ -63,6 +63,12 @@ class Session
     #[ORM\OrderBy(['name' => 'ASC'])]
     private Collection $players;
 
+    /** @var Collection<int, StarEvent> */
+    #[Groups(['session:detail'])]
+    #[ORM\OneToMany(targetEntity: StarEvent::class, mappedBy: 'session')]
+    #[ORM\OrderBy(['createdAt' => 'ASC'])]
+    private Collection $starEvents;
+
     /**
      * Scores cumulés par joueur — propriété non persistée, alimentée par SessionDetailProvider.
      *
@@ -76,6 +82,7 @@ class Session
         $this->createdAt = new \DateTimeImmutable();
         $this->games = new ArrayCollection();
         $this->players = new ArrayCollection();
+        $this->starEvents = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -183,6 +190,14 @@ class Session
         $this->players->removeElement($player);
 
         return $this;
+    }
+
+    /**
+     * @return Collection<int, StarEvent>
+     */
+    public function getStarEvents(): Collection
+    {
+        return $this->starEvents;
     }
 
     /**

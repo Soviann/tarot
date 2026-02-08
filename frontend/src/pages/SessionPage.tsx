@@ -8,6 +8,7 @@ import NewGameModal from "../components/NewGameModal";
 import Scoreboard from "../components/Scoreboard";
 import ScoreEvolutionChart from "../components/ScoreEvolutionChart";
 import { FAB } from "../components/ui";
+import { useAddStar } from "../hooks/useAddStar";
 import { useCreateGame } from "../hooks/useCreateGame";
 import { useSession } from "../hooks/useSession";
 import { GameStatus } from "../types/enums";
@@ -17,6 +18,7 @@ export default function SessionPage() {
   const navigate = useNavigate();
   const sessionId = Number(id);
   const { isPending, session } = useSession(sessionId);
+  const addStar = useAddStar(sessionId);
   const createGame = useCreateGame(sessionId);
 
   const inProgressGame = useMemo(
@@ -93,9 +95,12 @@ export default function SessionPage() {
       </div>
 
       <Scoreboard
+        addStarPending={addStar.isPending}
         cumulativeScores={session.cumulativeScores}
         currentDealerId={session.currentDealer?.id ?? null}
+        onAddStar={(playerId) => addStar.mutate(playerId)}
         players={session.players}
+        starEvents={session.starEvents}
       />
 
       {inProgressGame && (

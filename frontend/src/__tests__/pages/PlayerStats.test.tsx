@@ -30,6 +30,8 @@ const mockStats = {
     { date: "2026-02-05T12:00:00+00:00", gameId: 1, score: 80, sessionId: 1 },
   ],
   sessionsPlayed: 10,
+  starPenalties: 0,
+  totalStars: 0,
   winRateAsTaker: 57.1,
   worstGameScore: -360,
 };
