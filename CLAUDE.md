@@ -23,7 +23,7 @@ tarot/
 │       ├── hooks/          # Custom React hooks
 │       └── types/          # TypeScript enums mirroring backend
 ├── docs/
-│   ├── plans/              # Design documents
+│   ├── plans/              # Temporary design docs (gitignored, deleted after implementation)
 │   ├── frontend-usage.md   # Developer reference: components, hooks, tokens
 │   └── user-guide.md       # End-user guide: how to use the app
 ├── CLAUDE.md
@@ -34,9 +34,8 @@ tarot/
 ## Workflow
 
 - **Complex tasks**: plan mode → approval → implementation
-- **Plans**: save to `docs/plans/YYYY-MM-DD-<feature>.md`, not `~/.claude/plans/`
+- **Plans**: save to `docs/plans/YYYY-MM-DD-<feature>.md` (gitignored). Delete the plan file once fully implemented.
 - **Split** large changes into verifiable chunks
-- **Design doc**: `docs/plans/2025-02-05-tarot-app-design.md`
 
 ## Mandatory TDD
 
