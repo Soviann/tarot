@@ -310,6 +310,28 @@ addStar.mutate(playerId);
 | `isError` | `boolean` | `true` si erreur (ex. joueur pas dans la session 422) |
 | `error` | `ApiError \| null` | Détails de l'erreur |
 
+### `useUpdateDealer`
+
+**Fichier** : `hooks/useUpdateDealer.ts`
+
+Mutation pour changer le donneur d'une session. Envoie un PATCH à `/sessions/{id}` avec `Content-Type: application/merge-patch+json`.
+Invalide le cache `["session", sessionId]` en cas de succès.
+
+```ts
+const updateDealer = useUpdateDealer(sessionId);
+
+updateDealer.mutate(playerId, {
+  onSuccess: () => closeModal(),
+});
+```
+
+| Retour | Type | Description |
+|--------|------|-------------|
+| `mutate` | `(playerId: number) => void` | Lance la mise à jour du donneur |
+| `isPending` | `boolean` | `true` pendant la requête |
+| `isError` | `boolean` | `true` si erreur (ex. joueur pas dans la session 422) |
+| `error` | `ApiError \| null` | Détails de l'erreur |
+
 ### `useGlobalStats`
 
 **Fichier** : `hooks/useGlobalStats.ts`
@@ -494,9 +516,10 @@ Page d'aide in-app reprenant le contenu du guide utilisateur (`docs/user-guide.m
 - Bouton retour vers l'accueil
 - États : chargement, session introuvable
 
-**Hooks utilisés** : `useSession`, `useAddStar`, `useCreateGame`, `useCreateSession` (via SwapPlayersModal), `useCompleteGame`, `useDeleteGame`, `useNavigate`
+**Hooks utilisés** : `useSession`, `useAddStar`, `useCreateGame`, `useCreateSession` (via SwapPlayersModal), `useCompleteGame`, `useDeleteGame`, `useUpdateDealer`, `useNavigate`
 
 **Modales** :
+- `ChangeDealerModal` : sélection manuelle du donneur parmi les 5 joueurs
 - `SwapPlayersModal` : changement de joueurs avec navigation vers la session résultante
 - `NewGameModal` : sélection preneur + contrat (étape 1)
 - `CompleteGameModal` : complétion ou modification d'une donne (étape 2)
@@ -552,8 +575,9 @@ Bandeau horizontal scrollable affichant les 5 joueurs avec avatar, nom, score cu
 |------|------|-------------|
 | `addStarPending` | `boolean?` | Désactiver les boutons étoile pendant la mutation |
 | `cumulativeScores` | `CumulativeScore[]` | *requis* — scores cumulés par joueur |
-| `currentDealerId` | `number \| null` | *requis* — ID du donneur actuel (icône de cartes) |
+| `currentDealerId` | `number \| null` | *optionnel* — ID du donneur actuel (icône de cartes) |
 | `onAddStar` | `(playerId: number) => void` | *optionnel* — callback pour ajouter une étoile (affiche les boutons si fourni) |
+| `onDealerChange` | `() => void` | *optionnel* — callback pour changer le donneur (rend le badge donneur cliquable si fourni) |
 | `players` | `GamePlayer[]` | *requis* — les 5 joueurs de la session |
 | `starEvents` | `StarEvent[]?` | Événements étoile pour calculer le compteur par joueur |
 
@@ -585,6 +609,27 @@ Liste des donnes terminées en ordre anti-chronologique (position décroissante)
 - Chaque carte : avatar preneur, nom, badge contrat, « avec [partenaire] » ou « Seul », donneur, score du preneur
 - Boutons « Modifier » et « Supprimer » uniquement sur la dernière donne (position la plus élevée)
 - État vide : « Aucune donne jouée »
+
+### `ChangeDealerModal`
+
+**Fichier** : `components/ChangeDealerModal.tsx`
+
+Modal de sélection manuelle du donneur parmi les joueurs de la session.
+
+| Prop | Type | Description |
+|------|------|-------------|
+| `currentDealerId` | `number` | *requis* — ID du donneur actuel (pré-sélectionné) |
+| `isPending` | `boolean?` | Désactiver le bouton Valider pendant la mutation |
+| `onClose` | `() => void` | *requis* — fermeture |
+| `onConfirm` | `(playerId: number) => void` | *requis* — callback avec l'ID du nouveau donneur |
+| `open` | `boolean` | *requis* — afficher ou masquer |
+| `players` | `GamePlayer[]` | *requis* — les 5 joueurs de la session |
+
+**Fonctionnalités** :
+- 5 avatars cliquables avec highlight `ring-2 ring-accent-500` sur la sélection
+- Donneur actuel pré-sélectionné
+- Bouton Valider désactivé si le même donneur est sélectionné ou si `isPending`
+- Affichage du nom du joueur sélectionné
 
 ### `DeleteGameModal`
 

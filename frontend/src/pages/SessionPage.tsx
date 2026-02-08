@@ -1,6 +1,7 @@
 import { ArrowLeftRight } from "lucide-react";
 import { useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
+import ChangeDealerModal from "../components/ChangeDealerModal";
 import CompleteGameModal from "../components/CompleteGameModal";
 import DeleteGameModal from "../components/DeleteGameModal";
 import GameList from "../components/GameList";
@@ -13,6 +14,7 @@ import { FAB } from "../components/ui";
 import { useAddStar } from "../hooks/useAddStar";
 import { useCreateGame } from "../hooks/useCreateGame";
 import { useSession } from "../hooks/useSession";
+import { useUpdateDealer } from "../hooks/useUpdateDealer";
 import { GameStatus } from "../types/enums";
 
 export default function SessionPage() {
@@ -22,6 +24,7 @@ export default function SessionPage() {
   const { isPending, session } = useSession(sessionId);
   const addStar = useAddStar(sessionId);
   const createGame = useCreateGame(sessionId);
+  const updateDealer = useUpdateDealer(sessionId);
 
   const inProgressGame = useMemo(
     () => session?.games.find((g) => g.status === GameStatus.InProgress) ?? null,
@@ -49,6 +52,7 @@ export default function SessionPage() {
     [session],
   );
 
+  const [changeDealerModalOpen, setChangeDealerModalOpen] = useState(false);
   const [completeModalOpen, setCompleteModalOpen] = useState(false);
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [editModalOpen, setEditModalOpen] = useState(false);
@@ -111,6 +115,7 @@ export default function SessionPage() {
         cumulativeScores={session.cumulativeScores}
         currentDealerId={session.currentDealer?.id ?? null}
         onAddStar={(playerId) => addStar.mutate(playerId)}
+        onDealerChange={() => setChangeDealerModalOpen(true)}
         players={session.players}
         starEvents={session.starEvents}
       />
@@ -217,6 +222,21 @@ export default function SessionPage() {
         }}
         open={swapModalOpen}
       />
+
+      {session.currentDealer && (
+        <ChangeDealerModal
+          currentDealerId={session.currentDealer.id}
+          isPending={updateDealer.isPending}
+          onClose={() => setChangeDealerModalOpen(false)}
+          onConfirm={(playerId) => {
+            updateDealer.mutate(playerId, {
+              onSuccess: () => setChangeDealerModalOpen(false),
+            });
+          }}
+          open={changeDealerModalOpen}
+          players={session.players}
+        />
+      )}
     </div>
   );
 }
