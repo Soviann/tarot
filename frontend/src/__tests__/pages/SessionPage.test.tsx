@@ -1,6 +1,7 @@
 import { screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import SessionPage from "../../pages/SessionPage";
+import * as useAddStarModule from "../../hooks/useAddStar";
 import * as useCompleteGameModule from "../../hooks/useCompleteGame";
 import * as useCreateGameModule from "../../hooks/useCreateGame";
 import * as useDeleteGameModule from "../../hooks/useDeleteGame";
@@ -8,6 +9,7 @@ import * as useSessionModule from "../../hooks/useSession";
 import { renderWithProviders } from "../test-utils";
 import type { SessionDetail } from "../../types/api";
 
+vi.mock("../../hooks/useAddStar");
 vi.mock("../../hooks/useCompleteGame");
 vi.mock("../../hooks/useCreateGame");
 vi.mock("../../hooks/useDeleteGame");
@@ -64,6 +66,7 @@ const mockSession: SessionDetail = {
   id: 1,
   isActive: true,
   players: mockPlayers,
+  starEvents: [],
 };
 
 function setupMocks(overrides?: {
@@ -71,6 +74,25 @@ function setupMocks(overrides?: {
   useSession?: Partial<ReturnType<typeof useSessionModule.useSession>>;
 }) {
   const createGameMutate = vi.fn();
+
+  vi.mocked(useAddStarModule.useAddStar).mockReturnValue({
+    context: undefined,
+    data: undefined,
+    error: null,
+    failureCount: 0,
+    failureReason: null,
+    isError: false,
+    isIdle: true,
+    isPaused: false,
+    isPending: false,
+    isSuccess: false,
+    mutate: vi.fn(),
+    mutateAsync: vi.fn(),
+    reset: vi.fn(),
+    status: "idle",
+    submittedAt: 0,
+    variables: undefined,
+  } as unknown as ReturnType<typeof useAddStarModule.useAddStar>);
 
   vi.mocked(useSessionModule.useSession).mockReturnValue({
     data: mockSession,

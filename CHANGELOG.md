@@ -12,6 +12,8 @@ Le format est basé sur [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/)
 
 ### Added
 
+- **Système d'étoiles** : attribution d'étoiles aux joueurs pendant une session avec pénalité automatique tous les 3 étoiles (−100 pts pour le joueur pénalisé, +25 pts pour les 4 autres). Entité `StarEvent`, endpoint API `POST/GET /sessions/{id}/star-events`, intégration dans les scores cumulés, classement et statistiques. Interface étoiles cliquables sur le tableau des scores, compteur par joueur, affichage dans les stats globales et par joueur.
+
 - **Rotation du donneur** : attribution automatique du premier donneur à la création de session (premier joueur alphabétique), copie sur chaque donne, rotation au joueur suivant après complétion d'une donne, icône de cartes sur le scoreboard et affichage dans la modale de saisie et l'historique des donnes
 - **Suppression d'une donne** : suppression de la dernière donne (en cours ou complétée) avec modal de confirmation, recalcul automatique des scores, bouton « Supprimer » dans l'historique et « Annuler » sur le bandeau donne en cours
 - **Statistiques globales** : écran `/stats` avec classement des joueurs (score total, taux de victoire), métriques clés (total donnes/sessions) et répartition des contrats en barres horizontales

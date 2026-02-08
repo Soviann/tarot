@@ -11,6 +11,7 @@ Application mobile (PWA) de suivi des scores pour le Tarot à 5 joueurs, conform
 - [Écran de session](#écran-de-session)
 - [Saisir une donne](#saisir-une-donne)
 - [Consulter les statistiques](#consulter-les-statistiques)
+- [Système d'étoiles](#système-détoiles)
 - [Thème sombre](#thème-sombre)
 - [Règles de calcul des scores](#règles-de-calcul-des-scores)
 
@@ -194,6 +195,35 @@ L'écran de détail d'un joueur affiche :
 ### Évolution des scores en session
 
 Depuis l'**écran de session**, un graphique d'évolution apparaît automatiquement dès qu'au moins **2 donnes sont terminées**. Il montre les scores cumulés de chaque joueur au fil des donnes, avec une ligne de couleur par joueur.
+
+---
+
+## Système d'étoiles
+
+Le système d'étoiles permet de **pénaliser** un joueur en dehors du jeu de cartes (retard, mauvaise conduite, etc.).
+
+### Fonctionnement
+
+- Chaque joueur peut recevoir des étoiles pendant une session
+- Les étoiles sont visibles sous le score de chaque joueur dans le **tableau des scores** (0 à 2 étoiles jaunes)
+- Lorsqu'un joueur atteint **3 étoiles**, une **pénalité automatique** se déclenche :
+  - Le joueur pénalisé perd **100 points**
+  - Les 4 autres joueurs gagnent chacun **25 points**
+  - Le compteur d'étoiles redevient à 0 (cycle : 3 → 0, 6 → 0, etc.)
+
+### Ajouter une étoile
+
+1. Sur l'**écran de session**, repérer le joueur dans le tableau des scores
+2. Appuyer sur la zone d'étoiles (☆☆☆) sous le score du joueur
+3. Une étoile est ajoutée immédiatement
+
+### Impact sur les scores
+
+- Les pénalités d'étoiles sont **incluses dans les scores cumulés** de la session
+- Les pénalités apparaissent dans le **classement global** des statistiques
+- Les statistiques d'un joueur affichent le **nombre total d'étoiles** reçues et le **nombre de pénalités** subies
+
+> **Note** : la somme des scores de pénalité est toujours nulle (−100 + 4 × 25 = 0).
 
 ---
 

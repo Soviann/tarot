@@ -40,6 +40,7 @@ export interface GlobalStatistics {
   leaderboard: LeaderboardEntry[];
   totalGames: number;
   totalSessions: number;
+  totalStars: number;
 }
 
 export interface HydraCollection<T> {
@@ -81,6 +82,8 @@ export interface PlayerStatistics {
   player: GamePlayer;
   recentScores: RecentScoreEntry[];
   sessionsPlayed: number;
+  starPenalties: number;
+  totalStars: number;
   winRateAsTaker: number;
   worstGameScore: number;
 }
@@ -113,6 +116,13 @@ export interface SessionDetail {
   id: number;
   isActive: boolean;
   players: GamePlayer[];
+  starEvents: StarEvent[];
+}
+
+export interface StarEvent {
+  createdAt: string;
+  id: number;
+  player: GamePlayer;
 }
 
 export interface SessionPlayer {
