@@ -1,3 +1,4 @@
+import { RotateCcw } from "lucide-react";
 import { useEffect, useState } from "react";
 import type { useCreateGame } from "../hooks/useCreateGame";
 import type { GamePlayer } from "../types/api";
@@ -8,6 +9,7 @@ import { Modal, PlayerAvatar } from "./ui";
 interface NewGameModalProps {
   createGame: ReturnType<typeof useCreateGame>;
   currentDealerName: string | null;
+  lastGameConfig?: { contract: ContractType; takerId: number };
   onClose: () => void;
   open: boolean;
   players: GamePlayer[];
@@ -20,7 +22,7 @@ const contracts: { colorClass: string; label: string; value: ContractType }[] = 
   { colorClass: "bg-contract-garde-contre", label: "Garde Contre", value: Contract.GardeContre },
 ];
 
-export default function NewGameModal({ createGame, currentDealerName, onClose, open, players }: NewGameModalProps) {
+export default function NewGameModal({ createGame, currentDealerName, lastGameConfig, onClose, open, players }: NewGameModalProps) {
   const [selectedContract, setSelectedContract] = useState<ContractType | null>(null);
   const [selectedTakerId, setSelectedTakerId] = useState<number | null>(null);
 
@@ -50,6 +52,23 @@ export default function NewGameModal({ createGame, currentDealerName, onClose, o
           <p className="text-center text-sm text-text-secondary">
             Donneur : <span className="font-medium text-text-primary">{currentDealerName}</span>
           </p>
+        )}
+
+        {/* Même config */}
+        {lastGameConfig && (
+          <div className="flex justify-center">
+            <button
+              className="inline-flex items-center gap-1.5 rounded-lg border border-accent-500 px-3 py-1.5 text-xs font-medium text-accent-500 transition-colors hover:bg-accent-500/10"
+              onClick={() => {
+                setSelectedContract(lastGameConfig.contract);
+                setSelectedTakerId(lastGameConfig.takerId);
+              }}
+              type="button"
+            >
+              <RotateCcw size={14} />
+              Même config
+            </button>
+          </div>
         )}
 
         {/* Preneur */}

@@ -614,12 +614,14 @@ Modal de création de donne (étape 1) : sélection du preneur et du contrat. Af
 |------|------|-------------|
 | `createGame` | `ReturnType<typeof useCreateGame>` | *requis* — mutation hook |
 | `currentDealerName` | `string \| null` | *requis* — nom du donneur actuel (affiché en info) |
+| `lastGameConfig` | `{ contract: Contract; takerId: number }?` | *optionnel* — config de la dernière donne (preneur + contrat) pour le raccourci « Même config » |
 | `onClose` | `() => void` | *requis* — fermeture |
 | `open` | `boolean` | *requis* — afficher ou masquer |
 | `players` | `GamePlayer[]` | *requis* — les 5 joueurs de la session |
 
 **Fonctionnalités** :
 - Affichage du donneur actuel en haut de la modale
+- Bouton **« Même config »** (visible si `lastGameConfig` fourni) : pré-remplit le preneur et le contrat de la dernière donne
 - Sélection du preneur via avatars avec highlight `ring-2`
 - 4 boutons contrat colorés en grille 2×2
 - Reset automatique à l'ouverture
