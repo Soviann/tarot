@@ -1,5 +1,19 @@
 import type { Chelem, Contract, GameStatus, Poignee, Side } from "./enums";
 
+export interface EloHistoryEntry {
+  date: string;
+  gameId: number;
+  ratingAfter: number;
+  ratingChange: number;
+}
+
+export interface EloRankingEntry {
+  eloRating: number;
+  gamesPlayed: number;
+  playerId: number;
+  playerName: string;
+}
+
 export interface ContractDistributionEntry {
   contract: Contract;
   count: number;
@@ -37,6 +51,7 @@ export interface GamePlayer {
 
 export interface GlobalStatistics {
   contractDistribution: ContractDistributionEntry[];
+  eloRanking: EloRankingEntry[];
   leaderboard: LeaderboardEntry[];
   totalGames: number;
   totalSessions: number;
@@ -75,6 +90,8 @@ export interface PlayerStatistics {
   averageScore: number;
   bestGameScore: number;
   contractDistribution: PlayerContractEntry[];
+  eloHistory: EloHistoryEntry[];
+  eloRating: number;
   gamesAsDefender: number;
   gamesAsPartner: number;
   gamesAsTaker: number;

@@ -18,6 +18,7 @@ use App\Enum\Poignee;
 use App\Enum\Side;
 use App\State\GameCompleteProcessor;
 use App\State\GameCreateProcessor;
+use App\State\GameDeleteProcessor;
 use App\Validator\OnlyLastGameEditable;
 use App\Validator\PlayersBelongToSession;
 use Doctrine\Common\Collections\ArrayCollection;
@@ -28,6 +29,7 @@ use Symfony\Component\Serializer\Attribute\Groups;
 #[ApiResource(
     operations: [
         new Delete(
+            processor: GameDeleteProcessor::class,
             validate: true,
             validationContext: ['groups' => ['Default', 'game:delete']],
         ),

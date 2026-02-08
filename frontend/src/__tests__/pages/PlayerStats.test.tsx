@@ -19,6 +19,11 @@ const mockStats = {
   contractDistribution: [
     { contract: "garde" as const, count: 8, winRate: 62.5, wins: 5 },
   ],
+  eloHistory: [
+    { date: "2026-02-07T12:00:00+00:00", gameId: 3, ratingAfter: 1520, ratingChange: 20 },
+    { date: "2026-02-06T12:00:00+00:00", gameId: 2, ratingAfter: 1510, ratingChange: -10 },
+  ],
+  eloRating: 1520,
   gamesAsDefender: 90,
   gamesAsPartner: 20,
   gamesAsTaker: 35,
@@ -77,6 +82,29 @@ describe("PlayerStats page", () => {
     expect(screen.getByText("57.1%")).toBeInTheDocument();
     expect(screen.getByText("8.6")).toBeInTheDocument();
     expect(screen.getByText("10")).toBeInTheDocument();
+  });
+
+  it("renders ELO rating metric", () => {
+    vi.mocked(usePlayerStatsModule.usePlayerStats).mockReturnValue({
+      isPending: false,
+      stats: mockStats,
+    } as ReturnType<typeof usePlayerStatsModule.usePlayerStats>);
+
+    renderWithProviders(<PlayerStats />);
+
+    expect(screen.getByText("ELO")).toBeInTheDocument();
+    expect(screen.getByText("1520")).toBeInTheDocument();
+  });
+
+  it("renders ELO evolution chart section", () => {
+    vi.mocked(usePlayerStatsModule.usePlayerStats).mockReturnValue({
+      isPending: false,
+      stats: mockStats,
+    } as ReturnType<typeof usePlayerStatsModule.usePlayerStats>);
+
+    renderWithProviders(<PlayerStats />);
+
+    expect(screen.getByText("Évolution ELO")).toBeInTheDocument();
   });
 
   it("renders best and worst scores", () => {

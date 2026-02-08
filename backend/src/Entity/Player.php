@@ -43,6 +43,10 @@ class Player
     #[ORM\Column(type: 'datetime_immutable')]
     private \DateTimeImmutable $createdAt;
 
+    #[Groups(['player:read'])]
+    #[ORM\Column(options: ['default' => 1500])]
+    private int $eloRating = 1500;
+
     public function __construct()
     {
         $this->createdAt = new \DateTimeImmutable();
@@ -68,5 +72,17 @@ class Player
     public function getCreatedAt(): \DateTimeImmutable
     {
         return $this->createdAt;
+    }
+
+    public function getEloRating(): int
+    {
+        return $this->eloRating;
+    }
+
+    public function setEloRating(int $eloRating): static
+    {
+        $this->eloRating = $eloRating;
+
+        return $this;
     }
 }

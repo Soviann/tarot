@@ -17,6 +17,10 @@ const mockStats = {
     { contract: "petite" as const, count: 5, percentage: 50.0 },
     { contract: "garde" as const, count: 5, percentage: 50.0 },
   ],
+  eloRanking: [
+    { eloRating: 1520, gamesPlayed: 5, playerId: 1, playerName: "Alice" },
+    { eloRating: 1480, gamesPlayed: 5, playerId: 2, playerName: "Bob" },
+  ],
   leaderboard: [
     {
       gamesAsTaker: 3,
@@ -92,8 +96,22 @@ describe("Stats page", () => {
 
     renderWithProviders(<Stats />);
 
-    expect(screen.getByText("Alice")).toBeInTheDocument();
-    expect(screen.getByText("Bob")).toBeInTheDocument();
+    // Names appear in both Leaderboard and EloRanking
+    expect(screen.getAllByText("Alice").length).toBeGreaterThanOrEqual(1);
+    expect(screen.getAllByText("Bob").length).toBeGreaterThanOrEqual(1);
+  });
+
+  it("renders ELO ranking section", () => {
+    vi.mocked(useGlobalStatsModule.useGlobalStats).mockReturnValue({
+      isPending: false,
+      stats: mockStats,
+    } as ReturnType<typeof useGlobalStatsModule.useGlobalStats>);
+
+    renderWithProviders(<Stats />);
+
+    expect(screen.getByText("Classement ELO")).toBeInTheDocument();
+    expect(screen.getByText("1520")).toBeInTheDocument();
+    expect(screen.getByText("1480")).toBeInTheDocument();
   });
 
   it("navigates to player stats on leaderboard click", async () => {
@@ -105,7 +123,8 @@ describe("Stats page", () => {
 
     renderWithProviders(<Stats />);
 
-    await user.click(screen.getByText("Alice"));
+    // Alice appears in both Leaderboard and EloRanking — click the first one
+    await user.click(screen.getAllByText("Alice")[0]);
 
     expect(mockNavigate).toHaveBeenCalledWith("/stats/player/1");
   });
