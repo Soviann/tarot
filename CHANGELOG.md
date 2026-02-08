@@ -6,6 +6,10 @@ Le format est basé sur [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/)
 
 ## [Unreleased]
 
+### Changed
+
+- **Accueil — sélection des joueurs** : la liste complète des joueurs n'est plus affichée par défaut. Les joueurs apparaissent uniquement lors d'une recherche via la barre de recherche, simplifiant l'interface.
+
 ### Added
 
 - **Modification et désactivation des joueurs** : bouton crayon sur chaque joueur de la liste, modale de modification avec champ nom et toggle actif/inactif. Les joueurs inactifs sont affichés avec nom barré, badge « Inactif » et avatar grisé. Ils n'apparaissent plus dans la sélection lors de la création de session, mais leurs données historiques (scores, statistiques, ELO) sont conservées. Hook `useUpdatePlayer`, champ `active` sur l'entité `Player`.

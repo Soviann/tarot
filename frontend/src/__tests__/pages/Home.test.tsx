@@ -1,4 +1,4 @@
-import { screen } from "@testing-library/react";
+import { screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import Home from "../../pages/Home";
 import * as useCreatePlayerModule from "../../hooks/useCreatePlayer";
@@ -154,9 +154,17 @@ function setupMocks(overrides?: {
   return { createPlayerMutate, createSessionMutate };
 }
 
+async function searchFor(text: string) {
+  const searchInput = screen.getByPlaceholderText("Rechercher un joueur…");
+  await userEvent.type(searchInput, text);
+  await waitFor(() => {
+    expect(usePlayersModule.usePlayers).toHaveBeenCalledWith(text);
+  });
+}
+
 describe("Home page", () => {
   afterEach(() => {
-    vi.restoreAllMocks();
+    vi.clearAllMocks();
     mockNavigate.mockReset();
   });
 
@@ -186,6 +194,8 @@ describe("Home page", () => {
     setupMocks();
     renderWithProviders(<Home />);
 
+    await searchFor("a");
+
     // Select 5 players
     await userEvent.click(screen.getByText("Alice"));
     await userEvent.click(screen.getByText("Bob"));
@@ -200,6 +210,8 @@ describe("Home page", () => {
   it("calls createSession.mutate with selected player IDs", async () => {
     const { createSessionMutate } = setupMocks();
     renderWithProviders(<Home />);
+
+    await searchFor("a");
 
     // Select 5 players
     await userEvent.click(screen.getByText("Alice"));
@@ -224,6 +236,8 @@ describe("Home page", () => {
     });
 
     renderWithProviders(<Home />);
+
+    await searchFor("a");
 
     // Select 5 players
     await userEvent.click(screen.getByText("Alice"));
