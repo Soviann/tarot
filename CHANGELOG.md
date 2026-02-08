@@ -12,6 +12,8 @@ Le format est basé sur [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/)
 
 ### Added
 
+- **Raccourci « Même config »** : bouton dans la modale de nouvelle donne pour pré-remplir le preneur et le contrat de la dernière donne jouée, réduisant la saisie quand un joueur prend plusieurs fois de suite
+
 - **Changement de joueurs** : depuis l'écran de session, bouton ⇄ pour modifier les joueurs sans repasser par l'accueil. Ouvre une modale `SwapPlayersModal` avec pré-sélection des joueurs actuels, réutilisant le `PlayerSelector` existant. Si les 5 joueurs choisis correspondent à une session active, navigation automatique vers celle-ci ; sinon, création d'une nouvelle session. Bouton désactivé pendant une donne en cours.
 
 - **Système d'étoiles** : attribution d'étoiles aux joueurs pendant une session avec pénalité automatique tous les 3 étoiles (−100 pts pour le joueur pénalisé, +25 pts pour les 4 autres). Entité `StarEvent`, endpoint API `POST/GET /sessions/{id}/star-events`, intégration dans les scores cumulés, classement et statistiques. Interface étoiles cliquables sur le tableau des scores, compteur par joueur, affichage dans les stats globales et par joueur.

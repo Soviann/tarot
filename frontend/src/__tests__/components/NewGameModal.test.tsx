@@ -2,6 +2,7 @@ import { screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import NewGameModal from "../../components/NewGameModal";
 import type { useCreateGame } from "../../hooks/useCreateGame";
+import { Contract } from "../../types/enums";
 import { renderWithProviders } from "../test-utils";
 
 const mockPlayers = [
@@ -168,5 +169,64 @@ describe("NewGameModal", () => {
     );
 
     expect(screen.queryByText("Nouvelle donne")).not.toBeInTheDocument();
+  });
+
+  describe("Même config shortcut", () => {
+    const lastGameConfig = { contract: Contract.Garde, takerId: 2 };
+
+    it("does not show button when no lastGameConfig", () => {
+      const createGame = createMockCreateGame();
+      renderWithProviders(
+        <NewGameModal createGame={createGame} onClose={vi.fn()} open players={mockPlayers} />,
+      );
+
+      expect(screen.queryByRole("button", { name: /même config/i })).not.toBeInTheDocument();
+    });
+
+    it("shows button when lastGameConfig is provided", () => {
+      const createGame = createMockCreateGame();
+      renderWithProviders(
+        <NewGameModal createGame={createGame} lastGameConfig={lastGameConfig} onClose={vi.fn()} open players={mockPlayers} />,
+      );
+
+      expect(screen.getByRole("button", { name: /même config/i })).toBeInTheDocument();
+    });
+
+    it("pre-fills taker and contract when clicked", async () => {
+      const createGame = createMockCreateGame();
+      renderWithProviders(
+        <NewGameModal createGame={createGame} lastGameConfig={lastGameConfig} onClose={vi.fn()} open players={mockPlayers} />,
+      );
+
+      await userEvent.click(screen.getByRole("button", { name: /même config/i }));
+
+      // Bob (id: 2) should be selected → ring-2 on avatar button
+      const bobAvatar = screen.getByRole("img", { name: "Bob" });
+      expect(bobAvatar.closest("button")).toHaveClass("ring-2");
+
+      // Garde should be selected → ring-2 on contract button
+      expect(screen.getByRole("button", { name: "Garde" })).toHaveClass("ring-2");
+
+      // Valider should be enabled
+      expect(screen.getByRole("button", { name: "Valider" })).toBeEnabled();
+    });
+
+    it("allows overriding pre-filled values", async () => {
+      const createGame = createMockCreateGame();
+      renderWithProviders(
+        <NewGameModal createGame={createGame} lastGameConfig={lastGameConfig} onClose={vi.fn()} open players={mockPlayers} />,
+      );
+
+      await userEvent.click(screen.getByRole("button", { name: /même config/i }));
+
+      // Override taker: select Charlie instead of Bob
+      await userEvent.click(screen.getByRole("img", { name: "Charlie" }).closest("button")!);
+      expect(screen.getByRole("img", { name: "Charlie" }).closest("button")).toHaveClass("ring-2");
+      expect(screen.getByRole("img", { name: "Bob" }).closest("button")).not.toHaveClass("ring-2");
+
+      // Override contract: select Petite instead of Garde
+      await userEvent.click(screen.getByRole("button", { name: "Petite" }));
+      expect(screen.getByRole("button", { name: "Petite" })).toHaveClass("ring-2");
+    });
   });
 });

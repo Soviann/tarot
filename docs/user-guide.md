@@ -146,6 +146,8 @@ La saisie se fait en **2 étapes** :
    - 🔴 **Garde Contre** (×6)
 3. Appuyer sur **Valider**
 
+> **Raccourci « Même config »** : si au moins une donne a déjà été jouée, un bouton **« Même config »** apparaît en haut de la modale. Il pré-remplit automatiquement le preneur et le contrat de la dernière donne, ce qui est pratique quand un joueur prend plusieurs fois de suite. Les valeurs pré-remplies restent modifiables.
+
 > La donne est créée avec le statut « en cours ». On peut continuer à jouer et compléter plus tard.
 
 ### Étape 2 — Fin de la donne

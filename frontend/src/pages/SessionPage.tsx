@@ -170,6 +170,7 @@ export default function SessionPage() {
       <NewGameModal
         createGame={createGame}
         currentDealerName={session.currentDealer?.name ?? null}
+        lastGameConfig={lastCompletedGame ? { contract: lastCompletedGame.contract, takerId: lastCompletedGame.taker.id } : undefined}
         onClose={() => setNewGameModalOpen(false)}
         open={newGameModalOpen}
         players={session.players}
