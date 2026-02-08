@@ -4,7 +4,10 @@ import SessionPage from "../../pages/SessionPage";
 import * as useAddStarModule from "../../hooks/useAddStar";
 import * as useCompleteGameModule from "../../hooks/useCompleteGame";
 import * as useCreateGameModule from "../../hooks/useCreateGame";
+import * as useCreatePlayerModule from "../../hooks/useCreatePlayer";
+import * as useCreateSessionModule from "../../hooks/useCreateSession";
 import * as useDeleteGameModule from "../../hooks/useDeleteGame";
+import * as usePlayersModule from "../../hooks/usePlayers";
 import * as useSessionModule from "../../hooks/useSession";
 import { renderWithProviders } from "../test-utils";
 import type { SessionDetail } from "../../types/api";
@@ -12,7 +15,10 @@ import type { SessionDetail } from "../../types/api";
 vi.mock("../../hooks/useAddStar");
 vi.mock("../../hooks/useCompleteGame");
 vi.mock("../../hooks/useCreateGame");
+vi.mock("../../hooks/useCreatePlayer");
+vi.mock("../../hooks/useCreateSession");
 vi.mock("../../hooks/useDeleteGame");
+vi.mock("../../hooks/usePlayers");
 vi.mock("../../hooks/useSession");
 
 const mockNavigate = vi.fn();
@@ -181,6 +187,73 @@ function setupMocks(overrides?: {
     submittedAt: 0,
     variables: undefined,
   } as unknown as ReturnType<typeof useDeleteGameModule.useDeleteGame>);
+
+  vi.mocked(useCreateSessionModule.useCreateSession).mockReturnValue({
+    context: undefined,
+    data: undefined,
+    error: null,
+    failureCount: 0,
+    failureReason: null,
+    isError: false,
+    isIdle: true,
+    isPaused: false,
+    isPending: false,
+    isSuccess: false,
+    mutate: vi.fn(),
+    mutateAsync: vi.fn(),
+    reset: vi.fn(),
+    status: "idle",
+    submittedAt: 0,
+    variables: undefined,
+  } as unknown as ReturnType<typeof useCreateSessionModule.useCreateSession>);
+
+  vi.mocked(usePlayersModule.usePlayers).mockReturnValue({
+    data: { member: [], totalItems: 0 },
+    dataUpdatedAt: 0,
+    error: null,
+    errorUpdateCount: 0,
+    errorUpdatedAt: 0,
+    failureCount: 0,
+    failureReason: null,
+    fetchStatus: "idle",
+    isError: false,
+    isFetched: true,
+    isFetchedAfterMount: true,
+    isFetching: false,
+    isInitialLoading: false,
+    isLoading: false,
+    isLoadingError: false,
+    isPaused: false,
+    isPending: false,
+    isPlaceholderData: false,
+    isRefetchError: false,
+    isRefetching: false,
+    isStale: false,
+    isSuccess: true,
+    players: [],
+    promise: Promise.resolve({ member: [], totalItems: 0 }),
+    refetch: vi.fn(),
+    status: "success",
+  } as unknown as ReturnType<typeof usePlayersModule.usePlayers>);
+
+  vi.mocked(useCreatePlayerModule.useCreatePlayer).mockReturnValue({
+    context: undefined,
+    data: undefined,
+    error: null,
+    failureCount: 0,
+    failureReason: null,
+    isError: false,
+    isIdle: true,
+    isPaused: false,
+    isPending: false,
+    isSuccess: false,
+    mutate: vi.fn(),
+    mutateAsync: vi.fn(),
+    reset: vi.fn(),
+    status: "idle",
+    submittedAt: 0,
+    variables: undefined,
+  } as unknown as ReturnType<typeof useCreatePlayerModule.useCreatePlayer>);
 
   return { createGameMutate };
 }
@@ -368,5 +441,38 @@ describe("SessionPage", () => {
     await userEvent.click(screen.getByRole("button", { name: "Annuler" }));
 
     expect(screen.getByText("Supprimer la donne")).toBeInTheDocument();
+  });
+
+  it("renders swap players button", () => {
+    setupMocks();
+    renderWithProviders(<SessionPage />);
+
+    expect(
+      screen.getByRole("button", { name: "Modifier les joueurs" }),
+    ).toBeInTheDocument();
+  });
+
+  it("disables swap players button when a game is in progress", () => {
+    setupMocks({
+      useSession: { data: mockSessionWithInProgress, session: mockSessionWithInProgress },
+    });
+    renderWithProviders(<SessionPage />);
+
+    expect(
+      screen.getByRole("button", { name: "Modifier les joueurs" }),
+    ).toBeDisabled();
+  });
+
+  it("opens SwapPlayersModal when swap button is clicked", async () => {
+    setupMocks();
+    renderWithProviders(<SessionPage />);
+
+    await userEvent.click(
+      screen.getByRole("button", { name: "Modifier les joueurs" }),
+    );
+
+    expect(
+      screen.getByText("Modifier les joueurs", { selector: "h2" }),
+    ).toBeInTheDocument();
   });
 });

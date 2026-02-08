@@ -468,12 +468,14 @@ const { isPending, sessions } = useSessions();
 - Bandeau « donne en cours » (`InProgressBanner`) si une donne est au statut `in_progress`
 - Historique des donnes terminées (`GameList`) en ordre anti-chronologique
 - Bouton FAB (+) pour démarrer une nouvelle donne (désactivé si donne en cours)
+- Bouton de changement de joueurs (icône ⇄) dans le header (désactivé si donne en cours)
 - Bouton retour vers l'accueil
 - États : chargement, session introuvable
 
-**Hooks utilisés** : `useSession`, `useAddStar`, `useCreateGame`, `useCompleteGame`, `useDeleteGame`, `useNavigate`
+**Hooks utilisés** : `useSession`, `useAddStar`, `useCreateGame`, `useCreateSession` (via SwapPlayersModal), `useCompleteGame`, `useDeleteGame`, `useNavigate`
 
 **Modales** :
+- `SwapPlayersModal` : changement de joueurs avec navigation vers la session résultante
 - `NewGameModal` : sélection preneur + contrat (étape 1)
 - `CompleteGameModal` : complétion ou modification d'une donne (étape 2)
 - `DeleteGameModal` : confirmation de suppression de la dernière donne
@@ -580,6 +582,27 @@ Modal de confirmation de suppression d'une donne. Appelle `useDeleteGame` en int
 - Bouton « Annuler » (ferme la modal) et « Supprimer » (lance la suppression)
 - Bouton « Supprimer » désactivé pendant la suppression
 - Affichage d'erreur si la suppression échoue
+
+### `SwapPlayersModal`
+
+**Fichier** : `components/SwapPlayersModal.tsx`
+
+Modal de changement de joueurs depuis une session en cours. Réutilise `PlayerSelector` et `useCreateSession`.
+
+| Prop | Type | Description |
+|------|------|-------------|
+| `currentPlayerIds` | `number[]` | *requis* — IDs des 5 joueurs actuels (pré-sélection) |
+| `onClose` | `() => void` | *requis* — fermeture |
+| `onSwap` | `(session: Session) => void` | *requis* — callback avec la session créée/retrouvée |
+| `open` | `boolean` | *requis* — afficher ou masquer |
+
+**Fonctionnalités** :
+- Pré-remplit le `PlayerSelector` avec les joueurs actuels
+- Texte explicatif sur le comportement de reprise de session
+- Bouton « Confirmer » désactivé si ≠ 5 joueurs ou mutation en cours
+- Appelle `useCreateSession` (find-or-create) au clic sur Confirmer
+- Reset automatique de la sélection et de l'état d'erreur à l'ouverture
+- Affichage d'erreur si la mutation échoue
 
 ### `NewGameModal`
 

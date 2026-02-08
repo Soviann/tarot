@@ -1,3 +1,4 @@
+import { ArrowLeftRight } from "lucide-react";
 import { useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import CompleteGameModal from "../components/CompleteGameModal";
@@ -7,6 +8,7 @@ import InProgressBanner from "../components/InProgressBanner";
 import NewGameModal from "../components/NewGameModal";
 import Scoreboard from "../components/Scoreboard";
 import ScoreEvolutionChart from "../components/ScoreEvolutionChart";
+import SwapPlayersModal from "../components/SwapPlayersModal";
 import { FAB } from "../components/ui";
 import { useAddStar } from "../hooks/useAddStar";
 import { useCreateGame } from "../hooks/useCreateGame";
@@ -51,6 +53,7 @@ export default function SessionPage() {
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [editModalOpen, setEditModalOpen] = useState(false);
   const [newGameModalOpen, setNewGameModalOpen] = useState(false);
+  const [swapModalOpen, setSwapModalOpen] = useState(false);
 
   if (isPending) {
     return (
@@ -92,6 +95,15 @@ export default function SessionPage() {
         <h1 className="text-lg font-bold text-text-primary">
           Session #{session.id}
         </h1>
+        <button
+          aria-label="Modifier les joueurs"
+          className="ml-auto rounded-lg p-1 text-text-secondary disabled:opacity-40"
+          disabled={!!inProgressGame}
+          onClick={() => setSwapModalOpen(true)}
+          type="button"
+        >
+          <ArrowLeftRight size={20} />
+        </button>
       </div>
 
       <Scoreboard
@@ -191,6 +203,19 @@ export default function SessionPage() {
           sessionId={sessionId}
         />
       )}
+
+      <SwapPlayersModal
+        currentPlayerIds={session.players.map((p) => p.id)}
+        onClose={() => setSwapModalOpen(false)}
+        onSwap={(newSession) => {
+          if (newSession.id !== sessionId) {
+            navigate(`/sessions/${newSession.id}`);
+          } else {
+            setSwapModalOpen(false);
+          }
+        }}
+        open={swapModalOpen}
+      />
     </div>
   );
 }
