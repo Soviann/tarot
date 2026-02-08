@@ -9,12 +9,12 @@ vi.mock("../../hooks/usePlayers");
 vi.mock("../../hooks/useCreatePlayer");
 
 const mockPlayers = [
-  { createdAt: "2025-01-15T10:00:00+00:00", id: 1, name: "Alice" },
-  { createdAt: "2025-01-16T10:00:00+00:00", id: 2, name: "Bob" },
-  { createdAt: "2025-01-17T10:00:00+00:00", id: 3, name: "Charlie" },
-  { createdAt: "2025-01-18T10:00:00+00:00", id: 4, name: "Diana" },
-  { createdAt: "2025-01-19T10:00:00+00:00", id: 5, name: "Eve" },
-  { createdAt: "2025-01-20T10:00:00+00:00", id: 6, name: "Frank" },
+  { active: true, createdAt: "2025-01-15T10:00:00+00:00", id: 1, name: "Alice" },
+  { active: true, createdAt: "2025-01-16T10:00:00+00:00", id: 2, name: "Bob" },
+  { active: true, createdAt: "2025-01-17T10:00:00+00:00", id: 3, name: "Charlie" },
+  { active: true, createdAt: "2025-01-18T10:00:00+00:00", id: 4, name: "Diana" },
+  { active: true, createdAt: "2025-01-19T10:00:00+00:00", id: 5, name: "Eve" },
+  { active: true, createdAt: "2025-01-20T10:00:00+00:00", id: 6, name: "Frank" },
 ];
 
 function setupMocks(overrides?: {
@@ -263,5 +263,43 @@ describe("PlayerSelector", () => {
     );
 
     expect(screen.getByText("Chargement…")).toBeInTheDocument();
+  });
+
+  it("hides inactive players from selection list", () => {
+    const playersWithInactive = [
+      { active: true, createdAt: "2025-01-15T10:00:00+00:00", id: 1, name: "Alice" },
+      { active: false, createdAt: "2025-01-16T10:00:00+00:00", id: 2, name: "Bob" },
+      { active: true, createdAt: "2025-01-17T10:00:00+00:00", id: 3, name: "Charlie" },
+    ];
+    setupMocks({
+      usePlayers: { data: playersWithInactive, players: playersWithInactive },
+    });
+    const onChange = vi.fn();
+    renderWithProviders(
+      <PlayerSelector onSelectionChange={onChange} selectedPlayerIds={[]} />,
+    );
+
+    expect(screen.getByText("Alice")).toBeInTheDocument();
+    expect(screen.getByText("Charlie")).toBeInTheDocument();
+    expect(screen.queryByText("Bob")).not.toBeInTheDocument();
+  });
+
+  it("shows inactive player in chips if already selected", () => {
+    const playersWithInactive = [
+      { active: true, createdAt: "2025-01-15T10:00:00+00:00", id: 1, name: "Alice" },
+      { active: false, createdAt: "2025-01-16T10:00:00+00:00", id: 2, name: "Bob" },
+      { active: true, createdAt: "2025-01-17T10:00:00+00:00", id: 3, name: "Charlie" },
+    ];
+    setupMocks({
+      usePlayers: { data: playersWithInactive, players: playersWithInactive },
+    });
+    const onChange = vi.fn();
+    renderWithProviders(
+      <PlayerSelector onSelectionChange={onChange} selectedPlayerIds={[2]} />,
+    );
+
+    // Bob should appear in chips (selected) but not in the list
+    const chipArea = screen.getByTestId("selected-chips");
+    expect(chipArea).toHaveTextContent("Bob");
   });
 });

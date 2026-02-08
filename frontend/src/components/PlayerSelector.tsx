@@ -21,8 +21,10 @@ export default function PlayerSelector({
   const [newName, setNewName] = useState("");
 
   const { players: allPlayers } = usePlayers();
-  const { isPending, players } = usePlayers(search);
+  const { isPending, players: searchedPlayers } = usePlayers(search);
   const createPlayer = useCreatePlayer();
+
+  const players = searchedPlayers.filter((p) => p.active);
 
   const selectedPlayers = useMemo(
     () =>

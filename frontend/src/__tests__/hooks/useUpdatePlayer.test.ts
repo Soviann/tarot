@@ -3,7 +3,7 @@ import { renderHook, waitFor } from "@testing-library/react";
 import { act } from "react";
 import type { ReactNode } from "react";
 import { createElement } from "react";
-import { useCreatePlayer } from "../../hooks/useCreatePlayer";
+import { useUpdatePlayer } from "../../hooks/useUpdatePlayer";
 import * as api from "../../services/api";
 import { createTestQueryClient } from "../test-utils";
 
@@ -19,32 +19,48 @@ function createWrapper() {
   return { queryClient, wrapper: w };
 }
 
-describe("useCreatePlayer", () => {
+describe("useUpdatePlayer", () => {
   afterEach(() => {
     vi.restoreAllMocks();
   });
 
-  it("sends POST to /players with the given name", async () => {
-    const created = { active: true, createdAt: "2025-01-20T10:00:00+00:00", id: 4, name: "Diana" };
-    vi.mocked(api.apiFetch).mockResolvedValue(created);
+  it("sends PATCH to /players/{id} with merge-patch+json", async () => {
+    const updated = { active: true, createdAt: "2025-01-15T10:00:00+00:00", id: 1, name: "Alicia" };
+    vi.mocked(api.apiFetch).mockResolvedValue(updated);
     const { wrapper } = createWrapper();
 
-    const { result } = renderHook(() => useCreatePlayer(), { wrapper });
+    const { result } = renderHook(() => useUpdatePlayer(), { wrapper });
 
-    await act(() => result.current.mutateAsync("Diana"));
+    await act(() => result.current.mutateAsync({ id: 1, name: "Alicia" }));
 
-    expect(api.apiFetch).toHaveBeenCalledWith("/players", {
-      body: JSON.stringify({ name: "Diana" }),
-      method: "POST",
+    expect(api.apiFetch).toHaveBeenCalledWith("/players/1", {
+      body: JSON.stringify({ name: "Alicia" }),
+      headers: { "Content-Type": "application/merge-patch+json" },
+      method: "PATCH",
+    });
+  });
+
+  it("sends only active field when updating active status", async () => {
+    const updated = { active: false, createdAt: "2025-01-15T10:00:00+00:00", id: 1, name: "Alice" };
+    vi.mocked(api.apiFetch).mockResolvedValue(updated);
+    const { wrapper } = createWrapper();
+
+    const { result } = renderHook(() => useUpdatePlayer(), { wrapper });
+
+    await act(() => result.current.mutateAsync({ active: false, id: 1 }));
+
+    expect(api.apiFetch).toHaveBeenCalledWith("/players/1", {
+      body: JSON.stringify({ active: false }),
+      headers: { "Content-Type": "application/merge-patch+json" },
+      method: "PATCH",
     });
   });
 
   it("invalidates players query on success", async () => {
-    const created = { active: true, createdAt: "2025-01-20T10:00:00+00:00", id: 4, name: "Diana" };
-    vi.mocked(api.apiFetch).mockResolvedValue(created);
+    const updated = { active: true, createdAt: "2025-01-15T10:00:00+00:00", id: 1, name: "Alicia" };
+    vi.mocked(api.apiFetch).mockResolvedValue(updated);
     const { queryClient, wrapper } = createWrapper();
 
-    // Seed the players cache
     queryClient.setQueryData(["players"], {
       member: [{ active: true, createdAt: "2025-01-15T10:00:00+00:00", id: 1, name: "Alice" }],
       totalItems: 1,
@@ -52,9 +68,9 @@ describe("useCreatePlayer", () => {
 
     const invalidateSpy = vi.spyOn(queryClient, "invalidateQueries");
 
-    const { result } = renderHook(() => useCreatePlayer(), { wrapper });
+    const { result } = renderHook(() => useUpdatePlayer(), { wrapper });
 
-    await act(() => result.current.mutateAsync("Diana"));
+    await act(() => result.current.mutateAsync({ id: 1, name: "Alicia" }));
 
     expect(invalidateSpy).toHaveBeenCalledWith({ queryKey: ["players"] });
   });
@@ -68,9 +84,9 @@ describe("useCreatePlayer", () => {
     vi.mocked(api.apiFetch).mockRejectedValue(apiError);
     const { wrapper } = createWrapper();
 
-    const { result } = renderHook(() => useCreatePlayer(), { wrapper });
+    const { result } = renderHook(() => useUpdatePlayer(), { wrapper });
 
-    act(() => result.current.mutate("Alice"));
+    act(() => result.current.mutate({ id: 1, name: "Alice" }));
 
     await waitFor(() => {
       expect(result.current.error).toBeInstanceOf(api.ApiError);

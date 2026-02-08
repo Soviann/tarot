@@ -8,6 +8,8 @@ Le format est basé sur [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/)
 
 ### Added
 
+- **Modification et désactivation des joueurs** : bouton crayon sur chaque joueur de la liste, modale de modification avec champ nom et toggle actif/inactif. Les joueurs inactifs sont affichés avec nom barré, badge « Inactif » et avatar grisé. Ils n'apparaissent plus dans la sélection lors de la création de session, mais leurs données historiques (scores, statistiques, ELO) sont conservées. Hook `useUpdatePlayer`, champ `active` sur l'entité `Player`.
+
 - **Pré-remplissage nom joueur** : le champ nom de la modale « Nouveau joueur » est pré-rempli avec le texte de recherche en cours
 
 - **Confirmation étoile** : modale de confirmation avant attribution d'une étoile à un joueur, évitant les appuis accidentels. Composant `AddStarModal` avec boutons Annuler/Confirmer.

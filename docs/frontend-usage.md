@@ -65,7 +65,7 @@ import type { HydraCollection, Player } from "./types/api";
 | `Game` | `id`, `chelem`, `contract`, `createdAt`, `dealer`, `oudlers`, `partner`, `petitAuBout`, `poignee`, `poigneeOwner`, `points`, `position`, `scoreEntries`, `status`, `taker` |
 | `GamePlayer` | `id: number`, `name: string` |
 | `HydraCollection<T>` | `member: T[]`, `totalItems: number` |
-| `Player` | `id: number`, `name: string`, `createdAt: string` |
+| `Player` | `active: boolean`, `id: number`, `name: string`, `createdAt: string` |
 | `ScoreEntry` | `id: number`, `player: GamePlayer`, `score: number` |
 | `Session` | `id: number`, `createdAt: string`, `isActive: boolean`, `players: SessionPlayer[]` |
 | `SessionDetail` | `id`, `createdAt`, `currentDealer`, `isActive`, `players: GamePlayer[]`, `games: Game[]`, `cumulativeScores: CumulativeScore[]`, `starEvents: StarEvent[]` |
@@ -193,6 +193,29 @@ createPlayer.mutate("Alice", {
 | Retour | Type | Description |
 |--------|------|-------------|
 | `mutate` | `(name: string) => void` | Lance la création |
+| `isPending` | `boolean` | `true` pendant la requête |
+| `isError` | `boolean` | `true` si erreur (ex. doublon 422) |
+| `error` | `ApiError \| null` | Détails de l'erreur |
+| `reset()` | `() => void` | Réinitialise l'état d'erreur |
+
+### `useUpdatePlayer`
+
+**Fichier** : `hooks/useUpdatePlayer.ts`
+
+Mutation pour modifier un joueur (nom et/ou statut actif). Envoie un PATCH avec `application/merge-patch+json`.
+Invalide le cache `["players"]` en cas de succès.
+
+```ts
+const updatePlayer = useUpdatePlayer();
+
+updatePlayer.mutate({ id: 1, name: "Alicia", active: false }, {
+  onSuccess: () => closeModal(),
+});
+```
+
+| Retour | Type | Description |
+|--------|------|-------------|
+| `mutate` | `(input: { id: number, name?: string, active?: boolean }) => void` | Lance la modification |
 | `isPending` | `boolean` | `true` pendant la requête |
 | `isError` | `boolean` | `true` si erreur (ex. doublon 422) |
 | `error` | `ApiError \| null` | Détails de l'erreur |
@@ -448,16 +471,19 @@ Page d'aide in-app reprenant le contenu du guide utilisateur (`docs/user-guide.m
 
 **Fichier** : `pages/Players.tsx`
 
-Écran de gestion des joueurs : liste, recherche, ajout.
+Écran de gestion des joueurs : liste, recherche, ajout, modification et désactivation.
 
 **Fonctionnalités** :
 - Liste tous les joueurs avec avatar et date de création
 - Recherche par nom (filtrage côté client via `SearchInput`)
 - Bouton FAB (+) pour ouvrir le formulaire d'ajout
 - Formulaire dans un `Modal` avec validation (doublon → message d'erreur)
+- Bouton crayon (✏️) sur chaque joueur pour ouvrir la modale de modification
+- Modale de modification : champ nom pré-rempli + toggle actif/inactif + bouton « Enregistrer »
+- Joueurs inactifs : nom barré (`line-through`), badge « Inactif », avatar grisé (`opacity-50`)
 - États : chargement, liste vide, résultats
 
-**Hooks utilisés** : `usePlayers`, `useCreatePlayer`
+**Hooks utilisés** : `usePlayers`, `useCreatePlayer`, `useUpdatePlayer`
 
 ### Statistiques globales (`Stats`)
 
@@ -546,6 +572,8 @@ Composant de sélection de joueurs avec limite à 5. Inclut chips, recherche et 
 - Placeholders ronds pour les places restantes
 - Compteur « X/5 joueurs sélectionnés »
 - `SearchInput` pour filtrer la liste
+- Filtre les joueurs inactifs de la liste de sélection (seuls les joueurs actifs sont sélectionnables)
+- Les joueurs déjà sélectionnés restent affichés en chips même s'ils sont inactifs
 - Liste des joueurs : clic = toggle sélection, `ring-2 ring-accent-500` si sélectionné
 - Joueurs non sélectionnés grisés et désactivés quand 5 sont déjà choisis
 - Bouton « + Nouveau joueur » ouvrant un `Modal` de création

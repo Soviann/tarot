@@ -3,24 +3,29 @@ import userEvent from "@testing-library/user-event";
 import Players from "../../pages/Players";
 import * as useCreatePlayerModule from "../../hooks/useCreatePlayer";
 import * as usePlayersModule from "../../hooks/usePlayers";
+import * as useUpdatePlayerModule from "../../hooks/useUpdatePlayer";
 import { ApiError } from "../../services/api";
 import { renderWithProviders } from "../test-utils";
 
 vi.mock("../../hooks/usePlayers");
 vi.mock("../../hooks/useCreatePlayer");
+vi.mock("../../hooks/useUpdatePlayer");
 
 const mockPlayers = [
-  { createdAt: "2025-01-15T10:00:00+00:00", id: 1, name: "Alice" },
-  { createdAt: "2025-01-16T10:00:00+00:00", id: 2, name: "Bob" },
-  { createdAt: "2025-01-17T10:00:00+00:00", id: 3, name: "Charlie" },
+  { active: true, createdAt: "2025-01-15T10:00:00+00:00", id: 1, name: "Alice" },
+  { active: true, createdAt: "2025-01-16T10:00:00+00:00", id: 2, name: "Bob" },
+  { active: true, createdAt: "2025-01-17T10:00:00+00:00", id: 3, name: "Charlie" },
 ];
 
 function setupMocks(overrides?: {
   createPlayer?: Partial<ReturnType<typeof useCreatePlayerModule.useCreatePlayer>>;
+  updatePlayer?: Partial<ReturnType<typeof useUpdatePlayerModule.useUpdatePlayer>>;
   usePlayers?: Partial<ReturnType<typeof usePlayersModule.usePlayers>>;
 }) {
   const mutate = vi.fn();
   const reset = vi.fn();
+  const updateMutate = vi.fn();
+  const updateReset = vi.fn();
 
   vi.mocked(usePlayersModule.usePlayers).mockReturnValue({
     data: mockPlayers,
@@ -72,7 +77,27 @@ function setupMocks(overrides?: {
     ...overrides?.createPlayer,
   } as unknown as ReturnType<typeof useCreatePlayerModule.useCreatePlayer>);
 
-  return { mutate, reset };
+  vi.mocked(useUpdatePlayerModule.useUpdatePlayer).mockReturnValue({
+    context: undefined,
+    data: undefined,
+    error: null,
+    failureCount: 0,
+    failureReason: null,
+    isError: false,
+    isIdle: true,
+    isPaused: false,
+    isPending: false,
+    isSuccess: false,
+    mutate: updateMutate,
+    mutateAsync: vi.fn(),
+    reset: updateReset,
+    status: "idle",
+    submittedAt: 0,
+    variables: undefined,
+    ...overrides?.updatePlayer,
+  } as unknown as ReturnType<typeof useUpdatePlayerModule.useUpdatePlayer>);
+
+  return { mutate, reset, updateMutate, updateReset };
 }
 
 describe("Players page", () => {
@@ -182,5 +207,104 @@ describe("Players page", () => {
     renderWithProviders(<Players />);
 
     expect(screen.getByText("Chargement…")).toBeInTheDocument();
+  });
+
+  // --- Edit modal tests ---
+
+  it("shows edit button for each player", () => {
+    setupMocks();
+    renderWithProviders(<Players />);
+
+    const editButtons = screen.getAllByRole("button", { name: /Modifier/i });
+    expect(editButtons).toHaveLength(3);
+  });
+
+  it("opens edit modal with player name pre-filled", async () => {
+    setupMocks();
+    renderWithProviders(<Players />);
+
+    const editButtons = screen.getAllByRole("button", { name: /Modifier/i });
+    await userEvent.click(editButtons[0]);
+
+    expect(screen.getByRole("dialog")).toBeInTheDocument();
+    expect(screen.getByText("Modifier le joueur")).toBeInTheDocument();
+    expect(screen.getByDisplayValue("Alice")).toBeInTheDocument();
+  });
+
+  it("shows active toggle switch in edit modal", async () => {
+    setupMocks();
+    renderWithProviders(<Players />);
+
+    const editButtons = screen.getAllByRole("button", { name: /Modifier/i });
+    await userEvent.click(editButtons[0]);
+
+    expect(screen.getByRole("switch")).toBeInTheDocument();
+    expect(screen.getByRole("switch")).toHaveAttribute("aria-checked", "true");
+  });
+
+  it("calls updateMutate on edit form submission", async () => {
+    const { updateMutate } = setupMocks();
+    renderWithProviders(<Players />);
+
+    const editButtons = screen.getAllByRole("button", { name: /Modifier/i });
+    await userEvent.click(editButtons[0]);
+
+    const nameInput = screen.getByDisplayValue("Alice");
+    await userEvent.clear(nameInput);
+    await userEvent.type(nameInput, "Alicia");
+    await userEvent.click(screen.getByRole("button", { name: "Enregistrer" }));
+
+    expect(updateMutate).toHaveBeenCalledWith(
+      { active: true, id: 1, name: "Alicia" },
+      expect.anything(),
+    );
+  });
+
+  it("shows duplicate error in edit modal on 422", async () => {
+    const apiError = new ApiError(
+      { detail: "name: Cette valeur est déjà utilisée." },
+      "API error: 422",
+      422,
+    );
+    setupMocks({
+      updatePlayer: { error: apiError, isError: true },
+    });
+    renderWithProviders(<Players />);
+
+    const editButtons = screen.getAllByRole("button", { name: /Modifier/i });
+    await userEvent.click(editButtons[0]);
+
+    expect(screen.getByText("Ce nom est déjà utilisé.")).toBeInTheDocument();
+  });
+
+  it("renders inactive player with visual treatment", () => {
+    const playersWithInactive = [
+      { active: true, createdAt: "2025-01-15T10:00:00+00:00", id: 1, name: "Alice" },
+      { active: false, createdAt: "2025-01-16T10:00:00+00:00", id: 2, name: "Bob" },
+    ];
+    setupMocks({
+      usePlayers: { data: playersWithInactive, players: playersWithInactive },
+    });
+    renderWithProviders(<Players />);
+
+    expect(screen.getByText("Inactif")).toBeInTheDocument();
+    // Bob's name should have line-through styling
+    const bobName = screen.getByText("Bob");
+    expect(bobName).toHaveClass("line-through");
+  });
+
+  it("toggles active switch in edit modal", async () => {
+    setupMocks();
+    renderWithProviders(<Players />);
+
+    const editButtons = screen.getAllByRole("button", { name: /Modifier/i });
+    await userEvent.click(editButtons[0]);
+
+    const toggle = screen.getByRole("switch");
+    expect(toggle).toHaveAttribute("aria-checked", "true");
+
+    await userEvent.click(toggle);
+
+    expect(toggle).toHaveAttribute("aria-checked", "false");
   });
 });
