@@ -83,7 +83,7 @@ No `Co-Authored-By`.
 - Branch naming: `<type>/<issue-number>-<short-description>` (e.g. `feat/2-entities`, `fix/15-score-calc`)
 - One branch = one issue (1:1 mapping)
 - Branch from `main`, merge back to `main`
-- Delete branch after merge
+- Branch auto-deleted after merge (GitHub setting `delete_branch_on_merge`)
 
 ### Pull Requests
 
@@ -107,7 +107,7 @@ git checkout -b feat/N-description main     # 1. Create branch
 git push -u origin feat/N-description       # 3. Push branch
 gh pr create --title "..." --body "..."     # 4. Create PR (fixes #N)
 # ... code review ...                       # 5. Review
-gh pr merge N --squash --delete-branch      # 6. Squash merge + cleanup
+gh pr merge N --squash                       # 6. Squash merge (branch auto-deleted)
 # Issue auto-closes via "fixes #N"          # 7. Done
 ```
 
@@ -117,11 +117,20 @@ gh pr merge N --squash --delete-branch      # 6. Squash merge + cleanup
 
 **Board columns** (Status field): `Backlog` → `Todo` → `In Progress` → `Done`
 
+### Project workflows (all enabled)
+
+GitHub Project workflows automate board transitions — **no manual board moves needed**:
+- **Auto-add to project**: new issues/PRs are added to the board automatically
+- **Item added to project**: sets initial status on add
+- **Pull request linked to issue**: moves to `In Progress`
+- **Pull request merged** / **Item closed**: moves to `Done`
+- **Auto-close issue**: closes issue when linked PR merges
+
 ### Rules
 
 1. **All work starts from an issue.** Check existing issues first; create if none exists.
-2. **Move issues** through the board: `Todo` → `In Progress` (start) → `Done` (via PR merge).
-3. **New ideas** without immediate implementation → `Backlog`.
+2. **Board transitions are automatic** (see workflows above). No manual `gh project item-add` or `gh project item-edit` needed.
+3. **New ideas** without immediate implementation → `Backlog` (set manually only for new issues that need triaging).
 4. **Close issues** via PR with `fixes #N` in PR body (auto-closes on merge).
 5. **Labels**: use existing (`enhancement`, `bug`, etc.). Don't create new ones without asking.
 6. **Token optimization** (see dedicated section below).
@@ -132,10 +141,8 @@ gh pr merge N --squash --delete-branch      # 6. Squash merge + cleanup
 - **Always set `minimal_output: true`** on MCP list/search calls when full data isn't needed
 - **Max `perPage: 5`** unless more results are explicitly needed
 - **No exploratory chains**: one targeted call, not list → read → read
-- **Never `gh project item-list`** (returns all items, very expensive). Use `gh project item-add` (idempotent, returns item ID) then cache the item ID in `MEMORY.md`
-- **Cache project item IDs** (`PVTI_…`) in `MEMORY.md` after every board interaction — use them directly for `gh project item-edit`
 - **Don't verify existence** of issues, PRs, or players already known from the plan or memory
-- **Single board move per issue**: move to `Done` at merge time only — skip the intermediate `In Progress` move
+- **No manual board moves**: project workflows handle all transitions automatically
 - `fixes #N` in the PR body auto-closes the issue on merge — never close manually
 
 ### Quick reference
@@ -150,18 +157,16 @@ git push -u origin <type>/<N>-<desc>
 
 # Pull Requests
 gh pr create --title "<type>(scope): desc" --body "fixes #N"
-gh pr merge <PR_NUMBER> --squash --delete-branch
+gh pr merge <PR_NUMBER> --squash              # Branch auto-deleted by GitHub
 
 # Tags & Releases
 git tag -a vX.Y.Z -m "vX.Y.Z"
 git push origin vX.Y.Z
 gh release create vX.Y.Z --generate-notes
 
-# Project board — add item & move to a column
-# 1. Add (idempotent): gh project item-add 2 --owner Soviann --url <ISSUE_URL> --format json
-#    → returns { "id": "PVTI_..." } — cache this in MEMORY.md
-# 2. Edit status:  gh project item-edit --project-id PVT_kwHOANG8LM4BOble --id <ITEM_ID> \
-#      --field-id PVTSSF_lAHOANG8LM4BOblezg9IsCA --single-select-option-id <OPTION_ID>
+# Project board — fully automated by workflows, no manual commands needed
+# Manual override (rare): gh project item-edit --project-id PVT_kwHOANG8LM4BOble --id <ITEM_ID> \
+#   --field-id PVTSSF_lAHOANG8LM4BOblezg9IsCA --single-select-option-id <OPTION_ID>
 # Column option IDs: Backlog=858f7025  Todo=f75ad846  InProgress=47fc9ee4  Done=98236657
 ```
 
