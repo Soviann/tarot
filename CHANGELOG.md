@@ -12,6 +12,8 @@ Le format est basé sur [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/)
 
 ### Added
 
+- **Classement ELO** : système de rating ELO dynamique entre joueurs, calculé après chaque donne en tenant compte du niveau des adversaires (K-factors différenciés : preneur 40, partenaire 25, défenseur 15). Entité `EloHistory`, service `EloCalculator`, intégration dans les processeurs de complétion et suppression de donne (avec revert automatique). Section « Classement ELO » dans les statistiques globales, carte ELO et graphique d'évolution dans les statistiques par joueur. Composants `EloRanking` et `EloEvolutionChart`.
+
 - **Raccourci « Même config »** : bouton dans la modale de nouvelle donne pour pré-remplir le preneur et le contrat de la dernière donne jouée, réduisant la saisie quand un joueur prend plusieurs fois de suite
 
 - **Changement de joueurs** : depuis l'écran de session, bouton ⇄ pour modifier les joueurs sans repasser par l'accueil. Ouvre une modale `SwapPlayersModal` avec pré-sélection des joueurs actuels, réutilisant le `PlayerSelector` existant. Si les 5 joueurs choisis correspondent à une session active, navigation automatique vers celle-ci ; sinon, création d'une nouvelle session. Bouton désactivé pendant une donne en cours.

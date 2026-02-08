@@ -48,6 +48,33 @@ class StatisticsService
     }
 
     /**
+     * @return list<array{eloRating: int, gamesPlayed: int, playerId: int, playerName: string}>
+     */
+    public function getEloRanking(): array
+    {
+        /** @var list<array{eloRating: int|string, gamesPlayed: int|string, playerId: int|string, playerName: string}> $rows */
+        $rows = $this->em->createQuery(
+            'SELECT IDENTITY(eh.player) AS playerId, p.name AS playerName, p.eloRating AS eloRating,
+                    COUNT(DISTINCT eh.game) AS gamesPlayed
+             FROM App\Entity\EloHistory eh
+             JOIN eh.player p
+             GROUP BY eh.player, p.name, p.eloRating
+             ORDER BY eloRating DESC'
+        )
+            ->getResult();
+
+        return \array_map(
+            static fn (array $row) => [
+                'eloRating' => (int) $row['eloRating'],
+                'gamesPlayed' => (int) $row['gamesPlayed'],
+                'playerId' => (int) $row['playerId'],
+                'playerName' => $row['playerName'],
+            ],
+            $rows,
+        );
+    }
+
+    /**
      * @return list<array{gamesAsTaker: int, gamesPlayed: int, playerId: int, playerName: string, totalScore: int, winRate: float, wins: int}>
      */
     public function getLeaderboard(): array
@@ -136,7 +163,33 @@ class StatisticsService
     }
 
     /**
-     * @return array{averageScore: float, bestGameScore: int, contractDistribution: list<array{contract: string, count: int, winRate: float, wins: int}>, gamesAsDefender: int, gamesAsPartner: int, gamesAsTaker: int, gamesPlayed: int, player: array{id: int|null, name: string}, recentScores: list<array{date: string, gameId: int, score: int, sessionId: int}>, sessionsPlayed: int, starPenalties: int, totalStars: int, winRateAsTaker: float, worstGameScore: int}
+     * @return list<array{date: string, gameId: int, ratingAfter: int, ratingChange: int}>
+     */
+    public function getPlayerEloHistory(Player $player): array
+    {
+        /** @var list<array{date: \DateTimeImmutable, gameId: int|string, ratingAfter: int|string, ratingChange: int|string}> $rows */
+        $rows = $this->em->createQuery(
+            'SELECT eh.createdAt AS date, IDENTITY(eh.game) AS gameId, eh.ratingAfter AS ratingAfter, eh.ratingChange AS ratingChange
+             FROM App\Entity\EloHistory eh
+             WHERE eh.player = :player
+             ORDER BY eh.id ASC'
+        )
+            ->setParameter('player', $player)
+            ->getResult();
+
+        return \array_map(
+            static fn (array $row) => [
+                'date' => $row['date']->format(\DateTimeInterface::ATOM),
+                'gameId' => (int) $row['gameId'],
+                'ratingAfter' => (int) $row['ratingAfter'],
+                'ratingChange' => (int) $row['ratingChange'],
+            ],
+            $rows,
+        );
+    }
+
+    /**
+     * @return array{averageScore: float, bestGameScore: int, contractDistribution: list<array{contract: string, count: int, winRate: float, wins: int}>, eloHistory: list<array{date: string, gameId: int, ratingAfter: int, ratingChange: int}>, eloRating: int, gamesAsDefender: int, gamesAsPartner: int, gamesAsTaker: int, gamesPlayed: int, player: array{id: int|null, name: string}, recentScores: list<array{date: string, gameId: int, score: int, sessionId: int}>, sessionsPlayed: int, starPenalties: int, totalStars: int, winRateAsTaker: float, worstGameScore: int}
      */
     public function getPlayerStats(Player $player): array
     {
@@ -272,6 +325,8 @@ class StatisticsService
             'averageScore' => null !== $scoreAgg['averageScore'] ? \round((float) $scoreAgg['averageScore'], 1) : 0.0,
             'bestGameScore' => (int) ($scoreAgg['bestGameScore'] ?? 0),
             'contractDistribution' => $contractDistribution,
+            'eloHistory' => $this->getPlayerEloHistory($player),
+            'eloRating' => $player->getEloRating(),
             'gamesAsDefender' => $gamesAsDefender,
             'gamesAsPartner' => $gamesAsPartner,
             'gamesAsTaker' => $gamesAsTaker,

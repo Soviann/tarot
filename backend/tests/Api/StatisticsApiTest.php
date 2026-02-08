@@ -135,6 +135,116 @@ class StatisticsApiTest extends ApiTestCase
         $this->assertResponseStatusCodeSame(404);
     }
 
+    public function testGlobalStatisticsIncludesEloRanking(): void
+    {
+        $response = $this->client->request('GET', '/api/statistics');
+
+        $this->assertResponseIsSuccessful();
+        $data = $response->toArray();
+
+        $this->assertArrayHasKey('eloRanking', $data);
+        $this->assertIsArray($data['eloRanking']);
+
+        // Seed data uses raw entities (no processor), so eloRanking is empty
+        $this->assertSame([], $data['eloRanking']);
+    }
+
+    public function testPlayerStatisticsIncludesEloData(): void
+    {
+        $alice = $this->players['Alice'];
+
+        $response = $this->client->request('GET', '/api/statistics/players/'.$alice->getId());
+
+        $this->assertResponseIsSuccessful();
+        $data = $response->toArray();
+
+        $this->assertArrayHasKey('eloRating', $data);
+        $this->assertSame(1500, $data['eloRating']);
+        $this->assertArrayHasKey('eloHistory', $data);
+        $this->assertIsArray($data['eloHistory']);
+    }
+
+    public function testEloUpdatedAfterGameCompletion(): void
+    {
+        $this->client->disableReboot();
+
+        // Create a game via API
+        $response = $this->client->request('POST', '/api/sessions/'.$this->session->getId().'/games', [
+            'headers' => ['Content-Type' => 'application/ld+json'],
+            'json' => [
+                'contract' => 'petite',
+                'taker' => $this->getIri($this->players['Alice']),
+            ],
+        ]);
+        $this->assertResponseStatusCodeSame(201);
+        $gameIri = $response->toArray()['@id'];
+
+        // Complete the game
+        $this->client->request('PATCH', $gameIri, [
+            'headers' => ['Content-Type' => 'application/merge-patch+json'],
+            'json' => [
+                'oudlers' => 2,
+                'partner' => $this->getIri($this->players['Bob']),
+                'points' => 45,
+                'status' => 'completed',
+            ],
+        ]);
+        $this->assertResponseIsSuccessful();
+
+        // Check ELO has changed
+        $response = $this->client->request('GET', '/api/statistics/players/'.$this->players['Alice']->getId());
+        $data = $response->toArray();
+
+        $this->assertNotSame(1500, $data['eloRating']);
+        $this->assertNotEmpty($data['eloHistory']);
+
+        // ELO ranking should now include players
+        $response = $this->client->request('GET', '/api/statistics');
+        $globalData = $response->toArray();
+        $this->assertNotEmpty($globalData['eloRanking']);
+    }
+
+    public function testEloRevertedAfterGameDeletion(): void
+    {
+        $this->client->disableReboot();
+
+        // Create and complete a game via API
+        $response = $this->client->request('POST', '/api/sessions/'.$this->session->getId().'/games', [
+            'headers' => ['Content-Type' => 'application/ld+json'],
+            'json' => [
+                'contract' => 'petite',
+                'taker' => $this->getIri($this->players['Alice']),
+            ],
+        ]);
+        $this->assertResponseStatusCodeSame(201);
+        $gameIri = $response->toArray()['@id'];
+
+        $this->client->request('PATCH', $gameIri, [
+            'headers' => ['Content-Type' => 'application/merge-patch+json'],
+            'json' => [
+                'oudlers' => 2,
+                'partner' => $this->getIri($this->players['Bob']),
+                'points' => 45,
+                'status' => 'completed',
+            ],
+        ]);
+        $this->assertResponseIsSuccessful();
+
+        // Verify ELO changed
+        $response = $this->client->request('GET', '/api/statistics/players/'.$this->players['Alice']->getId());
+        $eloAfterComplete = $response->toArray()['eloRating'];
+        $this->assertNotSame(1500, $eloAfterComplete);
+
+        // Delete the game
+        $this->client->request('DELETE', $gameIri);
+        $this->assertResponseStatusCodeSame(204);
+
+        // ELO should revert to 1500
+        $response = $this->client->request('GET', '/api/statistics/players/'.$this->players['Alice']->getId());
+        $data = $response->toArray();
+        $this->assertSame(1500, $data['eloRating']);
+    }
+
     /**
      * Seeds:
      * - 5 players: Alice, Bob, Charlie, Diana, Eve

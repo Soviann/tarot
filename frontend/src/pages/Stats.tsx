@@ -1,5 +1,6 @@
 import { useNavigate } from "react-router-dom";
 import ContractDistributionChart from "../components/ContractDistributionChart";
+import EloRanking from "../components/EloRanking";
 import Leaderboard from "../components/Leaderboard";
 import { useGlobalStats } from "../hooks/useGlobalStats";
 
@@ -57,6 +58,18 @@ export default function Stats() {
           onPlayerClick={(id) => navigate(`/stats/player/${id}`)}
         />
       </section>
+
+      {stats.eloRanking.length > 0 && (
+        <section>
+          <h2 className="mb-2 text-sm font-semibold text-text-secondary">
+            Classement ELO
+          </h2>
+          <EloRanking
+            entries={stats.eloRanking}
+            onPlayerClick={(id) => navigate(`/stats/player/${id}`)}
+          />
+        </section>
+      )}
 
       <section>
         <h2 className="mb-2 text-sm font-semibold text-text-secondary">

@@ -71,10 +71,12 @@ import type { HydraCollection, Player } from "./types/api";
 | `StarEvent` | `id: number`, `createdAt: string`, `player: GamePlayer` |
 | `SessionPlayer` | `name: string` |
 | `ContractDistributionEntry` | `contract: Contract`, `count: number`, `percentage: number` |
-| `GlobalStatistics` | `contractDistribution: ContractDistributionEntry[]`, `leaderboard: LeaderboardEntry[]`, `totalGames`, `totalSessions`, `totalStars` |
+| `EloHistoryEntry` | `date: string`, `gameId: number`, `ratingAfter: number`, `ratingChange: number` |
+| `EloRankingEntry` | `eloRating: number`, `gamesPlayed: number`, `playerId: number`, `playerName: string` |
+| `GlobalStatistics` | `contractDistribution: ContractDistributionEntry[]`, `eloRanking: EloRankingEntry[]`, `leaderboard: LeaderboardEntry[]`, `totalGames`, `totalSessions`, `totalStars` |
 | `LeaderboardEntry` | `gamesAsTaker`, `gamesPlayed`, `playerId`, `playerName`, `totalScore`, `winRate`, `wins` |
 | `PlayerContractEntry` | `contract: Contract`, `count`, `winRate`, `wins` |
-| `PlayerStatistics` | `averageScore`, `bestGameScore`, `contractDistribution`, `gamesAsDefender`, `gamesAsPartner`, `gamesAsTaker`, `gamesPlayed`, `player`, `recentScores`, `sessionsPlayed`, `starPenalties`, `totalStars`, `winRateAsTaker`, `worstGameScore` |
+| `PlayerStatistics` | `averageScore`, `bestGameScore`, `contractDistribution`, `eloHistory: EloHistoryEntry[]`, `eloRating: number`, `gamesAsDefender`, `gamesAsPartner`, `gamesAsTaker`, `gamesPlayed`, `player`, `recentScores`, `sessionsPlayed`, `starPenalties`, `totalStars`, `winRateAsTaker`, `worstGameScore` |
 | `RecentScoreEntry` | `date: string`, `gameId: number`, `score: number`, `sessionId: number` |
 
 ### `ApiError`
@@ -428,6 +430,7 @@ const { isPending, sessions } = useSessions();
 **Fonctionnalités** :
 - Métriques clés : total de donnes et de sessions
 - Classement (`Leaderboard`) trié par score total décroissant
+- Classement ELO (`EloRanking`) trié par rating décroissant (masqué si aucune donnée)
 - Répartition des contrats (`ContractDistributionChart`) en barres horizontales
 - Navigation vers le détail d'un joueur au clic
 - États : chargement, erreur
@@ -444,11 +447,12 @@ const { isPending, sessions } = useSessions();
 
 **Fonctionnalités** :
 - Avatar, nom du joueur
-- Métriques clés : donnes jouées, taux de victoire, score moyen, sessions
+- Métriques clés : donnes jouées, taux de victoire, score moyen, ELO, sessions
 - Meilleur et pire score
 - Répartition des rôles (preneur / partenaire / défenseur) en barre visuelle
 - Répartition des contrats pris (`ContractDistributionChart`)
 - Évolution des scores récents (`ScoreTrendChart`)
+- Évolution ELO (`EloEvolutionChart`) — graphique linéaire avec ligne de référence y=1500
 - Bouton retour vers `/stats`
 - États : chargement, joueur introuvable
 
@@ -680,6 +684,27 @@ Graphique linéaire (Recharts) affichant l'évolution des scores récents d'un j
 | Prop | Type | Description |
 |------|------|-------------|
 | `data` | `RecentScoreEntry[]` | *requis* — scores récents (ordre chronologique inversé depuis l'API, le composant les remet en ordre) |
+
+### `EloRanking`
+
+**Fichier** : `components/EloRanking.tsx`
+
+Liste classée des joueurs par rating ELO, avec rang, avatar, nom et rating coloré (vert > 1500, rouge < 1500).
+
+| Prop | Type | Description |
+|------|------|-------------|
+| `entries` | `EloRankingEntry[]` | *requis* — classement trié par rating décroissant |
+| `onPlayerClick` | `(id: number) => void` | *requis* — callback au clic sur un joueur |
+
+### `EloEvolutionChart`
+
+**Fichier** : `components/EloEvolutionChart.tsx`
+
+Graphique linéaire (Recharts) affichant l'évolution du rating ELO d'un joueur avec ligne de référence y=1500 et tooltip montrant le delta.
+
+| Prop | Type | Description |
+|------|------|-------------|
+| `data` | `EloHistoryEntry[]` | *requis* — historique ELO (ordre chronologique depuis l'API) |
 
 ### `ScoreEvolutionChart`
 

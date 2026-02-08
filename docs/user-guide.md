@@ -12,6 +12,7 @@ Application mobile (PWA) de suivi des scores pour le Tarot à 5 joueurs, conform
 - [Saisir une donne](#saisir-une-donne)
 - [Consulter les statistiques](#consulter-les-statistiques)
 - [Système d'étoiles](#système-détoiles)
+- [Classement ELO](#classement-elo)
 - [Thème sombre](#thème-sombre)
 - [Règles de calcul des scores](#règles-de-calcul-des-scores)
 
@@ -239,6 +240,29 @@ Le système d'étoiles permet de **pénaliser** un joueur en dehors du jeu de ca
 - Les statistiques d'un joueur affichent le **nombre total d'étoiles** reçues et le **nombre de pénalités** subies
 
 > **Note** : la somme des scores de pénalité est toujours nulle (−100 + 4 × 25 = 0).
+
+---
+
+## Classement ELO
+
+Le système ELO fournit un **classement dynamique** qui tient compte du niveau des adversaires, contrairement au score total.
+
+### Fonctionnement
+
+- Chaque joueur démarre à **1500 ELO**
+- Après chaque donne, l'ELO de chaque joueur évolue selon le résultat et le niveau des adversaires
+- Battre des joueurs mieux classés rapporte **plus de points** ; battre des joueurs moins bien classés en rapporte **moins**
+- Le preneur voit son ELO évoluer **plus fortement** que le partenaire, qui évolue lui-même plus que les défenseurs
+
+### Où le trouver
+
+- **Page Statistiques** : une section **« Classement ELO »** affiche tous les joueurs triés par rating décroissant, avec un code couleur (vert > 1500, rouge < 1500)
+- **Statistiques d'un joueur** : la carte « ELO » affiche le rating actuel, et un graphique **« Évolution ELO »** montre la courbe au fil des donnes
+
+### Recalcul et suppression
+
+- La **modification** d'une donne recalcule automatiquement les ELO
+- La **suppression** d'une donne annule ses effets sur les ELO (retour à l'état précédent)
 
 ---
 
