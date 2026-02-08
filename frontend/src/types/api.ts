@@ -74,6 +74,7 @@ export interface LeaderboardEntry {
 }
 
 export interface Player {
+  active: boolean;
   createdAt: string;
   id: number;
   name: string;

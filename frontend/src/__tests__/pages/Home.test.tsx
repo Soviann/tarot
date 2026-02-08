@@ -19,12 +19,12 @@ vi.mock("react-router-dom", async (importOriginal) => {
 });
 
 const mockPlayers = [
-  { createdAt: "2025-01-15T10:00:00+00:00", id: 1, name: "Alice" },
-  { createdAt: "2025-01-16T10:00:00+00:00", id: 2, name: "Bob" },
-  { createdAt: "2025-01-17T10:00:00+00:00", id: 3, name: "Charlie" },
-  { createdAt: "2025-01-18T10:00:00+00:00", id: 4, name: "Diana" },
-  { createdAt: "2025-01-19T10:00:00+00:00", id: 5, name: "Eve" },
-  { createdAt: "2025-01-20T10:00:00+00:00", id: 6, name: "Frank" },
+  { active: true, createdAt: "2025-01-15T10:00:00+00:00", id: 1, name: "Alice" },
+  { active: true, createdAt: "2025-01-16T10:00:00+00:00", id: 2, name: "Bob" },
+  { active: true, createdAt: "2025-01-17T10:00:00+00:00", id: 3, name: "Charlie" },
+  { active: true, createdAt: "2025-01-18T10:00:00+00:00", id: 4, name: "Diana" },
+  { active: true, createdAt: "2025-01-19T10:00:00+00:00", id: 5, name: "Eve" },
+  { active: true, createdAt: "2025-01-20T10:00:00+00:00", id: 6, name: "Frank" },
 ];
 
 const mockSessions = [

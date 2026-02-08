@@ -12,12 +12,12 @@ vi.mock("../../hooks/useCreateSession");
 vi.mock("../../hooks/usePlayers");
 
 const mockPlayers: Player[] = [
-  { createdAt: "2025-01-01", id: 1, name: "Alice" },
-  { createdAt: "2025-01-01", id: 2, name: "Bob" },
-  { createdAt: "2025-01-01", id: 3, name: "Charlie" },
-  { createdAt: "2025-01-01", id: 4, name: "Diana" },
-  { createdAt: "2025-01-01", id: 5, name: "Eve" },
-  { createdAt: "2025-01-01", id: 6, name: "Frank" },
+  { active: true, createdAt: "2025-01-01", id: 1, name: "Alice" },
+  { active: true, createdAt: "2025-01-01", id: 2, name: "Bob" },
+  { active: true, createdAt: "2025-01-01", id: 3, name: "Charlie" },
+  { active: true, createdAt: "2025-01-01", id: 4, name: "Diana" },
+  { active: true, createdAt: "2025-01-01", id: 5, name: "Eve" },
+  { active: true, createdAt: "2025-01-01", id: 6, name: "Frank" },
 ];
 
 const currentPlayerIds = [1, 2, 3, 4, 5];

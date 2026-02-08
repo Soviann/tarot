@@ -34,10 +34,9 @@ class Player
     #[ORM\GeneratedValue]
     private ?int $id = null;
 
-    #[Assert\NotBlank]
-    #[Groups(['game:read', 'player:read', 'player:write', 'score-entry:read', 'session:detail', 'session:read'])]
-    #[ORM\Column(length: 50, unique: true)]
-    private string $name;
+    #[Groups(['player:read', 'player:write'])]
+    #[ORM\Column(options: ['default' => true])]
+    private bool $active = true;
 
     #[Groups(['player:read'])]
     #[ORM\Column(type: 'datetime_immutable')]
@@ -47,26 +46,14 @@ class Player
     #[ORM\Column(options: ['default' => 1500])]
     private int $eloRating = 1500;
 
+    #[Assert\NotBlank]
+    #[Groups(['game:read', 'player:read', 'player:write', 'score-entry:read', 'session:detail', 'session:read'])]
+    #[ORM\Column(length: 50, unique: true)]
+    private string $name;
+
     public function __construct()
     {
         $this->createdAt = new \DateTimeImmutable();
-    }
-
-    public function getId(): ?int
-    {
-        return $this->id;
-    }
-
-    public function getName(): string
-    {
-        return $this->name;
-    }
-
-    public function setName(string $name): static
-    {
-        $this->name = $name;
-
-        return $this;
     }
 
     public function getCreatedAt(): \DateTimeImmutable
@@ -79,9 +66,38 @@ class Player
         return $this->eloRating;
     }
 
+    public function getId(): ?int
+    {
+        return $this->id;
+    }
+
+    public function getName(): string
+    {
+        return $this->name;
+    }
+
+    public function isActive(): bool
+    {
+        return $this->active;
+    }
+
+    public function setActive(bool $active): static
+    {
+        $this->active = $active;
+
+        return $this;
+    }
+
     public function setEloRating(int $eloRating): static
     {
         $this->eloRating = $eloRating;
+
+        return $this;
+    }
+
+    public function setName(string $name): static
+    {
+        $this->name = $name;
 
         return $this;
     }

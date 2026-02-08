@@ -9,9 +9,9 @@ import { createTestQueryClient } from "../test-utils";
 vi.mock("../../services/api");
 
 const mockPlayers = [
-  { createdAt: "2025-01-15T10:00:00+00:00", id: 1, name: "Alice" },
-  { createdAt: "2025-01-16T10:00:00+00:00", id: 2, name: "Bob" },
-  { createdAt: "2025-01-17T10:00:00+00:00", id: 3, name: "Charlie" },
+  { active: true, createdAt: "2025-01-15T10:00:00+00:00", id: 1, name: "Alice" },
+  { active: true, createdAt: "2025-01-16T10:00:00+00:00", id: 2, name: "Bob" },
+  { active: true, createdAt: "2025-01-17T10:00:00+00:00", id: 3, name: "Charlie" },
 ];
 
 function wrapper({ children }: { children: ReactNode }) {

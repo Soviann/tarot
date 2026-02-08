@@ -60,6 +60,19 @@ Accessible via l'onglet **Joueurs** dans la barre de navigation basse.
 
 > Chaque joueur possède un **avatar coloré** généré automatiquement à partir de ses initiales. La couleur est cohérente : un même joueur aura toujours la même couleur.
 
+### Modifier un joueur
+
+1. Sur l'écran **Joueurs**, repérer le joueur dans la liste
+2. Appuyer sur le bouton **crayon** (✏️) à droite du joueur
+3. La modale « Modifier le joueur » s'ouvre avec le nom pré-rempli
+4. Modifier le **nom** si souhaité
+5. Utiliser l'**interrupteur « Joueur actif »** pour activer ou désactiver le joueur
+6. Appuyer sur **Enregistrer**
+
+> **Désactivation** : un joueur désactivé reste visible dans la liste (nom barré + badge « Inactif » + avatar grisé), mais **n'apparaît plus** dans la sélection de joueurs lors de la création d'une session. Ses données historiques (scores, statistiques, classement ELO) sont conservées.
+
+> **Réactivation** : pour réactiver un joueur, ouvrir la modale de modification et remettre l'interrupteur sur « actif ».
+
 ### Rechercher un joueur
 
 Utiliser la barre de recherche en haut de la liste pour filtrer par nom.
