@@ -2,6 +2,8 @@
 
 Application mobile (PWA) de suivi des scores pour le Tarot à 5 joueurs, conforme aux règles officielles de la FFT.
 
+> **Astuce** : ce guide est aussi accessible directement dans l'application via l'icône **?** en haut à droite de chaque écran (page `/aide`).
+
 ## Table des matières
 
 - [Installation](#installation)
