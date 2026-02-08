@@ -15,6 +15,7 @@ Le format est basé sur [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/)
 
 ### Fixed
 
+- **Accueil — centrage et débordement** : le titre, les avatars sélectionnés et le compteur de joueurs sont maintenant centrés horizontalement ; les chips passent à la ligne (`flex-wrap`) au lieu de déborder de l'écran
 - **DevTools en production** : les React Query DevTools ne sont plus chargées ni affichées en production (lazy import conditionnel sur `import.meta.env.DEV`)
 
 ### Added
