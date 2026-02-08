@@ -20,7 +20,7 @@ export default function InProgressBanner({ game, onCancel, onComplete }: InProgr
       <div className="flex gap-2">
         {onCancel && (
           <button
-            className="rounded-lg border border-red-500/30 px-3 py-1.5 text-sm font-medium text-red-500"
+            className="rounded-lg border border-red-500/30 px-3 py-1.5 text-sm font-medium text-red-500 lg:px-4 lg:py-2.5"
             onClick={onCancel}
             type="button"
           >
@@ -28,7 +28,7 @@ export default function InProgressBanner({ game, onCancel, onComplete }: InProgr
           </button>
         )}
         <button
-          className="rounded-lg bg-accent-500 px-3 py-1.5 text-sm font-medium text-white"
+          className="rounded-lg bg-accent-500 px-3 py-1.5 text-sm font-medium text-white lg:px-4 lg:py-2.5"
           onClick={onComplete}
           type="button"
         >

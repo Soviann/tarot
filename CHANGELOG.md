@@ -12,6 +12,8 @@ Le format est basé sur [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/)
 
 ### Added
 
+- **Compatibilité Smart TV** : support des Smart TV Samsung (Tizen 5.0+) et LG (webOS 5.0+). Build ciblant `chrome64` pour transpiler les syntaxes ES2020+. Mise en page responsive grand écran (`font-size` 20px, contenu centré `max-w-4xl`, graphiques agrandis). Navigation D-pad via `:focus-visible` global avec anneau accent. Cibles tactiles minimales 40px sur les boutons critiques.
+
 - **Classement ELO** : système de rating ELO dynamique entre joueurs, calculé après chaque donne en tenant compte du niveau des adversaires (K-factors différenciés : preneur 40, partenaire 25, défenseur 15). Entité `EloHistory`, service `EloCalculator`, intégration dans les processeurs de complétion et suppression de donne (avec revert automatique). Section « Classement ELO » dans les statistiques globales, carte ELO et graphique d'évolution dans les statistiques par joueur. Composants `EloRanking` et `EloEvolutionChart`.
 
 - **Raccourci « Même config »** : bouton dans la modale de nouvelle donne pour pré-remplir le preneur et le contrat de la dernière donne jouée, réduisant la saisie quand un joueur prend plusieurs fois de suite
