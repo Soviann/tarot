@@ -37,11 +37,11 @@ export default function GameList({ games, onDeleteLast, onEditLast }: GameListPr
               size="sm"
             />
             <div className="flex min-w-0 flex-1 flex-col gap-0.5">
-              <div className="flex items-center gap-2">
-                <span className="text-sm font-medium text-text-primary">
+              <div className="flex min-w-0 items-center gap-2">
+                <span className="truncate text-sm font-medium text-text-primary">
                   {game.taker.name}
                 </span>
-                <ContractBadge contract={game.contract} />
+                <ContractBadge className="shrink-0" contract={game.contract} />
               </div>
               <span className="text-xs text-text-muted">
                 {game.partner ? `avec ${game.partner.name}` : "Seul"}
@@ -52,7 +52,7 @@ export default function GameList({ games, onDeleteLast, onEditLast }: GameListPr
                 </span>
               )}
             </div>
-            <div className="flex items-center gap-2">
+            <div className="flex shrink-0 items-center gap-2">
               <ScoreDisplay animated={false} value={takerScore} />
               {game.position === maxPosition && (
                 <>
