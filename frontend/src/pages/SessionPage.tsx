@@ -1,6 +1,7 @@
 import { ArrowLeftRight } from "lucide-react";
 import { useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
+import AddStarModal from "../components/AddStarModal";
 import ChangeDealerModal from "../components/ChangeDealerModal";
 import CompleteGameModal from "../components/CompleteGameModal";
 import DeleteGameModal from "../components/DeleteGameModal";
@@ -57,6 +58,8 @@ export default function SessionPage() {
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [editModalOpen, setEditModalOpen] = useState(false);
   const [newGameModalOpen, setNewGameModalOpen] = useState(false);
+  const [starModalOpen, setStarModalOpen] = useState(false);
+  const [starPlayerId, setStarPlayerId] = useState<number | null>(null);
   const [swapModalOpen, setSwapModalOpen] = useState(false);
 
   if (isPending) {
@@ -114,7 +117,11 @@ export default function SessionPage() {
         addStarPending={addStar.isPending}
         cumulativeScores={session.cumulativeScores}
         currentDealerId={session.currentDealer?.id ?? null}
-        onAddStar={(playerId) => addStar.mutate(playerId)}
+        onAddStar={(playerId) => {
+          setStarPlayerId(playerId);
+          addStar.reset();
+          setStarModalOpen(true);
+        }}
         onDealerChange={() => setChangeDealerModalOpen(true)}
         players={session.players}
         starEvents={session.starEvents}
@@ -221,6 +228,22 @@ export default function SessionPage() {
           }
         }}
         open={swapModalOpen}
+      />
+
+      <AddStarModal
+        errorMessage={addStar.error?.message}
+        isError={addStar.isError}
+        isPending={addStar.isPending}
+        onClose={() => setStarModalOpen(false)}
+        onConfirm={() => {
+          if (starPlayerId !== null) {
+            addStar.mutate(starPlayerId, {
+              onSuccess: () => setStarModalOpen(false),
+            });
+          }
+        }}
+        open={starModalOpen}
+        playerName={session.players.find((p) => p.id === starPlayerId)?.name ?? ""}
       />
 
       {session.currentDealer && (
