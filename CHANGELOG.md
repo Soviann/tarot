@@ -6,6 +6,10 @@ Le format est basé sur [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/)
 
 ## [Unreleased]
 
+### Fixed
+
+- **DevTools en production** : les React Query DevTools ne sont plus chargées ni affichées en production (lazy import conditionnel sur `import.meta.env.DEV`)
+
 ### Added
 
 - **Rotation du donneur** : attribution automatique du premier donneur à la création de session (premier joueur alphabétique), copie sur chaque donne, rotation au joueur suivant après complétion d'une donne, icône de cartes sur le scoreboard et affichage dans la modale de saisie et l'historique des donnes
