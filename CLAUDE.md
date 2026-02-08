@@ -123,13 +123,24 @@ gh pr merge N --squash --delete-branch      # 6. Squash merge + cleanup
 3. **New ideas** without immediate implementation → `Backlog`.
 4. **Close issues** via PR with `fixes #N` in PR body (auto-closes on merge).
 5. **Labels**: use existing (`enhancement`, `bug`, etc.). Don't create new ones without asking.
-6. **Avoid unnecessary GitHub API calls**: issue list, project board state, and project IDs are cached in auto memory (`MEMORY.md`). Consult memory first; only call the API when you need fresh data or are performing a write operation (create/update issue, move card, create PR).
+6. **Token optimization** (see dedicated section below).
+
+### Token optimization
+
+- **Prefer `gh` CLI** over MCP tools for simple queries (less verbose output)
+- **Always set `minimal_output: true`** on MCP list/search calls when full data isn't needed
+- **Max `perPage: 5`** unless more results are explicitly needed
+- **No exploratory chains**: one targeted call, not list → read → read
+- **Never `gh project item-list`** (returns all items, very expensive). Use `gh project item-add` (idempotent, returns item ID) then cache the item ID in `MEMORY.md`
+- **Cache project item IDs** (`PVTI_…`) in `MEMORY.md` after every board interaction — use them directly for `gh project item-edit`
+- **Don't verify existence** of issues, PRs, or players already known from the plan or memory
+- **Single board move per issue**: move to `Done` at merge time only — skip the intermediate `In Progress` move
+- `fixes #N` in the PR body auto-closes the issue on merge — never close manually
 
 ### Quick reference
 
 ```bash
 # Issues
-gh issue list --repo Soviann/tarot
 gh issue create --repo Soviann/tarot --title "..." --body "..." --label "..."
 
 # Branches
@@ -145,8 +156,9 @@ git tag -a vX.Y.Z -m "vX.Y.Z"
 git push origin vX.Y.Z
 gh release create vX.Y.Z --generate-notes
 
-# Project board — move item to a column
-# 1. Get item ID:  gh project item-list 2 --owner Soviann --format json
+# Project board — add item & move to a column
+# 1. Add (idempotent): gh project item-add 2 --owner Soviann --url <ISSUE_URL> --format json
+#    → returns { "id": "PVTI_..." } — cache this in MEMORY.md
 # 2. Edit status:  gh project item-edit --project-id PVT_kwHOANG8LM4BOble --id <ITEM_ID> \
 #      --field-id PVTSSF_lAHOANG8LM4BOblezg9IsCA --single-select-option-id <OPTION_ID>
 # Column option IDs: Backlog=858f7025  Todo=f75ad846  InProgress=47fc9ee4  Done=98236657
