@@ -37,7 +37,7 @@ export default function PlayerStats() {
   }));
 
   return (
-    <div className="flex flex-col gap-6 p-4">
+    <div className="flex flex-col gap-6 p-4 lg:p-8">
       <div className="flex items-center gap-3">
         <button
           aria-label="Retour"

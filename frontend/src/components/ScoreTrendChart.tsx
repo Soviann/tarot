@@ -29,35 +29,37 @@ export default function ScoreTrendChart({ data }: ScoreTrendChartProps) {
   }));
 
   return (
-    <ResponsiveContainer height={200} width="100%">
-      <LineChart data={chartData} margin={{ bottom: 0, left: 0, right: 16, top: 8 }}>
-        <XAxis
-          dataKey="index"
-          tick={{ fill: "var(--color-text-muted)", fontSize: 11 }}
-        />
-        <YAxis
-          tick={{ fill: "var(--color-text-muted)", fontSize: 11 }}
-          width={40}
-        />
-        <Tooltip
-          contentStyle={{
-            background: "var(--color-surface-elevated)",
-            border: "1px solid var(--color-surface-border)",
-            borderRadius: "0.5rem",
-            color: "var(--color-text-primary)",
-          }}
-          formatter={(value) => [String(value), "Score"]}
-          labelFormatter={(label) => `Donne ${label}`}
-        />
-        <ReferenceLine stroke="var(--color-text-muted)" strokeDasharray="3 3" y={0} />
-        <Line
-          dataKey="score"
-          dot={{ fill: "var(--color-accent-400)", r: 3 }}
-          stroke="var(--color-accent-400)"
-          strokeWidth={2}
-          type="monotone"
-        />
-      </LineChart>
-    </ResponsiveContainer>
+    <div className="h-52 lg:h-96">
+      <ResponsiveContainer height="100%" width="100%">
+        <LineChart data={chartData} margin={{ bottom: 0, left: 0, right: 16, top: 8 }}>
+          <XAxis
+            dataKey="index"
+            tick={{ fill: "var(--color-text-muted)", fontSize: 11 }}
+          />
+          <YAxis
+            tick={{ fill: "var(--color-text-muted)", fontSize: 11 }}
+            width={40}
+          />
+          <Tooltip
+            contentStyle={{
+              background: "var(--color-surface-elevated)",
+              border: "1px solid var(--color-surface-border)",
+              borderRadius: "0.5rem",
+              color: "var(--color-text-primary)",
+            }}
+            formatter={(value) => [String(value), "Score"]}
+            labelFormatter={(label) => `Donne ${label}`}
+          />
+          <ReferenceLine stroke="var(--color-text-muted)" strokeDasharray="3 3" y={0} />
+          <Line
+            dataKey="score"
+            dot={{ fill: "var(--color-accent-400)", r: 3 }}
+            stroke="var(--color-accent-400)"
+            strokeWidth={2}
+            type="monotone"
+          />
+        </LineChart>
+      </ResponsiveContainer>
+    </div>
   );
 }

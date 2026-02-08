@@ -70,7 +70,7 @@ export default function SessionPage() {
   }
 
   return (
-    <div className="flex flex-col gap-4 p-4 pb-24">
+    <div className="flex flex-col gap-4 p-4 pb-24 lg:p-8 lg:pb-28">
       <div className="flex items-center gap-2">
         <button
           aria-label="Retour"
