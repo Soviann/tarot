@@ -34,7 +34,6 @@ export default defineConfig({
   server: {
     host: "0.0.0.0",
     port: 5173,
-    strictPort: true,
     origin: process.env.DDEV_PRIMARY_URL,
     hmr: {
       // HMR passes through Nginx reverse proxy on the main DDEV port
