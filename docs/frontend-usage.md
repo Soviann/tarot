@@ -61,13 +61,13 @@ import type { HydraCollection, Player } from "./types/api";
 | Type | Champs |
 |------|--------|
 | `CumulativeScore` | `playerId: number`, `playerName: string`, `score: number` |
-| `Game` | `id`, `chelem`, `contract`, `createdAt`, `oudlers`, `partner`, `petitAuBout`, `poignee`, `poigneeOwner`, `points`, `position`, `scoreEntries`, `status`, `taker` |
+| `Game` | `id`, `chelem`, `contract`, `createdAt`, `dealer`, `oudlers`, `partner`, `petitAuBout`, `poignee`, `poigneeOwner`, `points`, `position`, `scoreEntries`, `status`, `taker` |
 | `GamePlayer` | `id: number`, `name: string` |
 | `HydraCollection<T>` | `member: T[]`, `totalItems: number` |
 | `Player` | `id: number`, `name: string`, `createdAt: string` |
 | `ScoreEntry` | `id: number`, `player: GamePlayer`, `score: number` |
 | `Session` | `id: number`, `createdAt: string`, `isActive: boolean`, `players: SessionPlayer[]` |
-| `SessionDetail` | `id`, `createdAt`, `isActive`, `players: GamePlayer[]`, `games: Game[]`, `cumulativeScores: CumulativeScore[]` |
+| `SessionDetail` | `id`, `createdAt`, `currentDealer`, `isActive`, `players: GamePlayer[]`, `games: Game[]`, `cumulativeScores: CumulativeScore[]` |
 | `SessionPlayer` | `name: string` |
 | `ContractDistributionEntry` | `contract: Contract`, `count: number`, `percentage: number` |
 | `GlobalStatistics` | `contractDistribution: ContractDistributionEntry[]`, `leaderboard: LeaderboardEntry[]`, `totalGames`, `totalSessions` |
@@ -501,12 +501,13 @@ Liste des sessions récentes sous forme de cartes cliquables.
 
 **Fichier** : `components/Scoreboard.tsx`
 
-Bandeau horizontal scrollable affichant les 5 joueurs avec avatar, nom et score cumulé.
+Bandeau horizontal scrollable affichant les 5 joueurs avec avatar, nom et score cumulé. Un icône de cartes est affiché sur l'avatar du donneur actuel.
 
 | Prop | Type | Description |
 |------|------|-------------|
-| `players` | `GamePlayer[]` | *requis* — les 5 joueurs de la session |
 | `cumulativeScores` | `CumulativeScore[]` | *requis* — scores cumulés par joueur |
+| `currentDealerId` | `number \| null` | *requis* — ID du donneur actuel (icône de cartes) |
+| `players` | `GamePlayer[]` | *requis* — les 5 joueurs de la session |
 
 ### `InProgressBanner`
 
@@ -533,7 +534,7 @@ Liste des donnes terminées en ordre anti-chronologique (position décroissante)
 | `onEditLast` | `() => void` | *requis* — action pour modifier la dernière donne |
 
 **Fonctionnalités** :
-- Chaque carte : avatar preneur, nom, badge contrat, « avec [partenaire] » ou « Seul », score du preneur
+- Chaque carte : avatar preneur, nom, badge contrat, « avec [partenaire] » ou « Seul », donneur, score du preneur
 - Boutons « Modifier » et « Supprimer » uniquement sur la dernière donne (position la plus élevée)
 - État vide : « Aucune donne jouée »
 
@@ -560,16 +561,18 @@ Modal de confirmation de suppression d'une donne. Appelle `useDeleteGame` en int
 
 **Fichier** : `components/NewGameModal.tsx`
 
-Modal de création de donne (étape 1) : sélection du preneur et du contrat.
+Modal de création de donne (étape 1) : sélection du preneur et du contrat. Affiche le donneur actuel en haut de la modale.
 
 | Prop | Type | Description |
 |------|------|-------------|
-| `open` | `boolean` | *requis* — afficher ou masquer |
-| `onClose` | `() => void` | *requis* — fermeture |
-| `players` | `GamePlayer[]` | *requis* — les 5 joueurs de la session |
 | `createGame` | `ReturnType<typeof useCreateGame>` | *requis* — mutation hook |
+| `currentDealerName` | `string \| null` | *requis* — nom du donneur actuel (affiché en info) |
+| `onClose` | `() => void` | *requis* — fermeture |
+| `open` | `boolean` | *requis* — afficher ou masquer |
+| `players` | `GamePlayer[]` | *requis* — les 5 joueurs de la session |
 
 **Fonctionnalités** :
+- Affichage du donneur actuel en haut de la modale
 - Sélection du preneur via avatars avec highlight `ring-2`
 - 4 boutons contrat colorés en grille 2×2
 - Reset automatique à l'ouverture

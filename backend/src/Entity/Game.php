@@ -71,6 +71,11 @@ class Game
     private Contract $contract;
 
     #[Groups(['game:read', 'session:detail'])]
+    #[ORM\JoinColumn(nullable: true)]
+    #[ORM\ManyToOne(targetEntity: Player::class)]
+    private ?Player $dealer = null;
+
+    #[Groups(['game:read', 'session:detail'])]
     #[ORM\Column(type: 'datetime_immutable')]
     private \DateTimeImmutable $createdAt;
 
@@ -159,6 +164,18 @@ class Game
     public function getCreatedAt(): \DateTimeImmutable
     {
         return $this->createdAt;
+    }
+
+    public function getDealer(): ?Player
+    {
+        return $this->dealer;
+    }
+
+    public function setDealer(?Player $dealer): static
+    {
+        $this->dealer = $dealer;
+
+        return $this;
     }
 
     public function getOudlers(): ?int

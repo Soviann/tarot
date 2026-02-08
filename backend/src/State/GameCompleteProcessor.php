@@ -32,7 +32,12 @@ final readonly class GameCompleteProcessor implements ProcessorInterface
     public function process(mixed $data, Operation $operation, array $uriVariables = [], array $context = []): Game
     {
         if (GameStatus::Completed === $data->getStatus()) {
+            $wasAlreadyCompleted = !$data->getScoreEntries()->isEmpty();
             $this->computeScores($data);
+
+            if (!$wasAlreadyCompleted) {
+                $data->getSession()->advanceDealer();
+            }
         }
 
         return $this->persistProcessor->process($data, $operation, $uriVariables, $context);
