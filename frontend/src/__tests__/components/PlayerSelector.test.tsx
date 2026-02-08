@@ -231,6 +231,28 @@ describe("PlayerSelector", () => {
     expect(screen.getByPlaceholderText("Nom du joueur")).toBeInTheDocument();
   });
 
+  it("pre-fills new player name with search text", async () => {
+    setupMocks();
+    const onChange = vi.fn();
+    renderWithProviders(
+      <PlayerSelector onSelectionChange={onChange} selectedPlayerIds={[]} />,
+    );
+
+    const searchInput = screen.getByPlaceholderText("Rechercher un joueur…");
+    await userEvent.type(searchInput, "Nico");
+
+    // Wait for debounced search to propagate
+    await waitFor(() => {
+      expect(usePlayersModule.usePlayers).toHaveBeenCalledWith("Nico");
+    });
+
+    await userEvent.click(
+      screen.getByRole("button", { name: "Ajouter un joueur" }),
+    );
+
+    expect(screen.getByPlaceholderText("Nom du joueur")).toHaveValue("Nico");
+  });
+
   it("shows loading state", () => {
     setupMocks({
       usePlayers: { isPending: true, players: [] },

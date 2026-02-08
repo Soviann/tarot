@@ -549,6 +549,7 @@ Composant de sélection de joueurs avec limite à 5. Inclut chips, recherche et 
 - Liste des joueurs : clic = toggle sélection, `ring-2 ring-accent-500` si sélectionné
 - Joueurs non sélectionnés grisés et désactivés quand 5 sont déjà choisis
 - Bouton « + Nouveau joueur » ouvrant un `Modal` de création
+- Pré-remplissage du nom avec le texte de recherche à l'ouverture de la modale
 - Auto-sélection du joueur créé si < 5
 
 **Hooks utilisés** : `usePlayers`, `useCreatePlayer`

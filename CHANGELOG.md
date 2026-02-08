@@ -8,6 +8,8 @@ Le format est basé sur [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/)
 
 ### Added
 
+- **Pré-remplissage nom joueur** : le champ nom de la modale « Nouveau joueur » est pré-rempli avec le texte de recherche en cours
+
 - **Confirmation étoile** : modale de confirmation avant attribution d'une étoile à un joueur, évitant les appuis accidentels. Composant `AddStarModal` avec boutons Annuler/Confirmer.
 
 - **Forcer le donneur** : possibilité de changer manuellement le donneur d'une session en appuyant sur l'icône de cartes du donneur actuel dans le tableau des scores. Modale de sélection parmi les 5 joueurs, opération PATCH `/sessions/{id}` avec validation (le donneur doit appartenir à la session). Hook `useUpdateDealer`, composant `ChangeDealerModal`.
