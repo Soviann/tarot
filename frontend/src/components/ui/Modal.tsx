@@ -85,7 +85,7 @@ export default function Modal({ children, onClose, open, title }: ModalProps) {
           </h2>
           <button
             aria-label="Fermer"
-            className="rounded-full p-1 text-text-secondary transition-colors hover:bg-surface-tertiary"
+            className="flex min-h-10 min-w-10 items-center justify-center rounded-full p-1 text-text-secondary transition-colors hover:bg-surface-tertiary"
             onClick={onClose}
             type="button"
           >

@@ -57,14 +57,14 @@ export default function GameList({ games, onDeleteLast, onEditLast }: GameListPr
               {game.position === maxPosition && (
                 <>
                   <button
-                    className="rounded-lg bg-surface-elevated px-2 py-1 text-xs font-medium text-text-secondary"
+                    className="min-h-10 rounded-lg bg-surface-elevated px-2 py-1 text-xs font-medium text-text-secondary"
                     onClick={onEditLast}
                     type="button"
                   >
                     Modifier
                   </button>
                   <button
-                    className="rounded-lg bg-red-500/10 px-2 py-1 text-xs font-medium text-red-500"
+                    className="min-h-10 rounded-lg bg-red-500/10 px-2 py-1 text-xs font-medium text-red-500"
                     onClick={onDeleteLast}
                     type="button"
                   >
