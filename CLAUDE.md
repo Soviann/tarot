@@ -188,5 +188,6 @@ Two living docs in `docs/` must be maintained:
 ## Language
 
 - **CLAUDE.md**: English only
+- **Git commits & PR titles**: English
 - **All other files** (README, CHANGELOG, docs, UI text, comments): French
 - **Code identifiers** (variables, functions, classes): English
