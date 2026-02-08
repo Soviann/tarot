@@ -245,7 +245,8 @@ Le système d'étoiles permet de **pénaliser** un joueur en dehors du jeu de ca
 
 1. Sur l'**écran de session**, repérer le joueur dans le tableau des scores
 2. Appuyer sur la zone d'étoiles (☆☆☆) sous le score du joueur
-3. Une étoile est ajoutée immédiatement
+3. Une modale de **confirmation** s'affiche : « Attribuer une étoile à [nom] ? »
+4. Appuyer sur **Confirmer** pour valider, ou **Annuler** pour revenir sans rien faire
 
 ### Impact sur les scores
 
