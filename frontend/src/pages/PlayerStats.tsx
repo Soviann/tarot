@@ -1,5 +1,6 @@
 import { useNavigate, useParams } from "react-router-dom";
 import ContractDistributionChart from "../components/ContractDistributionChart";
+import EloEvolutionChart from "../components/EloEvolutionChart";
 import ScoreTrendChart from "../components/ScoreTrendChart";
 import { PlayerAvatar, ScoreDisplay } from "../components/ui";
 import { usePlayerStats } from "../hooks/usePlayerStats";
@@ -66,6 +67,7 @@ export default function PlayerStats() {
         <MetricCard label="Donnes jouées" value={String(stats.gamesPlayed)} />
         <MetricCard label="Victoires (preneur)" value={`${stats.winRateAsTaker}%`} />
         <MetricCard label="Score moyen" value={String(stats.averageScore)} />
+        <MetricCard label="ELO" value={String(stats.eloRating)} />
         <MetricCard label="Sessions" value={String(stats.sessionsPlayed)} />
       </div>
 
@@ -156,6 +158,15 @@ export default function PlayerStats() {
             Évolution des scores récents
           </h2>
           <ScoreTrendChart data={stats.recentScores} />
+        </section>
+      )}
+
+      {stats.eloHistory.length > 0 && (
+        <section>
+          <h2 className="mb-2 text-sm font-semibold text-text-secondary">
+            Évolution ELO
+          </h2>
+          <EloEvolutionChart data={stats.eloHistory} />
         </section>
       )}
     </div>

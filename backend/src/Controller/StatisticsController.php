@@ -24,6 +24,7 @@ class StatisticsController
     {
         return new JsonResponse([
             'contractDistribution' => $this->statisticsService->getContractDistribution(),
+            'eloRanking' => $this->statisticsService->getEloRanking(),
             'leaderboard' => $this->statisticsService->getLeaderboard(),
             'totalGames' => $this->statisticsService->getTotalGames(),
             'totalSessions' => $this->statisticsService->getTotalSessions(),

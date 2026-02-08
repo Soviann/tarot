@@ -7,19 +7,22 @@ namespace App\State;
 use ApiPlatform\Doctrine\Common\State\PersistProcessor;
 use ApiPlatform\Metadata\Operation;
 use ApiPlatform\State\ProcessorInterface;
+use App\Entity\EloHistory;
 use App\Entity\Game;
 use App\Enum\GameStatus;
+use App\Service\EloCalculator;
 use App\Service\ScoreCalculator;
 use Doctrine\ORM\EntityManagerInterface;
 
 /**
- * Détecte le passage à Completed → appelle ScoreCalculator, gère aussi l'édition.
+ * Détecte le passage à Completed → appelle ScoreCalculator + EloCalculator, gère aussi l'édition.
  *
  * @implements ProcessorInterface<Game, Game>
  */
 final readonly class GameCompleteProcessor implements ProcessorInterface
 {
     public function __construct(
+        private EloCalculator $eloCalculator,
         private EntityManagerInterface $em,
         private PersistProcessor $persistProcessor,
         private ScoreCalculator $scoreCalculator,
@@ -33,7 +36,13 @@ final readonly class GameCompleteProcessor implements ProcessorInterface
     {
         if (GameStatus::Completed === $data->getStatus()) {
             $wasAlreadyCompleted = !$data->getScoreEntries()->isEmpty();
+
+            if ($wasAlreadyCompleted) {
+                EloRevertHelper::revert($data, $this->em);
+            }
+
             $this->computeScores($data);
+            $this->computeEloRatings($data);
 
             if (!$wasAlreadyCompleted) {
                 $data->getSession()->advanceDealer();
@@ -41,6 +50,36 @@ final readonly class GameCompleteProcessor implements ProcessorInterface
         }
 
         return $this->persistProcessor->process($data, $operation, $uriVariables, $context);
+    }
+
+    private function computeEloRatings(Game $game): void
+    {
+        $players = $game->getSession()->getPlayers()->toArray();
+
+        $ratings = [];
+        foreach ($players as $player) {
+            $ratings[$player->getName()] = $player->getEloRating();
+        }
+
+        $results = $this->eloCalculator->compute($game, $ratings);
+
+        foreach ($results as $result) {
+            foreach ($players as $player) {
+                if ($player->getName() === $result['playerName']) {
+                    $player->setEloRating($result['ratingAfter']);
+
+                    $history = new EloHistory();
+                    $history->setGame($game);
+                    $history->setPlayer($player);
+                    $history->setRatingAfter($result['ratingAfter']);
+                    $history->setRatingBefore($result['ratingBefore']);
+                    $history->setRatingChange($result['ratingChange']);
+                    $this->em->persist($history);
+
+                    break;
+                }
+            }
+        }
     }
 
     private function computeScores(Game $game): void
