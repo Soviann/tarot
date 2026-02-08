@@ -405,6 +405,23 @@ const { isPending, sessions } = useSessions();
 
 **Hooks utilisés** : `useCreateSession`, `useNavigate`
 
+### Aide (`Help`)
+
+**Fichier** : `pages/Help.tsx`
+
+Page d'aide in-app reprenant le contenu du guide utilisateur (`docs/user-guide.md`).
+
+**Route** : `/aide`
+
+**Fonctionnalités** :
+- Section « Installation » toujours visible
+- 11 sections en accordéon dépliable (`AccordionSection`, composant local)
+- Lien vers le dépôt GitHub en bas de page
+- Bouton retour vers l'accueil
+- Accessible via l'icône `CircleHelp` dans le header du `Layout`
+
+**Hooks utilisés** : aucun (contenu statique)
+
 ### Joueurs (`Players`)
 
 **Fichier** : `pages/Players.tsx`

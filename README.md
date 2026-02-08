@@ -75,6 +75,7 @@ Les issues et la roadmap sont suivies sur le tableau [Tarot - Roadmap](https://g
 ## Documentation
 
 - [Guide utilisateur](docs/user-guide.md) — comment utiliser l'application
+- [Guide de contribution](CONTRIBUTING.md) — comment contribuer au projet
 - [Guide de déploiement](docs/deployment.md) — héberger sur un VPS OVH
 - [Référence frontend](docs/frontend-usage.md) — composants, hooks et types
 - [Document de conception](docs/plans/2025-02-05-tarot-app-design.md) — architecture et choix de conception

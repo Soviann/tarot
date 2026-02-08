@@ -6,6 +6,11 @@ Le format est basé sur [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/)
 
 ## [Unreleased]
 
+### Added
+
+- **Page d'aide in-app** : page `/aide` accessible via l'icône ? en haut à droite de chaque écran, reprenant le contenu du guide utilisateur en accordéons dépliables (installation, concepts clés, gestion des joueurs, sessions, saisie, statistiques, étoiles, ELO, Smart TV, thème sombre, règles de calcul), avec lien vers le dépôt GitHub
+- **Guide de contribution** : fichier `CONTRIBUTING.md` à la racine du projet avec prérequis, conventions de code, workflow Git, soumission d'issues et de PRs
+
 ### Fixed
 
 - **DevTools en production** : les React Query DevTools ne sont plus chargées ni affichées en production (lazy import conditionnel sur `import.meta.env.DEV`)
