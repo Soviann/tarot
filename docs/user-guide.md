@@ -110,6 +110,19 @@ Liste des donnes jouées (la plus récente en premier), montrant pour chaque don
 - Le contrat (badge coloré)
 - Le résultat (gain/perte du preneur)
 
+### Modifier les joueurs
+
+Depuis l'écran de session, il est possible de **changer un ou plusieurs joueurs** sans repasser par l'accueil :
+
+1. Appuyer sur le bouton **⇄** (flèches) à droite du titre « Session #X »
+2. La modale de sélection s'ouvre avec les **5 joueurs actuels** pré-sélectionnés
+3. Désélectionner le(s) joueur(s) à remplacer et sélectionner le(s) nouveau(x)
+4. Appuyer sur **Confirmer**
+
+> **Session intelligente** : si une session active existe déjà avec les 5 joueurs choisis, l'application y navigue directement. Sinon, une nouvelle session est créée.
+
+> **Note** : le bouton est **désactivé** tant qu'une donne est en cours. Terminez ou supprimez la donne avant de modifier les joueurs.
+
 ### Actions
 
 - **Bouton + (FAB)** : démarrer une nouvelle donne (désactivé si une donne est en cours)
