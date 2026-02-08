@@ -1,5 +1,5 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
+import { lazy, Suspense } from "react";
 import { BrowserRouter, Route, Routes } from "react-router-dom";
 import Layout from "./components/Layout";
 import { ThemeProvider } from "./hooks/useTheme";
@@ -8,6 +8,14 @@ import Players from "./pages/Players";
 import PlayerStats from "./pages/PlayerStats";
 import SessionPage from "./pages/SessionPage";
 import Stats from "./pages/Stats";
+
+const ReactQueryDevtools = import.meta.env.DEV
+  ? lazy(() =>
+      import("@tanstack/react-query-devtools").then((mod) => ({
+        default: mod.ReactQueryDevtools,
+      })),
+    )
+  : () => null;
 
 const queryClient = new QueryClient();
 
@@ -26,7 +34,11 @@ export default function App() {
             </Route>
           </Routes>
         </BrowserRouter>
-        <ReactQueryDevtools initialIsOpen={false} />
+        {import.meta.env.DEV && (
+          <Suspense>
+            <ReactQueryDevtools initialIsOpen={false} />
+          </Suspense>
+        )}
       </QueryClientProvider>
     </ThemeProvider>
   );

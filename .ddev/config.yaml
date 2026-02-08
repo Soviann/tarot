@@ -15,6 +15,12 @@ composer_root: backend
 web_environment: []
 corepack_enable: false
 
+web_extra_exposed_ports:
+  - name: vite-preview
+    container_port: 4173
+    http_port: 4172
+    https_port: 4173
+
 web_extra_daemons:
   - name: vite
     command: bash -c 'cd /var/www/html/frontend && npm install && npm run dev'
