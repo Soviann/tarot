@@ -27,6 +27,7 @@ class StatisticsController
             'leaderboard' => $this->statisticsService->getLeaderboard(),
             'totalGames' => $this->statisticsService->getTotalGames(),
             'totalSessions' => $this->statisticsService->getTotalSessions(),
+            'totalStars' => $this->statisticsService->getTotalStars(),
         ]);
     }
 

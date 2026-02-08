@@ -67,13 +67,14 @@ import type { HydraCollection, Player } from "./types/api";
 | `Player` | `id: number`, `name: string`, `createdAt: string` |
 | `ScoreEntry` | `id: number`, `player: GamePlayer`, `score: number` |
 | `Session` | `id: number`, `createdAt: string`, `isActive: boolean`, `players: SessionPlayer[]` |
-| `SessionDetail` | `id`, `createdAt`, `currentDealer`, `isActive`, `players: GamePlayer[]`, `games: Game[]`, `cumulativeScores: CumulativeScore[]` |
+| `SessionDetail` | `id`, `createdAt`, `currentDealer`, `isActive`, `players: GamePlayer[]`, `games: Game[]`, `cumulativeScores: CumulativeScore[]`, `starEvents: StarEvent[]` |
+| `StarEvent` | `id: number`, `createdAt: string`, `player: GamePlayer` |
 | `SessionPlayer` | `name: string` |
 | `ContractDistributionEntry` | `contract: Contract`, `count: number`, `percentage: number` |
-| `GlobalStatistics` | `contractDistribution: ContractDistributionEntry[]`, `leaderboard: LeaderboardEntry[]`, `totalGames`, `totalSessions` |
+| `GlobalStatistics` | `contractDistribution: ContractDistributionEntry[]`, `leaderboard: LeaderboardEntry[]`, `totalGames`, `totalSessions`, `totalStars` |
 | `LeaderboardEntry` | `gamesAsTaker`, `gamesPlayed`, `playerId`, `playerName`, `totalScore`, `winRate`, `wins` |
 | `PlayerContractEntry` | `contract: Contract`, `count`, `winRate`, `wins` |
-| `PlayerStatistics` | `averageScore`, `bestGameScore`, `contractDistribution`, `gamesAsDefender`, `gamesAsPartner`, `gamesAsTaker`, `gamesPlayed`, `player`, `recentScores`, `sessionsPlayed`, `winRateAsTaker`, `worstGameScore` |
+| `PlayerStatistics` | `averageScore`, `bestGameScore`, `contractDistribution`, `gamesAsDefender`, `gamesAsPartner`, `gamesAsTaker`, `gamesPlayed`, `player`, `recentScores`, `sessionsPlayed`, `starPenalties`, `totalStars`, `winRateAsTaker`, `worstGameScore` |
 | `RecentScoreEntry` | `date: string`, `gameId: number`, `score: number`, `sessionId: number` |
 
 ### `ApiError`
@@ -286,6 +287,26 @@ deleteGame.mutate(undefined, {
 | `isError` | `boolean` | `true` si erreur (ex. pas la dernière donne 422) |
 | `error` | `ApiError \| null` | Détails de l'erreur |
 
+### `useAddStar`
+
+**Fichier** : `hooks/useAddStar.ts`
+
+Mutation pour ajouter une étoile à un joueur dans une session. Envoie un POST à `/sessions/{id}/star-events`.
+Invalide le cache `["session", sessionId]` en cas de succès.
+
+```ts
+const addStar = useAddStar(sessionId);
+
+addStar.mutate(playerId);
+```
+
+| Retour | Type | Description |
+|--------|------|-------------|
+| `mutate` | `(playerId: number) => void` | Lance l'ajout d'étoile |
+| `isPending` | `boolean` | `true` pendant la requête |
+| `isError` | `boolean` | `true` si erreur (ex. joueur pas dans la session 422) |
+| `error` | `ApiError \| null` | Détails de l'erreur |
+
 ### `useGlobalStats`
 
 **Fichier** : `hooks/useGlobalStats.ts`
@@ -450,7 +471,7 @@ const { isPending, sessions } = useSessions();
 - Bouton retour vers l'accueil
 - États : chargement, session introuvable
 
-**Hooks utilisés** : `useSession`, `useCreateGame`, `useCompleteGame`, `useDeleteGame`, `useNavigate`
+**Hooks utilisés** : `useSession`, `useAddStar`, `useCreateGame`, `useCompleteGame`, `useDeleteGame`, `useNavigate`
 
 **Modales** :
 - `NewGameModal` : sélection preneur + contrat (étape 1)
@@ -501,13 +522,16 @@ Liste des sessions récentes sous forme de cartes cliquables.
 
 **Fichier** : `components/Scoreboard.tsx`
 
-Bandeau horizontal scrollable affichant les 5 joueurs avec avatar, nom et score cumulé. Un icône de cartes est affiché sur l'avatar du donneur actuel.
+Bandeau horizontal scrollable affichant les 5 joueurs avec avatar, nom, score cumulé et étoiles. Un icône de cartes est affiché sur l'avatar du donneur actuel.
 
 | Prop | Type | Description |
 |------|------|-------------|
+| `addStarPending` | `boolean?` | Désactiver les boutons étoile pendant la mutation |
 | `cumulativeScores` | `CumulativeScore[]` | *requis* — scores cumulés par joueur |
 | `currentDealerId` | `number \| null` | *requis* — ID du donneur actuel (icône de cartes) |
+| `onAddStar` | `(playerId: number) => void` | *optionnel* — callback pour ajouter une étoile (affiche les boutons si fourni) |
 | `players` | `GamePlayer[]` | *requis* — les 5 joueurs de la session |
+| `starEvents` | `StarEvent[]?` | Événements étoile pour calculer le compteur par joueur |
 
 ### `InProgressBanner`
 

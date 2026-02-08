@@ -39,6 +39,7 @@ const mockStats = {
   ],
   totalGames: 10,
   totalSessions: 2,
+  totalStars: 0,
 };
 
 describe("Stats page", () => {

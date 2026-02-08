@@ -69,6 +69,27 @@ export default function PlayerStats() {
         <MetricCard label="Sessions" value={String(stats.sessionsPlayed)} />
       </div>
 
+      {stats.totalStars > 0 && (
+        <div className="flex gap-3">
+          <div className="flex-1 rounded-xl bg-surface-elevated p-3 text-center">
+            <span className="block text-lg font-bold text-yellow-400">
+              {"★".repeat(Math.min(stats.totalStars, 10))}{stats.totalStars > 10 ? "…" : ""}
+            </span>
+            <span className="text-xs text-text-muted">
+              {stats.totalStars} étoile{stats.totalStars > 1 ? "s" : ""}
+            </span>
+          </div>
+          <div className="flex-1 rounded-xl bg-surface-elevated p-3 text-center">
+            <span className="block text-lg font-bold text-score-negative">
+              {stats.starPenalties}
+            </span>
+            <span className="text-xs text-text-muted">
+              Pénalité{stats.starPenalties > 1 ? "s" : ""}
+            </span>
+          </div>
+        </div>
+      )}
+
       <div className="flex gap-3">
         <div className="flex-1 rounded-xl bg-surface-elevated p-3 text-center">
           <span className="block text-sm font-semibold text-text-primary">
