@@ -13,6 +13,7 @@ Application mobile (PWA) de suivi des scores pour le Tarot à 5 joueurs, conform
 - [Consulter les statistiques](#consulter-les-statistiques)
 - [Système d'étoiles](#système-détoiles)
 - [Classement ELO](#classement-elo)
+- [Utilisation sur Smart TV](#utilisation-sur-smart-tv)
 - [Thème sombre](#thème-sombre)
 - [Règles de calcul des scores](#règles-de-calcul-des-scores)
 
@@ -263,6 +264,30 @@ Le système ELO fournit un **classement dynamique** qui tient compte du niveau d
 
 - La **modification** d'une donne recalcule automatiquement les ELO
 - La **suppression** d'une donne annule ses effets sur les ELO (retour à l'état précédent)
+
+---
+
+## Utilisation sur Smart TV
+
+L'application est compatible avec les **Smart TV** Samsung (Tizen 5.0+) et LG (webOS 5.0+).
+
+### Ouvrir l'application
+
+1. Ouvrir le **navigateur intégré** de la TV (Samsung Internet ou LG Web Browser)
+2. Saisir l'URL de l'application
+3. L'interface s'adapte automatiquement à l'écran large : texte agrandi, contenu centré
+
+### Navigation au D-pad (télécommande)
+
+La navigation se fait entièrement avec les **flèches directionnelles** et le bouton **Enter/OK** de la télécommande :
+
+- **Flèches haut/bas/gauche/droite** : déplacer le focus entre les éléments interactifs (boutons, liens, champs)
+- **Enter/OK** : activer l'élément sélectionné (clic)
+- **Retour** : revenir en arrière (selon le navigateur TV)
+
+Un **anneau bleu** entoure l'élément actuellement focalisé pour indiquer la position du curseur.
+
+> **Astuce** : dans les modales, le focus est piégé à l'intérieur — les flèches ne sortent pas de la modale tant qu'elle est ouverte. Utiliser le bouton de fermeture (✕) ou Échap pour la fermer.
 
 ---
 

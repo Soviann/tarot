@@ -11,6 +11,7 @@ Il doit être mis à jour à chaque ajout ou modification de composant.
 - [Pages](#pages)
 - [Composants UI](#composants-ui)
 - [Utilitaire de test](#utilitaire-de-test)
+- [Compatibilité TV](#compatibilité-tv)
 
 ---
 
@@ -912,6 +913,47 @@ renderWithProviders(<MonComposant />);
 Le `QueryClientProvider` inclus utilise un `QueryClient` de test (retry désactivé, gcTime infini).
 
 `createTestQueryClient()` est aussi exporté pour les tests de hooks isolés.
+
+---
+
+## Compatibilité TV
+
+L'application est compatible avec les Smart TV Samsung (Tizen 5.0+, Chromium 69) et LG (webOS 5.0+, Chromium 68).
+
+### Cible de build
+
+Le build Vite cible `chrome64` (`vite.config.ts → build.target`) pour transpiler les syntaxes ES2020+ (optional chaining `?.`, nullish coalescing `??`) incompatibles avec les navigateurs embarqués des TV.
+
+Le champ `browserslist` dans `package.json` documente les navigateurs supportés : `chrome >= 64, last 2 versions, not dead`.
+
+### Breakpoint TV
+
+Le breakpoint `lg:` (1024px) sert de seuil pour les styles TV. L'application n'ayant pas d'utilisateurs desktop, `lg:` = TV en pratique.
+
+### Scaling par `font-size`
+
+À partir de `lg:`, la `font-size` racine passe à **20px** (au lieu de 16px par défaut). Comme toutes les classes Tailwind utilisent `rem`, cela scale proportionnellement l'ensemble de l'UI. Les valeurs en pixels (hauteurs de graphiques Recharts, props `size` de lucide-react) doivent être ajustées explicitement avec des classes `lg:`.
+
+```css
+/* frontend/src/index.css */
+@media (min-width: 1024px) {
+  html { font-size: 20px; }
+}
+```
+
+### Focus visible (D-pad)
+
+Une règle `:focus-visible` globale dans `index.css` affiche un anneau accent sur tous les éléments interactifs lors de la navigation clavier/D-pad. Un override en dark mode utilise `accent-300`.
+
+Les boutons critiques ont des cibles minimales de 40px (`min-h-10 min-w-10`) pour être facilement accessibles au D-pad.
+
+### Layout TV
+
+- **Contenu centré** : `lg:mx-auto lg:max-w-4xl` sur le `<main>` (Layout.tsx)
+- **Barre de navigation** : centrée et arrondie (`lg:max-w-4xl lg:rounded-t-xl`)
+- **Graphiques** : wrappers avec hauteur responsive (`h-64 lg:h-96`, etc.)
+- **Scoreboard** : centré sans scroll horizontal (`lg:justify-center lg:overflow-visible`)
+- **Pages** : padding augmenté (`lg:p-8`)
 
 ---
 
