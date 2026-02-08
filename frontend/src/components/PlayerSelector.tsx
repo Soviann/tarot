@@ -87,7 +87,7 @@ export default function PlayerSelector({
   return (
     <div className="flex flex-col gap-3">
       {/* Chips des joueurs sélectionnés */}
-      <div className="flex items-center gap-2" data-testid="selected-chips">
+      <div className="flex flex-wrap items-center justify-center gap-2" data-testid="selected-chips">
         {selectedPlayers.map((player) => (
           <button
             className="flex items-center gap-1 rounded-full bg-accent-100 py-1 pl-1 pr-2 text-sm font-medium text-accent-700 transition-colors hover:bg-accent-200"
@@ -109,7 +109,7 @@ export default function PlayerSelector({
         )}
       </div>
 
-      <p className="text-sm text-text-muted">
+      <p className="text-center text-sm text-text-muted">
         {selectedPlayerIds.length}/{MAX_PLAYERS} joueurs sélectionnés
       </p>
 
