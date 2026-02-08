@@ -121,48 +121,52 @@ export default function PlayerSelector({
         placeholder="Rechercher un joueur…"
       />
 
-      {/* Liste des joueurs */}
-      {isPending && (
-        <p className="py-4 text-center text-text-muted">Chargement…</p>
-      )}
+      {/* Liste des joueurs (visible uniquement lors d'une recherche) */}
+      {search && (
+        <>
+          {isPending && (
+            <p className="py-4 text-center text-text-muted">Chargement…</p>
+          )}
 
-      {!isPending && players.length === 0 && (
-        <p className="py-4 text-center text-text-muted">
-          Aucun joueur trouvé
-        </p>
-      )}
+          {!isPending && players.length === 0 && (
+            <p className="py-4 text-center text-text-muted">
+              Aucun joueur trouvé
+            </p>
+          )}
 
-      {!isPending && players.length > 0 && (
-        <ul className="flex flex-col gap-1">
-          {players.map((player) => {
-            const isSelected = selectedPlayerIds.includes(player.id);
-            const isDisabled = isFull && !isSelected;
+          {!isPending && players.length > 0 && (
+            <ul className="flex flex-col gap-1">
+              {players.map((player) => {
+                const isSelected = selectedPlayerIds.includes(player.id);
+                const isDisabled = isFull && !isSelected;
 
-            return (
-              <li key={player.id}>
-                <button
-                  className={`flex w-full items-center gap-3 rounded-lg p-2 text-left transition-colors ${
-                    isSelected
-                      ? "bg-accent-50 ring-2 ring-accent-500"
-                      : "hover:bg-surface-secondary"
-                  } ${isDisabled ? "cursor-not-allowed opacity-40" : ""}`}
-                  disabled={isDisabled}
-                  onClick={() => togglePlayer(player.id)}
-                  type="button"
-                >
-                  <PlayerAvatar
-                    name={player.name}
-                    playerId={player.id}
-                    size="sm"
-                  />
-                  <span className="font-medium text-text-primary">
-                    {player.name}
-                  </span>
-                </button>
-              </li>
-            );
-          })}
-        </ul>
+                return (
+                  <li key={player.id}>
+                    <button
+                      className={`flex w-full items-center gap-3 rounded-lg p-2 text-left transition-colors ${
+                        isSelected
+                          ? "bg-accent-50 ring-2 ring-accent-500"
+                          : "hover:bg-surface-secondary"
+                      } ${isDisabled ? "cursor-not-allowed opacity-40" : ""}`}
+                      disabled={isDisabled}
+                      onClick={() => togglePlayer(player.id)}
+                      type="button"
+                    >
+                      <PlayerAvatar
+                        name={player.name}
+                        playerId={player.id}
+                        size="sm"
+                      />
+                      <span className="font-medium text-text-primary">
+                        {player.name}
+                      </span>
+                    </button>
+                  </li>
+                );
+              })}
+            </ul>
+          )}
+        </>
       )}
 
       {/* Bouton créer joueur */}

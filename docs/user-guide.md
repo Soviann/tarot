@@ -83,9 +83,10 @@ Utiliser la barre de recherche en haut de la liste pour filtrer par nom.
 
 Depuis l'écran **Accueil** :
 
-1. Sélectionner **5 joueurs** parmi la liste existante
+1. **Rechercher** un joueur dans la barre de recherche — la liste des résultats apparaît en tapant un nom
+2. Sélectionner **5 joueurs** parmi les résultats
    - Possibilité d'ajouter un nouveau joueur à la volée avec **« + Ajouter »**
-2. Appuyer sur **« Démarrer »**
+3. Appuyer sur **« Démarrer »**
 
 > **Session intelligente** : si une session active existe déjà avec les mêmes 5 joueurs, l'application la reprend automatiquement au lieu d'en créer une nouvelle.
 

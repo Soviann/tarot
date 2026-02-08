@@ -19,6 +19,10 @@ Le format est basé sur [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/)
 - **Page d'aide in-app** : page `/aide` accessible via l'icône ? en haut à droite de chaque écran, reprenant le contenu du guide utilisateur en accordéons dépliables (installation, concepts clés, gestion des joueurs, sessions, saisie, statistiques, étoiles, ELO, Smart TV, thème sombre, règles de calcul), avec lien vers le dépôt GitHub
 - **Guide de contribution** : fichier `CONTRIBUTING.md` à la racine du projet avec prérequis, conventions de code, workflow Git, soumission d'issues et de PRs
 
+### Changed
+
+- **Accueil — sélection des joueurs** : la liste complète des joueurs n'est plus affichée par défaut. Les joueurs apparaissent uniquement lors d'une recherche via la barre de recherche, simplifiant l'interface.
+
 ### Fixed
 
 - **Accueil — centrage et débordement** : le titre, les avatars sélectionnés et le compteur de joueurs sont maintenant centrés horizontalement ; les chips passent à la ligne (`flex-wrap`) au lieu de déborder de l'écran

@@ -77,17 +77,38 @@ function setupMocks(overrides?: {
   return { mutate, reset };
 }
 
+async function searchFor(text: string) {
+  const searchInput = screen.getByPlaceholderText("Rechercher un joueur…");
+  await userEvent.type(searchInput, text);
+  await waitFor(() => {
+    expect(usePlayersModule.usePlayers).toHaveBeenCalledWith(text);
+  });
+}
+
 describe("PlayerSelector", () => {
   afterEach(() => {
-    vi.restoreAllMocks();
+    vi.clearAllMocks();
   });
 
-  it("renders player list", () => {
+  it("does not render player list without search", () => {
     setupMocks();
     const onChange = vi.fn();
     renderWithProviders(
       <PlayerSelector onSelectionChange={onChange} selectedPlayerIds={[]} />,
     );
+
+    expect(screen.queryByText("Alice")).not.toBeInTheDocument();
+    expect(screen.queryByText("Bob")).not.toBeInTheDocument();
+  });
+
+  it("renders player list when searching", async () => {
+    setupMocks();
+    const onChange = vi.fn();
+    renderWithProviders(
+      <PlayerSelector onSelectionChange={onChange} selectedPlayerIds={[]} />,
+    );
+
+    await searchFor("a");
 
     expect(screen.getByText("Alice")).toBeInTheDocument();
     expect(screen.getByText("Bob")).toBeInTheDocument();
@@ -111,6 +132,7 @@ describe("PlayerSelector", () => {
       <PlayerSelector onSelectionChange={onChange} selectedPlayerIds={[]} />,
     );
 
+    await searchFor("a");
     await userEvent.click(screen.getByText("Alice"));
 
     expect(onChange).toHaveBeenCalledWith([1]);
@@ -123,6 +145,8 @@ describe("PlayerSelector", () => {
       <PlayerSelector onSelectionChange={onChange} selectedPlayerIds={[1, 2]} />,
     );
 
+    await searchFor("a");
+
     // Click Alice in the player list (not the chip) — get all "Alice" texts, the last one is in the list
     const allAlice = screen.getAllByText("Alice");
     await userEvent.click(allAlice[allAlice.length - 1]);
@@ -130,7 +154,7 @@ describe("PlayerSelector", () => {
     expect(onChange).toHaveBeenCalledWith([2]);
   });
 
-  it("disables unselected players when 5 are already selected", () => {
+  it("disables unselected players when 5 are already selected", async () => {
     setupMocks();
     const onChange = vi.fn();
     renderWithProviders(
@@ -139,6 +163,8 @@ describe("PlayerSelector", () => {
         selectedPlayerIds={[1, 2, 3, 4, 5]}
       />,
     );
+
+    await searchFor("a");
 
     // Frank (id=6) should be disabled
     const frankButton = screen.getByText("Frank").closest("button");
@@ -154,6 +180,8 @@ describe("PlayerSelector", () => {
         selectedPlayerIds={[1, 2, 3, 4, 5]}
       />,
     );
+
+    await searchFor("a");
 
     // Click Alice in the player list (not the chip)
     const allAlice = screen.getAllByText("Alice");
@@ -253,7 +281,7 @@ describe("PlayerSelector", () => {
     expect(screen.getByPlaceholderText("Nom du joueur")).toHaveValue("Nico");
   });
 
-  it("shows loading state", () => {
+  it("shows loading state when searching", async () => {
     setupMocks({
       usePlayers: { isPending: true, players: [] },
     });
@@ -262,10 +290,12 @@ describe("PlayerSelector", () => {
       <PlayerSelector onSelectionChange={onChange} selectedPlayerIds={[]} />,
     );
 
+    await searchFor("a");
+
     expect(screen.getByText("Chargement…")).toBeInTheDocument();
   });
 
-  it("hides inactive players from selection list", () => {
+  it("hides inactive players from selection list", async () => {
     const playersWithInactive = [
       { active: true, createdAt: "2025-01-15T10:00:00+00:00", id: 1, name: "Alice" },
       { active: false, createdAt: "2025-01-16T10:00:00+00:00", id: 2, name: "Bob" },
@@ -278,6 +308,8 @@ describe("PlayerSelector", () => {
     renderWithProviders(
       <PlayerSelector onSelectionChange={onChange} selectedPlayerIds={[]} />,
     );
+
+    await searchFor("a");
 
     expect(screen.getByText("Alice")).toBeInTheDocument();
     expect(screen.getByText("Charlie")).toBeInTheDocument();
