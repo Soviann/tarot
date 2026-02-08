@@ -25,7 +25,7 @@ describe("useCreatePlayer", () => {
   });
 
   it("sends POST to /players with the given name", async () => {
-    const created = { createdAt: "2025-01-20T10:00:00+00:00", id: 4, name: "Diana" };
+    const created = { active: true, createdAt: "2025-01-20T10:00:00+00:00", id: 4, name: "Diana" };
     vi.mocked(api.apiFetch).mockResolvedValue(created);
     const { wrapper } = createWrapper();
 
@@ -40,13 +40,13 @@ describe("useCreatePlayer", () => {
   });
 
   it("invalidates players query on success", async () => {
-    const created = { createdAt: "2025-01-20T10:00:00+00:00", id: 4, name: "Diana" };
+    const created = { active: true, createdAt: "2025-01-20T10:00:00+00:00", id: 4, name: "Diana" };
     vi.mocked(api.apiFetch).mockResolvedValue(created);
     const { queryClient, wrapper } = createWrapper();
 
     // Seed the players cache
     queryClient.setQueryData(["players"], {
-      member: [{ createdAt: "2025-01-15T10:00:00+00:00", id: 1, name: "Alice" }],
+      member: [{ active: true, createdAt: "2025-01-15T10:00:00+00:00", id: 1, name: "Alice" }],
       totalItems: 1,
     });
 
