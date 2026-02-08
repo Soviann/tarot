@@ -21,7 +21,7 @@ function createWrapper() {
 
 describe("useUpdatePlayer", () => {
   afterEach(() => {
-    vi.restoreAllMocks();
+    vi.clearAllMocks();
   });
 
   it("sends PATCH to /players/{id} with merge-patch+json", async () => {

@@ -277,6 +277,19 @@ describe("Players page", () => {
     expect(screen.getByText("Ce nom est déjà utilisé.")).toBeInTheDocument();
   });
 
+  it("shows generic error in edit modal on non-422 error", async () => {
+    const error = new Error("Network error");
+    setupMocks({
+      updatePlayer: { error, isError: true },
+    });
+    renderWithProviders(<Players />);
+
+    const editButtons = screen.getAllByRole("button", { name: /Modifier/i });
+    await userEvent.click(editButtons[0]);
+
+    expect(screen.getByText("Erreur lors de la modification.")).toBeInTheDocument();
+  });
+
   it("renders inactive player with visual treatment", () => {
     const playersWithInactive = [
       { active: true, createdAt: "2025-01-15T10:00:00+00:00", id: 1, name: "Alice" },

@@ -211,6 +211,11 @@ export default function Players() {
                 Ce nom est déjà utilisé.
               </p>
             )}
+            {updatePlayer.isError && !isEditDuplicate && (
+              <p className="mt-1 text-sm text-red-500">
+                Erreur lors de la modification.
+              </p>
+            )}
           </div>
           <div className="flex items-center justify-between">
             <span className="text-sm font-medium text-text-primary">
