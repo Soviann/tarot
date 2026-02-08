@@ -74,7 +74,7 @@ export default function SessionPage() {
       <div className="flex items-center gap-2">
         <button
           aria-label="Retour"
-          className="rounded-lg p-1 text-text-secondary"
+          className="rounded-lg p-1 text-text-secondary lg:p-2"
           onClick={() => navigate("/")}
           type="button"
         >
@@ -97,7 +97,7 @@ export default function SessionPage() {
         </h1>
         <button
           aria-label="Modifier les joueurs"
-          className="ml-auto rounded-lg p-1 text-text-secondary disabled:opacity-40"
+          className="ml-auto rounded-lg p-1 text-text-secondary disabled:opacity-40 lg:p-2"
           disabled={!!inProgressGame}
           onClick={() => setSwapModalOpen(true)}
           type="button"

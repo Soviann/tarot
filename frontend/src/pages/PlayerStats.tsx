@@ -41,7 +41,7 @@ export default function PlayerStats() {
       <div className="flex items-center gap-3">
         <button
           aria-label="Retour"
-          className="rounded-lg p-1 text-text-secondary"
+          className="rounded-lg p-1 text-text-secondary lg:p-2"
           onClick={() => navigate("/stats")}
           type="button"
         >
