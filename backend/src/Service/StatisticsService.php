@@ -172,7 +172,7 @@ class StatisticsService
             'SELECT eh.createdAt AS date, IDENTITY(eh.game) AS gameId, eh.ratingAfter AS ratingAfter, eh.ratingChange AS ratingChange
              FROM App\Entity\EloHistory eh
              WHERE eh.player = :player
-             ORDER BY eh.createdAt ASC'
+             ORDER BY eh.id ASC'
         )
             ->setParameter('player', $player)
             ->getResult();

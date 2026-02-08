@@ -63,22 +63,22 @@ final readonly class GameCompleteProcessor implements ProcessorInterface
 
         $results = $this->eloCalculator->compute($game, $ratings);
 
+        $playersByName = [];
+        foreach ($players as $player) {
+            $playersByName[$player->getName()] = $player;
+        }
+
         foreach ($results as $result) {
-            foreach ($players as $player) {
-                if ($player->getName() === $result['playerName']) {
-                    $player->setEloRating($result['ratingAfter']);
+            $player = $playersByName[$result['playerName']];
+            $player->setEloRating($result['ratingAfter']);
 
-                    $history = new EloHistory();
-                    $history->setGame($game);
-                    $history->setPlayer($player);
-                    $history->setRatingAfter($result['ratingAfter']);
-                    $history->setRatingBefore($result['ratingBefore']);
-                    $history->setRatingChange($result['ratingChange']);
-                    $this->em->persist($history);
-
-                    break;
-                }
-            }
+            $history = new EloHistory();
+            $history->setGame($game);
+            $history->setPlayer($player);
+            $history->setRatingAfter($result['ratingAfter']);
+            $history->setRatingBefore($result['ratingBefore']);
+            $history->setRatingChange($result['ratingChange']);
+            $this->em->persist($history);
         }
     }
 

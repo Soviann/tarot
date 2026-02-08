@@ -13,7 +13,7 @@ class EloHistory
     private \DateTimeImmutable $createdAt;
 
     #[ORM\ManyToOne(targetEntity: Game::class)]
-    #[ORM\JoinColumn(nullable: false)]
+    #[ORM\JoinColumn(nullable: false, onDelete: 'CASCADE')]
     private Game $game;
 
     #[ORM\Id]
@@ -22,7 +22,7 @@ class EloHistory
     private ?int $id = null;
 
     #[ORM\ManyToOne(targetEntity: Player::class)]
-    #[ORM\JoinColumn(nullable: false)]
+    #[ORM\JoinColumn(nullable: false, onDelete: 'CASCADE')]
     private Player $player;
 
     #[ORM\Column]
