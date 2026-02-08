@@ -44,7 +44,7 @@ export default function SearchInput({
       {query && (
         <button
           aria-label="Effacer"
-          className="absolute right-2 top-1/2 -translate-y-1/2 rounded-full p-0.5 text-text-muted hover:text-text-secondary"
+          className="absolute right-2 top-1/2 flex min-h-8 min-w-8 -translate-y-1/2 items-center justify-center rounded-full p-0.5 text-text-muted hover:text-text-secondary"
           onClick={() => setQuery("")}
           type="button"
         >

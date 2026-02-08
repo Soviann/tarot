@@ -54,6 +54,15 @@
 }
 
 @layer base {
+  :focus-visible {
+    outline: 3px solid var(--color-accent-400);
+    outline-offset: 2px;
+  }
+
+  .dark :focus-visible {
+    outline-color: var(--color-accent-300);
+  }
+
   .dark {
     --color-score-negative: #f87171;
     --color-score-positive: #4ade80;
