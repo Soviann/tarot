@@ -34,6 +34,7 @@ tarot/
 ## Workflow
 
 - **Complex tasks**: plan mode → approval → implementation
+- **Plans**: save to `docs/plans/YYYY-MM-DD-<feature>.md`, not `~/.claude/plans/`
 - **Split** large changes into verifiable chunks
 - **Design doc**: `docs/plans/2025-02-05-tarot-app-design.md`
 
