@@ -523,6 +523,7 @@ Page d'aide in-app reprenant le contenu du guide utilisateur (`docs/user-guide.m
 - `SwapPlayersModal` : changement de joueurs avec navigation vers la session résultante
 - `NewGameModal` : sélection preneur + contrat (étape 1)
 - `CompleteGameModal` : complétion ou modification d'une donne (étape 2)
+- `AddStarModal` : confirmation avant attribution d'étoile à un joueur
 - `DeleteGameModal` : confirmation de suppression de la dernière donne
 
 ---
@@ -630,6 +631,28 @@ Modal de sélection manuelle du donneur parmi les joueurs de la session.
 - Donneur actuel pré-sélectionné
 - Bouton Valider désactivé si le même donneur est sélectionné ou si `isPending`
 - Affichage du nom du joueur sélectionné
+
+### `AddStarModal`
+
+**Fichier** : `components/AddStarModal.tsx`
+
+Modal de confirmation avant d'attribuer une étoile à un joueur. Composant présentationnel (pas de hook interne).
+
+| Prop | Type | Description |
+|------|------|-------------|
+| `errorMessage` | `string?` | Message d'erreur à afficher |
+| `isError` | `boolean` | *requis* — afficher l'erreur |
+| `isPending` | `boolean` | *requis* — désactiver le bouton Confirmer pendant la mutation |
+| `onClose` | `() => void` | *requis* — fermeture |
+| `onConfirm` | `() => void` | *requis* — confirmation de l'attribution |
+| `open` | `boolean` | *requis* — afficher ou masquer |
+| `playerName` | `string` | *requis* — nom du joueur concerné |
+
+**Fonctionnalités** :
+- Message de confirmation avec le nom du joueur
+- Bouton « Annuler » (ferme la modal) et « Confirmer » (couleur accent, non destructif)
+- Bouton « Confirmer » désactivé pendant la mutation
+- Affichage d'erreur si la mutation échoue
 
 ### `DeleteGameModal`
 
