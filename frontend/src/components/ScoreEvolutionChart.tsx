@@ -52,37 +52,39 @@ export default function ScoreEvolutionChart({ games, players }: ScoreEvolutionCh
   }
 
   return (
-    <ResponsiveContainer height={250} width="100%">
-      <LineChart data={data} margin={{ bottom: 0, left: 0, right: 16, top: 8 }}>
-        <XAxis
-          dataKey="position"
-          tick={{ fill: "var(--color-text-muted)", fontSize: 11 }}
-        />
-        <YAxis
-          tick={{ fill: "var(--color-text-muted)", fontSize: 11 }}
-          width={45}
-        />
-        <Tooltip
-          contentStyle={{
-            background: "var(--color-surface-elevated)",
-            border: "1px solid var(--color-surface-border)",
-            borderRadius: "0.5rem",
-            color: "var(--color-text-primary)",
-          }}
-          labelFormatter={(label) => `Donne ${label}`}
-        />
-        <ReferenceLine stroke="var(--color-text-muted)" strokeDasharray="3 3" y={0} />
-        {players.map((player, index) => (
-          <Line
-            dataKey={player.name}
-            dot={{ fill: playerColors[index % playerColors.length], r: 3 }}
-            key={player.id}
-            stroke={playerColors[index % playerColors.length]}
-            strokeWidth={2}
-            type="monotone"
+    <div className="h-64 lg:h-96">
+      <ResponsiveContainer height="100%" width="100%">
+        <LineChart data={data} margin={{ bottom: 0, left: 0, right: 16, top: 8 }}>
+          <XAxis
+            dataKey="position"
+            tick={{ fill: "var(--color-text-muted)", fontSize: 11 }}
           />
-        ))}
-      </LineChart>
-    </ResponsiveContainer>
+          <YAxis
+            tick={{ fill: "var(--color-text-muted)", fontSize: 11 }}
+            width={45}
+          />
+          <Tooltip
+            contentStyle={{
+              background: "var(--color-surface-elevated)",
+              border: "1px solid var(--color-surface-border)",
+              borderRadius: "0.5rem",
+              color: "var(--color-text-primary)",
+            }}
+            labelFormatter={(label) => `Donne ${label}`}
+          />
+          <ReferenceLine stroke="var(--color-text-muted)" strokeDasharray="3 3" y={0} />
+          {players.map((player, index) => (
+            <Line
+              dataKey={player.name}
+              dot={{ fill: playerColors[index % playerColors.length], r: 3 }}
+              key={player.id}
+              stroke={playerColors[index % playerColors.length]}
+              strokeWidth={2}
+              type="monotone"
+            />
+          ))}
+        </LineChart>
+      </ResponsiveContainer>
+    </div>
   );
 }

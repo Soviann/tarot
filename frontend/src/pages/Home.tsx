@@ -25,7 +25,7 @@ export default function Home() {
   }, [canStart, createSession, navigate, selectedPlayerIds]);
 
   return (
-    <div className="flex flex-col gap-6 p-4">
+    <div className="flex flex-col gap-6 p-4 lg:p-8">
       <section>
         <h1 className="mb-4 text-2xl font-bold text-text-primary">
           Nouvelle session

@@ -10,7 +10,7 @@ const tabs: ReadonlyArray<{ Icon: LucideIcon; label: string; to: string }> = [
 
 export default function BottomNav() {
   return (
-    <nav className="fixed bottom-0 left-0 right-0 border-t border-surface-border bg-surface-primary pb-safe">
+    <nav className="fixed bottom-0 left-0 right-0 border-t border-surface-border bg-surface-primary pb-safe lg:left-1/2 lg:max-w-4xl lg:-translate-x-1/2 lg:rounded-t-xl">
       <div className="flex justify-around">
         {tabs.map(({ Icon, label, to }) => (
           <NavLink
@@ -24,7 +24,7 @@ export default function BottomNav() {
               }`
             }
           >
-            <Icon className="mb-0.5" size={20} />
+            <Icon className="mb-0.5 size-5 lg:size-6" />
             <span>{label}</span>
           </NavLink>
         ))}
