@@ -54,9 +54,9 @@ export default function PlayerSelector({
 
   const openModal = useCallback(() => {
     createPlayer.reset();
-    setNewName("");
+    setNewName(search);
     setModalOpen(true);
-  }, [createPlayer]);
+  }, [createPlayer, search]);
 
   const closeModal = useCallback(() => {
     setModalOpen(false);
