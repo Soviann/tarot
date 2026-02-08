@@ -209,6 +209,50 @@ class DealerRotationTest extends ApiTestCase
         $this->assertSame('Bob', $detail['currentDealer']['name']);
     }
 
+    public function testPatchSessionUpdatesDealer(): void
+    {
+        $session = $this->createSessionWithPlayers('Alice', 'Bob', 'Charlie', 'Diana', 'Eve');
+        $players = $session->getPlayers()->toArray();
+        $session->setCurrentDealer($players[0]); // Alice
+        $this->em->flush();
+
+        $this->client->disableReboot();
+
+        // PATCH la session pour changer le donneur à Charlie
+        $this->client->request('PATCH', '/api/sessions/'.$session->getId(), [
+            'headers' => ['Content-Type' => 'application/merge-patch+json'],
+            'json' => [
+                'currentDealer' => $this->getIri($players[2]),
+            ],
+        ]);
+
+        $this->assertResponseIsSuccessful();
+
+        // Vérifier que le donneur est maintenant Charlie
+        $detail = $this->client->request('GET', '/api/sessions/'.$session->getId())->toArray();
+        $this->assertSame('Charlie', $detail['currentDealer']['name']);
+    }
+
+    public function testPatchSessionRejectsNonMemberDealer(): void
+    {
+        $session = $this->createSessionWithPlayers('Alice', 'Bob', 'Charlie', 'Diana', 'Eve');
+        $players = $session->getPlayers()->toArray();
+        $session->setCurrentDealer($players[0]); // Alice
+        $this->em->flush();
+
+        // Créer un joueur hors session
+        $outsider = $this->createPlayer('Outsider');
+
+        $this->client->request('PATCH', '/api/sessions/'.$session->getId(), [
+            'headers' => ['Content-Type' => 'application/merge-patch+json'],
+            'json' => [
+                'currentDealer' => $this->getIri($outsider),
+            ],
+        ]);
+
+        $this->assertResponseStatusCodeSame(422);
+    }
+
     public function testSmartCreatePreservesDealer(): void
     {
         $session = $this->createSessionWithPlayers('Alice', 'Bob', 'Charlie', 'Diana', 'Eve');

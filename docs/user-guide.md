@@ -86,6 +86,17 @@ Les sessions récentes sont affichées sous le formulaire de sélection pour un 
 
 Le donneur actuel est identifiable par un **icône de cartes** bleu sur son avatar dans le tableau des scores.
 
+#### Forcer le donneur
+
+Si le donneur automatique ne correspond pas (reprise de partie, erreur de rotation, convention de table différente), il est possible de le **changer manuellement** :
+
+1. Appuyer sur l'**icône de cartes** (badge bleu) du donneur actuel dans le tableau des scores
+2. Une modale « Choisir le donneur » s'affiche avec les 5 avatars
+3. Sélectionner le nouveau donneur
+4. Appuyer sur **Valider**
+
+> Le donneur sélectionné doit être un joueur de la session. La rotation automatique reprend normalement à partir du nouveau donneur.
+
 ---
 
 ## Écran de session

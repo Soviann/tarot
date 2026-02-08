@@ -28,8 +28,9 @@ const STARS_PER_PENALTY = 3;
 interface ScoreboardProps {
   addStarPending?: boolean;
   cumulativeScores: CumulativeScore[];
-  currentDealerId: number | null;
+  currentDealerId?: number | null;
   onAddStar?: (playerId: number) => void;
+  onDealerChange?: () => void;
   players: GamePlayer[];
   starEvents?: StarEvent[];
 }
@@ -39,6 +40,7 @@ export default function Scoreboard({
   cumulativeScores,
   currentDealerId,
   onAddStar,
+  onDealerChange,
   players,
   starEvents = [],
 }: ScoreboardProps) {
@@ -71,16 +73,28 @@ export default function Scoreboard({
           >
             <div className="relative">
               <PlayerAvatar name={player.name} playerId={player.id} size="sm" />
-              {currentDealerId === player.id && (
-                <span
-                  className="absolute -bottom-1.5 -right-1.5 flex size-5 items-center justify-center rounded-full bg-accent-500 text-white shadow-sm"
-                  title="Donneur"
-                >
-                  <svg className="size-3" fill="currentColor" viewBox="0 0 24 24">
-                    <path d={suitPath} />
-                  </svg>
-                </span>
-              )}
+              {currentDealerId === player.id &&
+                (onDealerChange ? (
+                  <button
+                    aria-label="Changer le donneur"
+                    className="absolute -bottom-1.5 -right-1.5 flex size-5 items-center justify-center rounded-full bg-accent-500 text-white shadow-sm"
+                    onClick={onDealerChange}
+                    type="button"
+                  >
+                    <svg className="size-3" fill="currentColor" viewBox="0 0 24 24">
+                      <path d={suitPath} />
+                    </svg>
+                  </button>
+                ) : (
+                  <span
+                    className="absolute -bottom-1.5 -right-1.5 flex size-5 items-center justify-center rounded-full bg-accent-500 text-white shadow-sm"
+                    title="Donneur"
+                  >
+                    <svg className="size-3" fill="currentColor" viewBox="0 0 24 24">
+                      <path d={suitPath} />
+                    </svg>
+                  </span>
+                ))}
             </div>
             <span className="max-w-16 truncate text-xs text-text-secondary lg:max-w-24 lg:text-sm">
               {player.name}

@@ -1,4 +1,4 @@
-import { screen } from "@testing-library/react";
+import { fireEvent, screen } from "@testing-library/react";
 import Scoreboard from "../../components/Scoreboard";
 import { renderWithProviders } from "../test-utils";
 
@@ -55,5 +55,37 @@ describe("Scoreboard", () => {
 
     const zeros = screen.getAllByText("0");
     expect(zeros.length).toBe(5);
+  });
+
+  it("renders dealer badge as clickable button when onDealerChange provided", () => {
+    const onDealerChange = vi.fn();
+
+    renderWithProviders(
+      <Scoreboard
+        cumulativeScores={[]}
+        currentDealerId={1}
+        onDealerChange={onDealerChange}
+        players={players}
+      />,
+    );
+
+    const dealerButton = screen.getByRole("button", { name: "Changer le donneur" });
+    expect(dealerButton).toBeInTheDocument();
+    fireEvent.click(dealerButton);
+    expect(onDealerChange).toHaveBeenCalledTimes(1);
+  });
+
+  it("renders dealer badge as non-interactive span when no onDealerChange", () => {
+    renderWithProviders(
+      <Scoreboard
+        cumulativeScores={[]}
+        currentDealerId={1}
+        players={players}
+      />,
+    );
+
+    expect(screen.queryByRole("button", { name: "Changer le donneur" })).not.toBeInTheDocument();
+    // The dealer badge should still be visible (as a span with title)
+    expect(screen.getByTitle("Donneur")).toBeInTheDocument();
   });
 });

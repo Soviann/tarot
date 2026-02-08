@@ -8,6 +8,8 @@ Le format est basé sur [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/)
 
 ### Added
 
+- **Forcer le donneur** : possibilité de changer manuellement le donneur d'une session en appuyant sur l'icône de cartes du donneur actuel dans le tableau des scores. Modale de sélection parmi les 5 joueurs, opération PATCH `/sessions/{id}` avec validation (le donneur doit appartenir à la session). Hook `useUpdateDealer`, composant `ChangeDealerModal`.
+
 - **Page d'aide in-app** : page `/aide` accessible via l'icône ? en haut à droite de chaque écran, reprenant le contenu du guide utilisateur en accordéons dépliables (installation, concepts clés, gestion des joueurs, sessions, saisie, statistiques, étoiles, ELO, Smart TV, thème sombre, règles de calcul), avec lien vers le dépôt GitHub
 - **Guide de contribution** : fichier `CONTRIBUTING.md` à la racine du projet avec prérequis, conventions de code, workflow Git, soumission d'issues et de PRs
 

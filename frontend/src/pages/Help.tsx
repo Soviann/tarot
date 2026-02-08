@@ -177,6 +177,11 @@ export default function Help() {
           Le <strong>donneur</strong> est attribué automatiquement (premier
           joueur par ordre alphabétique) et tourne après chaque donne.
         </p>
+        <p className="mt-2">
+          Pour <strong>changer le donneur manuellement</strong>, appuyer sur
+          l'icône de cartes (badge bleu) du donneur actuel dans le tableau des
+          scores, puis sélectionner le nouveau donneur.
+        </p>
       </AccordionSection>
 
       <AccordionSection title="Écran de session">
@@ -184,6 +189,7 @@ export default function Help() {
         <p className="mt-1">
           Bandeau horizontal avec les 5 joueurs, leur score cumulé (vert =
           positif, rouge = négatif) et une icône de cartes sur le donneur.
+          Appuyer sur cette icône pour changer le donneur manuellement.
         </p>
 
         <h3 className="mt-3 font-medium text-text-primary">Donne en cours</h3>
