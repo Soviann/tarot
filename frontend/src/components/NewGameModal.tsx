@@ -7,6 +7,7 @@ import { Modal, PlayerAvatar } from "./ui";
 
 interface NewGameModalProps {
   createGame: ReturnType<typeof useCreateGame>;
+  currentDealerName: string | null;
   onClose: () => void;
   open: boolean;
   players: GamePlayer[];
@@ -19,7 +20,7 @@ const contracts: { colorClass: string; label: string; value: ContractType }[] = 
   { colorClass: "bg-contract-garde-contre", label: "Garde Contre", value: Contract.GardeContre },
 ];
 
-export default function NewGameModal({ createGame, onClose, open, players }: NewGameModalProps) {
+export default function NewGameModal({ createGame, currentDealerName, onClose, open, players }: NewGameModalProps) {
   const [selectedContract, setSelectedContract] = useState<ContractType | null>(null);
   const [selectedTakerId, setSelectedTakerId] = useState<number | null>(null);
 
@@ -44,6 +45,13 @@ export default function NewGameModal({ createGame, onClose, open, players }: New
   return (
     <Modal onClose={onClose} open={open} title="Nouvelle donne">
       <div className="flex flex-col gap-5">
+        {/* Donneur */}
+        {currentDealerName && (
+          <p className="text-center text-sm text-text-secondary">
+            Donneur : <span className="font-medium text-text-primary">{currentDealerName}</span>
+          </p>
+        )}
+
         {/* Preneur */}
         <div>
           <h3 className="mb-2 text-sm font-medium text-text-secondary">Preneur</h3>

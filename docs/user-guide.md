@@ -39,6 +39,7 @@ L'application est une **Progressive Web App** (PWA). Elle s'utilise dans un navi
 | **Preneur** | Le joueur qui a pris (annoncé un contrat) |
 | **Partenaire** | Le joueur dont le roi a été appelé par le preneur (peut être le preneur lui-même s'il appelle son propre roi) |
 | **Contrat** | Engagement du preneur : Petite, Garde, Garde Sans, Garde Contre |
+| **Donneur** | Le joueur qui distribue les cartes. Tourne automatiquement après chaque donne. |
 
 ---
 
@@ -74,6 +75,12 @@ Depuis l'écran **Accueil** :
 
 Les sessions récentes sont affichées sous le formulaire de sélection pour un accès rapide.
 
+### Donneur
+
+À la création d'une session, le **premier joueur** (ordre alphabétique) est désigné comme donneur. Après chaque donne terminée, le donneur **tourne automatiquement** au joueur suivant dans l'ordre alphabétique. Après le dernier joueur, la rotation reprend au premier (cycle).
+
+Le donneur actuel est identifiable par un **icône de cartes** bleu sur son avatar dans le tableau des scores.
+
 ---
 
 ## Écran de session
@@ -87,6 +94,7 @@ En haut de l'écran, un bandeau horizontal scrollable montre les **5 joueurs** a
 - Score **positif** → affiché en **vert**
 - Score **négatif** → affiché en **rouge**
 - Score **nul** → affiché en gris
+- Un **icône de cartes** (accent bleu) apparaît sur l'avatar du **donneur actuel**
 
 ### Donne en cours
 
@@ -97,6 +105,7 @@ Si une donne est en cours (étape 1 validée, étape 2 en attente), un bandeau b
 Liste des donnes jouées (la plus récente en premier), montrant pour chaque donne :
 
 - Le preneur et son partenaire
+- Le donneur de la donne
 - Le contrat (badge coloré)
 - Le résultat (gain/perte du preneur)
 
@@ -112,6 +121,8 @@ Liste des donnes jouées (la plus récente en premier), montrant pour chaque don
 La saisie se fait en **2 étapes** :
 
 ### Étape 1 — Début de la donne
+
+> Le nom du **donneur actuel** est affiché en haut de la modale pour rappel.
 
 1. **Sélectionner le preneur** : appuyer sur l'avatar d'un des 5 joueurs
 2. **Choisir le contrat** :

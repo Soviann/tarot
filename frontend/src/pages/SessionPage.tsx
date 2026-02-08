@@ -94,6 +94,7 @@ export default function SessionPage() {
 
       <Scoreboard
         cumulativeScores={session.cumulativeScores}
+        currentDealerId={session.currentDealer?.id ?? null}
         players={session.players}
       />
 
@@ -151,6 +152,7 @@ export default function SessionPage() {
 
       <NewGameModal
         createGame={createGame}
+        currentDealerName={session.currentDealer?.name ?? null}
         onClose={() => setNewGameModalOpen(false)}
         open={newGameModalOpen}
         players={session.players}

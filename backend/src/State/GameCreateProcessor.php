@@ -57,6 +57,7 @@ final readonly class GameCreateProcessor implements ProcessorInterface
             ->setParameter('sessionId', $session->getId())
             ->getSingleScalarResult();
 
+        $data->setDealer($session->getCurrentDealer());
         $data->setPosition(((int) $maxPosition) + 1);
         $data->setSession($session);
         $data->setStatus(GameStatus::InProgress);
