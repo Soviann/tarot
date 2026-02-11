@@ -91,6 +91,7 @@ export default function PlayerSelector({
         }
         case "Escape":
           e.preventDefault();
+          setHighlightedIndex(null);
           setClearKey((k) => k + 1);
           break;
       }
@@ -176,7 +177,7 @@ export default function PlayerSelector({
           "aria-activedescendant": highlightedPlayerId
             ? `player-option-${highlightedPlayerId}`
             : undefined,
-          "aria-controls": "player-listbox",
+          "aria-controls": listVisible ? "player-listbox" : undefined,
           "aria-expanded": listVisible,
           role: "combobox",
         }}
@@ -208,7 +209,7 @@ export default function PlayerSelector({
                 return (
                   <li
                     aria-disabled={isDisabled || undefined}
-                    aria-selected={isHighlighted}
+                    aria-selected={isSelected}
                     className={`flex w-full cursor-pointer items-center gap-3 rounded-lg p-2 text-left transition-colors ${
                       isSelected
                         ? "bg-accent-50 ring-2 ring-accent-500"

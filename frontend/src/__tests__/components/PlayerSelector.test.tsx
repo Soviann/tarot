@@ -318,10 +318,6 @@ describe("PlayerSelector", () => {
   });
 
   describe("keyboard navigation", () => {
-    function getOptions() {
-      return screen.getAllByRole("option");
-    }
-
     it("highlights first player on ArrowDown", async () => {
       setupMocks();
       renderWithProviders(
@@ -331,8 +327,8 @@ describe("PlayerSelector", () => {
       await searchFor("a");
       await userEvent.keyboard("{ArrowDown}");
 
-      const options = getOptions();
-      expect(options[0]).toHaveAttribute("aria-selected", "true");
+      const input = screen.getByRole("combobox");
+      expect(input).toHaveAttribute("aria-activedescendant", "player-option-1");
     });
 
     it("highlights second player on ArrowDown twice", async () => {
@@ -344,9 +340,8 @@ describe("PlayerSelector", () => {
       await searchFor("a");
       await userEvent.keyboard("{ArrowDown}{ArrowDown}");
 
-      const options = getOptions();
-      expect(options[0]).not.toHaveAttribute("aria-selected", "true");
-      expect(options[1]).toHaveAttribute("aria-selected", "true");
+      const input = screen.getByRole("combobox");
+      expect(input).toHaveAttribute("aria-activedescendant", "player-option-2");
     });
 
     it("moves up with ArrowUp", async () => {
@@ -358,8 +353,8 @@ describe("PlayerSelector", () => {
       await searchFor("a");
       await userEvent.keyboard("{ArrowDown}{ArrowDown}{ArrowUp}");
 
-      const options = getOptions();
-      expect(options[0]).toHaveAttribute("aria-selected", "true");
+      const input = screen.getByRole("combobox");
+      expect(input).toHaveAttribute("aria-activedescendant", "player-option-1");
     });
 
     it("does not go above first item", async () => {
@@ -371,8 +366,8 @@ describe("PlayerSelector", () => {
       await searchFor("a");
       await userEvent.keyboard("{ArrowDown}{ArrowUp}{ArrowUp}");
 
-      const options = getOptions();
-      expect(options[0]).toHaveAttribute("aria-selected", "true");
+      const input = screen.getByRole("combobox");
+      expect(input).toHaveAttribute("aria-activedescendant", "player-option-1");
     });
 
     it("does not go below last item", async () => {
@@ -387,8 +382,9 @@ describe("PlayerSelector", () => {
         await userEvent.keyboard("{ArrowDown}");
       }
 
-      const options = getOptions();
-      expect(options[options.length - 1]).toHaveAttribute("aria-selected", "true");
+      const input = screen.getByRole("combobox");
+      // Last player is Frank (id=6)
+      expect(input).toHaveAttribute("aria-activedescendant", "player-option-6");
     });
 
     it("resets highlight when search changes", async () => {
@@ -399,19 +395,32 @@ describe("PlayerSelector", () => {
 
       await searchFor("a");
       await userEvent.keyboard("{ArrowDown}");
-      expect(getOptions()[0]).toHaveAttribute("aria-selected", "true");
+      const input = screen.getByRole("combobox");
+      expect(input).toHaveAttribute("aria-activedescendant", "player-option-1");
 
       // Type more to change search
-      const input = screen.getByRole("combobox");
       await userEvent.type(input, "l");
       await waitFor(() => {
         expect(usePlayersModule.usePlayers).toHaveBeenCalledWith("al");
       });
 
-      // Highlight should be reset — no option should have aria-selected="true"
-      getOptions().forEach((option) => {
-        expect(option).not.toHaveAttribute("aria-selected", "true");
-      });
+      // Highlight should be reset — no activedescendant
+      expect(input).not.toHaveAttribute("aria-activedescendant");
+    });
+
+    it("sets aria-selected on actually selected options", async () => {
+      setupMocks();
+      renderWithProviders(
+        <PlayerSelector onSelectionChange={vi.fn()} selectedPlayerIds={[1, 3]} />,
+      );
+
+      await searchFor("a");
+
+      const options = screen.getAllByRole("option");
+      // Alice (id=1) and Charlie (id=3) are selected
+      expect(options[0]).toHaveAttribute("aria-selected", "true"); // Alice
+      expect(options[1]).toHaveAttribute("aria-selected", "false"); // Bob
+      expect(options[2]).toHaveAttribute("aria-selected", "true"); // Charlie
     });
 
     it("has ARIA listbox role on the list", async () => {

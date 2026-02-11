@@ -4,6 +4,14 @@ import SearchInput from "../../../components/ui/SearchInput";
 import { renderWithProviders } from "../../test-utils";
 
 describe("SearchInput", () => {
+  beforeEach(() => {
+    vi.useFakeTimers();
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
   it("forwards onKeyDown to the input element", () => {
     const handleKeyDown = vi.fn();
     renderWithProviders(
@@ -14,14 +22,6 @@ describe("SearchInput", () => {
 
     expect(handleKeyDown).toHaveBeenCalledTimes(1);
     expect(handleKeyDown.mock.calls[0][0].key).toBe("ArrowDown");
-  });
-
-  beforeEach(() => {
-    vi.useFakeTimers();
-  });
-
-  afterEach(() => {
-    vi.useRealTimers();
   });
 
   it("renders with a placeholder", () => {
