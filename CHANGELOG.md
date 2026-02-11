@@ -6,7 +6,13 @@ Le format est basé sur [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/)
 
 ## [Unreleased]
 
+### Changed
+
+- **CLAUDE.md** : commandes simplifiées avec cibles Makefile au lieu des commandes `ddev exec` verbeuses
+
 ### Added
+
+- **Hookify rules** : 4 règles de garde automatiques — `require-ddev-exec` (commandes via DDEV), `no-schema-update` (migrations obligatoires), `no-dump-functions` (pas de dd/dump/var_dump), `no-console-log` (pas de console.log)
 
 - **Navigation clavier dans la recherche de joueurs** : flèches ↑/↓ pour parcourir les résultats, Entrée pour sélectionner, Échap pour fermer la liste. Pattern combobox ARIA complet (`role="combobox"`, `role="listbox"`/`role="option"`, `aria-activedescendant`, `aria-expanded`). Nouvelles props SearchInput : `onKeyDown`, `clearKey`, `inputProps`.
 
