@@ -85,6 +85,7 @@ Depuis l'écran **Accueil** :
 
 1. **Rechercher** un joueur dans la barre de recherche — la liste des résultats apparaît en tapant un nom
 2. Sélectionner **5 joueurs** parmi les résultats
+   - Utiliser les flèches **↑/↓** pour parcourir la liste, **Entrée** pour sélectionner, **Échap** pour fermer la liste
    - Possibilité d'ajouter un nouveau joueur à la volée avec **« + Ajouter »**
 3. Appuyer sur **« Démarrer »**
 

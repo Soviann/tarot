@@ -579,6 +579,8 @@ Composant de sélection de joueurs avec limite à 5. Inclut chips, recherche et 
 - Bouton « + Nouveau joueur » ouvrant un `Modal` de création
 - Pré-remplissage du nom avec le texte de recherche à l'ouverture de la modale
 - Auto-sélection du joueur créé si < 5
+- **Navigation clavier** : ↑/↓ pour parcourir la liste, Entrée pour sélectionner, Échap pour fermer
+- **Accessibilité ARIA** : pattern combobox (`role="combobox"` sur l'input, `role="listbox"`/`role="option"` sur la liste, `aria-activedescendant`, `aria-expanded`)
 
 **Hooks utilisés** : `usePlayers`, `useCreatePlayer`
 
@@ -998,7 +1000,7 @@ Contrôle incrémental avec boutons −/+, bornes min/max.
 
 **Fichier** : `components/ui/SearchInput.tsx`
 
-Champ de recherche avec debounce intégré et bouton d'effacement.
+Champ de recherche avec debounce intégré et bouton d'effacement. Supporte la navigation clavier via les props `onKeyDown`, `clearKey` et `inputProps`.
 
 | Prop | Type | Défaut | Description |
 |------|------|--------|-------------|
@@ -1006,9 +1008,26 @@ Champ de recherche avec debounce intégré et bouton d'effacement.
 | `debounceMs` | `number` | `300` | Délai de debounce (ms) |
 | `placeholder` | `string?` | — | Placeholder du champ |
 | `className` | `string?` | — | Classes CSS supplémentaires |
+| `onKeyDown` | `(e: KeyboardEvent) => void` | — | Handler clavier forwardé à l'`<input>` |
+| `clearKey` | `number?` | — | Quand cette valeur change, le champ se vide (utile pour un reset externe, ex. Escape) |
+| `inputProps` | `InputHTMLAttributes?` | — | Attributs HTML supplémentaires spreadés sur l'`<input>` (ex. ARIA) |
 
 ```tsx
 <SearchInput placeholder="Rechercher un joueur..." onSearch={setFilter} />
+
+{/* Avec navigation clavier (pattern combobox ARIA) */}
+<SearchInput
+  clearKey={clearKey}
+  inputProps={{
+    "aria-activedescendant": highlightedId ? `option-${highlightedId}` : undefined,
+    "aria-controls": "my-listbox",
+    "aria-expanded": isOpen,
+    role: "combobox",
+  }}
+  onKeyDown={handleKeyDown}
+  onSearch={handleSearch}
+  placeholder="Rechercher…"
+/>
 ```
 
 ---

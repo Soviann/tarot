@@ -4,14 +4,20 @@ import { useDebounce } from "../../hooks/useDebounce";
 
 interface SearchInputProps {
   className?: string;
+  clearKey?: number;
   debounceMs?: number;
+  inputProps?: React.InputHTMLAttributes<HTMLInputElement>;
+  onKeyDown?: (e: React.KeyboardEvent<HTMLInputElement>) => void;
   onSearch: (value: string) => void;
   placeholder?: string;
 }
 
 export default function SearchInput({
   className = "",
+  clearKey,
   debounceMs = 300,
+  inputProps,
+  onKeyDown,
   onSearch,
   placeholder,
 }: SearchInputProps) {
@@ -28,6 +34,10 @@ export default function SearchInput({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [debounced]);
 
+  useEffect(() => {
+    if (clearKey) setQuery("");
+  }, [clearKey]);
+
   return (
     <div className={`relative ${className}`.trim()}>
       <Search
@@ -35,8 +45,10 @@ export default function SearchInput({
         size={18}
       />
       <input
+        {...inputProps}
         className="w-full rounded-lg border border-surface-border bg-surface-primary py-2 pl-10 pr-9 text-sm text-text-primary placeholder:text-text-muted focus:border-accent-400 focus:outline-none focus:ring-1 focus:ring-accent-400"
         onChange={(e) => setQuery(e.target.value)}
+        onKeyDown={onKeyDown}
         placeholder={placeholder}
         type="search"
         value={query}

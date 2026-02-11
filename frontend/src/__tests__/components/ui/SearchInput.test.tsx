@@ -1,4 +1,5 @@
 import { act, fireEvent, screen } from "@testing-library/react";
+import { useState } from "react";
 import SearchInput from "../../../components/ui/SearchInput";
 import { renderWithProviders } from "../../test-utils";
 
@@ -9,6 +10,18 @@ describe("SearchInput", () => {
 
   afterEach(() => {
     vi.useRealTimers();
+  });
+
+  it("forwards onKeyDown to the input element", () => {
+    const handleKeyDown = vi.fn();
+    renderWithProviders(
+      <SearchInput onKeyDown={handleKeyDown} onSearch={() => {}} />,
+    );
+
+    fireEvent.keyDown(screen.getByRole("searchbox"), { key: "ArrowDown" });
+
+    expect(handleKeyDown).toHaveBeenCalledTimes(1);
+    expect(handleKeyDown.mock.calls[0][0].key).toBe("ArrowDown");
   });
 
   it("renders with a placeholder", () => {
@@ -64,6 +77,46 @@ describe("SearchInput", () => {
     });
 
     expect(handleSearch).not.toHaveBeenCalled();
+  });
+
+  it("spreads inputProps onto the input element", () => {
+    renderWithProviders(
+      <SearchInput
+        inputProps={{
+          "aria-controls": "my-listbox",
+          "aria-expanded": true,
+          role: "combobox",
+        }}
+        onSearch={() => {}}
+      />,
+    );
+
+    const input = screen.getByRole("combobox");
+    expect(input).toHaveAttribute("aria-controls", "my-listbox");
+    expect(input).toHaveAttribute("aria-expanded", "true");
+  });
+
+  it("clears input when clearKey changes", () => {
+    function Wrapper() {
+      const [clearKey, setClearKey] = useState(0);
+      return (
+        <>
+          <SearchInput clearKey={clearKey} onSearch={() => {}} placeholder="search" />
+          <button onClick={() => setClearKey((k) => k + 1)} type="button">
+            Reset
+          </button>
+        </>
+      );
+    }
+
+    renderWithProviders(<Wrapper />);
+
+    const input = screen.getByRole("searchbox") as HTMLInputElement;
+    fireEvent.change(input, { target: { value: "hello" } });
+    expect(input.value).toBe("hello");
+
+    fireEvent.click(screen.getByText("Reset"));
+    expect(input.value).toBe("");
   });
 
   it("shows clear button when input has value", () => {
