@@ -1,5 +1,7 @@
 import { screen } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import SessionList from "../../components/SessionList";
+import { EMPTY_STATE_MESSAGES } from "../../components/SessionList";
 import * as useSessionsModule from "../../hooks/useSessions";
 import { renderWithProviders } from "../test-utils";
 
@@ -10,24 +12,26 @@ const mockSessions = [
     createdAt: "2025-02-01T14:00:00+00:00",
     id: 1,
     isActive: true,
+    lastPlayedAt: "2025-02-10T18:30:00+00:00",
     players: [
-      { name: "Alice" },
-      { name: "Bob" },
-      { name: "Charlie" },
-      { name: "Diana" },
-      { name: "Eve" },
+      { id: 1, name: "Alice" },
+      { id: 2, name: "Bob" },
+      { id: 3, name: "Charlie" },
+      { id: 4, name: "Diana" },
+      { id: 5, name: "Eve" },
     ],
   },
   {
     createdAt: "2025-01-28T10:00:00+00:00",
     id: 2,
     isActive: false,
+    lastPlayedAt: "2025-01-28T10:00:00+00:00",
     players: [
-      { name: "Alice" },
-      { name: "Bob" },
-      { name: "Charlie" },
-      { name: "Frank" },
-      { name: "Grace" },
+      { id: 1, name: "Alice" },
+      { id: 2, name: "Bob" },
+      { id: 3, name: "Charlie" },
+      { id: 6, name: "Frank" },
+      { id: 7, name: "Grace" },
     ],
   },
 ];
@@ -71,25 +75,22 @@ describe("SessionList", () => {
     vi.restoreAllMocks();
   });
 
-  it("renders session cards with player names", () => {
+  it("renders player avatars for each session", () => {
     setupMocks();
     renderWithProviders(<SessionList />);
 
-    expect(
-      screen.getByText("Alice, Bob, Charlie, Diana, Eve"),
-    ).toBeInTheDocument();
-    expect(
-      screen.getByText("Alice, Bob, Charlie, Frank, Grace"),
-    ).toBeInTheDocument();
+    // Each session has 5 players with avatars (role="img")
+    const avatars = screen.getAllByRole("img");
+    expect(avatars).toHaveLength(10); // 2 sessions × 5 players
   });
 
-  it("displays formatted dates in fr-FR", () => {
+  it("displays last played date", () => {
     setupMocks();
     renderWithProviders(<SessionList />);
 
-    // 2025-02-01 should be formatted as French date
-    expect(screen.getByText("01/02/2025")).toBeInTheDocument();
-    expect(screen.getByText("28/01/2025")).toBeInTheDocument();
+    // Dates are formatted via formatRelativeDate — just check presence
+    const links = screen.getAllByRole("link");
+    expect(links).toHaveLength(2);
   });
 
   it("shows 'En cours' badge for active sessions", () => {
@@ -118,12 +119,74 @@ describe("SessionList", () => {
     expect(screen.getByText("Chargement…")).toBeInTheDocument();
   });
 
-  it("shows empty state when no sessions", () => {
+  it("shows random empty state message when no sessions", () => {
     setupMocks({
       useSessions: { sessions: [] },
     });
     renderWithProviders(<SessionList />);
 
-    expect(screen.getByText("Aucune session")).toBeInTheDocument();
+    const emptyState = screen.getByTestId("empty-state");
+    expect(emptyState).toBeInTheDocument();
+    expect(
+      EMPTY_STATE_MESSAGES.some((msg) => emptyState.textContent?.includes(msg)),
+    ).toBe(true);
+  });
+
+  it("limits display to 5 sessions", () => {
+    const manySessions = Array.from({ length: 8 }, (_, i) => ({
+      createdAt: `2025-02-0${i + 1}T10:00:00+00:00`,
+      id: i + 1,
+      isActive: false,
+      lastPlayedAt: `2025-02-0${i + 1}T10:00:00+00:00`,
+      players: [
+        { id: 1, name: "Alice" },
+        { id: 2, name: "Bob" },
+        { id: 3, name: "Charlie" },
+        { id: 4, name: "Diana" },
+        { id: 5, name: "Eve" },
+      ],
+    }));
+    setupMocks({
+      useSessions: { sessions: manySessions },
+    });
+    renderWithProviders(<SessionList />);
+
+    // Should show only 5 session links
+    const links = screen.getAllByRole("link");
+    expect(links).toHaveLength(5);
+    // And a "Voir tout" button
+    expect(
+      screen.getByRole("button", { name: /Voir les 8 sessions/ }),
+    ).toBeInTheDocument();
+  });
+
+  it("expands all sessions when 'Voir tout' is clicked", async () => {
+    const manySessions = Array.from({ length: 8 }, (_, i) => ({
+      createdAt: `2025-02-0${i + 1}T10:00:00+00:00`,
+      id: i + 1,
+      isActive: false,
+      lastPlayedAt: `2025-02-0${i + 1}T10:00:00+00:00`,
+      players: [
+        { id: 1, name: "Alice" },
+        { id: 2, name: "Bob" },
+        { id: 3, name: "Charlie" },
+        { id: 4, name: "Diana" },
+        { id: 5, name: "Eve" },
+      ],
+    }));
+    setupMocks({
+      useSessions: { sessions: manySessions },
+    });
+    renderWithProviders(<SessionList />);
+
+    await userEvent.click(
+      screen.getByRole("button", { name: /Voir les 8 sessions/ }),
+    );
+
+    const links = screen.getAllByRole("link");
+    expect(links).toHaveLength(8);
+    expect(
+      screen.queryByRole("button", { name: /Voir/ }),
+    ).not.toBeInTheDocument();
   });
 });

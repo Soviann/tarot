@@ -1,6 +1,6 @@
 import { screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import Home from "../../pages/Home";
+import Home, { MOTIVATIONAL_MESSAGES } from "../../pages/Home";
 import * as useCreatePlayerModule from "../../hooks/useCreatePlayer";
 import * as useCreateSessionModule from "../../hooks/useCreateSession";
 import * as usePlayersModule from "../../hooks/usePlayers";
@@ -32,12 +32,13 @@ const mockSessions = [
     createdAt: "2025-02-01T14:00:00+00:00",
     id: 1,
     isActive: true,
+    lastPlayedAt: "2025-02-10T18:30:00+00:00",
     players: [
-      { name: "Alice" },
-      { name: "Bob" },
-      { name: "Charlie" },
-      { name: "Diana" },
-      { name: "Eve" },
+      { id: 1, name: "Alice" },
+      { id: 2, name: "Bob" },
+      { id: 3, name: "Charlie" },
+      { id: 4, name: "Diana" },
+      { id: 5, name: "Eve" },
     ],
   },
 ];
@@ -168,11 +169,27 @@ describe("Home page", () => {
     mockNavigate.mockReset();
   });
 
-  it("renders page title", () => {
+  it("renders sessions section before player selection", () => {
     setupMocks();
     renderWithProviders(<Home />);
 
-    expect(screen.getByText("Nouvelle session")).toBeInTheDocument();
+    const sessionsHeading = screen.getByText("Sessions récentes");
+    const selectionHeading = screen.getByText("Nouvelle session");
+
+    // Sessions should appear before player selection in the DOM
+    expect(
+      sessionsHeading.compareDocumentPosition(selectionHeading) &
+        Node.DOCUMENT_POSITION_FOLLOWING,
+    ).toBeTruthy();
+  });
+
+  it("shows a motivational message", () => {
+    setupMocks();
+    renderWithProviders(<Home />);
+
+    const messages = MOTIVATIONAL_MESSAGES;
+    const found = messages.some((msg) => screen.queryByText(msg));
+    expect(found).toBe(true);
   });
 
   it("renders player selector", () => {
@@ -182,15 +199,15 @@ describe("Home page", () => {
     expect(screen.getByText("0/5 joueurs sélectionnés")).toBeInTheDocument();
   });
 
-  it("renders start button disabled when less than 5 players selected", () => {
+  it("does not show standalone start button", () => {
     setupMocks();
     renderWithProviders(<Home />);
 
-    const startButton = screen.getByRole("button", { name: "Démarrer" });
-    expect(startButton).toBeDisabled();
+    // The standalone "Démarrer" button should not exist — it's now inside PlayerSelector
+    expect(screen.queryByRole("button", { name: "Démarrer" })).not.toBeInTheDocument();
   });
 
-  it("enables start button when 5 players are selected", async () => {
+  it("shows start button when 5 players are selected", async () => {
     setupMocks();
     renderWithProviders(<Home />);
 
@@ -203,8 +220,24 @@ describe("Home page", () => {
     await userEvent.click(screen.getByText("Diana"));
     await userEvent.click(screen.getByText("Eve"));
 
-    const startButton = screen.getByRole("button", { name: "Démarrer" });
-    expect(startButton).toBeEnabled();
+    const startButton = screen.getByRole("button", { name: "Démarrer la session" });
+    expect(startButton).toBeInTheDocument();
+  });
+
+  it("hides search input when 5 players are selected", async () => {
+    setupMocks();
+    renderWithProviders(<Home />);
+
+    await searchFor("a");
+
+    // Select 5 players
+    await userEvent.click(screen.getByText("Alice"));
+    await userEvent.click(screen.getByText("Bob"));
+    await userEvent.click(screen.getByText("Charlie"));
+    await userEvent.click(screen.getByText("Diana"));
+    await userEvent.click(screen.getByText("Eve"));
+
+    expect(screen.queryByPlaceholderText("Rechercher un joueur…")).not.toBeInTheDocument();
   });
 
   it("calls createSession.mutate with selected player IDs", async () => {
@@ -220,7 +253,7 @@ describe("Home page", () => {
     await userEvent.click(screen.getByText("Diana"));
     await userEvent.click(screen.getByText("Eve"));
 
-    await userEvent.click(screen.getByRole("button", { name: "Démarrer" }));
+    await userEvent.click(screen.getByRole("button", { name: "Démarrer la session" }));
 
     expect(createSessionMutate).toHaveBeenCalledWith(
       [1, 2, 3, 4, 5],
@@ -246,18 +279,28 @@ describe("Home page", () => {
     await userEvent.click(screen.getByText("Diana"));
     await userEvent.click(screen.getByText("Eve"));
 
-    await userEvent.click(screen.getByRole("button", { name: "Démarrer" }));
+    await userEvent.click(screen.getByRole("button", { name: "Démarrer la session" }));
 
     expect(mockNavigate).toHaveBeenCalledWith("/sessions/42");
   });
 
-  it("disables start button when mutation is pending", () => {
+  it("disables start button when mutation is pending", async () => {
     setupMocks({
-      createSession: { isPending: true },
+      createSession: {
+        isPending: true,
+      },
     });
     renderWithProviders(<Home />);
 
-    const startButton = screen.getByRole("button", { name: "Démarrer" });
+    await searchFor("a");
+
+    await userEvent.click(screen.getByText("Alice"));
+    await userEvent.click(screen.getByText("Bob"));
+    await userEvent.click(screen.getByText("Charlie"));
+    await userEvent.click(screen.getByText("Diana"));
+    await userEvent.click(screen.getByText("Eve"));
+
+    const startButton = screen.getByRole("button", { name: "Démarrer la session" });
     expect(startButton).toBeDisabled();
   });
 
