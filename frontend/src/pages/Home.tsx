@@ -1,4 +1,4 @@
-import { useCallback, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import PlayerSelector from "../components/PlayerSelector";
 import SessionList from "../components/SessionList";
@@ -7,10 +7,24 @@ import type { Session } from "../types/api";
 
 const REQUIRED_PLAYERS = 5;
 
+export const MOTIVATIONAL_MESSAGES = [
+  "Les cartes n'attendent que vous !",
+  "La table est prête, il ne manque plus que les joueurs !",
+  "Qui prend ? Créez une session pour le découvrir !",
+  "Petit, Garde ou Garde Sans ? Il n'y a qu'une façon de le savoir…",
+  "Le donneur est prêt. Et vous ?",
+  "Le tarot, c'est mieux à plusieurs. Lancez-vous !",
+];
+
 export default function Home() {
   const [selectedPlayerIds, setSelectedPlayerIds] = useState<number[]>([]);
   const createSession = useCreateSession();
   const navigate = useNavigate();
+
+  const motivationalMessage = useMemo(
+    () => MOTIVATIONAL_MESSAGES[Math.floor(Math.random() * MOTIVATIONAL_MESSAGES.length)],
+    [],
+  );
 
   const canStart =
     selectedPlayerIds.length === REQUIRED_PLAYERS && !createSession.isPending;
@@ -27,12 +41,24 @@ export default function Home() {
   return (
     <div className="flex flex-col gap-6 overflow-x-hidden p-4 lg:p-8">
       <section>
-        <h1 className="mb-4 text-center text-2xl font-bold text-text-primary">
+        <h2 className="mb-4 text-center text-2xl font-bold text-text-primary">
+          Sessions récentes
+        </h2>
+        <SessionList />
+      </section>
+
+      <section>
+        <h2 className="mb-1 text-center text-2xl font-bold text-text-primary">
           Nouvelle session
-        </h1>
+        </h2>
+        <p className="mb-4 text-center text-sm text-text-muted">
+          {motivationalMessage}
+        </p>
 
         <PlayerSelector
+          isPending={createSession.isPending}
           onSelectionChange={setSelectedPlayerIds}
+          onStart={handleStart}
           selectedPlayerIds={selectedPlayerIds}
         />
 
@@ -41,22 +67,6 @@ export default function Home() {
             Erreur lors de la création de la session.
           </p>
         )}
-
-        <button
-          className="mt-4 w-full rounded-lg bg-accent-500 py-3 font-semibold text-white transition-colors hover:bg-accent-600 disabled:opacity-50"
-          disabled={!canStart}
-          onClick={handleStart}
-          type="button"
-        >
-          Démarrer
-        </button>
-      </section>
-
-      <section>
-        <h2 className="mb-3 text-lg font-semibold text-text-primary">
-          Sessions récentes
-        </h2>
-        <SessionList />
       </section>
     </div>
   );

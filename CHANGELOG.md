@@ -23,6 +23,8 @@ Le format est basé sur [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/)
 
 ### Changed
 
+- **Accueil — refonte mobile** : les sessions récentes sont affichées en haut de l'écran pour un accès rapide, la sélection des joueurs est en bas (zone du pouce). Le bouton « Démarrer » est remplacé par un bouton intégré qui apparaît avec animation à la place de la barre de recherche une fois les 5 joueurs sélectionnés. Chaque session affiche les avatars des joueurs et la date relative de la dernière donne (« Aujourd'hui », « Hier », « Il y a X jours »). La liste est limitée à 5 sessions avec un bouton « Voir tout ». L'état vide affiche un message aléatoire engageant. Un message motivant aléatoire est affiché en sous-titre de la section « Nouvelle session ».
+
 - **Accueil — sélection des joueurs** : la liste complète des joueurs n'est plus affichée par défaut. Les joueurs apparaissent uniquement lors d'une recherche via la barre de recherche, simplifiant l'interface.
 
 ### Fixed

@@ -81,19 +81,23 @@ Utiliser la barre de recherche en haut de la liste pour filtrer par nom.
 
 ## Démarrer une session
 
-Depuis l'écran **Accueil** :
+L'écran **Accueil** est organisé pour un usage mobile à une main :
+
+### Sessions récentes
+
+En haut de l'écran, les **sessions récentes** permettent de reprendre rapidement une partie existante. Chaque session affiche les noms des joueurs, la **date de la dernière donne** jouée et un badge « En cours » le cas échéant.
+
+### Nouvelle session
+
+En bas de l'écran, la zone de sélection des joueurs est accessible au pouce :
 
 1. **Rechercher** un joueur dans la barre de recherche — la liste des résultats apparaît en tapant un nom
 2. Sélectionner **5 joueurs** parmi les résultats
    - Utiliser les flèches **↑/↓** pour parcourir la liste, **Entrée** pour sélectionner, **Échap** pour fermer la liste
    - Possibilité d'ajouter un nouveau joueur à la volée avec **« + Ajouter »**
-3. Appuyer sur **« Démarrer »**
+3. Une fois les 5 joueurs sélectionnés, la barre de recherche se transforme en bouton **« Démarrer la session »** — appuyer dessus pour lancer la partie
 
 > **Session intelligente** : si une session active existe déjà avec les mêmes 5 joueurs, l'application la reprend automatiquement au lieu d'en créer une nouvelle.
-
-### Sessions récentes
-
-Les sessions récentes sont affichées sous le formulaire de sélection pour un accès rapide.
 
 ### Donneur
 

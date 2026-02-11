@@ -67,10 +67,10 @@ import type { HydraCollection, Player } from "./types/api";
 | `HydraCollection<T>` | `member: T[]`, `totalItems: number` |
 | `Player` | `active: boolean`, `id: number`, `name: string`, `createdAt: string` |
 | `ScoreEntry` | `id: number`, `player: GamePlayer`, `score: number` |
-| `Session` | `id: number`, `createdAt: string`, `isActive: boolean`, `players: SessionPlayer[]` |
+| `Session` | `id: number`, `createdAt: string`, `isActive: boolean`, `lastPlayedAt: string`, `players: SessionPlayer[]` |
 | `SessionDetail` | `id`, `createdAt`, `currentDealer`, `isActive`, `players: GamePlayer[]`, `games: Game[]`, `cumulativeScores: CumulativeScore[]`, `starEvents: StarEvent[]` |
 | `StarEvent` | `id: number`, `createdAt: string`, `player: GamePlayer` |
-| `SessionPlayer` | `name: string` |
+| `SessionPlayer` | `id: number`, `name: string` |
 | `ContractDistributionEntry` | `contract: Contract`, `count: number`, `percentage: number` |
 | `EloHistoryEntry` | `date: string`, `gameId: number`, `ratingAfter: number`, `ratingChange: number` |
 | `EloRankingEntry` | `eloRating: number`, `gamesPlayed: number`, `playerId: number`, `playerName: string` |
@@ -439,14 +439,14 @@ const { isPending, sessions } = useSessions();
 
 **Fichier** : `pages/Home.tsx`
 
-Écran principal : sélection de joueurs, création de session, sessions récentes.
+Écran principal : sessions récentes en haut, sélection de joueurs en bas (zone du pouce).
 
 **Fonctionnalités** :
+- Sessions récentes (`SessionList`) affichées en premier pour un accès rapide
 - Sélection de 5 joueurs via `PlayerSelector` (composant contrôlé)
-- Bouton « Démarrer » (disabled si < 5 joueurs ou mutation en cours)
+- Bouton « Démarrer la session » intégré dans `PlayerSelector` (apparaît quand 5 joueurs sélectionnés, remplace la barre de recherche)
 - Redirection vers `/sessions/:id` après création
 - Message d'erreur si la création échoue
-- Liste des sessions récentes via `SessionList`
 
 **Hooks utilisés** : `useCreateSession`, `useNavigate`
 
@@ -566,12 +566,15 @@ Composant de sélection de joueurs avec limite à 5. Inclut chips, recherche et 
 |------|------|-------------|
 | `selectedPlayerIds` | `number[]` | *requis* — IDs des joueurs sélectionnés |
 | `onSelectionChange` | `(ids: number[]) => void` | *requis* — callback de changement |
+| `onStart` | `() => void` | *optionnel* — callback de démarrage (affiche le bouton « Démarrer la session » quand 5 joueurs sélectionnés) |
+| `isPending` | `boolean` | *optionnel* — désactive le bouton de démarrage pendant la mutation |
 
 **Fonctionnalités** :
 - Chips en haut avec avatar + nom des joueurs sélectionnés (clic = déselection)
 - Placeholders ronds pour les places restantes
 - Compteur « X/5 joueurs sélectionnés »
 - `SearchInput` pour rechercher des joueurs — la liste n'apparaît que lorsqu'un terme de recherche est saisi
+- Quand 5 joueurs sont sélectionnés et `onStart` est fourni : la barre de recherche est remplacée par un bouton « Démarrer la session »
 - Filtre les joueurs inactifs de la liste de sélection (seuls les joueurs actifs sont sélectionnables)
 - Les joueurs déjà sélectionnés restent affichés en chips même s'ils sont inactifs
 - Liste des joueurs (visible uniquement pendant une recherche) : clic = toggle sélection, `ring-2 ring-accent-500` si sélectionné
@@ -591,9 +594,12 @@ Composant de sélection de joueurs avec limite à 5. Inclut chips, recherche et 
 Liste des sessions récentes sous forme de cartes cliquables.
 
 **Fonctionnalités** :
-- Chaque carte : noms des joueurs (jointure « , »), date fr-FR, badge « En cours » si `isActive`
+- Chaque carte : 5 avatars des joueurs (`PlayerAvatar`), date relative de la dernière donne (`formatRelativeDate`), badge « En cours » si `isActive`
+- Dates relatives : « Aujourd'hui », « Hier », « Il y a X jours » (2-7), puis date absolue
+- Limitation à 5 sessions affichées, bouton « Voir les N sessions » pour étendre
+- État vide : message aléatoire engageant avec icône (messages exportés via `EMPTY_STATE_MESSAGES`)
 - Lien vers `/sessions/:id`
-- États : chargement, vide (« Aucune session »), liste
+- États : chargement, vide, liste
 
 **Hooks utilisés** : `useSessions`
 

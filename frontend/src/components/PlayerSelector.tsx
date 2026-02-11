@@ -1,4 +1,4 @@
-import { Plus } from "lucide-react";
+import { Play, Plus } from "lucide-react";
 import { type FormEvent, type KeyboardEvent, useCallback, useMemo, useState } from "react";
 import { useCreatePlayer } from "../hooks/useCreatePlayer";
 import { usePlayers } from "../hooks/usePlayers";
@@ -8,12 +8,16 @@ import { Modal, PlayerAvatar, SearchInput } from "./ui";
 const MAX_PLAYERS = 5;
 
 interface PlayerSelectorProps {
+  isPending?: boolean;
   onSelectionChange: (ids: number[]) => void;
+  onStart?: () => void;
   selectedPlayerIds: number[];
 }
 
 export default function PlayerSelector({
+  isPending: isStartPending = false,
   onSelectionChange,
+  onStart,
   selectedPlayerIds,
 }: PlayerSelectorProps) {
   const [search, setSearch] = useState("");
@@ -170,84 +174,100 @@ export default function PlayerSelector({
         {selectedPlayerIds.length}/{MAX_PLAYERS} joueurs sélectionnés
       </p>
 
-      {/* Recherche */}
-      <SearchInput
-        clearKey={clearKey}
-        inputProps={{
-          "aria-activedescendant": highlightedPlayerId
-            ? `player-option-${highlightedPlayerId}`
-            : undefined,
-          "aria-controls": listVisible ? "player-listbox" : undefined,
-          "aria-expanded": listVisible,
-          role: "combobox",
-        }}
-        onKeyDown={handleKeyDown}
-        onSearch={handleSearch}
-        placeholder="Rechercher un joueur…"
-      />
-
-      {/* Liste des joueurs (visible uniquement lors d'une recherche) */}
-      {search && (
+      {/* Recherche ou bouton Démarrer */}
+      {isFull && onStart ? (
+        <button
+          className="w-full animate-fade-in rounded-lg bg-accent-500 py-3 font-semibold text-white transition-colors hover:bg-accent-600 disabled:opacity-50"
+          disabled={isStartPending}
+          onClick={onStart}
+          type="button"
+        >
+          <span className="flex items-center justify-center gap-2">
+            <Play size={20} />
+            Démarrer la session
+          </span>
+        </button>
+      ) : (
         <>
-          {isPending && (
-            <p className="py-4 text-center text-text-muted">Chargement…</p>
+          <SearchInput
+            clearKey={clearKey}
+            inputProps={{
+              "aria-activedescendant": highlightedPlayerId
+                ? `player-option-${highlightedPlayerId}`
+                : undefined,
+              "aria-controls": listVisible ? "player-listbox" : undefined,
+              "aria-expanded": listVisible,
+              role: "combobox",
+            }}
+            onKeyDown={handleKeyDown}
+            onSearch={handleSearch}
+            placeholder="Rechercher un joueur…"
+          />
+
+          {/* Liste des joueurs (visible uniquement lors d'une recherche) */}
+          {search && (
+            <>
+              {isPending && (
+                <p className="py-4 text-center text-text-muted">Chargement…</p>
+              )}
+
+              {!isPending && players.length === 0 && (
+                <p className="py-4 text-center text-text-muted">
+                  Aucun joueur trouvé
+                </p>
+              )}
+
+              {!isPending && players.length > 0 && (
+                <ul className="flex flex-col gap-1" id="player-listbox" role="listbox">
+                  {players.map((player, index) => {
+                    const isSelected = selectedPlayerIds.includes(player.id);
+                    const isDisabled = isFull && !isSelected;
+                    const isHighlighted = highlightedIndex === index;
+
+                    return (
+                      <li
+                        aria-disabled={isDisabled || undefined}
+                        aria-selected={isSelected}
+                        className={`flex w-full cursor-pointer items-center gap-3 rounded-lg p-2 text-left transition-colors ${
+                          isSelected
+                            ? "bg-accent-50 ring-2 ring-accent-500"
+                            : isHighlighted
+                              ? "bg-accent-100"
+                              : "hover:bg-surface-secondary"
+                        } ${isDisabled ? "cursor-not-allowed opacity-40" : ""}`}
+                        id={`player-option-${player.id}`}
+                        key={player.id}
+                        onClick={() => !isDisabled && togglePlayer(player.id)}
+                        role="option"
+                      >
+                        <PlayerAvatar
+                          name={player.name}
+                          playerId={player.id}
+                          size="sm"
+                        />
+                        <span className="font-medium text-text-primary">
+                          {player.name}
+                        </span>
+                      </li>
+                    );
+                  })}
+                </ul>
+              )}
+            </>
           )}
 
-          {!isPending && players.length === 0 && (
-            <p className="py-4 text-center text-text-muted">
-              Aucun joueur trouvé
-            </p>
-          )}
-
-          {!isPending && players.length > 0 && (
-            <ul className="flex flex-col gap-1" id="player-listbox" role="listbox">
-              {players.map((player, index) => {
-                const isSelected = selectedPlayerIds.includes(player.id);
-                const isDisabled = isFull && !isSelected;
-                const isHighlighted = highlightedIndex === index;
-
-                return (
-                  <li
-                    aria-disabled={isDisabled || undefined}
-                    aria-selected={isSelected}
-                    className={`flex w-full cursor-pointer items-center gap-3 rounded-lg p-2 text-left transition-colors ${
-                      isSelected
-                        ? "bg-accent-50 ring-2 ring-accent-500"
-                        : isHighlighted
-                          ? "bg-accent-100"
-                          : "hover:bg-surface-secondary"
-                    } ${isDisabled ? "cursor-not-allowed opacity-40" : ""}`}
-                    id={`player-option-${player.id}`}
-                    key={player.id}
-                    onClick={() => !isDisabled && togglePlayer(player.id)}
-                    role="option"
-                  >
-                    <PlayerAvatar
-                      name={player.name}
-                      playerId={player.id}
-                      size="sm"
-                    />
-                    <span className="font-medium text-text-primary">
-                      {player.name}
-                    </span>
-                  </li>
-                );
-              })}
-            </ul>
-          )}
+          {/* Bouton créer joueur */}
+          <button
+            aria-label="Ajouter un joueur"
+            className="flex items-center gap-2 rounded-lg border border-dashed border-surface-border p-2 text-sm text-text-muted transition-colors hover:border-accent-400 hover:text-accent-500"
+            onClick={openModal}
+            type="button"
+          >
+            <Plus size={16} />
+            <span>Nouveau joueur</span>
+          </button>
         </>
       )}
-
-      {/* Bouton créer joueur */}
-      <button
-        aria-label="Ajouter un joueur"
-        className="flex items-center gap-2 rounded-lg border border-dashed border-surface-border p-2 text-sm text-text-muted transition-colors hover:border-accent-400 hover:text-accent-500"
-        onClick={openModal}
-        type="button"
-      >
-        <Plus size={16} />
-        <span>Nouveau joueur</span>
-      </button>
 
       {/* Modal création joueur */}
       <Modal onClose={closeModal} open={modalOpen} title="Nouveau joueur">
