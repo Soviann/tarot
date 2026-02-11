@@ -31,10 +31,20 @@ tarot/
 └── CHANGELOG.md
 ```
 
+## Approach
+
+- Act on user instructions directly — no exploratory glob/grep when the user already says where/what.
+- Edit files when asked. Don't create issues or plans unless requested.
+- Prefer acting over asking.
+
+## Plans
+
+- Store in `docs/plans/` (project-local, never global).
+- Temporary — delete after the related PR is merged.
+
 ## Workflow
 
 - **Complex tasks**: plan mode → approval → implementation
-- **Plans**: save to `docs/plans/YYYY-MM-DD-<feature>.md` (gitignored). Delete the plan file once fully implemented.
 - **Split** large changes into verifiable chunks
 
 ## Mandatory TDD
@@ -43,27 +53,39 @@ tarot/
 2. **Implement**: minimum to pass
 3. **Refactor**: green tests
 
-**Backend tests**: `ddev exec bin/phpunit`
-**Frontend tests**: `cd frontend && npm test`
+**Backend tests**: `make test-back`
+**Frontend tests**: `make test-front`
 
 ## Commands
 
+All commands run via DDEV (enforced by hookify rule `require-ddev-exec`).
+Use `make help` to see all available targets.
+
 ```bash
-# DDEV
-ddev start                                      # Start environment
-ddev exec bin/console doctrine:migrations:diff -n  # Generate migration
-ddev exec bin/console doctrine:migrations:migrate -n  # Run migrations
-ddev exec bin/phpunit                           # Backend tests
+# Environment
+make dev                # First launch (DDEV + deps + migrations)
+make start / stop       # Start/stop DDEV
 
-# Frontend (run via DDEV or from frontend/ directory)
-ddev exec bash -c 'cd /var/www/html/frontend && npm run dev'    # Dev server (auto-started by daemon)
-ddev exec bash -c 'cd /var/www/html/frontend && npm test'       # Vitest
-ddev exec bash -c 'cd /var/www/html/frontend && npm run build'  # Production build
+# Tests
+make test               # All tests (backend + frontend)
+make test-back          # PHPUnit
+make test-front         # Vitest
 
-# PHPStan (auto-run via PostToolUse hook on Write/Edit of .php files)
-# PHP CS Fixer (run manually before committing on modified files)
-ddev exec bash -c 'cd /var/www/html/backend && vendor/bin/php-cs-fixer fix <file>'
-ddev exec bash -c 'cd /var/www/html/backend && vendor/bin/phpstan analyse <file>'
+# Quality
+make lint               # All linters (PHPStan + CS Fixer dry-run + TypeScript)
+make phpstan            # PHPStan only
+make cs                 # PHP CS Fixer (fix)
+
+# Database
+make db-diff            # Generate a migration
+make db-migrate         # Run migrations
+
+# Build
+make build              # Production build
+make serve-prod         # Build + serve (port 4173)
+
+# Symfony
+make sf CMD="..."       # Any Symfony console command
 ```
 
 ## Git
@@ -91,6 +113,7 @@ No `Co-Authored-By`.
 - PR body: summary + `fixes #N`
 - Merge strategy: **squash merge** (`--squash`) → one commit per issue on main
 - Request code review (agent) before merge
+- **Always** update CHANGELOG after merge.
 
 ### Tags & Releases
 
@@ -109,6 +132,11 @@ gh pr create --title "..." --body "..."     # 4. Create PR (fixes #N)
 gh pr merge N --squash                       # 6. Squash merge (branch auto-deleted)
 # Issue auto-closes via "fixes #N"          # 7. Done
 ```
+
+## Issue Workflow
+
+- "Next issue" = pick highest-priority Todo from the board and start. Don't list options.
+- Full cycle: implement → test → PR → review fixes → squash merge → CHANGELOG.
 
 ## GitHub Issues & Project
 
