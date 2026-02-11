@@ -123,6 +123,7 @@ export interface Session {
   createdAt: string;
   id: number;
   isActive: boolean;
+  lastPlayedAt: string;
   players: SessionPlayer[];
 }
 
@@ -144,5 +145,6 @@ export interface StarEvent {
 }
 
 export interface SessionPlayer {
+  id: number;
   name: string;
 }

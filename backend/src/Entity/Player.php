@@ -28,7 +28,7 @@ use Symfony\Component\Validator\Constraints as Assert;
 #[UniqueEntity('name')]
 class Player
 {
-    #[Groups(['player:read', 'session:detail'])]
+    #[Groups(['player:read', 'session:detail', 'session:read'])]
     #[ORM\Id]
     #[ORM\Column]
     #[ORM\GeneratedValue]

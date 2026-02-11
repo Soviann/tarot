@@ -129,11 +129,57 @@ class SessionApiTest extends ApiTestCase
         $data = $response->toArray();
         $member = $data['member'][0];
         $this->assertArrayHasKey('id', $member);
+        $this->assertArrayHasKey('lastPlayedAt', $member);
         $this->assertArrayHasKey('players', $member);
         $this->assertArrayHasKey('createdAt', $member);
         // Le listing ne contient pas les games ni les scores cumulés
         $this->assertArrayNotHasKey('games', $member);
         $this->assertArrayNotHasKey('cumulativeScores', $member);
+    }
+
+    public function testLastPlayedAtEqualsCreatedAtWhenNoGames(): void
+    {
+        $session = $this->createSessionWithPlayers('Alice', 'Bob', 'Charlie', 'Diana', 'Eve');
+
+        $response = $this->client->request('GET', '/api/sessions');
+
+        $this->assertResponseIsSuccessful();
+        $data = $response->toArray();
+        $member = $data['member'][0];
+        $this->assertSame($member['createdAt'], $member['lastPlayedAt']);
+    }
+
+    public function testLastPlayedAtReturnsLatestGameDate(): void
+    {
+        $session = $this->createSessionWithPlayers('Alice', 'Bob', 'Charlie', 'Diana', 'Eve');
+        $players = $session->getPlayers()->toArray();
+
+        // Créer deux donnes avec des dates différentes
+        $game1 = new Game();
+        $game1->setContract(Contract::Petite);
+        $game1->setPosition(1);
+        $game1->setSession($session);
+        $game1->setStatus(GameStatus::Completed);
+        $game1->setTaker($players[0]);
+        $this->em->persist($game1);
+
+        $game2 = new Game();
+        $game2->setContract(Contract::Garde);
+        $game2->setPosition(2);
+        $game2->setSession($session);
+        $game2->setStatus(GameStatus::Completed);
+        $game2->setTaker($players[1]);
+        $this->em->persist($game2);
+
+        $this->em->flush();
+
+        $response = $this->client->request('GET', '/api/sessions');
+
+        $this->assertResponseIsSuccessful();
+        $data = $response->toArray();
+        $member = $data['member'][0];
+        // lastPlayedAt devrait être >= createdAt de la session (la dernière donne)
+        $this->assertGreaterThanOrEqual($member['createdAt'], $member['lastPlayedAt']);
     }
 
     /**

@@ -127,6 +127,19 @@ class Session
         return $this->createdAt;
     }
 
+    #[Groups(['session:read'])]
+    public function getLastPlayedAt(): \DateTimeImmutable
+    {
+        $latest = $this->createdAt;
+        foreach ($this->games as $game) {
+            if ($game->getCreatedAt() > $latest) {
+                $latest = $game->getCreatedAt();
+            }
+        }
+
+        return $latest;
+    }
+
     public function getCurrentDealer(): ?Player
     {
         return $this->currentDealer;
