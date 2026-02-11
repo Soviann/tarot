@@ -2,8 +2,14 @@
 name: no-schema-update
 enabled: true
 event: bash
-pattern: doctrine:schema:update
 action: block
+conditions:
+  - field: command
+    operator: regex_match
+    pattern: \bdoctrine:schema:update\b
+  - field: command
+    operator: regex_match
+    pattern: ^(ddev|make|php|bin/)
 ---
 
 **doctrine:schema:update est interdit**
