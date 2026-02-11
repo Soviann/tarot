@@ -166,9 +166,10 @@ describe("PlayerSelector", () => {
 
     await searchFor("a");
 
-    // Frank (id=6) should be disabled
-    const frankButton = screen.getByText("Frank").closest("button");
-    expect(frankButton).toBeDisabled();
+    // Frank (id=6, last option) should be disabled
+    const options = screen.getAllByRole("option");
+    const frankOption = options[options.length - 1];
+    expect(frankOption).toHaveAttribute("aria-disabled", "true");
   });
 
   it("allows deselecting when 5 are selected", async () => {
@@ -314,6 +315,219 @@ describe("PlayerSelector", () => {
     expect(screen.getByText("Alice")).toBeInTheDocument();
     expect(screen.getByText("Charlie")).toBeInTheDocument();
     expect(screen.queryByText("Bob")).not.toBeInTheDocument();
+  });
+
+  describe("keyboard navigation", () => {
+    function getOptions() {
+      return screen.getAllByRole("option");
+    }
+
+    it("highlights first player on ArrowDown", async () => {
+      setupMocks();
+      renderWithProviders(
+        <PlayerSelector onSelectionChange={vi.fn()} selectedPlayerIds={[]} />,
+      );
+
+      await searchFor("a");
+      await userEvent.keyboard("{ArrowDown}");
+
+      const options = getOptions();
+      expect(options[0]).toHaveAttribute("aria-selected", "true");
+    });
+
+    it("highlights second player on ArrowDown twice", async () => {
+      setupMocks();
+      renderWithProviders(
+        <PlayerSelector onSelectionChange={vi.fn()} selectedPlayerIds={[]} />,
+      );
+
+      await searchFor("a");
+      await userEvent.keyboard("{ArrowDown}{ArrowDown}");
+
+      const options = getOptions();
+      expect(options[0]).not.toHaveAttribute("aria-selected", "true");
+      expect(options[1]).toHaveAttribute("aria-selected", "true");
+    });
+
+    it("moves up with ArrowUp", async () => {
+      setupMocks();
+      renderWithProviders(
+        <PlayerSelector onSelectionChange={vi.fn()} selectedPlayerIds={[]} />,
+      );
+
+      await searchFor("a");
+      await userEvent.keyboard("{ArrowDown}{ArrowDown}{ArrowUp}");
+
+      const options = getOptions();
+      expect(options[0]).toHaveAttribute("aria-selected", "true");
+    });
+
+    it("does not go above first item", async () => {
+      setupMocks();
+      renderWithProviders(
+        <PlayerSelector onSelectionChange={vi.fn()} selectedPlayerIds={[]} />,
+      );
+
+      await searchFor("a");
+      await userEvent.keyboard("{ArrowDown}{ArrowUp}{ArrowUp}");
+
+      const options = getOptions();
+      expect(options[0]).toHaveAttribute("aria-selected", "true");
+    });
+
+    it("does not go below last item", async () => {
+      setupMocks();
+      renderWithProviders(
+        <PlayerSelector onSelectionChange={vi.fn()} selectedPlayerIds={[]} />,
+      );
+
+      await searchFor("a");
+      // Press down 10 times (more than 6 players)
+      for (let i = 0; i < 10; i++) {
+        await userEvent.keyboard("{ArrowDown}");
+      }
+
+      const options = getOptions();
+      expect(options[options.length - 1]).toHaveAttribute("aria-selected", "true");
+    });
+
+    it("resets highlight when search changes", async () => {
+      setupMocks();
+      renderWithProviders(
+        <PlayerSelector onSelectionChange={vi.fn()} selectedPlayerIds={[]} />,
+      );
+
+      await searchFor("a");
+      await userEvent.keyboard("{ArrowDown}");
+      expect(getOptions()[0]).toHaveAttribute("aria-selected", "true");
+
+      // Type more to change search
+      const input = screen.getByRole("combobox");
+      await userEvent.type(input, "l");
+      await waitFor(() => {
+        expect(usePlayersModule.usePlayers).toHaveBeenCalledWith("al");
+      });
+
+      // Highlight should be reset — no option should have aria-selected="true"
+      getOptions().forEach((option) => {
+        expect(option).not.toHaveAttribute("aria-selected", "true");
+      });
+    });
+
+    it("has ARIA listbox role on the list", async () => {
+      setupMocks();
+      renderWithProviders(
+        <PlayerSelector onSelectionChange={vi.fn()} selectedPlayerIds={[]} />,
+      );
+
+      await searchFor("a");
+
+      expect(screen.getByRole("listbox")).toBeInTheDocument();
+    });
+
+    it("has ARIA option role on each player item", async () => {
+      setupMocks();
+      renderWithProviders(
+        <PlayerSelector onSelectionChange={vi.fn()} selectedPlayerIds={[]} />,
+      );
+
+      await searchFor("a");
+
+      expect(screen.getAllByRole("option")).toHaveLength(6);
+    });
+
+    it("sets aria-expanded on combobox input", async () => {
+      setupMocks();
+      renderWithProviders(
+        <PlayerSelector onSelectionChange={vi.fn()} selectedPlayerIds={[]} />,
+      );
+
+      const input = screen.getByRole("combobox");
+      expect(input).toHaveAttribute("aria-expanded", "false");
+
+      await searchFor("a");
+      expect(input).toHaveAttribute("aria-expanded", "true");
+    });
+
+    it("selects highlighted player on Enter", async () => {
+      setupMocks();
+      const onChange = vi.fn();
+      renderWithProviders(
+        <PlayerSelector onSelectionChange={onChange} selectedPlayerIds={[]} />,
+      );
+
+      await searchFor("a");
+      await userEvent.keyboard("{ArrowDown}{Enter}");
+
+      expect(onChange).toHaveBeenCalledWith([1]); // Alice id=1
+    });
+
+    it("selects unique result on Enter without highlight", async () => {
+      const singlePlayer = [
+        { active: true, createdAt: "2025-01-15T10:00:00+00:00", id: 1, name: "Alice" },
+      ];
+      setupMocks({
+        usePlayers: { data: singlePlayer, players: singlePlayer },
+      });
+      const onChange = vi.fn();
+      renderWithProviders(
+        <PlayerSelector onSelectionChange={onChange} selectedPlayerIds={[]} />,
+      );
+
+      await searchFor("alice");
+      await userEvent.keyboard("{Enter}");
+
+      expect(onChange).toHaveBeenCalledWith([1]);
+    });
+
+    it("does nothing on Enter without highlight and multiple results", async () => {
+      setupMocks();
+      const onChange = vi.fn();
+      renderWithProviders(
+        <PlayerSelector onSelectionChange={onChange} selectedPlayerIds={[]} />,
+      );
+
+      await searchFor("a");
+      await userEvent.keyboard("{Enter}");
+
+      expect(onChange).not.toHaveBeenCalled();
+    });
+
+    it("does nothing on Enter when highlighted player is disabled", async () => {
+      setupMocks();
+      const onChange = vi.fn();
+      renderWithProviders(
+        <PlayerSelector
+          onSelectionChange={onChange}
+          selectedPlayerIds={[1, 2, 3, 4, 5]}
+        />,
+      );
+
+      await searchFor("a");
+      // Navigate to Frank (id=6) — index 5 (6th player, unselected → disabled)
+      for (let i = 0; i < 6; i++) {
+        await userEvent.keyboard("{ArrowDown}");
+      }
+      await userEvent.keyboard("{Enter}");
+
+      expect(onChange).not.toHaveBeenCalled();
+    });
+
+    it("clears search on Escape", async () => {
+      setupMocks();
+      renderWithProviders(
+        <PlayerSelector onSelectionChange={vi.fn()} selectedPlayerIds={[]} />,
+      );
+
+      await searchFor("a");
+      expect(screen.getByText("Alice")).toBeInTheDocument();
+
+      await userEvent.keyboard("{Escape}");
+
+      await waitFor(() => {
+        expect(screen.queryByText("Alice")).not.toBeInTheDocument();
+      });
+    });
   });
 
   it("shows inactive player in chips if already selected", () => {

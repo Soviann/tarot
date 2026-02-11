@@ -1,5 +1,5 @@
 import { Plus } from "lucide-react";
-import { type FormEvent, useCallback, useMemo, useState } from "react";
+import { type FormEvent, type KeyboardEvent, useCallback, useMemo, useState } from "react";
 import { useCreatePlayer } from "../hooks/useCreatePlayer";
 import { usePlayers } from "../hooks/usePlayers";
 import { ApiError } from "../services/api";
@@ -17,6 +17,8 @@ export default function PlayerSelector({
   selectedPlayerIds,
 }: PlayerSelectorProps) {
   const [search, setSearch] = useState("");
+  const [highlightedIndex, setHighlightedIndex] = useState<number | null>(null);
+  const [clearKey, setClearKey] = useState(0);
   const [modalOpen, setModalOpen] = useState(false);
   const [newName, setNewName] = useState("");
 
@@ -35,6 +37,12 @@ export default function PlayerSelector({
   );
 
   const isFull = selectedPlayerIds.length >= MAX_PLAYERS;
+  const listVisible = !!search && !isPending && players.length > 0;
+
+  const handleSearch = useCallback((value: string) => {
+    setSearch(value);
+    setHighlightedIndex(null);
+  }, []);
 
   const togglePlayer = useCallback(
     (playerId: number) => {
@@ -45,6 +53,49 @@ export default function PlayerSelector({
       }
     },
     [isFull, onSelectionChange, selectedPlayerIds],
+  );
+
+  const handleKeyDown = useCallback(
+    (e: KeyboardEvent<HTMLInputElement>) => {
+      if (!listVisible) return;
+
+      switch (e.key) {
+        case "ArrowDown":
+          e.preventDefault();
+          setHighlightedIndex((prev) =>
+            prev === null ? 0 : Math.min(prev + 1, players.length - 1),
+          );
+          break;
+        case "ArrowUp":
+          e.preventDefault();
+          setHighlightedIndex((prev) =>
+            prev === null ? 0 : Math.max(prev - 1, 0),
+          );
+          break;
+        case "Enter": {
+          e.preventDefault();
+          const targetIndex =
+            highlightedIndex !== null
+              ? highlightedIndex
+              : players.length === 1
+                ? 0
+                : null;
+          if (targetIndex === null) return;
+          const player = players[targetIndex];
+          const isDisabled =
+            isFull && !selectedPlayerIds.includes(player.id);
+          if (!isDisabled) {
+            togglePlayer(player.id);
+          }
+          break;
+        }
+        case "Escape":
+          e.preventDefault();
+          setClearKey((k) => k + 1);
+          break;
+      }
+    },
+    [highlightedIndex, isFull, listVisible, players, selectedPlayerIds, togglePlayer],
   );
 
   const removePlayer = useCallback(
@@ -86,6 +137,9 @@ export default function PlayerSelector({
     createPlayer.error instanceof ApiError &&
     createPlayer.error.status === 422;
 
+  const highlightedPlayerId =
+    highlightedIndex !== null ? players[highlightedIndex]?.id : undefined;
+
   return (
     <div className="flex flex-col gap-3">
       {/* Chips des joueurs sélectionnés */}
@@ -117,7 +171,17 @@ export default function PlayerSelector({
 
       {/* Recherche */}
       <SearchInput
-        onSearch={setSearch}
+        clearKey={clearKey}
+        inputProps={{
+          "aria-activedescendant": highlightedPlayerId
+            ? `player-option-${highlightedPlayerId}`
+            : undefined,
+          "aria-controls": "player-listbox",
+          "aria-expanded": listVisible,
+          role: "combobox",
+        }}
+        onKeyDown={handleKeyDown}
+        onSearch={handleSearch}
         placeholder="Rechercher un joueur…"
       />
 
@@ -135,32 +199,36 @@ export default function PlayerSelector({
           )}
 
           {!isPending && players.length > 0 && (
-            <ul className="flex flex-col gap-1">
-              {players.map((player) => {
+            <ul className="flex flex-col gap-1" id="player-listbox" role="listbox">
+              {players.map((player, index) => {
                 const isSelected = selectedPlayerIds.includes(player.id);
                 const isDisabled = isFull && !isSelected;
+                const isHighlighted = highlightedIndex === index;
 
                 return (
-                  <li key={player.id}>
-                    <button
-                      className={`flex w-full items-center gap-3 rounded-lg p-2 text-left transition-colors ${
-                        isSelected
-                          ? "bg-accent-50 ring-2 ring-accent-500"
+                  <li
+                    aria-disabled={isDisabled || undefined}
+                    aria-selected={isHighlighted}
+                    className={`flex w-full cursor-pointer items-center gap-3 rounded-lg p-2 text-left transition-colors ${
+                      isSelected
+                        ? "bg-accent-50 ring-2 ring-accent-500"
+                        : isHighlighted
+                          ? "bg-accent-100"
                           : "hover:bg-surface-secondary"
-                      } ${isDisabled ? "cursor-not-allowed opacity-40" : ""}`}
-                      disabled={isDisabled}
-                      onClick={() => togglePlayer(player.id)}
-                      type="button"
-                    >
-                      <PlayerAvatar
-                        name={player.name}
-                        playerId={player.id}
-                        size="sm"
-                      />
-                      <span className="font-medium text-text-primary">
-                        {player.name}
-                      </span>
-                    </button>
+                    } ${isDisabled ? "cursor-not-allowed opacity-40" : ""}`}
+                    id={`player-option-${player.id}`}
+                    key={player.id}
+                    onClick={() => !isDisabled && togglePlayer(player.id)}
+                    role="option"
+                  >
+                    <PlayerAvatar
+                      name={player.name}
+                      playerId={player.id}
+                      size="sm"
+                    />
+                    <span className="font-medium text-text-primary">
+                      {player.name}
+                    </span>
                   </li>
                 );
               })}
