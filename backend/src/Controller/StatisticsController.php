@@ -23,10 +23,12 @@ class StatisticsController
     public function global(): JsonResponse
     {
         return new JsonResponse([
+            'averageGameDuration' => $this->statisticsService->getAverageGameDurationSeconds(),
             'contractDistribution' => $this->statisticsService->getContractDistribution(),
             'eloRanking' => $this->statisticsService->getEloRanking(),
             'leaderboard' => $this->statisticsService->getLeaderboard(),
             'totalGames' => $this->statisticsService->getTotalGames(),
+            'totalPlayTime' => $this->statisticsService->getTotalPlayTimeSeconds(),
             'totalSessions' => $this->statisticsService->getTotalSessions(),
             'totalStars' => $this->statisticsService->getTotalStars(),
         ]);

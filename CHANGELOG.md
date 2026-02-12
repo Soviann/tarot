@@ -6,6 +6,10 @@ Le format est basé sur [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/)
 
 ## [Unreleased]
 
+### Added
+
+- **Suivi de la durée des donnes** : nouveau champ `completedAt` sur les donnes, renseigné automatiquement à la complétion. Chronomètre en temps réel sur le bandeau de donne en cours. Durée affichée dans l'historique des donnes. Nouvelles statistiques globales (durée moyenne par donne, temps de jeu total) et par joueur. Utilitaire `formatDuration` et hook `useElapsedTime`.
+
 ### Changed
 
 - **CLAUDE.md** : commandes simplifiées avec cibles Makefile au lieu des commandes `ddev exec` verbeuses

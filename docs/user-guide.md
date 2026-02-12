@@ -133,7 +133,7 @@ En haut de l'écran, un bandeau horizontal scrollable montre les **5 joueurs** a
 
 ### Donne en cours
 
-Si une donne est en cours (étape 1 validée, étape 2 en attente), un bandeau bien visible indique le preneur et le contrat avec un bouton **« Compléter »**.
+Si une donne est en cours (étape 1 validée, étape 2 en attente), un bandeau bien visible indique le preneur, le contrat et un **chronomètre** affichant le temps écoulé depuis le début de la donne, avec un bouton **« Compléter »**.
 
 ### Historique des donnes
 
@@ -141,7 +141,7 @@ Liste des donnes jouées (la plus récente en premier), montrant pour chaque don
 
 - Le preneur et son partenaire
 - Le donneur de la donne
-- Le contrat (badge coloré)
+- Le contrat (badge coloré) et la **durée de la donne** (si disponible)
 - Le résultat (gain/perte du preneur)
 
 ### Modifier les joueurs
@@ -225,7 +225,7 @@ Accessible via l'onglet **Stats** dans la barre de navigation.
 
 L'écran principal des statistiques affiche :
 
-- **Métriques** : nombre total de donnes et de sessions jouées
+- **Métriques** : nombre total de donnes, de sessions jouées, **durée moyenne par donne** et **temps de jeu total** (si des donnes avec suivi de durée existent)
 - **Classement** : tous les joueurs triés par score total décroissant, avec nombre de donnes jouées et taux de victoire en tant que preneur
 - **Répartition des contrats** : graphique à barres horizontales montrant combien de donnes ont été jouées par type de contrat (Petite, Garde, etc.)
 
@@ -235,7 +235,7 @@ Appuyer sur un joueur dans le classement pour voir ses statistiques détaillées
 
 L'écran de détail d'un joueur affiche :
 
-- **Métriques clés** : donnes jouées, taux de victoire (en tant que preneur), score moyen, sessions jouées
+- **Métriques clés** : donnes jouées, taux de victoire (en tant que preneur), score moyen, sessions jouées, **durée moyenne par donne** et **temps de jeu total** (si disponible)
 - **Meilleur et pire score** : les scores extrêmes du joueur
 - **Répartition des rôles** : barre visuelle montrant combien de fois le joueur a été preneur, partenaire ou défenseur
 - **Contrats pris** : graphique à barres des contrats joués en tant que preneur

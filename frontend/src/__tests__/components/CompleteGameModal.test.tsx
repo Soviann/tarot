@@ -17,6 +17,7 @@ const mockPlayers = [
 
 const inProgressGame: Game = {
   chelem: "none",
+  completedAt: null,
   contract: "garde",
   createdAt: "2025-02-01T14:10:00+00:00",
   id: 7,
@@ -34,6 +35,7 @@ const inProgressGame: Game = {
 
 const completedGame: Game = {
   chelem: "none",
+  completedAt: "2025-02-01T14:05:00+00:00",
   contract: "garde",
   createdAt: "2025-02-01T14:10:00+00:00",
   id: 7,

@@ -1,4 +1,5 @@
 import type { Game } from "../types/api";
+import { formatDuration } from "../utils/formatDuration";
 import { ContractBadge, PlayerAvatar, ScoreDisplay } from "./ui";
 
 interface GameListProps {
@@ -25,6 +26,9 @@ export default function GameList({ games, onDeleteLast, onEditLast }: GameListPr
         const takerScore =
           game.scoreEntries.find((e) => e.player.id === game.taker.id)
             ?.score ?? 0;
+        const durationSeconds = game.completedAt
+          ? Math.floor((new Date(game.completedAt).getTime() - new Date(game.createdAt).getTime()) / 1000)
+          : null;
 
         return (
           <li
@@ -53,7 +57,14 @@ export default function GameList({ games, onDeleteLast, onEditLast }: GameListPr
               )}
             </div>
             <div className="flex shrink-0 items-center gap-2">
-              <ScoreDisplay animated={false} value={takerScore} />
+              <div className="flex flex-col items-end">
+                <ScoreDisplay animated={false} value={takerScore} />
+                {durationSeconds !== null && (
+                  <span className="text-xs text-text-muted">
+                    {formatDuration(durationSeconds)}
+                  </span>
+                )}
+              </div>
               {game.position === maxPosition && (
                 <>
                   <button

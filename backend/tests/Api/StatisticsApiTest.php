@@ -41,6 +41,12 @@ class StatisticsApiTest extends ApiTestCase
         $this->assertSame(3, $data['totalGames']);
         $this->assertSame(1, $data['totalSessions']);
 
+        // Duration stats — seed data has no completedAt, so null/0
+        $this->assertArrayHasKey('averageGameDuration', $data);
+        $this->assertArrayHasKey('totalPlayTime', $data);
+        $this->assertNull($data['averageGameDuration']);
+        $this->assertSame(0, $data['totalPlayTime']);
+
         // Leaderboard — sorted by totalScore DESC
         $this->assertCount(5, $data['leaderboard']);
         $first = $data['leaderboard'][0];
@@ -87,6 +93,8 @@ class StatisticsApiTest extends ApiTestCase
         $this->assertSame(0, $data['totalSessions']);
         $this->assertSame([], $data['leaderboard']);
         $this->assertSame([], $data['contractDistribution']);
+        $this->assertNull($data['averageGameDuration']);
+        $this->assertSame(0, $data['totalPlayTime']);
     }
 
     public function testGetPlayerStatistics(): void
@@ -126,6 +134,12 @@ class StatisticsApiTest extends ApiTestCase
         $this->assertArrayHasKey('gamesAsPartner', $data);
         $this->assertArrayHasKey('winRateAsTaker', $data);
         $this->assertArrayHasKey('worstGameScore', $data);
+
+        // Duration stats — seed data has no completedAt
+        $this->assertArrayHasKey('averageGameDurationSeconds', $data);
+        $this->assertArrayHasKey('totalPlayTimeSeconds', $data);
+        $this->assertNull($data['averageGameDurationSeconds']);
+        $this->assertSame(0, $data['totalPlayTimeSeconds']);
     }
 
     public function testGetPlayerStatisticsNotFound(): void
@@ -202,6 +216,12 @@ class StatisticsApiTest extends ApiTestCase
         $response = $this->client->request('GET', '/api/statistics');
         $globalData = $response->toArray();
         $this->assertNotEmpty($globalData['eloRanking']);
+
+        // Duration stats — the API-created game has completedAt set
+        $this->assertIsInt($globalData['averageGameDuration']);
+        $this->assertGreaterThanOrEqual(0, $globalData['averageGameDuration']);
+        $this->assertIsInt($globalData['totalPlayTime']);
+        $this->assertGreaterThanOrEqual(0, $globalData['totalPlayTime']);
     }
 
     public function testEloRevertedAfterGameDeletion(): void

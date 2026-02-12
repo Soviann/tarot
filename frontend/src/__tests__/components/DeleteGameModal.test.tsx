@@ -9,6 +9,7 @@ vi.mock("../../hooks/useDeleteGame");
 
 const mockGame: Game = {
   chelem: "none",
+  completedAt: "2025-02-01T14:05:00+00:00",
   contract: "garde",
   createdAt: "2025-02-01T14:00:00+00:00",
   id: 1,

@@ -28,6 +28,7 @@ export interface CumulativeScore {
 
 export interface Game {
   chelem: Chelem;
+  completedAt: string | null;
   contract: Contract;
   createdAt: string;
   dealer: GamePlayer | null;
@@ -50,10 +51,12 @@ export interface GamePlayer {
 }
 
 export interface GlobalStatistics {
+  averageGameDuration: number | null;
   contractDistribution: ContractDistributionEntry[];
   eloRanking: EloRankingEntry[];
   leaderboard: LeaderboardEntry[];
   totalGames: number;
+  totalPlayTime: number;
   totalSessions: number;
   totalStars: number;
 }
@@ -88,6 +91,7 @@ export interface PlayerContractEntry {
 }
 
 export interface PlayerStatistics {
+  averageGameDurationSeconds: number | null;
   averageScore: number;
   bestGameScore: number;
   contractDistribution: PlayerContractEntry[];
@@ -101,6 +105,7 @@ export interface PlayerStatistics {
   recentScores: RecentScoreEntry[];
   sessionsPlayed: number;
   starPenalties: number;
+  totalPlayTimeSeconds: number;
   totalStars: number;
   winRateAsTaker: number;
   worstGameScore: number;
