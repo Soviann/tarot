@@ -32,32 +32,32 @@ export default function GameList({ games, onDeleteLast, onEditLast }: GameListPr
 
         return (
           <li
-            className="flex items-center gap-3 rounded-xl bg-surface-card p-3"
+            className="rounded-xl bg-surface-card p-3"
             key={game.id}
           >
-            <PlayerAvatar
-              name={game.taker.name}
-              playerId={game.taker.id}
-              size="sm"
-            />
-            <div className="flex min-w-0 flex-1 flex-col gap-0.5">
-              <div className="flex min-w-0 items-center gap-2">
-                <span className="truncate text-sm font-medium text-text-primary">
-                  {game.taker.name}
-                </span>
-                <ContractBadge className="shrink-0" contract={game.contract} />
-              </div>
-              <span className="text-xs text-text-muted">
-                {game.partner ? `avec ${game.partner.name}` : "Seul"}
-              </span>
-              {game.dealer && (
+            <div className="flex items-center gap-3">
+              <PlayerAvatar
+                name={game.taker.name}
+                playerId={game.taker.id}
+                size="sm"
+              />
+              <div className="flex min-w-0 flex-1 flex-col gap-0.5">
+                <div className="flex min-w-0 items-center gap-2">
+                  <span className="truncate text-sm font-medium text-text-primary">
+                    {game.taker.name}
+                  </span>
+                  <ContractBadge className="shrink-0" contract={game.contract} />
+                </div>
                 <span className="text-xs text-text-muted">
-                  Donneur : {game.dealer.name}
+                  {game.partner ? `avec ${game.partner.name}` : "Seul"}
                 </span>
-              )}
-            </div>
-            <div className="flex shrink-0 items-center gap-2">
-              <div className="flex flex-col items-end">
+                {game.dealer && (
+                  <span className="text-xs text-text-muted">
+                    Donneur : {game.dealer.name}
+                  </span>
+                )}
+              </div>
+              <div className="flex shrink-0 flex-col items-end">
                 <ScoreDisplay animated={false} value={takerScore} />
                 {durationSeconds !== null && (
                   <span className="text-xs text-text-muted">
@@ -65,25 +65,25 @@ export default function GameList({ games, onDeleteLast, onEditLast }: GameListPr
                   </span>
                 )}
               </div>
-              {game.position === maxPosition && (
-                <>
-                  <button
-                    className="min-h-10 rounded-lg bg-surface-elevated px-2 py-1 text-xs font-medium text-text-secondary"
-                    onClick={onEditLast}
-                    type="button"
-                  >
-                    Modifier
-                  </button>
-                  <button
-                    className="min-h-10 rounded-lg bg-red-500/10 px-2 py-1 text-xs font-medium text-red-500"
-                    onClick={onDeleteLast}
-                    type="button"
-                  >
-                    Supprimer
-                  </button>
-                </>
-              )}
             </div>
+            {game.position === maxPosition && (
+              <div className="mt-2 flex gap-2">
+                <button
+                  className="min-h-11 flex-1 rounded-lg bg-surface-elevated px-3 py-2 text-sm font-medium text-text-secondary"
+                  onClick={onEditLast}
+                  type="button"
+                >
+                  Modifier
+                </button>
+                <button
+                  className="min-h-11 flex-1 rounded-lg bg-red-500/10 px-3 py-2 text-sm font-medium text-red-500"
+                  onClick={onDeleteLast}
+                  type="button"
+                >
+                  Supprimer
+                </button>
+              </div>
+            )}
           </li>
         );
       })}

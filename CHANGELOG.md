@@ -13,6 +13,7 @@ Le format est basé sur [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/)
 ### Changed
 
 - **CLAUDE.md** : commandes simplifiées avec cibles Makefile au lieu des commandes `ddev exec` verbeuses
+- **Historique des donnes** : boutons Modifier et Supprimer déplacés sur une ligne séparée en dessous des informations de la donne, avec une taille augmentée pour une meilleure accessibilité mobile
 
 ### Added
 
