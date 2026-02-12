@@ -1,6 +1,7 @@
 import { ChevronDown } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { useCompleteGame } from "../hooks/useCompleteGame";
+import type { GameContext } from "../services/memeSelector";
 import { calculateScore, REQUIRED_POINTS } from "../services/scoreCalculator";
 import type { Game, GamePlayer } from "../types/api";
 import { Chelem, GameStatus, Poignee, Side } from "../types/enums";
@@ -10,6 +11,7 @@ import { ContractBadge, Modal, PlayerAvatar, ScoreDisplay, Stepper } from "./ui"
 interface CompleteGameModalProps {
   game: Game;
   onClose: () => void;
+  onGameCompleted?: (ctx: GameContext) => void;
   open: boolean;
   players: GamePlayer[];
   sessionId: number;
@@ -35,7 +37,7 @@ const chelemOptions: { label: string; value: ChelemType }[] = [
   { label: "Non annoncé gagné", value: Chelem.NotAnnouncedWon },
 ];
 
-export default function CompleteGameModal({ game, onClose, open, players, sessionId }: CompleteGameModalProps) {
+export default function CompleteGameModal({ game, onClose, onGameCompleted, open, players, sessionId }: CompleteGameModalProps) {
   const completeGame = useCompleteGame(game.id, sessionId);
   const isEditMode = game.status === GameStatus.Completed;
 
@@ -118,7 +120,18 @@ export default function CompleteGameModal({ game, onClose, open, players, sessio
         points: pointsNum!,
         status: GameStatus.Completed,
       },
-      { onSuccess: () => onClose() },
+      {
+        onSuccess: () => {
+          if (!isEditMode && scoreResult?.attackWins) {
+            onGameCompleted?.({
+              attackWins: true,
+              contract: game.contract,
+              petitAuBout,
+            });
+          }
+          onClose();
+        },
+      },
     );
   }
 

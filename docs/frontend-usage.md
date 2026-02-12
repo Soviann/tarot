@@ -764,6 +764,7 @@ Modal de complétion (étape 2) ou modification d'une donne. Titre dynamique sel
 |------|------|-------------|
 | `open` | `boolean` | *requis* — afficher ou masquer |
 | `onClose` | `() => void` | *requis* — fermeture |
+| `onGameCompleted` | `(ctx: GameContext) => void` | *optionnel* — callback déclenché après une complétion réussie (pas en édition) |
 | `game` | `Game` | *requis* — donne à compléter/modifier |
 | `players` | `GamePlayer[]` | *requis* — les 5 joueurs de la session |
 | `sessionId` | `number` | *requis* — ID de la session |
@@ -776,6 +777,24 @@ Modal de complétion (étape 2) ou modification d'une donne. Titre dynamique sel
 - Section bonus repliable (poignée, petit au bout, chelem)
 - Aperçu des scores en temps réel via `calculateScore`
 - Pré-remplissage automatique en mode édition (donne complétée)
+- Callback `onGameCompleted` appelé uniquement lors de la première complétion (pas en mode édition) et si l'attaque gagne
+
+### `MemeOverlay`
+
+**Fichier** : `components/MemeOverlay.tsx`
+
+Overlay plein écran affichant un mème de victoire avec animation pop-in. Se ferme automatiquement après 3 secondes ou au clic.
+
+| Prop | Type | Description |
+|------|------|-------------|
+| `meme` | `MemeConfig \| null` | *requis* — mème à afficher (`null` = rien) |
+| `onDismiss` | `() => void` | *requis* — callback de fermeture |
+
+**Détails** :
+- Utilise `createPortal` vers `document.body` (au-dessus des modales, `z-60`)
+- Animation CSS `meme-pop-in` (scale + opacity, cubic-bezier bounce)
+- Image centrée + légende en bas
+- Accessible : `role="dialog"`, `aria-label="Mème de victoire"`
 
 ### `Leaderboard`
 
@@ -904,6 +923,53 @@ result.defenderScore;   // -34
 | `poigneeBonus` | `number` | Bonus poignée |
 | `takerScore` | `number` | Score du preneur |
 | `totalPerPlayer` | `number` | Total avant distribution |
+
+### `selectVictoryMeme`
+
+**Fichier** : `services/memeSelector.ts`
+
+Sélectionne un mème de victoire en fonction du contexte de la donne. Fonction pure, facilement testable.
+
+```ts
+import { selectVictoryMeme, type GameContext } from "./services/memeSelector";
+
+const meme = selectVictoryMeme({
+  attackWins: true,
+  contract: "garde_contre",
+  petitAuBout: "none",
+});
+
+if (meme) {
+  meme.id;      // "vince-4"
+  meme.image;   // "/memes/vince-4.webp"
+  meme.caption; // "GARDE CONTRE RÉUSSIE !!!"
+}
+```
+
+**Logique de sélection** (ordre de priorité) :
+
+1. `attackWins === false` → retourne `null`
+2. `petitAuBout === "attack"` → toujours `success-kid` (événement rare, toujours célébré)
+3. `Math.random() >= 0.4` → retourne `null` (60 % de chance de ne rien afficher)
+4. `Math.random() < 0.4` → Vince McMahon selon le contrat :
+
+| Contrat | ID | Image | Légende |
+|---------|----|-------|---------|
+| Petite | `vince-1` | Vince intéressé | « Petite tranquille ! » |
+| Garde | `vince-2` | Vince excité | « La garde est assurée ! » |
+| Garde Sans | `vince-3` | Vince debout | « Garde sans, pas de problème ! » |
+| Garde Contre | `vince-4` | Vince renversé | « GARDE CONTRE RÉUSSIE !!! » |
+
+5. Sinon → aléatoire dans le pool par défaut :
+
+| ID | Image | Légende |
+|----|-------|---------|
+| `deal-with-it` | Lunettes de soleil | « Deal with it 😎 » |
+| `champions` | Freddie Mercury | « We are the champions ! » |
+| `dicaprio-toast` | DiCaprio toast | « À la victoire ! » |
+| `over-9000` | Vegeta Over 9000 | « It's over 9000 ! » |
+
+**Assets mèmes** : `frontend/public/memes/*.webp` (9 fichiers). Format `.webp` (JPEG renommé, compatible navigateurs).
 
 ---
 
