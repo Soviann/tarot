@@ -1,5 +1,5 @@
 import { ArrowLeftRight } from "lucide-react";
-import { useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import AddStarModal from "../components/AddStarModal";
 import ChangeDealerModal from "../components/ChangeDealerModal";
@@ -7,6 +7,7 @@ import CompleteGameModal from "../components/CompleteGameModal";
 import DeleteGameModal from "../components/DeleteGameModal";
 import GameList from "../components/GameList";
 import InProgressBanner from "../components/InProgressBanner";
+import MemeOverlay from "../components/MemeOverlay";
 import NewGameModal from "../components/NewGameModal";
 import Scoreboard from "../components/Scoreboard";
 import ScoreEvolutionChart from "../components/ScoreEvolutionChart";
@@ -16,6 +17,8 @@ import { useAddStar } from "../hooks/useAddStar";
 import { useCreateGame } from "../hooks/useCreateGame";
 import { useSession } from "../hooks/useSession";
 import { useUpdateDealer } from "../hooks/useUpdateDealer";
+import type { GameContext, MemeConfig } from "../services/memeSelector";
+import { selectVictoryMeme } from "../services/memeSelector";
 import { GameStatus } from "../types/enums";
 
 export default function SessionPage() {
@@ -53,6 +56,7 @@ export default function SessionPage() {
     [session],
   );
 
+  const [activeMeme, setActiveMeme] = useState<MemeConfig | null>(null);
   const [changeDealerModalOpen, setChangeDealerModalOpen] = useState(false);
   const [completeModalOpen, setCompleteModalOpen] = useState(false);
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
@@ -61,6 +65,11 @@ export default function SessionPage() {
   const [starModalOpen, setStarModalOpen] = useState(false);
   const [starPlayerId, setStarPlayerId] = useState<number | null>(null);
   const [swapModalOpen, setSwapModalOpen] = useState(false);
+
+  const handleGameCompleted = useCallback((ctx: GameContext) => {
+    const meme = selectVictoryMeme(ctx);
+    if (meme) setActiveMeme(meme);
+  }, []);
 
   if (isPending) {
     return (
@@ -192,6 +201,7 @@ export default function SessionPage() {
         <CompleteGameModal
           game={inProgressGame}
           onClose={() => setCompleteModalOpen(false)}
+          onGameCompleted={handleGameCompleted}
           open={completeModalOpen}
           players={session.players}
           sessionId={sessionId}
@@ -260,6 +270,8 @@ export default function SessionPage() {
           players={session.players}
         />
       )}
+
+      <MemeOverlay meme={activeMeme} onDismiss={() => setActiveMeme(null)} />
     </div>
   );
 }

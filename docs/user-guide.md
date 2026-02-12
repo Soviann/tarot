@@ -16,6 +16,7 @@ Application mobile (PWA) de suivi des scores pour le Tarot à 5 joueurs, conform
 - [Système d'étoiles](#système-détoiles)
 - [Classement ELO](#classement-elo)
 - [Utilisation sur Smart TV](#utilisation-sur-smart-tv)
+- [Mèmes de victoire](#mèmes-de-victoire)
 - [Thème sombre](#thème-sombre)
 - [Règles de calcul des scores](#règles-de-calcul-des-scores)
 
@@ -321,6 +322,36 @@ La navigation se fait entièrement avec les **flèches directionnelles** et le b
 Un **anneau bleu** entoure l'élément actuellement focalisé pour indiquer la position du curseur.
 
 > **Astuce** : dans les modales, le focus est piégé à l'intérieur — les flèches ne sortent pas de la modale tant qu'elle est ouverte. Utiliser le bouton de fermeture (✕) ou Échap pour la fermer.
+
+---
+
+## Mèmes de victoire
+
+Quand une donne est gagnée par l'attaque, un **mème aléatoire** peut apparaître en plein écran pendant 3 secondes pour célébrer la victoire.
+
+### Fonctionnement
+
+- Le mème s'affiche environ **40 % du temps** lors d'une victoire de l'attaque
+- **Exception** : un petit au bout réussi par l'attaque déclenche **systématiquement** un mème spécial
+- Cliquer ou toucher l'écran permet de **fermer le mème** immédiatement
+
+> **Note** : les mèmes n'apparaissent que lors de la **première saisie** d'une donne, pas lors de la modification.
+
+### Quel mème s'affiche ?
+
+| Condition | Image | Légende |
+|-----------|-------|---------|
+| Petit au bout attaque (**toujours**) | Success Kid | « Petit au bout, comme un chef ! » |
+| Petite gagnée (40 % Vince) | Vince McMahon niveau 1 — intéressé | « Petite tranquille ! » |
+| Garde gagnée (40 % Vince) | Vince McMahon niveau 2 — excité | « La garde est assurée ! » |
+| Garde Sans gagnée (40 % Vince) | Vince McMahon niveau 3 — debout | « Garde sans, pas de problème ! » |
+| Garde Contre gagnée (40 % Vince) | Vince McMahon niveau 4 — renversé | « GARDE CONTRE RÉUSSIE !!! » |
+| Victoire (60 % pool par défaut) | Deal With It | « Deal with it 😎 » |
+| Victoire (60 % pool par défaut) | Freddie Mercury Champions | « We are the champions ! » |
+| Victoire (60 % pool par défaut) | DiCaprio Toast | « À la victoire ! » |
+| Victoire (60 % pool par défaut) | It's Over 9000 | « It's over 9000 ! » |
+
+**Ordre de priorité** : petit au bout attaque → tirage 40 % (sinon rien) → 40 % Vince selon contrat / 60 % pool aléatoire.
 
 ---
 
