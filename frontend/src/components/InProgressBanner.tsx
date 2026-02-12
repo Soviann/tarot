@@ -1,5 +1,22 @@
+import { useEffect, useState } from "react";
 import type { Game } from "../types/api";
+import { formatDuration } from "../utils/formatDuration";
 import { ContractBadge, PlayerAvatar } from "./ui";
+
+function useElapsedTime(createdAt: string): number {
+  const [elapsed, setElapsed] = useState(() =>
+    Math.floor((Date.now() - new Date(createdAt).getTime()) / 1000),
+  );
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setElapsed(Math.floor((Date.now() - new Date(createdAt).getTime()) / 1000));
+    }, 1000);
+    return () => clearInterval(interval);
+  }, [createdAt]);
+
+  return elapsed;
+}
 
 interface InProgressBannerProps {
   game: Game;
@@ -8,6 +25,8 @@ interface InProgressBannerProps {
 }
 
 export default function InProgressBanner({ game, onCancel, onComplete }: InProgressBannerProps) {
+  const elapsed = useElapsedTime(game.createdAt);
+
   return (
     <div className="flex items-center gap-3 rounded-xl bg-accent-500/10 p-3">
       <PlayerAvatar name={game.taker.name} playerId={game.taker.id} size="md" />
@@ -15,7 +34,10 @@ export default function InProgressBanner({ game, onCancel, onComplete }: InProgr
         <span className="text-sm font-medium text-text-primary">
           {game.taker.name}
         </span>
-        <ContractBadge contract={game.contract} />
+        <div className="flex items-center gap-2">
+          <ContractBadge contract={game.contract} />
+          <span className="text-xs text-text-muted">{formatDuration(elapsed)}</span>
+        </div>
       </div>
       <div className="flex gap-2">
         {onCancel && (

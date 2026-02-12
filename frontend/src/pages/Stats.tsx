@@ -3,6 +3,7 @@ import ContractDistributionChart from "../components/ContractDistributionChart";
 import EloRanking from "../components/EloRanking";
 import Leaderboard from "../components/Leaderboard";
 import { useGlobalStats } from "../hooks/useGlobalStats";
+import { formatDuration } from "../utils/formatDuration";
 
 export default function Stats() {
   const navigate = useNavigate();
@@ -48,6 +49,23 @@ export default function Stats() {
           </div>
         )}
       </div>
+
+      {stats.averageGameDuration !== null && (
+        <div className="flex gap-4">
+          <div className="flex-1 rounded-xl bg-surface-elevated p-3 text-center">
+            <span className="block text-2xl font-bold text-text-primary">
+              {formatDuration(stats.averageGameDuration)}
+            </span>
+            <span className="text-xs text-text-muted">Durée moy. / donne</span>
+          </div>
+          <div className="flex-1 rounded-xl bg-surface-elevated p-3 text-center">
+            <span className="block text-2xl font-bold text-text-primary">
+              {formatDuration(stats.totalPlayTime)}
+            </span>
+            <span className="text-xs text-text-muted">Temps de jeu total</span>
+          </div>
+        </div>
+      )}
 
       <section>
         <h2 className="mb-2 text-sm font-semibold text-text-secondary">

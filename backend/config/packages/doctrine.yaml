@@ -10,6 +10,9 @@ doctrine:
         use_savepoints: true
     orm:
         auto_generate_proxy_classes: true
+        dql:
+            datetime_functions:
+                TIMESTAMPDIFF: DoctrineExtensions\Query\Mysql\TimestampDiff
         enable_lazy_ghost_objects: true
         report_fields_where_declared: true
         validate_xml_mapping: true

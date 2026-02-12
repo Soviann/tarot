@@ -62,7 +62,7 @@ import type { HydraCollection, Player } from "./types/api";
 | Type | Champs |
 |------|--------|
 | `CumulativeScore` | `playerId: number`, `playerName: string`, `score: number` |
-| `Game` | `id`, `chelem`, `contract`, `createdAt`, `dealer`, `oudlers`, `partner`, `petitAuBout`, `poignee`, `poigneeOwner`, `points`, `position`, `scoreEntries`, `status`, `taker` |
+| `Game` | `id`, `chelem`, `completedAt`, `contract`, `createdAt`, `dealer`, `oudlers`, `partner`, `petitAuBout`, `poignee`, `poigneeOwner`, `points`, `position`, `scoreEntries`, `status`, `taker` |
 | `GamePlayer` | `id: number`, `name: string` |
 | `HydraCollection<T>` | `member: T[]`, `totalItems: number` |
 | `Player` | `active: boolean`, `id: number`, `name: string`, `createdAt: string` |
@@ -74,10 +74,10 @@ import type { HydraCollection, Player } from "./types/api";
 | `ContractDistributionEntry` | `contract: Contract`, `count: number`, `percentage: number` |
 | `EloHistoryEntry` | `date: string`, `gameId: number`, `ratingAfter: number`, `ratingChange: number` |
 | `EloRankingEntry` | `eloRating: number`, `gamesPlayed: number`, `playerId: number`, `playerName: string` |
-| `GlobalStatistics` | `contractDistribution: ContractDistributionEntry[]`, `eloRanking: EloRankingEntry[]`, `leaderboard: LeaderboardEntry[]`, `totalGames`, `totalSessions`, `totalStars` |
+| `GlobalStatistics` | `averageGameDuration: number \| null`, `contractDistribution: ContractDistributionEntry[]`, `eloRanking: EloRankingEntry[]`, `leaderboard: LeaderboardEntry[]`, `totalGames`, `totalPlayTime: number`, `totalSessions`, `totalStars` |
 | `LeaderboardEntry` | `gamesAsTaker`, `gamesPlayed`, `playerId`, `playerName`, `totalScore`, `winRate`, `wins` |
 | `PlayerContractEntry` | `contract: Contract`, `count`, `winRate`, `wins` |
-| `PlayerStatistics` | `averageScore`, `bestGameScore`, `contractDistribution`, `eloHistory: EloHistoryEntry[]`, `eloRating: number`, `gamesAsDefender`, `gamesAsPartner`, `gamesAsTaker`, `gamesPlayed`, `player`, `recentScores`, `sessionsPlayed`, `starPenalties`, `totalStars`, `winRateAsTaker`, `worstGameScore` |
+| `PlayerStatistics` | `averageGameDurationSeconds: number \| null`, `averageScore`, `bestGameScore`, `contractDistribution`, `eloHistory: EloHistoryEntry[]`, `eloRating: number`, `gamesAsDefender`, `gamesAsPartner`, `gamesAsTaker`, `gamesPlayed`, `player`, `recentScores`, `sessionsPlayed`, `starPenalties`, `totalPlayTimeSeconds: number`, `totalStars`, `winRateAsTaker`, `worstGameScore` |
 | `RecentScoreEntry` | `date: string`, `gameId: number`, `score: number`, `sessionId: number` |
 
 ### `ApiError`
@@ -494,7 +494,7 @@ Page d'aide in-app reprenant le contenu du guide utilisateur (`docs/user-guide.m
 **Route** : `/stats`
 
 **Fonctionnalités** :
-- Métriques clés : total de donnes et de sessions
+- Métriques clés : total de donnes, de sessions, durée moyenne par donne et temps de jeu total (si disponible)
 - Classement (`Leaderboard`) trié par score total décroissant
 - Classement ELO (`EloRanking`) trié par rating décroissant (masqué si aucune donnée)
 - Répartition des contrats (`ContractDistributionChart`) en barres horizontales
@@ -513,7 +513,7 @@ Page d'aide in-app reprenant le contenu du guide utilisateur (`docs/user-guide.m
 
 **Fonctionnalités** :
 - Avatar, nom du joueur
-- Métriques clés : donnes jouées, taux de victoire, score moyen, ELO, sessions
+- Métriques clés : donnes jouées, taux de victoire, score moyen, ELO, sessions, durée moyenne par donne et temps de jeu total (si disponible)
 - Meilleur et pire score
 - Répartition des rôles (preneur / partenaire / défenseur) en barre visuelle
 - Répartition des contrats pris (`ContractDistributionChart`)
@@ -623,7 +623,7 @@ Bandeau horizontal scrollable affichant les 5 joueurs avec avatar, nom, score cu
 
 **Fichier** : `components/InProgressBanner.tsx`
 
-Bandeau pour une donne en cours, affichant le preneur, le contrat, un bouton « Compléter » et un bouton optionnel « Annuler ».
+Bandeau pour une donne en cours, affichant le preneur, le contrat, un chronomètre en temps réel (temps écoulé depuis `createdAt`), un bouton « Compléter » et un bouton optionnel « Annuler ». Le chronomètre utilise le hook interne `useElapsedTime`.
 
 | Prop | Type | Description |
 |------|------|-------------|
@@ -644,7 +644,7 @@ Liste des donnes terminées en ordre anti-chronologique (position décroissante)
 | `onEditLast` | `() => void` | *requis* — action pour modifier la dernière donne |
 
 **Fonctionnalités** :
-- Chaque carte : avatar preneur, nom, badge contrat, « avec [partenaire] » ou « Seul », donneur, score du preneur
+- Chaque carte : avatar preneur, nom, badge contrat, durée de la donne (si `completedAt` disponible), « avec [partenaire] » ou « Seul », donneur, score du preneur
 - Boutons « Modifier » et « Supprimer » uniquement sur la dernière donne (position la plus élevée)
 - État vide : « Aucune donne jouée »
 
@@ -845,6 +845,28 @@ Graphique linéaire (Recharts) affichant l'évolution des scores cumulés de tou
 ---
 
 ## Services
+
+### `formatDuration`
+
+**Fichier** : `utils/formatDuration.ts`
+
+Formate une durée en secondes en texte lisible français.
+
+```ts
+import { formatDuration } from "./utils/formatDuration";
+
+formatDuration(0);     // "0s"
+formatDuration(65);    // "1min 5s"
+formatDuration(120);   // "2min"
+formatDuration(3661);  // "1h 1min"
+formatDuration(7200);  // "2h"
+```
+
+| Plage | Format |
+|-------|--------|
+| < 60s | `Xs` |
+| ≥ 60s et < 1h | `Xmin` ou `Xmin Xs` |
+| ≥ 1h | `Xh` ou `Xh Xmin` |
 
 ### `calculateScore`
 

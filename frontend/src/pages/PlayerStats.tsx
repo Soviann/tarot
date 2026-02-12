@@ -4,6 +4,7 @@ import EloEvolutionChart from "../components/EloEvolutionChart";
 import ScoreTrendChart from "../components/ScoreTrendChart";
 import { PlayerAvatar, ScoreDisplay } from "../components/ui";
 import { usePlayerStats } from "../hooks/usePlayerStats";
+import { formatDuration } from "../utils/formatDuration";
 
 export default function PlayerStats() {
   const { id } = useParams<{ id: string }>();
@@ -69,6 +70,12 @@ export default function PlayerStats() {
         <MetricCard label="Score moyen" value={String(stats.averageScore)} />
         <MetricCard label="ELO" value={String(stats.eloRating)} />
         <MetricCard label="Sessions" value={String(stats.sessionsPlayed)} />
+        {stats.averageGameDurationSeconds !== null && (
+          <MetricCard label="Durée moy. / donne" value={formatDuration(stats.averageGameDurationSeconds)} />
+        )}
+        {stats.totalPlayTimeSeconds > 0 && (
+          <MetricCard label="Temps de jeu total" value={formatDuration(stats.totalPlayTimeSeconds)} />
+        )}
       </div>
 
       {stats.totalStars > 0 && (

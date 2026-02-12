@@ -68,6 +68,10 @@ class Game
     #[ORM\Column(enumType: Chelem::class)]
     private Chelem $chelem = Chelem::None;
 
+    #[Groups(['game:read', 'session:detail'])]
+    #[ORM\Column(type: 'datetime_immutable', nullable: true)]
+    private ?\DateTimeImmutable $completedAt = null;
+
     #[Groups(['game:read', 'game:create', 'session:detail'])]
     #[ORM\Column(enumType: Contract::class)]
     private Contract $contract;
@@ -159,6 +163,18 @@ class Game
     public function setContract(Contract $contract): static
     {
         $this->contract = $contract;
+
+        return $this;
+    }
+
+    public function getCompletedAt(): ?\DateTimeImmutable
+    {
+        return $this->completedAt;
+    }
+
+    public function setCompletedAt(?\DateTimeImmutable $completedAt): static
+    {
+        $this->completedAt = $completedAt;
 
         return $this;
     }

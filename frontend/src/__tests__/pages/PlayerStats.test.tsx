@@ -14,6 +14,7 @@ vi.mock("react-router-dom", async (importOriginal) => ({
 vi.mock("../../hooks/usePlayerStats");
 
 const mockStats = {
+  averageGameDurationSeconds: 480,
   averageScore: 8.6,
   bestGameScore: 240,
   contractDistribution: [
@@ -36,6 +37,7 @@ const mockStats = {
   ],
   sessionsPlayed: 10,
   starPenalties: 0,
+  totalPlayTimeSeconds: 4800,
   totalStars: 0,
   winRateAsTaker: 57.1,
   worstGameScore: -360,
@@ -130,6 +132,20 @@ describe("PlayerStats page", () => {
     expect(screen.getByText("Preneur: 35")).toBeInTheDocument();
     expect(screen.getByText("Partenaire: 20")).toBeInTheDocument();
     expect(screen.getByText("Défenseur: 90")).toBeInTheDocument();
+  });
+
+  it("renders duration metrics", () => {
+    vi.mocked(usePlayerStatsModule.usePlayerStats).mockReturnValue({
+      isPending: false,
+      stats: mockStats,
+    } as ReturnType<typeof usePlayerStatsModule.usePlayerStats>);
+
+    renderWithProviders(<PlayerStats />);
+
+    expect(screen.getByText("Durée moy. / donne")).toBeInTheDocument();
+    expect(screen.getByText("8min")).toBeInTheDocument();
+    expect(screen.getByText("Temps de jeu total")).toBeInTheDocument();
+    expect(screen.getByText("1h 20min")).toBeInTheDocument();
   });
 
   it("navigates back to /stats on back button click", async () => {
