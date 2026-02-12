@@ -48,6 +48,7 @@ const mockSession: SessionDetail = {
   games: [
     {
       chelem: "none",
+      completedAt: "2025-02-01T14:05:00+00:00",
       contract: "garde",
       createdAt: "2025-02-01T14:10:00+00:00",
       id: 1,
@@ -264,6 +265,7 @@ const mockSessionWithInProgress = {
     ...mockSession.games,
     {
       chelem: "none" as const,
+      completedAt: null,
       contract: "petite" as const,
       createdAt: "2025-02-01T14:20:00+00:00",
       id: 2,

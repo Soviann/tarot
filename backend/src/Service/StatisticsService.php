@@ -189,7 +189,7 @@ class StatisticsService
     }
 
     /**
-     * @return array{averageScore: float, bestGameScore: int, contractDistribution: list<array{contract: string, count: int, winRate: float, wins: int}>, eloHistory: list<array{date: string, gameId: int, ratingAfter: int, ratingChange: int}>, eloRating: int, gamesAsDefender: int, gamesAsPartner: int, gamesAsTaker: int, gamesPlayed: int, player: array{id: int|null, name: string}, recentScores: list<array{date: string, gameId: int, score: int, sessionId: int}>, sessionsPlayed: int, starPenalties: int, totalStars: int, winRateAsTaker: float, worstGameScore: int}
+     * @return array{averageGameDurationSeconds: int|null, averageScore: float, bestGameScore: int, contractDistribution: list<array{contract: string, count: int, winRate: float, wins: int}>, eloHistory: list<array{date: string, gameId: int, ratingAfter: int, ratingChange: int}>, eloRating: int, gamesAsDefender: int, gamesAsPartner: int, gamesAsTaker: int, gamesPlayed: int, player: array{id: int|null, name: string}, recentScores: list<array{date: string, gameId: int, score: int, sessionId: int}>, sessionsPlayed: int, starPenalties: int, totalPlayTimeSeconds: int, totalStars: int, winRateAsTaker: float, worstGameScore: int}
      */
     public function getPlayerStats(Player $player): array
     {
@@ -321,7 +321,10 @@ class StatisticsService
 
         $starPenalties = (int) \floor($totalStars / 3);
 
+        $durationStats = $this->getPlayerDurationStats($player);
+
         return [
+            'averageGameDurationSeconds' => $durationStats['averageGameDurationSeconds'],
             'averageScore' => null !== $scoreAgg['averageScore'] ? \round((float) $scoreAgg['averageScore'], 1) : 0.0,
             'bestGameScore' => (int) ($scoreAgg['bestGameScore'] ?? 0),
             'contractDistribution' => $contractDistribution,
@@ -335,10 +338,62 @@ class StatisticsService
             'recentScores' => $formattedRecentScores,
             'sessionsPlayed' => $sessionsPlayed,
             'starPenalties' => $starPenalties,
+            'totalPlayTimeSeconds' => $durationStats['totalPlayTimeSeconds'],
             'totalStars' => $totalStars,
             'winRateAsTaker' => $gamesAsTaker > 0 ? \round($winsAsTaker / $gamesAsTaker * 100, 1) : 0.0,
             'worstGameScore' => (int) ($scoreAgg['worstGameScore'] ?? 0),
         ];
+    }
+
+    public function getAverageGameDurationSeconds(): ?int
+    {
+        /** @var string|null $avg */
+        $avg = $this->em->createQuery(
+            'SELECT AVG(TIMESTAMPDIFF(SECOND, g.createdAt, g.completedAt))
+             FROM App\Entity\Game g
+             WHERE g.status = :status AND g.completedAt IS NOT NULL'
+        )
+            ->setParameter('status', GameStatus::Completed)
+            ->getSingleScalarResult();
+
+        return null !== $avg ? (int) \round((float) $avg) : null;
+    }
+
+    /**
+     * @return array{averageGameDurationSeconds: int|null, totalPlayTimeSeconds: int}
+     */
+    public function getPlayerDurationStats(Player $player): array
+    {
+        /** @var array{avg: string|null, total: string|null} $row */
+        $row = $this->em->createQuery(
+            'SELECT AVG(TIMESTAMPDIFF(SECOND, g.createdAt, g.completedAt)) AS avg,
+                    SUM(TIMESTAMPDIFF(SECOND, g.createdAt, g.completedAt)) AS total
+             FROM App\Entity\Game g
+             JOIN App\Entity\ScoreEntry se WITH se.game = g AND se.player = :player
+             WHERE g.status = :status AND g.completedAt IS NOT NULL'
+        )
+            ->setParameter('player', $player)
+            ->setParameter('status', GameStatus::Completed)
+            ->getSingleResult();
+
+        return [
+            'averageGameDurationSeconds' => null !== $row['avg'] ? (int) \round((float) $row['avg']) : null,
+            'totalPlayTimeSeconds' => (int) ($row['total'] ?? 0),
+        ];
+    }
+
+    public function getTotalPlayTimeSeconds(): int
+    {
+        /** @var string|null $total */
+        $total = $this->em->createQuery(
+            'SELECT SUM(TIMESTAMPDIFF(SECOND, g.createdAt, g.completedAt))
+             FROM App\Entity\Game g
+             WHERE g.status = :status AND g.completedAt IS NOT NULL'
+        )
+            ->setParameter('status', GameStatus::Completed)
+            ->getSingleScalarResult();
+
+        return (int) ($total ?? 0);
     }
 
     public function getTotalStars(): int

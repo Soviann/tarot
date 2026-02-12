@@ -46,6 +46,7 @@ class GameApiTest extends ApiTestCase
         $data = $response->toArray();
         $this->assertSame(1, $data['position']);
         $this->assertSame('in_progress', $data['status']);
+        $this->assertNull($data['completedAt']);
     }
 
     public function testPositionAutoIncrements(): void
@@ -154,6 +155,7 @@ class GameApiTest extends ApiTestCase
         $this->assertResponseIsSuccessful();
         $data = $response->toArray();
         $this->assertSame('completed', $data['status']);
+        $this->assertNotNull($data['completedAt']);
         $this->assertCount(5, $data['scoreEntries']);
 
         // Vérifier les scores (Petite, 2 oudlers, 45 pts → base=29, preneur×2=58)
@@ -207,6 +209,46 @@ class GameApiTest extends ApiTestCase
             $scores[$entry['player']['name']] = $entry['score'];
         }
         $this->assertSame(68, $scores['Alice']);
+    }
+
+    public function testCompletedAtDoesNotChangeOnEdit(): void
+    {
+        $session = $this->createSessionWithPlayers('Alice', 'Bob', 'Charlie', 'Diana', 'Eve');
+        $players = $session->getPlayers()->toArray();
+
+        $this->client->disableReboot();
+
+        // Créer et compléter une donne
+        $response = $this->client->request('POST', $this->getIri($session).'/games', [
+            'headers' => ['Content-Type' => 'application/ld+json'],
+            'json' => [
+                'contract' => 'petite',
+                'taker' => $this->getIri($players[0]),
+            ],
+        ]);
+        $gameIri = $response->toArray()['@id'];
+
+        $response = $this->client->request('PATCH', $gameIri, [
+            'headers' => ['Content-Type' => 'application/merge-patch+json'],
+            'json' => [
+                'oudlers' => 2,
+                'partner' => $this->getIri($players[1]),
+                'points' => 45,
+                'status' => 'completed',
+            ],
+        ]);
+        $completedAt = $response->toArray()['completedAt'];
+        $this->assertNotNull($completedAt);
+
+        // Modifier la donne → completedAt ne change pas
+        $response = $this->client->request('PATCH', $gameIri, [
+            'headers' => ['Content-Type' => 'application/merge-patch+json'],
+            'json' => [
+                'points' => 50,
+            ],
+        ]);
+        $this->assertResponseIsSuccessful();
+        $this->assertSame($completedAt, $response->toArray()['completedAt']);
     }
 
     public function testOnlyLastGameEditable(): void

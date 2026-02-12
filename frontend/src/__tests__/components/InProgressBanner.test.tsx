@@ -6,6 +6,7 @@ import type { Game } from "../../types/api";
 
 const mockGame: Game = {
   chelem: "none",
+  completedAt: null,
   contract: "garde",
   createdAt: "2025-02-01T14:00:00+00:00",
   id: 1,
@@ -22,6 +23,20 @@ const mockGame: Game = {
 };
 
 describe("InProgressBanner", () => {
+  it("renders elapsed time since game creation", () => {
+    vi.useFakeTimers();
+    // Set "now" to 5 minutes after createdAt
+    vi.setSystemTime(new Date("2025-02-01T14:05:00+00:00"));
+
+    renderWithProviders(
+      <InProgressBanner game={mockGame} onComplete={() => {}} />,
+    );
+
+    expect(screen.getByText("5min")).toBeInTheDocument();
+
+    vi.useRealTimers();
+  });
+
   it("renders taker name and avatar", () => {
     renderWithProviders(
       <InProgressBanner game={mockGame} onComplete={() => {}} />,

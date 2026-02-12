@@ -37,7 +37,7 @@ class FullFlowApiTest extends ApiTestCase
         $sessionId = $sessionData['id'];
 
         // 3. Créer la donne 1 (step 1 : preneur + contrat)
-        $response = $this->client->request('POST', $sessionIri . '/games', [
+        $response = $this->client->request('POST', $sessionIri.'/games', [
             'headers' => ['Content-Type' => 'application/ld+json'],
             'json' => [
                 'contract' => 'petite',
@@ -83,7 +83,7 @@ class FullFlowApiTest extends ApiTestCase
         $this->assertSame(-29, $scoresByName['Eve']);
 
         // 6. Deuxième donne : créer + compléter
-        $response = $this->client->request('POST', $sessionIri . '/games', [
+        $response = $this->client->request('POST', $sessionIri.'/games', [
             'headers' => ['Content-Type' => 'application/ld+json'],
             'json' => [
                 'contract' => 'garde',
@@ -109,7 +109,7 @@ class FullFlowApiTest extends ApiTestCase
         $this->assertSame('completed', $response->toArray()['status']);
 
         // 7. Vérifier que les 2 donnes existent
-        $response = $this->client->request('GET', $sessionIri . '/games');
+        $response = $this->client->request('GET', $sessionIri.'/games');
         $gamesData = $response->toArray();
         $this->assertSame(2, $gamesData['totalItems'], 'Should have 2 games');
 

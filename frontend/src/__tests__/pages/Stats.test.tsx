@@ -13,6 +13,7 @@ vi.mock("react-router-dom", async (importOriginal) => ({
 vi.mock("../../hooks/useGlobalStats");
 
 const mockStats = {
+  averageGameDuration: 480,
   contractDistribution: [
     { contract: "petite" as const, count: 5, percentage: 50.0 },
     { contract: "garde" as const, count: 5, percentage: 50.0 },
@@ -42,6 +43,7 @@ const mockStats = {
     },
   ],
   totalGames: 10,
+  totalPlayTime: 4800,
   totalSessions: 2,
   totalStars: 0,
 };
@@ -112,6 +114,31 @@ describe("Stats page", () => {
     expect(screen.getByText("Classement ELO")).toBeInTheDocument();
     expect(screen.getByText("1520")).toBeInTheDocument();
     expect(screen.getByText("1480")).toBeInTheDocument();
+  });
+
+  it("renders duration stats when available", () => {
+    vi.mocked(useGlobalStatsModule.useGlobalStats).mockReturnValue({
+      isPending: false,
+      stats: mockStats,
+    } as ReturnType<typeof useGlobalStatsModule.useGlobalStats>);
+
+    renderWithProviders(<Stats />);
+
+    expect(screen.getByText("Durée moy. / donne")).toBeInTheDocument();
+    expect(screen.getByText("8min")).toBeInTheDocument();
+    expect(screen.getByText("Temps de jeu total")).toBeInTheDocument();
+    expect(screen.getByText("1h 20min")).toBeInTheDocument();
+  });
+
+  it("does not render duration stats when averageGameDuration is null", () => {
+    vi.mocked(useGlobalStatsModule.useGlobalStats).mockReturnValue({
+      isPending: false,
+      stats: { ...mockStats, averageGameDuration: null, totalPlayTime: 0 },
+    } as ReturnType<typeof useGlobalStatsModule.useGlobalStats>);
+
+    renderWithProviders(<Stats />);
+
+    expect(screen.queryByText("Durée moy. / donne")).not.toBeInTheDocument();
   });
 
   it("navigates to player stats on leaderboard click", async () => {

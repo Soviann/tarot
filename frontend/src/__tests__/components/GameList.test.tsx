@@ -6,6 +6,7 @@ import type { Game } from "../../types/api";
 
 const baseGame: Game = {
   chelem: "none",
+  completedAt: "2025-02-01T14:05:00+00:00",
   contract: "garde",
   createdAt: "2025-02-01T14:00:00+00:00",
   id: 1,
@@ -111,6 +112,28 @@ describe("GameList", () => {
 
     await userEvent.click(deleteButtons[0]);
     expect(onDeleteLast).toHaveBeenCalledOnce();
+  });
+
+  it("shows duration for completed games with completedAt", () => {
+    renderWithProviders(
+      <GameList games={games} onDeleteLast={() => {}} onEditLast={() => {}} />,
+    );
+
+    // baseGame: createdAt 14:00, completedAt 14:05 → 5min
+    expect(screen.getAllByText("5min").length).toBeGreaterThanOrEqual(1);
+  });
+
+  it("does not show duration for games without completedAt", () => {
+    const gamesWithoutCompletedAt = games.map((g) => ({
+      ...g,
+      completedAt: null,
+    }));
+    renderWithProviders(
+      <GameList games={gamesWithoutCompletedAt} onDeleteLast={() => {}} onEditLast={() => {}} />,
+    );
+
+    // No duration text should appear
+    expect(screen.queryByText(/min/)).not.toBeInTheDocument();
   });
 
   it("renders empty state when no games", () => {
