@@ -934,6 +934,7 @@ Modal de complétion (étape 2) ou modification d'une donne. Titre dynamique sel
 | `open` | `boolean` | *requis* — afficher ou masquer |
 | `onClose` | `() => void` | *requis* — fermeture |
 | `onGameCompleted` | `(ctx: GameContext) => void` | *optionnel* — callback pour déclencher un mème après une complétion réussie (pas en édition) |
+| `onGameSaved` | `(gameId: number) => void` | *optionnel* — callback appelé après la complétion réussie d'une nouvelle donne (pas en édition), avec l'ID de la donne sauvegardée. Utilisé par SessionPage pour afficher le bouton UndoFAB. |
 | `game` | `Game` | *requis* — donne à compléter/modifier |
 | `players` | `GamePlayer[]` | *requis* — les 5 joueurs de la session |
 | `sessionId` | `number` | *requis* — ID de la session |
@@ -1180,7 +1181,7 @@ Sélectionne un mème de défaite en fonction du contexte de la donne. Même pro
 Tous les composants sont exportés depuis `components/ui/index.ts` :
 
 ```tsx
-import { ContractBadge, FAB, Modal, PlayerAvatar, ScoreDisplay, SearchInput, Stepper } from "./components/ui";
+import { ContractBadge, FAB, Modal, PlayerAvatar, ScoreDisplay, SearchInput, Stepper, UndoFAB } from "./components/ui";
 ```
 
 ### `PlayerAvatar`
@@ -1253,6 +1254,27 @@ Bouton d'action flottant (Floating Action Button), positionné en bas à droite 
 import { Plus } from "lucide-react";
 <FAB aria-label="Nouvelle donne" icon={<Plus />} onClick={handleNewGame} />
 ```
+
+### `UndoFAB`
+
+**Fichier** : `components/ui/UndoFAB.tsx`
+
+Bouton d'action flottant temporaire (bas gauche) avec décompte circulaire SVG de 5 secondes. Utilisé pour annuler la dernière donne saisie.
+
+| Prop | Type | Description |
+|------|------|-------------|
+| `onDismiss` | `() => void` | *requis* — appelé quand le décompte expire (5s) |
+| `onUndo` | `() => void` | *requis* — appelé au clic sur le bouton |
+
+```tsx
+<UndoFAB onDismiss={() => setUndoGameId(null)} onUndo={handleUndo} />
+```
+
+**Comportement** :
+- Le bouton s'affiche avec un anneau SVG qui se vide progressivement pendant 5 secondes
+- Au clic : `onUndo` est appelé, le timer est annulé (pas de `onDismiss`)
+- À l'expiration : `onDismiss` est appelé automatiquement
+- Animation CSS `animate-undo-countdown` définie dans `index.css`
 
 ### `Modal`
 

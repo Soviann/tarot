@@ -236,6 +236,12 @@ La saisie se fait en **2 étapes** :
 
 > Les scores sont calculés automatiquement selon les règles FFT et répartis entre les joueurs.
 
+### Annuler rapidement la dernière donne
+
+Après la validation d'une donne, un **bouton flottant « Annuler »** (en bas à gauche) apparaît pendant **5 secondes** avec un décompte circulaire visuel. Appuyer dessus **supprime immédiatement** la donne qui vient d'être saisie. Si le décompte arrive à zéro sans appui, le bouton disparaît automatiquement.
+
+> **Astuce** : pratique en cas d'erreur de saisie détectée juste après validation, sans passer par la modale de suppression.
+
 ### Modifier la dernière donne
 
 Seule la **dernière donne** de la session est modifiable. Pour la modifier :
