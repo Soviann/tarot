@@ -8,9 +8,9 @@ Le format est basé sur [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/)
 
 ### Added
 
-- **Mème de défaite aléatoire** : quand l'attaque perd une donne, un mème plein écran peut apparaître pendant 3 secondes (~40 % de chance). Défaite « improbable » (3 bouts, chelem raté, garde contre perdue) = Pikachu surpris systématique. Mème adapté au contrat (Vince McMahon inversé à 3 niveaux de déception). Pool par défaut : Sad Pablo, Crying Jordan, First Time?, Ah Shit Here We Go Again, Why Are We Still Here?. Service `selectDefeatMeme`, 9 nouvelles images dans `public/memes/`.
-
-- **Mème de victoire aléatoire** : quand l'attaque gagne une donne, un mème plein écran peut apparaître pendant 3 secondes (~40 % de chance). Petit au bout attaque = mème systématique. Mème adapté au contrat (Vince McMahon à 4 niveaux d'excitation). Pool par défaut : Deal With It, Champions, DiCaprio Toast, Over 9000. Composant `MemeOverlay`, service `selectVictoryMeme`, 9 images dans `public/memes/`.
+- **Mèmes de victoire et défaite** : système de mèmes plein écran à la complétion d'une donne (~40 % de chance, 3 secondes). Composant `MemeOverlay`, services `selectVictoryMeme` / `selectDefeatMeme`, 16 images dans `public/memes/`.
+  - **Victoire** — déclencheurs garantis : Success Kid (petit au bout attaque), Obama se décore (victoire en solo). Pool aléatoire : Borat, Champions, DiCaprio Toast, Over 9000, Pacha.
+  - **Défaite** — déclencheurs garantis : You Were the Chosen One / Pikachu surpris / Picard Facepalm (défaite improbable : 3 bouts, chelem raté, garde contre), Crying Jordan (garde sans perdue), First Time? (première défaite du preneur dans la session). 40 % This is Fine, sinon pool : Ah Shit, Just to Suffer, Sad Pablo.
 
 - **Suivi de la durée des donnes** : nouveau champ `completedAt` sur les donnes, renseigné automatiquement à la complétion. Chronomètre en temps réel sur le bandeau de donne en cours. Durée affichée dans l'historique des donnes. Nouvelles statistiques globales (durée moyenne par donne, temps de jeu total) et par joueur. Utilitaire `formatDuration` et hook `useElapsedTime`.
 
