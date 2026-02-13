@@ -7,6 +7,8 @@ function makeContext(overrides: Partial<GameContext> = {}): GameContext {
     attackWins: true,
     chelem: Chelem.None,
     contract: Contract.Petite,
+    isFirstTakerDefeat: false,
+    isSelfCall: false,
     oudlers: 0,
     petitAuBout: Side.None,
     ...overrides,
@@ -15,8 +17,7 @@ function makeContext(overrides: Partial<GameContext> = {}): GameContext {
 
 // Math.random() call order (when no petit au bout):
 // 1st: overall meme gate (< 0.4 → proceed, >= 0.4 → null)
-// 2nd: Vince chance (< 0.4 → Vince, >= 0.4 → basic pool)
-// 3rd: basic pool index (if needed)
+// 2nd: basic pool index
 
 describe("selectVictoryMeme", () => {
   afterEach(() => {
@@ -45,81 +46,56 @@ describe("selectVictoryMeme", () => {
     expect(result).not.toBeNull();
     expect(result!.id).toBe("success-kid");
     expect(result!.image).toBe("/memes/success-kid.webp");
-    expect(result!.caption).toBeTruthy();
   });
 
-  it("returns vince-1 for Petite when both randoms < 0.4", () => {
-    vi.spyOn(Math, "random").mockReturnValue(0.1);
+  it("returns obama-medal when self-call win (ignores overall chance)", () => {
+    vi.spyOn(Math, "random").mockReturnValue(0.99);
 
-    const result = selectVictoryMeme(makeContext({ contract: Contract.Petite }));
+    const result = selectVictoryMeme(makeContext({ isSelfCall: true }));
 
-    expect(result!.id).toBe("vince-1");
+    expect(result).not.toBeNull();
+    expect(result!.id).toBe("obama-medal");
+    expect(result!.image).toBe("/memes/obama-medal.webp");
   });
 
-  it("returns vince-2 for Garde when both randoms < 0.4", () => {
-    vi.spyOn(Math, "random").mockReturnValue(0.2);
+  it("petit au bout takes priority over self-call", () => {
+    vi.spyOn(Math, "random").mockReturnValue(0.99);
 
-    const result = selectVictoryMeme(makeContext({ contract: Contract.Garde }));
+    const result = selectVictoryMeme(makeContext({ isSelfCall: true, petitAuBout: Side.Attack }));
 
-    expect(result!.id).toBe("vince-2");
+    expect(result!.id).toBe("success-kid");
   });
 
-  it("returns vince-3 for Garde Sans when both randoms < 0.4", () => {
-    vi.spyOn(Math, "random").mockReturnValue(0.1);
-
-    const result = selectVictoryMeme(makeContext({ contract: Contract.GardeSans }));
-
-    expect(result!.id).toBe("vince-3");
-  });
-
-  it("returns vince-4 for Garde Contre when both randoms < 0.4", () => {
-    vi.spyOn(Math, "random").mockReturnValue(0.39);
-
-    const result = selectVictoryMeme(makeContext({ contract: Contract.GardeContre }));
-
-    expect(result!.id).toBe("vince-4");
-  });
-
-  it("returns a basic pool meme when gate passes but Vince chance fails", () => {
+  it("returns a basic pool meme when gate passes", () => {
     vi.spyOn(Math, "random")
       .mockReturnValueOnce(0.1)   // 1st call: pass gate (< 0.4)
-      .mockReturnValueOnce(0.5)   // 2nd call: skip Vince (>= 0.4)
-      .mockReturnValueOnce(0);    // 3rd call: pick from pool (index 0)
+      .mockReturnValueOnce(0);    // 2nd call: pick from pool (index 0)
 
     const result = selectVictoryMeme(makeContext());
 
     expect(result).not.toBeNull();
-    expect(["deal-with-it", "champions", "dicaprio-toast", "over-9000"]).toContain(result!.id);
+    expect(["borat", "champions", "dicaprio-toast", "over-9000", "pacha"]).toContain(result!.id);
   });
 
-  it("all returned memes have valid id, image, and caption", () => {
-    const contracts = [Contract.Petite, Contract.Garde, Contract.GardeSans, Contract.GardeContre];
-
+  it("all returned memes have valid id and image", () => {
     // Test petit au bout (always shown)
     vi.spyOn(Math, "random").mockReturnValue(0.99);
     const petitResult = selectVictoryMeme(makeContext({ petitAuBout: Side.Attack }));
     expect(petitResult!.id).toBeTruthy();
     expect(petitResult!.image).toMatch(/^\/memes\/.+\.webp$/);
-    expect(petitResult!.caption).toBeTruthy();
 
-    // Test Vince variants (gate + Vince both pass)
-    for (const contract of contracts) {
-      vi.spyOn(Math, "random").mockReturnValue(0.1);
-      const vinceResult = selectVictoryMeme(makeContext({ contract }));
-      expect(vinceResult!.id).toBeTruthy();
-      expect(vinceResult!.image).toMatch(/^\/memes\/.+\.webp$/);
-      expect(vinceResult!.caption).toBeTruthy();
-    }
+    // Test obama-medal (always shown on self-call)
+    const obamaResult = selectVictoryMeme(makeContext({ isSelfCall: true }));
+    expect(obamaResult!.id).toBeTruthy();
+    expect(obamaResult!.image).toMatch(/^\/memes\/.+\.webp$/);
 
-    // Test basic pool (gate passes, Vince fails)
+    // Test basic pool
     vi.spyOn(Math, "random")
       .mockReturnValueOnce(0.1)   // gate
-      .mockReturnValueOnce(0.5)   // skip Vince
       .mockReturnValueOnce(0);    // pool index
     const poolResult = selectVictoryMeme(makeContext());
     expect(poolResult!.id).toBeTruthy();
     expect(poolResult!.image).toMatch(/^\/memes\/.+\.webp$/);
-    expect(poolResult!.caption).toBeTruthy();
   });
 
   it("petit au bout defense does NOT trigger success-kid", () => {
@@ -131,10 +107,13 @@ describe("selectVictoryMeme", () => {
   });
 });
 
-// Math.random() call order for defeat (when no pikachu trigger):
-// 1st: overall meme gate (< 0.4 → proceed, >= 0.4 → null)
-// 2nd: reverse Vince chance (< 0.4 → reverse Vince, >= 0.4 → basic pool)
-// 3rd: basic pool index (if needed)
+// Defeat meme priority order:
+// 1. Improbable defeat (3 bouts, chelem raté, garde contre) → guaranteed Pikachu/Picard
+// 2. Garde sans perdue → guaranteed Crying Jordan
+// 3. First taker defeat in session → guaranteed First Time?
+// 4. 40% gate → 40% This is Fine / 60% random pool
+
+const IMPROBABLE_DEFEAT_IDS = ["chosen-one", "picard-facepalm", "pikachu-surprised"];
 
 describe("selectDefeatMeme", () => {
   afterEach(() => {
@@ -155,140 +134,205 @@ describe("selectDefeatMeme", () => {
     expect(result).toBeNull();
   });
 
-  // --- Pikachu surprised: guaranteed on improbable defeats ---
+  // --- Priority 1: Improbable defeats ---
 
-  it("returns pikachu-surprised when losing with 3 bouts (ignores chance)", () => {
-    vi.spyOn(Math, "random").mockReturnValue(0.99);
+  it("returns an improbable defeat meme when losing with 3 bouts (ignores chance)", () => {
+    vi.spyOn(Math, "random").mockReturnValueOnce(0);
 
     const result = selectDefeatMeme(makeContext({ attackWins: false, oudlers: 3 }));
 
     expect(result).not.toBeNull();
-    expect(result!.id).toBe("pikachu-surprised");
-    expect(result!.image).toBe("/memes/pikachu-surprised.webp");
-    expect(result!.caption).toBeTruthy();
+    expect(IMPROBABLE_DEFEAT_IDS).toContain(result!.id);
+    expect(result!.image).toMatch(/^\/memes\/.+\.webp$/);
   });
 
-  it("returns pikachu-surprised when chelem raté (ignores chance)", () => {
+  it("returns an improbable defeat meme when chelem raté (ignores chance)", () => {
     vi.spyOn(Math, "random").mockReturnValue(0.99);
 
     const result = selectDefeatMeme(makeContext({ attackWins: false, chelem: Chelem.AnnouncedLost }));
 
     expect(result).not.toBeNull();
-    expect(result!.id).toBe("pikachu-surprised");
+    expect(IMPROBABLE_DEFEAT_IDS).toContain(result!.id);
   });
 
-  it("returns pikachu-surprised when garde contre perdue (ignores chance)", () => {
+  it("returns an improbable defeat meme when garde contre perdue (ignores chance)", () => {
     vi.spyOn(Math, "random").mockReturnValue(0.99);
 
     const result = selectDefeatMeme(makeContext({ attackWins: false, contract: Contract.GardeContre }));
 
     expect(result).not.toBeNull();
+    expect(IMPROBABLE_DEFEAT_IDS).toContain(result!.id);
+  });
+
+  it("can return chosen-one on improbable defeat", () => {
+    vi.spyOn(Math, "random").mockReturnValueOnce(0);
+
+    const result = selectDefeatMeme(makeContext({ attackWins: false, oudlers: 3 }));
+
+    expect(result!.id).toBe("chosen-one");
+  });
+
+  it("can return picard-facepalm on improbable defeat", () => {
+    vi.spyOn(Math, "random").mockReturnValueOnce(0.34);
+
+    const result = selectDefeatMeme(makeContext({ attackWins: false, oudlers: 3 }));
+
+    expect(result!.id).toBe("picard-facepalm");
+  });
+
+  it("can return pikachu-surprised on improbable defeat", () => {
+    vi.spyOn(Math, "random").mockReturnValueOnce(0.67);
+
+    const result = selectDefeatMeme(makeContext({ attackWins: false, oudlers: 3 }));
+
     expect(result!.id).toBe("pikachu-surprised");
   });
 
-  // --- Reverse Vince McMahon: contract-specific disappointment ---
+  // --- Priority 2: Crying Jordan on garde sans perdue ---
 
-  it("returns vince-reverse-1 for Petite when both randoms < 0.4", () => {
-    vi.spyOn(Math, "random").mockReturnValue(0.1);
-
-    const result = selectDefeatMeme(makeContext({ attackWins: false, contract: Contract.Petite }));
-
-    expect(result!.id).toBe("vince-reverse-1");
-  });
-
-  it("returns vince-reverse-2 for Garde when both randoms < 0.4", () => {
-    vi.spyOn(Math, "random").mockReturnValue(0.2);
-
-    const result = selectDefeatMeme(makeContext({ attackWins: false, contract: Contract.Garde }));
-
-    expect(result!.id).toBe("vince-reverse-2");
-  });
-
-  it("returns vince-reverse-3 for Garde Sans when both randoms < 0.4", () => {
-    vi.spyOn(Math, "random").mockReturnValue(0.1);
+  it("returns crying-jordan when garde sans is lost (guaranteed)", () => {
+    vi.spyOn(Math, "random").mockReturnValue(0.99);
 
     const result = selectDefeatMeme(makeContext({ attackWins: false, contract: Contract.GardeSans }));
 
-    expect(result!.id).toBe("vince-reverse-3");
+    expect(result!.id).toBe("crying-jordan");
   });
 
-  // Note: GardeContre is handled by pikachu (guaranteed), so no vince-reverse-4 test
+  // --- Priority 3: First Time? on taker's first defeat ---
+
+  it("returns first-time when it is the taker's first defeat in session (guaranteed)", () => {
+    vi.spyOn(Math, "random").mockReturnValue(0.99);
+
+    const result = selectDefeatMeme(makeContext({ attackWins: false, isFirstTakerDefeat: true }));
+
+    expect(result!.id).toBe("first-time");
+  });
+
+  it("does NOT return first-time when taker already lost before", () => {
+    vi.spyOn(Math, "random").mockReturnValue(0.5);
+
+    const result = selectDefeatMeme(makeContext({ attackWins: false, isFirstTakerDefeat: false }));
+
+    expect(result).toBeNull(); // random >= 0.4, no meme
+  });
+
+  // --- Priority order: improbable > crying jordan > first time ---
+
+  it("improbable defeat takes priority over garde sans (crying jordan)", () => {
+    vi.spyOn(Math, "random").mockReturnValue(0);
+
+    // Garde sans with 3 bouts → improbable wins
+    const result = selectDefeatMeme(makeContext({
+      attackWins: false,
+      contract: Contract.GardeSans,
+      oudlers: 3,
+    }));
+
+    expect(IMPROBABLE_DEFEAT_IDS).toContain(result!.id);
+  });
+
+  it("crying jordan takes priority over first-time", () => {
+    vi.spyOn(Math, "random").mockReturnValue(0.99);
+
+    const result = selectDefeatMeme(makeContext({
+      attackWins: false,
+      contract: Contract.GardeSans,
+      isFirstTakerDefeat: true,
+    }));
+
+    expect(result!.id).toBe("crying-jordan");
+  });
+
+  // --- This is Fine ---
+
+  it("returns this-is-fine when both randoms < 0.4", () => {
+    vi.spyOn(Math, "random").mockReturnValue(0.1);
+
+    const result = selectDefeatMeme(makeContext({ attackWins: false }));
+
+    expect(result!.id).toBe("this-is-fine");
+  });
 
   // --- Basic defeat pool ---
 
-  it("returns a basic defeat pool meme when gate passes but Vince chance fails", () => {
+  it("returns a basic defeat pool meme when gate passes but This is Fine chance fails", () => {
     vi.spyOn(Math, "random")
       .mockReturnValueOnce(0.1)   // 1st call: pass gate (< 0.4)
-      .mockReturnValueOnce(0.5)   // 2nd call: skip Vince (>= 0.4)
+      .mockReturnValueOnce(0.5)   // 2nd call: skip This is Fine (>= 0.4)
       .mockReturnValueOnce(0);    // 3rd call: pick from pool (index 0)
 
     const result = selectDefeatMeme(makeContext({ attackWins: false }));
 
     expect(result).not.toBeNull();
-    expect(["sad-pablo", "crying-jordan", "first-time", "ah-shit", "just-to-suffer"]).toContain(result!.id);
+    expect(["ah-shit", "just-to-suffer", "sad-pablo"]).toContain(result!.id);
   });
 
   // --- Validation ---
 
-  it("all returned memes have valid id, image, and caption", () => {
-    const contracts = [Contract.Petite, Contract.Garde, Contract.GardeSans];
+  it("all returned memes have valid id and image", () => {
+    // Test improbable defeat
+    vi.spyOn(Math, "random").mockReturnValue(0);
+    const improbableResult = selectDefeatMeme(makeContext({ attackWins: false, oudlers: 3 }));
+    expect(improbableResult!.id).toBeTruthy();
+    expect(improbableResult!.image).toMatch(/^\/memes\/.+\.webp$/);
 
-    // Test pikachu (always shown for 3 bouts)
-    vi.spyOn(Math, "random").mockReturnValue(0.99);
-    const pikachuResult = selectDefeatMeme(makeContext({ attackWins: false, oudlers: 3 }));
-    expect(pikachuResult!.id).toBeTruthy();
-    expect(pikachuResult!.image).toMatch(/^\/memes\/.+\.webp$/);
-    expect(pikachuResult!.caption).toBeTruthy();
+    // Test Crying Jordan
+    const cryingResult = selectDefeatMeme(makeContext({ attackWins: false, contract: Contract.GardeSans }));
+    expect(cryingResult!.id).toBe("crying-jordan");
+    expect(cryingResult!.image).toMatch(/^\/memes\/.+\.webp$/);
 
-    // Test reverse Vince variants (gate + Vince both pass)
-    for (const contract of contracts) {
-      vi.spyOn(Math, "random").mockReturnValue(0.1);
-      const vinceResult = selectDefeatMeme(makeContext({ attackWins: false, contract }));
-      expect(vinceResult!.id).toBeTruthy();
-      expect(vinceResult!.image).toMatch(/^\/memes\/.+\.webp$/);
-      expect(vinceResult!.caption).toBeTruthy();
-    }
+    // Test First Time
+    const firstTimeResult = selectDefeatMeme(makeContext({ attackWins: false, isFirstTakerDefeat: true }));
+    expect(firstTimeResult!.id).toBe("first-time");
+    expect(firstTimeResult!.image).toMatch(/^\/memes\/.+\.webp$/);
 
-    // Test basic pool (gate passes, Vince fails)
+    // Test This is Fine (gate + chance both pass)
+    vi.spyOn(Math, "random").mockReturnValue(0.1);
+    const thisIsFineResult = selectDefeatMeme(makeContext({ attackWins: false }));
+    expect(thisIsFineResult!.id).toBe("this-is-fine");
+    expect(thisIsFineResult!.image).toMatch(/^\/memes\/.+\.webp$/);
+
+    // Test basic pool (gate passes, This is Fine fails)
     vi.spyOn(Math, "random")
       .mockReturnValueOnce(0.1)   // gate
-      .mockReturnValueOnce(0.5)   // skip Vince
+      .mockReturnValueOnce(0.5)   // skip This is Fine
       .mockReturnValueOnce(0);    // pool index
     const poolResult = selectDefeatMeme(makeContext({ attackWins: false }));
     expect(poolResult!.id).toBeTruthy();
     expect(poolResult!.image).toMatch(/^\/memes\/.+\.webp$/);
-    expect(poolResult!.caption).toBeTruthy();
   });
 
-  it("2 bouts does NOT trigger pikachu", () => {
+  // --- Negative tests ---
+
+  it("2 bouts does NOT trigger improbable defeat meme", () => {
     vi.spyOn(Math, "random").mockReturnValue(0.1);
 
     const result = selectDefeatMeme(makeContext({ attackWins: false, oudlers: 2 }));
 
-    expect(result!.id).not.toBe("pikachu-surprised");
+    expect(IMPROBABLE_DEFEAT_IDS).not.toContain(result!.id);
   });
 
-  it("chelem none does NOT trigger pikachu", () => {
+  it("chelem none does NOT trigger improbable defeat meme", () => {
     vi.spyOn(Math, "random").mockReturnValue(0.1);
 
     const result = selectDefeatMeme(makeContext({ attackWins: false, chelem: Chelem.None }));
 
-    expect(result!.id).not.toBe("pikachu-surprised");
+    expect(IMPROBABLE_DEFEAT_IDS).not.toContain(result!.id);
   });
 
-  it("chelem announced won does NOT trigger pikachu", () => {
+  it("chelem announced won does NOT trigger improbable defeat meme", () => {
     vi.spyOn(Math, "random").mockReturnValue(0.1);
 
     const result = selectDefeatMeme(makeContext({ attackWins: false, chelem: Chelem.AnnouncedWon }));
 
-    expect(result!.id).not.toBe("pikachu-surprised");
+    expect(IMPROBABLE_DEFEAT_IDS).not.toContain(result!.id);
   });
 
-  it("chelem not announced won does NOT trigger pikachu", () => {
+  it("chelem not announced won does NOT trigger improbable defeat meme", () => {
     vi.spyOn(Math, "random").mockReturnValue(0.1);
 
     const result = selectDefeatMeme(makeContext({ attackWins: false, chelem: Chelem.NotAnnouncedWon }));
 
-    expect(result!.id).not.toBe("pikachu-surprised");
+    expect(IMPROBABLE_DEFEAT_IDS).not.toContain(result!.id);
   });
 });

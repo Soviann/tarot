@@ -938,6 +938,8 @@ const ctx: GameContext = {
   attackWins: true,
   chelem: "none",
   contract: "garde_contre",
+  isFirstTakerDefeat: false,
+  isSelfCall: false,
   oudlers: 2,
   petitAuBout: "none",
 };
@@ -945,9 +947,9 @@ const ctx: GameContext = {
 const meme = selectVictoryMeme(ctx) ?? selectDefeatMeme(ctx);
 
 if (meme) {
-  meme.id;      // "vince-4"
-  meme.image;   // "/memes/vince-4.webp"
-  meme.caption; // "GARDE CONTRE RÉUSSIE !!!"
+  meme.id;      // "champions"
+  meme.image;   // "/memes/champions.webp"
+  meme.caption; // ""
 }
 ```
 
@@ -958,6 +960,8 @@ if (meme) {
 | `attackWins` | `boolean` | L'attaque a-t-elle gagné |
 | `chelem` | `Chelem` | Type de chelem (pour détecter chelem raté) |
 | `contract` | `Contract` | Contrat joué |
+| `isFirstTakerDefeat` | `boolean` | Première défaite du preneur dans la session |
+| `isSelfCall` | `boolean` | Victoire en solo (appel au roi seul) |
 | `oudlers` | `number` | Nombre de bouts (0-3) |
 | `petitAuBout` | `Side` | Petit au bout (attaque/défense/aucun) |
 
@@ -965,55 +969,43 @@ if (meme) {
 
 1. `attackWins === false` → retourne `null`
 2. `petitAuBout === "attack"` → toujours `success-kid` (événement rare, toujours célébré)
-3. `Math.random() >= 0.4` → retourne `null` (60 % de chance de ne rien afficher)
-4. `Math.random() < 0.4` → Vince McMahon selon le contrat :
+3. `isSelfCall === true` → toujours `obama-medal` (le preneur se décore lui-même)
+4. `Math.random() >= 0.4` → retourne `null` (60 % de chance de ne rien afficher)
+5. Aléatoire dans le pool par défaut :
 
-| Contrat | ID | Image | Légende |
-|---------|----|-------|---------|
-| Petite | `vince-1` | Vince intéressé | « Petite tranquille ! » |
-| Garde | `vince-2` | Vince excité | « La garde est assurée ! » |
-| Garde Sans | `vince-3` | Vince debout | « Garde sans, pas de problème ! » |
-| Garde Contre | `vince-4` | Vince renversé | « GARDE CONTRE RÉUSSIE !!! » |
-
-5. Sinon → aléatoire dans le pool par défaut :
-
-| ID | Image | Légende |
-|----|-------|---------|
-| `deal-with-it` | Lunettes de soleil | « Deal with it 😎 » |
-| `champions` | Freddie Mercury | « We are the champions ! » |
-| `dicaprio-toast` | DiCaprio toast | « À la victoire ! » |
-| `over-9000` | Vegeta Over 9000 | « It's over 9000 ! » |
+| ID | Image |
+|----|-------|
+| `borat` | Borat "Great Success" |
+| `champions` | Freddie Mercury |
+| `dicaprio-toast` | DiCaprio toast |
+| `over-9000` | Vegeta Over 9000 |
+| `pacha` | Pacha (le point parfait) |
 
 ### `selectDefeatMeme`
 
 **Fichier** : `services/memeSelector.ts`
 
-Sélectionne un mème de défaite en fonction du contexte de la donne. Même probabilité de base (40 %) que pour la victoire.
+Sélectionne un mème de défaite en fonction du contexte de la donne. Même probabilité de base (40 %) que pour la victoire, sauf pour les mèmes garantis.
 
 **Logique de sélection défaite** (ordre de priorité) :
 
 1. `attackWins === true` → retourne `null`
-2. Défaite « improbable » → toujours `pikachu-surprised` : 3 bouts + défaite, chelem raté (`announced_lost`), ou garde contre perdue
-3. `Math.random() >= 0.4` → retourne `null` (60 % de chance de ne rien afficher)
-4. `Math.random() < 0.4` → Vince McMahon inversé selon le contrat :
+2. Défaite « improbable » → toujours un mème garanti (aléatoire entre `chosen-one`, `pikachu-surprised` et `picard-facepalm`) : 3 bouts + défaite, chelem raté (`announced_lost`), ou garde contre perdue
+3. Garde sans perdue → toujours `crying-jordan`
+4. Première défaite du preneur dans la session → toujours `first-time`
+5. `Math.random() >= 0.4` → retourne `null` (60 % de chance de ne rien afficher)
+6. `Math.random() < 0.4` → `this-is-fine` (chien dans les flammes)
+7. Sinon → aléatoire dans le pool de défaite :
 
-| Contrat | ID | Image | Légende |
-|---------|----|-------|---------|
-| Petite | `vince-reverse-1` | Vince déçu | « Même la petite... » |
-| Garde | `vince-reverse-2` | Vince mécontent | « La garde est chutée... » |
-| Garde Sans | `vince-reverse-3` | Vince effondré | « Garde sans... perdue. » |
+| ID | Image |
+|----|-------|
+| `ah-shit` | CJ (GTA San Andreas) |
+| `just-to-suffer` | Metal Gear Solid V |
+| `sad-pablo` | Pablo Escobar seul |
 
-5. Sinon → aléatoire dans le pool de défaite :
+> **Note** : les mèmes n'ont pas de légende textuelle — seule l'image s'affiche (sauf exceptions).
 
-| ID | Image | Légende |
-|----|-------|---------|
-| `ah-shit` | CJ (GTA San Andreas) | « Ah shit, here we go again » |
-| `crying-jordan` | Michael Jordan en pleurs | « Crying Jordan » |
-| `first-time` | James Franco pendu | « First time ? » |
-| `just-to-suffer` | Metal Gear Solid V | « Why are we still here? Just to suffer? » |
-| `sad-pablo` | Pablo Escobar seul | « Sad Pablo » |
-
-**Assets mèmes** : `frontend/public/memes/*.webp` (18 fichiers). Format `.webp`.
+**Assets mèmes** : `frontend/public/memes/*.webp` (16 fichiers). Format `.webp`.
 
 ---
 

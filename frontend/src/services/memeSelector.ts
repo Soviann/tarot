@@ -10,58 +10,70 @@ export interface GameContext {
   attackWins: boolean;
   chelem: Chelem;
   contract: Contract;
+  isFirstTakerDefeat: boolean;
+  isSelfCall: boolean;
   oudlers: number;
   petitAuBout: Side;
 }
 
 // --- Victory memes ---
 
+const OBAMA_MEDAL: MemeConfig = {
+  caption: "",
+  id: "obama-medal",
+  image: "/memes/obama-medal.webp",
+};
+
 const SUCCESS_KID: MemeConfig = {
-  caption: "Petit au bout, comme un chef !",
+  caption: "",
   id: "success-kid",
   image: "/memes/success-kid.webp",
 };
 
-const VINCE_MEMES: Record<string, MemeConfig> = {
-  [Contract.Garde]: { caption: "La garde est assurée !", id: "vince-2", image: "/memes/vince-2.webp" },
-  [Contract.GardeContre]: { caption: "GARDE CONTRE RÉUSSIE !!!", id: "vince-4", image: "/memes/vince-4.webp" },
-  [Contract.GardeSans]: { caption: "Garde sans, pas de problème !", id: "vince-3", image: "/memes/vince-3.webp" },
-  [Contract.Petite]: { caption: "Petite tranquille !", id: "vince-1", image: "/memes/vince-1.webp" },
-};
-
 const BASIC_POOL: MemeConfig[] = [
-  { caption: "Deal with it 😎", id: "deal-with-it", image: "/memes/deal-with-it.webp" },
-  { caption: "We are the champions !", id: "champions", image: "/memes/champions.webp" },
-  { caption: "À la victoire !", id: "dicaprio-toast", image: "/memes/dicaprio-toast.webp" },
-  { caption: "It's over 9000 !", id: "over-9000", image: "/memes/over-9000.webp" },
+  { caption: "", id: "borat", image: "/memes/borat.webp" },
+  { caption: "", id: "champions", image: "/memes/champions.webp" },
+  { caption: "", id: "dicaprio-toast", image: "/memes/dicaprio-toast.webp" },
+  { caption: "", id: "over-9000", image: "/memes/over-9000.webp" },
+  { caption: "", id: "pacha", image: "/memes/pacha.webp" },
 ];
 
 // --- Defeat memes ---
 
-const PIKACHU_SURPRISED: MemeConfig = {
-  caption: "Mais... comment ?!",
-  id: "pikachu-surprised",
-  image: "/memes/pikachu-surprised.webp",
+const IMPROBABLE_DEFEAT_POOL: MemeConfig[] = [
+  { caption: "", id: "chosen-one", image: "/memes/chosen-one.webp" },
+  { caption: "", id: "picard-facepalm", image: "/memes/picard-facepalm.webp" },
+  { caption: "", id: "pikachu-surprised", image: "/memes/pikachu-surprised.webp" },
+];
+
+const CRYING_JORDAN: MemeConfig = {
+  caption: "",
+  id: "crying-jordan",
+  image: "/memes/crying-jordan.webp",
 };
 
-const VINCE_REVERSE_MEMES: Record<string, MemeConfig> = {
-  [Contract.Garde]: { caption: "La garde est chutée...", id: "vince-reverse-2", image: "/memes/vince-reverse-2.webp" },
-  [Contract.GardeSans]: { caption: "Garde sans... perdue.", id: "vince-reverse-3", image: "/memes/vince-reverse-3.webp" },
-  [Contract.Petite]: { caption: "Même la petite...", id: "vince-reverse-1", image: "/memes/vince-reverse-1.webp" },
+const FIRST_TIME: MemeConfig = {
+  caption: "",
+  id: "first-time",
+  image: "/memes/first-time.webp",
+};
+
+const THIS_IS_FINE: MemeConfig = {
+  caption: "",
+  id: "this-is-fine",
+  image: "/memes/this-is-fine.webp",
 };
 
 const DEFEAT_POOL: MemeConfig[] = [
-  { caption: "Ah shit, here we go again", id: "ah-shit", image: "/memes/ah-shit.webp" },
-  { caption: "Crying Jordan", id: "crying-jordan", image: "/memes/crying-jordan.webp" },
-  { caption: "First time ?", id: "first-time", image: "/memes/first-time.webp" },
-  { caption: "Why are we still here? Just to suffer?", id: "just-to-suffer", image: "/memes/just-to-suffer.webp" },
-  { caption: "Sad Pablo", id: "sad-pablo", image: "/memes/sad-pablo.webp" },
+  { caption: "", id: "ah-shit", image: "/memes/ah-shit.webp" },
+  { caption: "", id: "just-to-suffer", image: "/memes/just-to-suffer.webp" },
+  { caption: "", id: "sad-pablo", image: "/memes/sad-pablo.webp" },
 ];
 
 // --- Shared constants ---
 
 const MEME_CHANCE = 0.4;
-const VINCE_CHANCE = 0.4;
+const THIS_IS_FINE_CHANCE = 0.4;
 
 // --- Selectors ---
 
@@ -73,33 +85,43 @@ export function selectVictoryMeme(ctx: GameContext): MemeConfig | null {
     return SUCCESS_KID;
   }
 
+  // Priority 2: Self-call win — always Obama Medal (taker rewards themselves)
+  if (ctx.isSelfCall) {
+    return OBAMA_MEDAL;
+  }
+
   // 40% overall chance of showing a meme
   if (Math.random() >= MEME_CHANCE) return null;
 
-  // Among shown memes: 40% chance for Vince McMahon at contract-specific level
-  if (Math.random() < VINCE_CHANCE) {
-    return VINCE_MEMES[ctx.contract];
-  }
-
-  // Default: random from basic pool
+  // Random from basic pool
   return BASIC_POOL[Math.floor(Math.random() * BASIC_POOL.length)];
 }
 
 export function selectDefeatMeme(ctx: GameContext): MemeConfig | null {
   if (ctx.attackWins) return null;
 
-  // Priority 1: Pikachu surprised — guaranteed on improbable defeats
+  // Priority 1: improbable defeats — guaranteed meme (random between Pikachu & Picard)
   // (3 bouts + loss, chelem raté, garde contre perdue)
   if (ctx.oudlers >= 3 || ctx.chelem === Chelem.AnnouncedLost || ctx.contract === Contract.GardeContre) {
-    return PIKACHU_SURPRISED;
+    return IMPROBABLE_DEFEAT_POOL[Math.floor(Math.random() * IMPROBABLE_DEFEAT_POOL.length)];
+  }
+
+  // Priority 2: Crying Jordan — guaranteed on garde sans perdue
+  if (ctx.contract === Contract.GardeSans) {
+    return CRYING_JORDAN;
+  }
+
+  // Priority 3: First Time? — guaranteed on taker's first defeat in the session
+  if (ctx.isFirstTakerDefeat) {
+    return FIRST_TIME;
   }
 
   // 40% overall chance of showing a meme
   if (Math.random() >= MEME_CHANCE) return null;
 
-  // Among shown memes: 40% chance for reverse Vince McMahon (contract-specific disappointment)
-  if (Math.random() < VINCE_CHANCE) {
-    return VINCE_REVERSE_MEMES[ctx.contract];
+  // Among shown memes: 40% chance for "This is Fine"
+  if (Math.random() < THIS_IS_FINE_CHANCE) {
+    return THIS_IS_FINE;
   }
 
   // Default: random from defeat pool

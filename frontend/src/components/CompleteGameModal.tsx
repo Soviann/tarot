@@ -11,7 +11,7 @@ import { ContractBadge, Modal, PlayerAvatar, ScoreDisplay, Stepper } from "./ui"
 interface CompleteGameModalProps {
   game: Game;
   onClose: () => void;
-  onGameCompleted?: (ctx: GameContext) => void;
+  onGameCompleted?: (ctx: GameContext, takerId: number) => void;
   open: boolean;
   players: GamePlayer[];
   sessionId: number;
@@ -127,9 +127,11 @@ export default function CompleteGameModal({ game, onClose, onGameCompleted, open
               attackWins: scoreResult.attackWins,
               chelem,
               contract: game.contract,
+              isFirstTakerDefeat: false,
+              isSelfCall: selfCall,
               oudlers,
               petitAuBout,
-            });
+            }, game.taker.id);
           }
           onClose();
         },
