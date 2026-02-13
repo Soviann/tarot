@@ -12,15 +12,15 @@ conditions:
     pattern: ddev exec
 ---
 
-**Commande hors conteneur DDEV détectée !**
+**Command outside DDEV container detected!**
 
-Les commandes `bin/console`, `vendor/bin/*`, `composer`, `npm` et `npx` doivent être exécutées dans le conteneur DDEV.
+`bin/console`, `vendor/bin/*`, `composer`, `npm` and `npx` commands must run inside the DDEV container.
 
-**Utilise les cibles Makefile :**
+**Use Makefile targets:**
 - `make test-back` / `make test-front` → tests
-- `make phpstan` / `make cs` → qualité de code
+- `make phpstan` / `make cs` → code quality
 - `make db-diff` / `make db-migrate` → migrations
-- `make install` → dépendances
-- `make sf CMD="..."` → commande Symfony quelconque
+- `make install` → dependencies
+- `make sf CMD="..."` → any Symfony command
 
-Ou via ddev : `ddev exec bash -c 'cd /var/www/html/backend && ...'`
+Or via ddev: `ddev exec bash -c 'cd /var/www/html/backend && ...'`

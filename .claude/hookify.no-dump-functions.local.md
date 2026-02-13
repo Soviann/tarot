@@ -6,7 +6,7 @@ pattern: \b(dd|dump|var_dump)\s*\(
 action: block
 ---
 
-**Fonctions de debug interdites dans le code commité**
+**Debug functions are forbidden in committed code**
 
-`dd()`, `dump()` et `var_dump()` ne doivent pas être écrits dans les fichiers.
-Utilise le logging ou les assertions dans les tests.
+`dd()`, `dump()` and `var_dump()` must not be written to files.
+Use logging or test assertions instead.
