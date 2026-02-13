@@ -29,13 +29,15 @@ export default function MemeOverlay({ ariaLabel = "Mème", meme, onDismiss }: Me
       role="dialog"
     >
       <img
-        alt={meme.caption}
+        alt={meme.caption || "Mème"}
         className="max-h-[60vh] max-w-[90vw] rounded-2xl object-contain shadow-2xl"
         src={meme.image}
       />
-      <p className="mt-4 rounded-xl bg-black/80 px-6 py-3 text-center text-xl font-bold text-white shadow-lg">
-        {meme.caption}
-      </p>
+      {meme.caption && (
+        <p className="mt-4 rounded-xl bg-black/80 px-6 py-3 text-center text-xl font-bold text-white shadow-lg">
+          {meme.caption}
+        </p>
+      )}
     </div>,
     document.body,
   );

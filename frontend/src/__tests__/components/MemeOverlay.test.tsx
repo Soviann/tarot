@@ -4,9 +4,9 @@ import MemeOverlay from "../../components/MemeOverlay";
 import type { MemeConfig } from "../../services/memeSelector";
 
 const meme: MemeConfig = {
-  caption: "Deal with it",
-  id: "deal-with-it",
-  image: "/memes/deal-with-it.webp",
+  caption: "It's over 9000 !",
+  id: "over-9000",
+  image: "/memes/over-9000.webp",
 };
 
 describe("MemeOverlay", () => {
@@ -30,8 +30,8 @@ describe("MemeOverlay", () => {
     render(<MemeOverlay meme={meme} onDismiss={vi.fn()} />);
 
     expect(screen.getByRole("dialog")).toBeInTheDocument();
-    expect(screen.getByRole("img")).toHaveAttribute("src", "/memes/deal-with-it.webp");
-    expect(screen.getByText("Deal with it")).toBeInTheDocument();
+    expect(screen.getByRole("img")).toHaveAttribute("src", "/memes/over-9000.webp");
+    expect(screen.getByText("It's over 9000 !")).toBeInTheDocument();
   });
 
   it("calls onDismiss after 3 seconds", () => {
@@ -69,6 +69,14 @@ describe("MemeOverlay", () => {
 
     const dialog = screen.getByRole("dialog");
     expect(dialog).toHaveAttribute("aria-label", "Mème");
+  });
+
+  it("does not render caption when it is empty", () => {
+    const noCaption: MemeConfig = { caption: "", id: "test", image: "/memes/test.webp" };
+    render(<MemeOverlay meme={noCaption} onDismiss={vi.fn()} />);
+
+    expect(screen.getByRole("img")).toBeInTheDocument();
+    expect(screen.queryByText("", { selector: "p" })).not.toBeInTheDocument();
   });
 
   it("cleans up timer on unmount", () => {

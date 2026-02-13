@@ -342,17 +342,15 @@ Quand une donne est gagnée par l'attaque, un **mème aléatoire** peut apparaî
 
 | Condition | Image | Légende |
 |-----------|-------|---------|
-| Petit au bout attaque (**toujours**) | Success Kid | « Petit au bout, comme un chef ! » |
-| Petite gagnée (40 % Vince) | Vince McMahon niveau 1 — intéressé | « Petite tranquille ! » |
-| Garde gagnée (40 % Vince) | Vince McMahon niveau 2 — excité | « La garde est assurée ! » |
-| Garde Sans gagnée (40 % Vince) | Vince McMahon niveau 3 — debout | « Garde sans, pas de problème ! » |
-| Garde Contre gagnée (40 % Vince) | Vince McMahon niveau 4 — renversé | « GARDE CONTRE RÉUSSIE !!! » |
-| Victoire (60 % pool par défaut) | Deal With It | « Deal with it 😎 » |
-| Victoire (60 % pool par défaut) | Freddie Mercury Champions | « We are the champions ! » |
-| Victoire (60 % pool par défaut) | DiCaprio Toast | « À la victoire ! » |
-| Victoire (60 % pool par défaut) | It's Over 9000 | « It's over 9000 ! » |
+| Petit au bout attaque (**toujours**) | Success Kid | — |
+| Victoire en solo / appel au roi seul (**toujours**) | Obama se décore | — |
+| Victoire (pool aléatoire) | Borat "Great Success" | — |
+| Victoire (pool aléatoire) | Freddie Mercury Champions | — |
+| Victoire (pool aléatoire) | DiCaprio Toast | — |
+| Victoire (pool aléatoire) | It's Over 9000 | — |
+| Victoire (pool aléatoire) | Pacha (Le point parfait) | — |
 
-**Ordre de priorité** : petit au bout attaque → tirage 40 % (sinon rien) → 40 % Vince selon contrat / 60 % pool aléatoire.
+**Ordre de priorité** : petit au bout attaque → victoire en solo → tirage 40 % (sinon rien) → pool aléatoire.
 
 ---
 
@@ -363,7 +361,7 @@ Quand une donne est perdue par l'attaque, un **mème de défaite** peut apparaî
 ### Fonctionnement
 
 - Le mème s'affiche environ **40 % du temps** lors d'une défaite de l'attaque
-- **Exception** : certaines défaites « improbables » déclenchent **systématiquement** un mème spécial (Pikachu surpris)
+- **Exception** : certaines défaites déclenchent **systématiquement** un mème spécial (voir tableau ci-dessous)
 - Cliquer ou toucher l'écran permet de **fermer le mème** immédiatement
 
 > **Note** : les mèmes n'apparaissent que lors de la **première saisie** d'une donne, pas lors de la modification.
@@ -372,17 +370,15 @@ Quand une donne est perdue par l'attaque, un **mème de défaite** peut apparaî
 
 | Condition | Image | Légende |
 |-----------|-------|---------|
-| Défaite improbable (**toujours**) : 3 bouts, chelem raté ou garde contre perdue | Pikachu surpris | « Mais... comment ?! » |
-| Petite perdue (40 % Vince inversé) | Vince McMahon inversé niveau 1 | « Même la petite... » |
-| Garde perdue (40 % Vince inversé) | Vince McMahon inversé niveau 2 | « La garde est chutée... » |
-| Garde Sans perdue (40 % Vince inversé) | Vince McMahon inversé niveau 3 | « Garde sans... perdue. » |
-| Défaite (60 % pool par défaut) | Sad Pablo Escobar | « Sad Pablo » |
-| Défaite (60 % pool par défaut) | Crying Michael Jordan | « Crying Jordan » |
-| Défaite (60 % pool par défaut) | First Time? (James Franco) | « First time ? » |
-| Défaite (60 % pool par défaut) | Ah Shit, Here We Go Again (CJ) | « Ah shit, here we go again » |
-| Défaite (60 % pool par défaut) | Why Are We Still Here? | « Why are we still here? Just to suffer? » |
+| Défaite improbable (**toujours**) : 3 bouts, chelem raté ou garde contre perdue | You Were the Chosen One, Pikachu surpris ou Picard Facepalm (aléatoire) | — |
+| Garde sans perdue (**toujours**) | Crying Michael Jordan | — |
+| Première défaite du preneur dans la session (**toujours**) | First Time? (James Franco) | — |
+| Défaite (40 % This is Fine) | This is Fine (chien dans les flammes) | — |
+| Défaite (60 % pool par défaut) | Sad Pablo Escobar | — |
+| Défaite (60 % pool par défaut) | Ah Shit, Here We Go Again (CJ) | — |
+| Défaite (60 % pool par défaut) | Why Are We Still Here? | — |
 
-**Ordre de priorité** : défaite improbable (pikachu) → tirage 40 % (sinon rien) → 40 % Vince inversé selon contrat / 60 % pool aléatoire.
+**Ordre de priorité** : défaite improbable (pikachu/picard) → garde sans (crying jordan) → première défaite du preneur (first time) → tirage 40 % (sinon rien) → 40 % This is Fine / 60 % pool aléatoire.
 
 ---
 

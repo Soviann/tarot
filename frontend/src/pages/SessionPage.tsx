@@ -67,19 +67,29 @@ export default function SessionPage() {
   const [starPlayerId, setStarPlayerId] = useState<number | null>(null);
   const [swapModalOpen, setSwapModalOpen] = useState(false);
 
-  const handleGameCompleted = useCallback((ctx: GameContext) => {
-    const victoryMeme = selectVictoryMeme(ctx);
+  const handleGameCompleted = useCallback((ctx: GameContext, takerId: number) => {
+    const enrichedCtx = { ...ctx };
+
+    // Check if this is the taker's first defeat in the session
+    if (!ctx.attackWins) {
+      const takerHasLostBefore = completedGames.some(
+        (g) => g.taker.id === takerId && g.scoreEntries.some((e) => e.player.id === takerId && e.score < 0),
+      );
+      enrichedCtx.isFirstTakerDefeat = !takerHasLostBefore;
+    }
+
+    const victoryMeme = selectVictoryMeme(enrichedCtx);
     if (victoryMeme) {
       setMemeLabel("Mème de victoire");
       setActiveMeme(victoryMeme);
       return;
     }
-    const defeatMeme = selectDefeatMeme(ctx);
+    const defeatMeme = selectDefeatMeme(enrichedCtx);
     if (defeatMeme) {
       setMemeLabel("Mème de défaite");
       setActiveMeme(defeatMeme);
     }
-  }, []);
+  }, [completedGames]);
 
   if (isPending) {
     return (
