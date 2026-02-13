@@ -33,7 +33,6 @@ tarot/
 
 ## Approach
 
-- Act on user instructions directly — no exploratory glob/grep when the user already says where/what.
 - Edit files when asked. Don't create issues or plans unless requested.
 - Prefer acting over asking.
 
@@ -93,7 +92,6 @@ make sf CMD="..."       # Any Symfony console command
 ### Commits
 
 Format: `<type>(scope): description` — Types: `feat`, `fix`, `chore`, `refactor`, `docs`
-No `Co-Authored-By`.
 **Always** reference the issue: append `#N` in the message body or use `fixes #N` to auto-close.
 **Before committing**: run PHP CS Fixer on all staged `.php` files to ensure consistent formatting.
 
@@ -165,10 +163,8 @@ GitHub Project workflows automate board transitions — **no manual board moves 
 ### Token optimization
 
 - **Prefer `gh` CLI** over MCP tools for simple queries (less verbose output)
-- **Always set `minimal_output: true`** on MCP list/search calls when full data isn't needed
 - **Max `perPage: 5`** unless more results are explicitly needed
 - **No exploratory chains**: one targeted call, not list → read → read
-- **Don't verify existence** of issues, PRs, or players already known from the plan or memory
 - **No manual board moves**: project workflows handle all transitions automatically
 - `fixes #N` in the PR body auto-closes the issue on merge — never close manually
 
@@ -220,7 +216,6 @@ Two living docs in `docs/` must be maintained:
 
 ## Language
 
-- **CLAUDE.md**: English only
 - **Git commits & PR titles**: English
 - **All other files** (README, CHANGELOG, docs, UI text, comments): French
 - **Code identifiers** (variables, functions, classes): English

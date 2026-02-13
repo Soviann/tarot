@@ -9,6 +9,7 @@ use ApiPlatform\Metadata\Get;
 use ApiPlatform\Metadata\GetCollection;
 use ApiPlatform\Metadata\Patch;
 use ApiPlatform\Metadata\Post;
+use App\State\SessionCollectionProvider;
 use App\State\SessionCreateProcessor;
 use App\State\SessionDetailProvider;
 use App\State\SessionPatchProcessor;
@@ -25,7 +26,7 @@ use Symfony\Component\Validator\Constraints as Assert;
             normalizationContext: ['groups' => ['session:read', 'session:detail']],
             provider: SessionDetailProvider::class,
         ),
-        new GetCollection(),
+        new GetCollection(provider: SessionCollectionProvider::class),
         new Patch(
             denormalizationContext: ['groups' => ['session:patch']],
             normalizationContext: ['groups' => ['session:read', 'session:detail']],

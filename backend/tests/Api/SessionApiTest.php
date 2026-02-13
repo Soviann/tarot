@@ -23,6 +23,45 @@ class SessionApiTest extends ApiTestCase
         $this->assertJsonContains(['totalItems' => 2]);
     }
 
+    public function testListSessionsLimitedToFiveOrderedByLastActivity(): void
+    {
+        // Créer 6 sessions avec des joueurs distincts
+        $sessions = [];
+        for ($i = 0; $i < 6; ++$i) {
+            $sessions[] = $this->createSessionWithPlayers(
+                "P{$i}a", "P{$i}b", "P{$i}c", "P{$i}d", "P{$i}e",
+            );
+        }
+
+        // Ajouter une donne à la session 2 (index 1) avec une date future
+        // pour garantir qu'elle a l'activité la plus récente
+        $game = new Game();
+        $game->setContract(Contract::Petite);
+        $game->setPosition(1);
+        $game->setSession($sessions[1]);
+        $game->setStatus(GameStatus::Completed);
+        $game->setTaker($sessions[1]->getPlayers()->first());
+        $this->em->persist($game);
+        $this->em->flush();
+
+        // Forcer une date future sur la donne pour un tri déterministe
+        $this->em->getConnection()->executeStatement(
+            'UPDATE game SET created_at = :date WHERE id = :id',
+            ['date' => '2099-01-01 00:00:00', 'id' => $game->getId()],
+        );
+
+        $response = $this->client->request('GET', '/api/sessions');
+
+        $this->assertResponseIsSuccessful();
+        $data = $response->toArray();
+
+        // Limité à 5 résultats
+        $this->assertCount(5, $data['member']);
+
+        // La session avec la donne la plus récente est en premier
+        $this->assertSame($sessions[1]->getId(), $data['member'][0]['id']);
+    }
+
     public function testCreateSession(): void
     {
         $playerIris = $this->createPlayerIris('Alice', 'Bob', 'Charlie', 'Diana', 'Eve');
