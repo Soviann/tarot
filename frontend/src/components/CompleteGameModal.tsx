@@ -12,6 +12,7 @@ interface CompleteGameModalProps {
   game: Game;
   onClose: () => void;
   onGameCompleted?: (ctx: GameContext) => void;
+  onGameSaved?: (gameId: number) => void;
   open: boolean;
   players: GamePlayer[];
   sessionId: number;
@@ -37,7 +38,7 @@ const chelemOptions: { label: string; value: ChelemType }[] = [
   { label: "Non annoncé gagné", value: Chelem.NotAnnouncedWon },
 ];
 
-export default function CompleteGameModal({ game, onClose, onGameCompleted, open, players, sessionId }: CompleteGameModalProps) {
+export default function CompleteGameModal({ game, onClose, onGameCompleted, onGameSaved, open, players, sessionId }: CompleteGameModalProps) {
   const completeGame = useCompleteGame(game.id, sessionId);
   const isEditMode = game.status === GameStatus.Completed;
 
@@ -131,6 +132,7 @@ export default function CompleteGameModal({ game, onClose, onGameCompleted, open
               oudlers,
               petitAuBout,
             });
+            onGameSaved?.(game.id);
           }
           onClose();
         },
