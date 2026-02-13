@@ -8,6 +8,7 @@ use App\Entity\Player;
 use App\Service\StatisticsService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\JsonResponse;
+use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\Routing\Attribute\Route;
 
@@ -20,28 +21,36 @@ class StatisticsController
     }
 
     #[Route('/api/statistics', methods: ['GET'])]
-    public function global(): JsonResponse
+    public function global(Request $request): JsonResponse
     {
+        $playerGroupId = $request->query->has('playerGroup')
+            ? (int) $request->query->get('playerGroup')
+            : null;
+
         return new JsonResponse([
-            'averageGameDuration' => $this->statisticsService->getAverageGameDurationSeconds(),
-            'contractDistribution' => $this->statisticsService->getContractDistribution(),
-            'eloRanking' => $this->statisticsService->getEloRanking(),
-            'leaderboard' => $this->statisticsService->getLeaderboard(),
-            'totalGames' => $this->statisticsService->getTotalGames(),
-            'totalPlayTime' => $this->statisticsService->getTotalPlayTimeSeconds(),
-            'totalSessions' => $this->statisticsService->getTotalSessions(),
-            'totalStars' => $this->statisticsService->getTotalStars(),
+            'averageGameDuration' => $this->statisticsService->getAverageGameDurationSeconds($playerGroupId),
+            'contractDistribution' => $this->statisticsService->getContractDistribution($playerGroupId),
+            'eloRanking' => $this->statisticsService->getEloRanking($playerGroupId),
+            'leaderboard' => $this->statisticsService->getLeaderboard($playerGroupId),
+            'totalGames' => $this->statisticsService->getTotalGames($playerGroupId),
+            'totalPlayTime' => $this->statisticsService->getTotalPlayTimeSeconds($playerGroupId),
+            'totalSessions' => $this->statisticsService->getTotalSessions($playerGroupId),
+            'totalStars' => $this->statisticsService->getTotalStars($playerGroupId),
         ]);
     }
 
     #[Route('/api/statistics/players/{id}', methods: ['GET'])]
-    public function player(int $id): JsonResponse
+    public function player(int $id, Request $request): JsonResponse
     {
         $player = $this->em->find(Player::class, $id);
         if (null === $player) {
             throw new NotFoundHttpException('Joueur introuvable.');
         }
 
-        return new JsonResponse($this->statisticsService->getPlayerStats($player));
+        $playerGroupId = $request->query->has('playerGroup')
+            ? (int) $request->query->get('playerGroup')
+            : null;
+
+        return new JsonResponse($this->statisticsService->getPlayerStats($player, $playerGroupId));
     }
 }
