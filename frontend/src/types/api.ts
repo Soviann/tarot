@@ -81,6 +81,17 @@ export interface Player {
   createdAt: string;
   id: number;
   name: string;
+  playerGroups: PlayerGroup[];
+}
+
+export interface PlayerGroup {
+  createdAt: string;
+  id: number;
+  name: string;
+}
+
+export interface PlayerGroupDetail extends PlayerGroup {
+  players: GamePlayer[];
 }
 
 export interface PlayerContractEntry {
@@ -102,6 +113,7 @@ export interface PlayerStatistics {
   gamesAsTaker: number;
   gamesPlayed: number;
   player: GamePlayer;
+  playerGroups: { id: number; name: string }[];
   recentScores: RecentScoreEntry[];
   sessionsPlayed: number;
   starPenalties: number;
@@ -129,6 +141,7 @@ export interface Session {
   id: number;
   isActive: boolean;
   lastPlayedAt: string;
+  playerGroup: PlayerGroup | null;
   players: SessionPlayer[];
 }
 
@@ -139,6 +152,7 @@ export interface SessionDetail {
   games: Game[];
   id: number;
   isActive: boolean;
+  playerGroup: PlayerGroup | null;
   players: GamePlayer[];
   starEvents: StarEvent[];
 }

@@ -9,6 +9,8 @@ use ApiPlatform\Metadata\Get;
 use ApiPlatform\Metadata\GetCollection;
 use ApiPlatform\Metadata\Patch;
 use ApiPlatform\Metadata\Post;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 use Symfony\Component\Serializer\Attribute\Groups;
@@ -51,9 +53,16 @@ class Player
     #[ORM\Column(length: 50, unique: true)]
     private string $name;
 
+    /** @var Collection<int, PlayerGroup> */
+    #[Groups(['player:read'])]
+    #[ORM\ManyToMany(targetEntity: PlayerGroup::class, mappedBy: 'players')]
+    #[ORM\OrderBy(['name' => 'ASC'])]
+    private Collection $playerGroups;
+
     public function __construct()
     {
         $this->createdAt = new \DateTimeImmutable();
+        $this->playerGroups = new ArrayCollection();
     }
 
     public function getCreatedAt(): \DateTimeImmutable
@@ -74,6 +83,14 @@ class Player
     public function getName(): string
     {
         return $this->name;
+    }
+
+    /**
+     * @return Collection<int, PlayerGroup>
+     */
+    public function getPlayerGroups(): Collection
+    {
+        return $this->playerGroups;
     }
 
     public function isActive(): bool

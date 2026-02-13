@@ -11,6 +11,7 @@ import MemeOverlay from "../components/MemeOverlay";
 import NewGameModal from "../components/NewGameModal";
 import Scoreboard from "../components/Scoreboard";
 import ScoreEvolutionChart from "../components/ScoreEvolutionChart";
+import SessionGroupSelector from "../components/SessionGroupSelector";
 import SwapPlayersModal from "../components/SwapPlayersModal";
 import { FAB } from "../components/ui";
 import { useAddStar } from "../hooks/useAddStar";
@@ -131,6 +132,10 @@ export default function SessionPage() {
         <h1 className="text-lg font-bold text-text-primary">
           Session #{session.id}
         </h1>
+        <SessionGroupSelector
+          currentGroupId={session.playerGroup?.id ?? null}
+          sessionId={sessionId}
+        />
         <button
           aria-label="Modifier les joueurs"
           className="ml-auto rounded-lg p-1 text-text-secondary disabled:opacity-40 lg:p-2"

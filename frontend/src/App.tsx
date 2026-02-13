@@ -3,6 +3,8 @@ import { lazy, Suspense } from "react";
 import { BrowserRouter, Route, Routes } from "react-router-dom";
 import Layout from "./components/Layout";
 import { ThemeProvider } from "./hooks/useTheme";
+import GroupDetail from "./pages/GroupDetail";
+import Groups from "./pages/Groups";
 import Help from "./pages/Help";
 import Home from "./pages/Home";
 import Players from "./pages/Players";
@@ -29,6 +31,8 @@ export default function App() {
             <Route element={<Layout />}>
               <Route path="/" element={<Home />} />
               <Route path="/aide" element={<Help />} />
+              <Route path="/groups" element={<Groups />} />
+              <Route path="/groups/:id" element={<GroupDetail />} />
               <Route path="/players" element={<Players />} />
               <Route path="/sessions/:id" element={<SessionPage />} />
               <Route path="/stats" element={<Stats />} />

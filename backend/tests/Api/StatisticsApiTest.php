@@ -265,6 +265,48 @@ class StatisticsApiTest extends ApiTestCase
         $this->assertSame(1500, $data['eloRating']);
     }
 
+    public function testGlobalStatisticsFilteredByGroup(): void
+    {
+        $group = $this->createPlayerGroup('Mardi soir', ...\array_values($this->players));
+        $this->session->setPlayerGroup($group);
+        $this->em->flush();
+
+        // Create a second session WITHOUT the group
+        $this->createSessionWithPlayers('Frank', 'Grace', 'Hank', 'Ivy', 'Jack');
+
+        $response = $this->client->request('GET', '/api/statistics?playerGroup='.$group->getId());
+
+        $this->assertResponseIsSuccessful();
+        $data = $response->toArray();
+
+        // Only games from the grouped session
+        $this->assertSame(3, $data['totalGames']);
+        $this->assertSame(1, $data['totalSessions']);
+    }
+
+    public function testPlayerStatisticsFilteredByGroup(): void
+    {
+        $group = $this->createPlayerGroup('Mardi soir', ...\array_values($this->players));
+        $this->session->setPlayerGroup($group);
+        $this->em->flush();
+
+        $alice = $this->players['Alice'];
+        $response = $this->client->request('GET', '/api/statistics/players/'.$alice->getId().'?playerGroup='.$group->getId());
+
+        $this->assertResponseIsSuccessful();
+        $data = $response->toArray();
+        $this->assertSame(3, $data['gamesPlayed']);
+    }
+
+    public function testGlobalStatisticsWithNonExistentGroup(): void
+    {
+        $response = $this->client->request('GET', '/api/statistics?playerGroup=99999');
+
+        $this->assertResponseIsSuccessful();
+        $data = $response->toArray();
+        $this->assertSame(0, $data['totalGames']);
+    }
+
     /**
      * Seeds:
      * - 5 players: Alice, Bob, Charlie, Diana, Eve

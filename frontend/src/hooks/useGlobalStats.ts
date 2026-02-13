@@ -2,10 +2,13 @@ import { useQuery } from "@tanstack/react-query";
 import { apiFetch } from "../services/api";
 import type { GlobalStatistics } from "../types/api";
 
-export function useGlobalStats() {
+export function useGlobalStats(playerGroupId?: number | null) {
+  const path = playerGroupId
+    ? `/statistics?playerGroup=${playerGroupId}`
+    : "/statistics";
   const query = useQuery({
-    queryFn: () => apiFetch<GlobalStatistics>("/statistics"),
-    queryKey: ["statistics"],
+    queryFn: () => apiFetch<GlobalStatistics>(path),
+    queryKey: ["statistics", { playerGroupId: playerGroupId ?? null }],
   });
 
   return {
