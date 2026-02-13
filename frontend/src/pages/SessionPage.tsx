@@ -1,3 +1,4 @@
+import { useQueryClient } from "@tanstack/react-query";
 import { ArrowLeftRight } from "lucide-react";
 import { useCallback, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
@@ -13,12 +14,13 @@ import Scoreboard from "../components/Scoreboard";
 import ScoreEvolutionChart from "../components/ScoreEvolutionChart";
 import SessionGroupSelector from "../components/SessionGroupSelector";
 import SwapPlayersModal from "../components/SwapPlayersModal";
-import { FAB } from "../components/ui";
+import { FAB, UndoFAB } from "../components/ui";
 import { useAddStar } from "../hooks/useAddStar";
 import { useCreateGame } from "../hooks/useCreateGame";
 import { useSession } from "../hooks/useSession";
 import { useSessionGames } from "../hooks/useSessionGames";
 import { useUpdateDealer } from "../hooks/useUpdateDealer";
+import { apiFetch } from "../services/api";
 import type { GameContext, MemeConfig } from "../services/memeSelector";
 import { selectDefeatMeme, selectVictoryMeme } from "../services/memeSelector";
 
@@ -48,6 +50,7 @@ export default function SessionPage() {
 
   const lastGame = inProgressGame ?? lastCompletedGame;
 
+  const queryClient = useQueryClient();
   const [activeMeme, setActiveMeme] = useState<MemeConfig | null>(null);
   const [memeLabel, setMemeLabel] = useState<string | undefined>(undefined);
   const [changeDealerModalOpen, setChangeDealerModalOpen] = useState(false);
@@ -58,6 +61,7 @@ export default function SessionPage() {
   const [starModalOpen, setStarModalOpen] = useState(false);
   const [starPlayerId, setStarPlayerId] = useState<number | null>(null);
   const [swapModalOpen, setSwapModalOpen] = useState(false);
+  const [undoGameId, setUndoGameId] = useState<number | null>(null);
 
   const handleGameCompleted = useCallback((ctx: GameContext) => {
     const victoryMeme = selectVictoryMeme(ctx);
@@ -72,6 +76,18 @@ export default function SessionPage() {
       setActiveMeme(defeatMeme);
     }
   }, []);
+
+  const handleGameSaved = useCallback((gameId: number) => {
+    setUndoGameId(gameId);
+  }, []);
+
+  const handleUndo = useCallback(async () => {
+    if (undoGameId === null) return;
+    const gameId = undoGameId;
+    setUndoGameId(null);
+    await apiFetch<void>(`/games/${gameId}`, { method: "DELETE" });
+    queryClient.invalidateQueries({ queryKey: ["session", sessionId] });
+  }, [queryClient, sessionId, undoGameId]);
 
   if (isPending) {
     return (
@@ -197,6 +213,13 @@ export default function SessionPage() {
         onClick={() => setNewGameModalOpen(true)}
       />
 
+      {undoGameId !== null && (
+        <UndoFAB
+          onDismiss={() => setUndoGameId(null)}
+          onUndo={handleUndo}
+        />
+      )}
+
       <NewGameModal
         createGame={createGame}
         currentDealerName={session.currentDealer?.name ?? null}
@@ -211,6 +234,7 @@ export default function SessionPage() {
           game={inProgressGame}
           onClose={() => setCompleteModalOpen(false)}
           onGameCompleted={handleGameCompleted}
+          onGameSaved={handleGameSaved}
           open={completeModalOpen}
           players={session.players}
           sessionId={sessionId}
