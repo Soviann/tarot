@@ -12,6 +12,6 @@ conditions:
     pattern: ^(ddev|make|php|bin/)
 ---
 
-**doctrine:schema:update est interdit**
+**doctrine:schema:update is forbidden**
 
-Utilise toujours les migrations. Lance `make db-diff` pour générer une migration.
+Always use migrations. Run `make db-diff` to generate a migration.
