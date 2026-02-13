@@ -160,6 +160,37 @@ export default function Help() {
         </p>
       </AccordionSection>
 
+      <AccordionSection title="Groupes de joueurs">
+        <p>
+          Les groupes permettent de créer des cercles de jeu (ex :
+          « soirées du mardi », « famille ») et d'afficher des
+          statistiques propres à chaque groupe.
+        </p>
+        <h3 className="mt-3 font-medium text-text-primary">Créer un groupe</h3>
+        <ol className="mt-1 list-inside list-decimal">
+          <li>Aller dans l'onglet <strong>Groupes</strong></li>
+          <li>Appuyer sur le bouton +</li>
+          <li>Saisir un nom et sélectionner les joueurs membres</li>
+          <li>Valider</li>
+        </ol>
+        <h3 className="mt-3 font-medium text-text-primary">Association automatique</h3>
+        <p className="mt-1">
+          Quand tous les joueurs d'une session appartiennent à un seul
+          groupe, la session est automatiquement associée à ce groupe.
+        </p>
+        <h3 className="mt-3 font-medium text-text-primary">Association manuelle</h3>
+        <p className="mt-1">
+          Le sélecteur de groupe en haut de l'écran de session permet de
+          changer manuellement le groupe. Les joueurs non membres sont
+          automatiquement ajoutés au groupe.
+        </p>
+        <h3 className="mt-3 font-medium text-text-primary">Statistiques par groupe</h3>
+        <p className="mt-1">
+          Sur la page Statistiques, un filtre permet de voir les classements
+          et scores uniquement pour les sessions d'un groupe donné.
+        </p>
+      </AccordionSection>
+
       <AccordionSection title="Démarrer une session">
         <ol className="list-inside list-decimal">
           <li>

@@ -8,6 +8,13 @@ Le format est basé sur [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/)
 
 ### Added
 
+- **Groupes de joueurs** : création de cercles de jeu avec statistiques et classements filtrés par groupe (#91)
+- **Association automatique** : les sessions sont automatiquement associées au groupe quand tous les joueurs sont membres
+- **Association manuelle** : sélecteur de groupe sur l'écran de session avec propagation des joueurs
+- **Filtre par groupe** : toutes les statistiques et classements filtrables par groupe
+- **Page Groupes** : nouvel onglet dans la navigation pour gérer les groupes
+- **Aide in-app** : section dédiée aux groupes dans la page d'aide
+
 - **Mèmes de victoire et défaite** : système de mèmes plein écran à la complétion d'une donne (~40 % de chance, 3 secondes). Composant `MemeOverlay`, services `selectVictoryMeme` / `selectDefeatMeme`, 16 images dans `public/memes/`.
   - **Victoire** — déclencheurs garantis : Success Kid (petit au bout attaque), Obama se décore (victoire en solo). Pool aléatoire : Borat, Champions, DiCaprio Toast, Over 9000, Pacha.
   - **Défaite** — déclencheurs garantis : You Were the Chosen One / Pikachu surpris / Picard Facepalm (défaite improbable : 3 bouts, chelem raté, garde contre), Crying Jordan (garde sans perdue), First Time? (première défaite du preneur dans la session). 40 % This is Fine, sinon pool : Ah Shit, Just to Suffer, Sad Pablo.

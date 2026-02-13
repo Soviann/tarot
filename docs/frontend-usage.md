@@ -65,10 +65,12 @@ import type { HydraCollection, Player } from "./types/api";
 | `Game` | `id`, `chelem`, `completedAt`, `contract`, `createdAt`, `dealer`, `oudlers`, `partner`, `petitAuBout`, `poignee`, `poigneeOwner`, `points`, `position`, `scoreEntries`, `status`, `taker` |
 | `GamePlayer` | `id: number`, `name: string` |
 | `HydraCollection<T>` | `member: T[]`, `totalItems: number` |
-| `Player` | `active: boolean`, `id: number`, `name: string`, `createdAt: string` |
+| `Player` | `active: boolean`, `createdAt: string`, `id: number`, `name: string`, `playerGroups: PlayerGroup[]` |
+| `PlayerGroup` | `createdAt: string`, `id: number`, `name: string` |
+| `PlayerGroupDetail` | extends `PlayerGroup` + `players: GamePlayer[]` |
 | `ScoreEntry` | `id: number`, `player: GamePlayer`, `score: number` |
-| `Session` | `id: number`, `createdAt: string`, `isActive: boolean`, `lastPlayedAt: string`, `players: SessionPlayer[]` |
-| `SessionDetail` | `id`, `createdAt`, `currentDealer`, `isActive`, `players: GamePlayer[]`, `games: Game[]`, `cumulativeScores: CumulativeScore[]`, `starEvents: StarEvent[]` |
+| `Session` | `id: number`, `createdAt: string`, `isActive: boolean`, `lastPlayedAt: string`, `playerGroup: PlayerGroup \| null`, `players: SessionPlayer[]` |
+| `SessionDetail` | `id`, `createdAt`, `currentDealer`, `isActive`, `playerGroup: PlayerGroup \| null`, `players: GamePlayer[]`, `games: Game[]`, `cumulativeScores: CumulativeScore[]`, `starEvents: StarEvent[]` |
 | `StarEvent` | `id: number`, `createdAt: string`, `player: GamePlayer` |
 | `SessionPlayer` | `id: number`, `name: string` |
 | `ContractDistributionEntry` | `contract: Contract`, `count: number`, `percentage: number` |
@@ -77,7 +79,7 @@ import type { HydraCollection, Player } from "./types/api";
 | `GlobalStatistics` | `averageGameDuration: number \| null`, `contractDistribution: ContractDistributionEntry[]`, `eloRanking: EloRankingEntry[]`, `leaderboard: LeaderboardEntry[]`, `totalGames`, `totalPlayTime: number`, `totalSessions`, `totalStars` |
 | `LeaderboardEntry` | `gamesAsTaker`, `gamesPlayed`, `playerId`, `playerName`, `totalScore`, `winRate`, `wins` |
 | `PlayerContractEntry` | `contract: Contract`, `count`, `winRate`, `wins` |
-| `PlayerStatistics` | `averageGameDurationSeconds: number \| null`, `averageScore`, `bestGameScore`, `contractDistribution`, `eloHistory: EloHistoryEntry[]`, `eloRating: number`, `gamesAsDefender`, `gamesAsPartner`, `gamesAsTaker`, `gamesPlayed`, `player`, `recentScores`, `sessionsPlayed`, `starPenalties`, `totalPlayTimeSeconds: number`, `totalStars`, `winRateAsTaker`, `worstGameScore` |
+| `PlayerStatistics` | `averageGameDurationSeconds: number \| null`, `averageScore`, `bestGameScore`, `contractDistribution`, `eloHistory: EloHistoryEntry[]`, `eloRating: number`, `gamesAsDefender`, `gamesAsPartner`, `gamesAsTaker`, `gamesPlayed`, `player`, `playerGroups: { id: number; name: string }[]`, `recentScores`, `sessionsPlayed`, `starPenalties`, `totalPlayTimeSeconds: number`, `totalStars`, `winRateAsTaker`, `worstGameScore` |
 | `RecentScoreEntry` | `date: string`, `gameId: number`, `score: number`, `sessionId: number` |
 
 ### `ApiError`
@@ -359,10 +361,11 @@ updateDealer.mutate(playerId, {
 
 **Fichier** : `hooks/useGlobalStats.ts`
 
-Récupère les statistiques globales (classement, répartition des contrats, totaux) via l'API.
+Récupère les statistiques globales (classement, répartition des contrats, totaux) via l'API. Accepte un ID de groupe optionnel pour filtrer.
 
 ```ts
-const { isPending, stats } = useGlobalStats();
+const { isPending, stats } = useGlobalStats();          // toutes les sessions
+const { isPending, stats } = useGlobalStats(groupId);   // sessions du groupe
 ```
 
 | Retour | Type | Description |
@@ -375,10 +378,11 @@ const { isPending, stats } = useGlobalStats();
 
 **Fichier** : `hooks/usePlayerStats.ts`
 
-Récupère les statistiques détaillées d'un joueur via l'API.
+Récupère les statistiques détaillées d'un joueur via l'API. Accepte un ID de groupe optionnel pour filtrer.
 
 ```ts
-const { isPending, stats } = usePlayerStats(playerId);
+const { isPending, stats } = usePlayerStats(playerId);             // toutes les sessions
+const { isPending, stats } = usePlayerStats(playerId, groupId);    // sessions du groupe
 ```
 
 | Retour | Type | Description |
@@ -431,6 +435,82 @@ const { isPending, sessions } = useSessions();
 | `isSuccess` | `boolean` | `true` quand les données sont disponibles |
 | …autres | — | Tous les champs de `UseQueryResult` |
 
+### `usePlayerGroups`
+
+**Fichier** : `hooks/usePlayerGroups.ts`
+
+Récupère la liste des groupes de joueurs via l'API.
+
+```ts
+const { groups, isPending } = usePlayerGroups();
+```
+
+| Retour | Type | Description |
+|--------|------|-------------|
+| `groups` | `PlayerGroup[]` | Liste des groupes (vide pendant le chargement) |
+| `isPending` | `boolean` | `true` pendant le chargement initial |
+
+### `usePlayerGroup`
+
+**Fichier** : `hooks/usePlayerGroup.ts`
+
+Récupère le détail d'un groupe (avec la liste des joueurs membres).
+
+```ts
+const { group, isPending } = usePlayerGroup(groupId);
+```
+
+| Retour | Type | Description |
+|--------|------|-------------|
+| `group` | `PlayerGroupDetail \| null` | Détail du groupe (`null` pendant le chargement) |
+| `isPending` | `boolean` | `true` pendant le chargement initial |
+
+### `useCreatePlayerGroup`
+
+**Fichier** : `hooks/useCreatePlayerGroup.ts`
+
+Mutation pour créer un groupe. Invalide les caches `["playerGroups"]` et `["players"]`.
+
+```ts
+const create = useCreatePlayerGroup();
+create.mutate({ name: "Soirée du mardi", playerIds: [1, 2, 3] });
+```
+
+### `useUpdatePlayerGroup`
+
+**Fichier** : `hooks/useUpdatePlayerGroup.ts`
+
+Mutation pour modifier un groupe (nom et/ou membres). Envoie un PATCH.
+Invalide les caches `["playerGroups"]`, `["playerGroup", id]` et `["players"]`.
+
+```ts
+const update = useUpdatePlayerGroup();
+update.mutate({ id: 1, name: "Nouveau nom", playerIds: [1, 2, 3, 4] });
+```
+
+### `useDeletePlayerGroup`
+
+**Fichier** : `hooks/useDeletePlayerGroup.ts`
+
+Mutation pour supprimer un groupe. Invalide les caches `["playerGroups"]` et `["players"]`.
+
+```ts
+const remove = useDeletePlayerGroup();
+remove.mutate(groupId);
+```
+
+### `useUpdateSessionGroup`
+
+**Fichier** : `hooks/useUpdateSessionGroup.ts`
+
+Mutation pour changer le groupe d'une session. Envoie un PATCH. Invalide le cache session et `["sessions"]`.
+
+```ts
+const updateGroup = useUpdateSessionGroup(sessionId);
+updateGroup.mutate(groupId);     // assigner un groupe
+updateGroup.mutate(null);        // retirer le groupe
+```
+
 ---
 
 ## Pages
@@ -460,7 +540,7 @@ Page d'aide in-app reprenant le contenu du guide utilisateur (`docs/user-guide.m
 
 **Fonctionnalités** :
 - Section « Installation » toujours visible
-- 11 sections en accordéon dépliable (`AccordionSection`, composant local)
+- 12 sections en accordéon dépliable (`AccordionSection`, composant local)
 - Lien vers le dépôt GitHub en bas de page
 - Bouton retour vers l'accueil
 - Accessible via l'icône `CircleHelp` dans le header du `Layout`
@@ -485,6 +565,39 @@ Page d'aide in-app reprenant le contenu du guide utilisateur (`docs/user-guide.m
 
 **Hooks utilisés** : `usePlayers`, `useCreatePlayer`, `useUpdatePlayer`
 
+### Groupes (`Groups`)
+
+**Fichier** : `pages/Groups.tsx`
+
+Écran de gestion des groupes de joueurs : liste, création et suppression.
+
+**Route** : `/groups`
+
+**Fonctionnalités** :
+- Liste des groupes avec nombre de membres
+- Bouton FAB (+) pour créer un groupe (modale avec nom + `PlayerSelector` sans limite de joueurs)
+- Suppression avec confirmation
+- Navigation vers `/groups/:id` au clic
+
+**Hooks utilisés** : `usePlayerGroups`, `useCreatePlayerGroup`, `useDeletePlayerGroup`, `useNavigate`
+
+### Détail d'un groupe (`GroupDetail`)
+
+**Fichier** : `pages/GroupDetail.tsx`
+
+Écran de détail et modification d'un groupe.
+
+**Route** : `/groups/:id`
+
+**Fonctionnalités** :
+- Modification du nom inline (bouton crayon)
+- Liste des membres avec avatar et bouton de retrait
+- Ajout de membres via modale `PlayerSelector`
+- Suppression du groupe avec confirmation
+- Bouton retour vers `/groups`
+
+**Hooks utilisés** : `usePlayerGroup`, `useUpdatePlayerGroup`, `useDeletePlayerGroup`, `useNavigate`
+
 ### Statistiques globales (`Stats`)
 
 **Fichier** : `pages/Stats.tsx`
@@ -494,14 +607,15 @@ Page d'aide in-app reprenant le contenu du guide utilisateur (`docs/user-guide.m
 **Route** : `/stats`
 
 **Fonctionnalités** :
+- Filtre par groupe (`GroupFilter`) — filtre toutes les statistiques par groupe de joueurs
 - Métriques clés : total de donnes, de sessions, durée moyenne par donne et temps de jeu total (si disponible)
 - Classement (`Leaderboard`) trié par score total décroissant
 - Classement ELO (`EloRanking`) trié par rating décroissant (masqué si aucune donnée)
 - Répartition des contrats (`ContractDistributionChart`) en barres horizontales
-- Navigation vers le détail d'un joueur au clic
+- Navigation vers le détail d'un joueur au clic (propage le filtre groupe via `?group=`)
 - États : chargement, erreur
 
-**Hooks utilisés** : `useGlobalStats`, `useNavigate`
+**Hooks utilisés** : `useGlobalStats`, `usePlayerGroups` (via `GroupFilter`), `useNavigate`
 
 ### Statistiques joueur (`PlayerStats`)
 
@@ -513,7 +627,9 @@ Page d'aide in-app reprenant le contenu du guide utilisateur (`docs/user-guide.m
 
 **Fonctionnalités** :
 - Avatar, nom du joueur
+- Filtre par groupe (`GroupFilter`) — filtre les statistiques par groupe (initialisation depuis `?group=`)
 - Métriques clés : donnes jouées, taux de victoire, score moyen, ELO, sessions, durée moyenne par donne et temps de jeu total (si disponible)
+- Groupes du joueur : badges cliquables renvoyant vers `/groups/:id`
 - Meilleur et pire score
 - Répartition des rôles (preneur / partenaire / défenseur) en barre visuelle
 - Répartition des contrats pris (`ContractDistributionChart`)
@@ -522,7 +638,7 @@ Page d'aide in-app reprenant le contenu du guide utilisateur (`docs/user-guide.m
 - Bouton retour vers `/stats`
 - États : chargement, joueur introuvable
 
-**Hooks utilisés** : `usePlayerStats`, `useNavigate`
+**Hooks utilisés** : `usePlayerStats`, `usePlayerGroups` (via `GroupFilter`), `useNavigate`
 
 ### Session (`SessionPage`)
 
@@ -560,19 +676,20 @@ Page d'aide in-app reprenant le contenu du guide utilisateur (`docs/user-guide.m
 
 **Fichier** : `components/PlayerSelector.tsx`
 
-Composant de sélection de joueurs avec limite à 5. Inclut chips, recherche et création inline.
+Composant de sélection de joueurs avec limite configurable. Inclut chips, recherche et création inline.
 
 | Prop | Type | Description |
 |------|------|-------------|
 | `selectedPlayerIds` | `number[]` | *requis* — IDs des joueurs sélectionnés |
 | `onSelectionChange` | `(ids: number[]) => void` | *requis* — callback de changement |
-| `onStart` | `() => void` | *optionnel* — callback de démarrage (affiche le bouton « Démarrer la session » quand 5 joueurs sélectionnés) |
+| `onStart` | `() => void` | *optionnel* — callback de démarrage (affiche le bouton « Démarrer la session » quand max atteint) |
 | `isPending` | `boolean` | *optionnel* — désactive le bouton de démarrage pendant la mutation |
+| `maxPlayers` | `number` | *optionnel* — limite de joueurs sélectionnables (défaut : 5). Passer `Infinity` pour pas de limite (utilisé par les groupes). |
 
 **Fonctionnalités** :
 - Chips en haut avec avatar + nom des joueurs sélectionnés (clic = déselection)
-- Placeholders ronds pour les places restantes
-- Compteur « X/5 joueurs sélectionnés »
+- Placeholders ronds pour les places restantes (masqués si `maxPlayers` est `Infinity`)
+- Compteur « X/N joueurs sélectionnés » (masqué si `maxPlayers` est `Infinity`)
 - `SearchInput` pour rechercher des joueurs — la liste n'apparaît que lorsqu'un terme de recherche est saisi
 - Quand 5 joueurs sont sélectionnés et `onStart` est fourni : la barre de recherche est remplacée par un bouton « Démarrer la session »
 - Filtre les joueurs inactifs de la liste de sélection (seuls les joueurs actifs sont sélectionnables)
@@ -730,6 +847,32 @@ Modal de changement de joueurs depuis une session en cours. Réutilise `PlayerSe
 - Appelle `useCreateSession` (find-or-create) au clic sur Confirmer
 - Reset automatique de la sélection et de l'état d'erreur à l'ouverture
 - Affichage d'erreur si la mutation échoue
+
+### `GroupFilter`
+
+**Fichier** : `components/GroupFilter.tsx`
+
+Sélecteur de groupe partagé pour filtrer les statistiques. Retourne `null` si aucun groupe n'existe.
+
+| Prop | Type | Description |
+|------|------|-------------|
+| `onChange` | `(groupId: number \| null) => void` | *requis* — callback de changement |
+| `value` | `number \| null` | *requis* — ID du groupe sélectionné (`null` = tous) |
+
+**Hooks utilisés** : `usePlayerGroups`
+
+### `SessionGroupSelector`
+
+**Fichier** : `components/SessionGroupSelector.tsx`
+
+Sélecteur de groupe pour une session. Retourne `null` si aucun groupe n'existe.
+
+| Prop | Type | Description |
+|------|------|-------------|
+| `currentGroupId` | `number \| null` | *requis* — ID du groupe actuel |
+| `sessionId` | `number` | *requis* — ID de la session |
+
+**Hooks utilisés** : `usePlayerGroups`, `useUpdateSessionGroup`
 
 ### `NewGameModal`
 
