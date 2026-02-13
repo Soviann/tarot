@@ -777,16 +777,17 @@ Modal de complétion (étape 2) ou modification d'une donne. Titre dynamique sel
 - Section bonus repliable (poignée, petit au bout, chelem)
 - Aperçu des scores en temps réel via `calculateScore`
 - Pré-remplissage automatique en mode édition (donne complétée)
-- Callback `onGameCompleted` appelé uniquement lors de la première complétion (pas en mode édition) et si l'attaque gagne
+- Callback `onGameCompleted` appelé uniquement lors de la première complétion (pas en mode édition), avec le contexte complet (victoire ou défaite)
 
 ### `MemeOverlay`
 
 **Fichier** : `components/MemeOverlay.tsx`
 
-Overlay plein écran affichant un mème de victoire avec animation pop-in. Se ferme automatiquement après 3 secondes ou au clic.
+Overlay plein écran affichant un mème (victoire ou défaite) avec animation pop-in. Se ferme automatiquement après 3 secondes ou au clic.
 
 | Prop | Type | Description |
 |------|------|-------------|
+| `ariaLabel` | `string` | *optionnel* — libellé accessible (défaut : `"Mème"`) |
 | `meme` | `MemeConfig \| null` | *requis* — mème à afficher (`null` = rien) |
 | `onDismiss` | `() => void` | *requis* — callback de fermeture |
 
@@ -794,7 +795,7 @@ Overlay plein écran affichant un mème de victoire avec animation pop-in. Se fe
 - Utilise `createPortal` vers `document.body` (au-dessus des modales, `z-60`)
 - Animation CSS `meme-pop-in` (scale + opacity, cubic-bezier bounce)
 - Image centrée + légende en bas
-- Accessible : `role="dialog"`, `aria-label="Mème de victoire"`
+- Accessible : `role="dialog"`, `aria-label` dynamique
 
 ### `Leaderboard`
 
@@ -931,13 +932,17 @@ result.defenderScore;   // -34
 Sélectionne un mème de victoire en fonction du contexte de la donne. Fonction pure, facilement testable.
 
 ```ts
-import { selectVictoryMeme, type GameContext } from "./services/memeSelector";
+import { selectDefeatMeme, selectVictoryMeme, type GameContext } from "./services/memeSelector";
 
-const meme = selectVictoryMeme({
+const ctx: GameContext = {
   attackWins: true,
+  chelem: "none",
   contract: "garde_contre",
+  oudlers: 2,
   petitAuBout: "none",
-});
+};
+
+const meme = selectVictoryMeme(ctx) ?? selectDefeatMeme(ctx);
 
 if (meme) {
   meme.id;      // "vince-4"
@@ -946,7 +951,17 @@ if (meme) {
 }
 ```
 
-**Logique de sélection** (ordre de priorité) :
+**`GameContext`** :
+
+| Champ | Type | Description |
+|-------|------|-------------|
+| `attackWins` | `boolean` | L'attaque a-t-elle gagné |
+| `chelem` | `Chelem` | Type de chelem (pour détecter chelem raté) |
+| `contract` | `Contract` | Contrat joué |
+| `oudlers` | `number` | Nombre de bouts (0-3) |
+| `petitAuBout` | `Side` | Petit au bout (attaque/défense/aucun) |
+
+**Logique de sélection victoire** (ordre de priorité) :
 
 1. `attackWins === false` → retourne `null`
 2. `petitAuBout === "attack"` → toujours `success-kid` (événement rare, toujours célébré)
@@ -969,7 +984,36 @@ if (meme) {
 | `dicaprio-toast` | DiCaprio toast | « À la victoire ! » |
 | `over-9000` | Vegeta Over 9000 | « It's over 9000 ! » |
 
-**Assets mèmes** : `frontend/public/memes/*.webp` (9 fichiers). Format `.webp` (JPEG renommé, compatible navigateurs).
+### `selectDefeatMeme`
+
+**Fichier** : `services/memeSelector.ts`
+
+Sélectionne un mème de défaite en fonction du contexte de la donne. Même probabilité de base (40 %) que pour la victoire.
+
+**Logique de sélection défaite** (ordre de priorité) :
+
+1. `attackWins === true` → retourne `null`
+2. Défaite « improbable » → toujours `pikachu-surprised` : 3 bouts + défaite, chelem raté (`announced_lost`), ou garde contre perdue
+3. `Math.random() >= 0.4` → retourne `null` (60 % de chance de ne rien afficher)
+4. `Math.random() < 0.4` → Vince McMahon inversé selon le contrat :
+
+| Contrat | ID | Image | Légende |
+|---------|----|-------|---------|
+| Petite | `vince-reverse-1` | Vince déçu | « Même la petite... » |
+| Garde | `vince-reverse-2` | Vince mécontent | « La garde est chutée... » |
+| Garde Sans | `vince-reverse-3` | Vince effondré | « Garde sans... perdue. » |
+
+5. Sinon → aléatoire dans le pool de défaite :
+
+| ID | Image | Légende |
+|----|-------|---------|
+| `ah-shit` | CJ (GTA San Andreas) | « Ah shit, here we go again » |
+| `crying-jordan` | Michael Jordan en pleurs | « Crying Jordan » |
+| `first-time` | James Franco pendu | « First time ? » |
+| `just-to-suffer` | Metal Gear Solid V | « Why are we still here? Just to suffer? » |
+| `sad-pablo` | Pablo Escobar seul | « Sad Pablo » |
+
+**Assets mèmes** : `frontend/public/memes/*.webp` (18 fichiers). Format `.webp`.
 
 ---
 

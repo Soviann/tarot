@@ -18,7 +18,7 @@ import { useCreateGame } from "../hooks/useCreateGame";
 import { useSession } from "../hooks/useSession";
 import { useUpdateDealer } from "../hooks/useUpdateDealer";
 import type { GameContext, MemeConfig } from "../services/memeSelector";
-import { selectVictoryMeme } from "../services/memeSelector";
+import { selectDefeatMeme, selectVictoryMeme } from "../services/memeSelector";
 import { GameStatus } from "../types/enums";
 
 export default function SessionPage() {
@@ -57,6 +57,7 @@ export default function SessionPage() {
   );
 
   const [activeMeme, setActiveMeme] = useState<MemeConfig | null>(null);
+  const [memeLabel, setMemeLabel] = useState<string | undefined>(undefined);
   const [changeDealerModalOpen, setChangeDealerModalOpen] = useState(false);
   const [completeModalOpen, setCompleteModalOpen] = useState(false);
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
@@ -67,8 +68,17 @@ export default function SessionPage() {
   const [swapModalOpen, setSwapModalOpen] = useState(false);
 
   const handleGameCompleted = useCallback((ctx: GameContext) => {
-    const meme = selectVictoryMeme(ctx);
-    if (meme) setActiveMeme(meme);
+    const victoryMeme = selectVictoryMeme(ctx);
+    if (victoryMeme) {
+      setMemeLabel("Mème de victoire");
+      setActiveMeme(victoryMeme);
+      return;
+    }
+    const defeatMeme = selectDefeatMeme(ctx);
+    if (defeatMeme) {
+      setMemeLabel("Mème de défaite");
+      setActiveMeme(defeatMeme);
+    }
   }, []);
 
   if (isPending) {
@@ -271,7 +281,7 @@ export default function SessionPage() {
         />
       )}
 
-      <MemeOverlay meme={activeMeme} onDismiss={() => setActiveMeme(null)} />
+      <MemeOverlay ariaLabel={memeLabel} meme={activeMeme} onDismiss={() => { setActiveMeme(null); setMemeLabel(undefined); }} />
     </div>
   );
 }

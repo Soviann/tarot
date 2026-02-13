@@ -122,10 +122,12 @@ export default function CompleteGameModal({ game, onClose, onGameCompleted, open
       },
       {
         onSuccess: () => {
-          if (!isEditMode && scoreResult?.attackWins) {
+          if (!isEditMode && scoreResult) {
             onGameCompleted?.({
-              attackWins: true,
+              attackWins: scoreResult.attackWins,
+              chelem,
               contract: game.contract,
+              oudlers,
               petitAuBout,
             });
           }
