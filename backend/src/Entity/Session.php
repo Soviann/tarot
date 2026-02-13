@@ -66,7 +66,7 @@ class Session
     private ?Player $currentDealer = null;
 
     #[Groups(['session:read', 'session:patch'])]
-    #[ORM\JoinColumn(nullable: true)]
+    #[ORM\JoinColumn(nullable: true, onDelete: 'SET NULL')]
     #[ORM\ManyToOne(targetEntity: PlayerGroup::class)]
     private ?PlayerGroup $playerGroup = null;
 

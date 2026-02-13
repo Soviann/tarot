@@ -8,7 +8,7 @@ use App\Entity\Session;
 
 class SessionGroupTest extends ApiTestCase
 {
-    public function testAutoAssociationOnGet(): void
+    public function testAutoAssociationOnCreate(): void
     {
         $this->client->disableReboot();
 
@@ -19,46 +19,17 @@ class SessionGroupTest extends ApiTestCase
 
         $group = $this->createPlayerGroup('Mardi soir', ...$players);
 
-        $session = new Session();
-        foreach ($players as $player) {
-            $session->addPlayer($player);
-        }
-        $this->em->persist($session);
-        $this->em->flush();
-
-        $response = $this->client->request('GET', '/api/sessions/'.$session->getId());
+        $response = $this->client->request('POST', '/api/sessions', [
+            'headers' => ['Content-Type' => 'application/ld+json'],
+            'json' => [
+                'players' => \array_map(fn ($p) => $this->getIri($p), $players),
+            ],
+        ]);
 
         $this->assertResponseIsSuccessful();
         $data = $response->toArray();
         $this->assertNotNull($data['playerGroup']);
         $this->assertSame($group->getId(), $data['playerGroup']['id']);
-    }
-
-    public function testNoAutoAssociationWhenAlreadySet(): void
-    {
-        $this->client->disableReboot();
-
-        $players = [];
-        foreach (['Alice', 'Bob', 'Charlie', 'Diana', 'Eve'] as $name) {
-            $players[] = $this->createPlayer($name);
-        }
-
-        $this->createPlayerGroup('Mardi soir', ...$players);
-        $group2 = $this->createPlayerGroup('Famille', ...$players);
-
-        $session = new Session();
-        foreach ($players as $player) {
-            $session->addPlayer($player);
-        }
-        $session->setPlayerGroup($group2);
-        $this->em->persist($session);
-        $this->em->flush();
-
-        $response = $this->client->request('GET', '/api/sessions/'.$session->getId());
-
-        $this->assertResponseIsSuccessful();
-        $data = $response->toArray();
-        $this->assertSame($group2->getId(), $data['playerGroup']['id']);
     }
 
     public function testNoAutoAssociationWithMultipleMatchingGroups(): void
@@ -73,14 +44,12 @@ class SessionGroupTest extends ApiTestCase
         $this->createPlayerGroup('Mardi soir', ...$players);
         $this->createPlayerGroup('Famille', ...$players);
 
-        $session = new Session();
-        foreach ($players as $player) {
-            $session->addPlayer($player);
-        }
-        $this->em->persist($session);
-        $this->em->flush();
-
-        $response = $this->client->request('GET', '/api/sessions/'.$session->getId());
+        $response = $this->client->request('POST', '/api/sessions', [
+            'headers' => ['Content-Type' => 'application/ld+json'],
+            'json' => [
+                'players' => \array_map(fn ($p) => $this->getIri($p), $players),
+            ],
+        ]);
 
         $this->assertResponseIsSuccessful();
         $data = $response->toArray();

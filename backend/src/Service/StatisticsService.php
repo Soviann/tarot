@@ -93,17 +93,17 @@ class StatisticsService
      */
     public function getLeaderboard(?int $playerGroupId = null): array
     {
-        $groupJoinGame = null !== $playerGroupId ? ' JOIN g.session s_grp' : '';
-        $groupWhereGame = null !== $playerGroupId ? ' AND s_grp.playerGroup = :group' : '';
-        $groupJoinSe = null !== $playerGroupId ? ' JOIN g.session s_grp' : '';
-        $groupWhereSe = null !== $playerGroupId ? ' AND s_grp.playerGroup = :group' : '';
+        $groupJoin = null !== $playerGroupId ? ' JOIN g.session s_grp' : '';
+        $groupWhere = null !== $playerGroupId ? ' AND s_grp.playerGroup = :group' : '';
+        $groupStarJoin = null !== $playerGroupId ? ' JOIN se.session s_star' : '';
+        $groupStarWhere = null !== $playerGroupId ? ' AND s_star.playerGroup = :group' : '';
 
         $scoreQuery = $this->em->createQuery(
             'SELECT IDENTITY(se.player) AS playerId, p.name AS playerName, SUM(se.score) AS totalScore
              FROM App\Entity\ScoreEntry se
              JOIN se.player p
-             LEFT JOIN se.game g'.$groupJoinSe.'
-             WHERE (g IS NOT NULL AND g.status = :status'.$groupWhereSe.') OR se.game IS NULL
+             LEFT JOIN se.game g'.$groupJoin.$groupStarJoin.'
+             WHERE (g IS NOT NULL AND g.status = :status'.$groupWhere.') OR (se.game IS NULL'.$groupStarWhere.')
              GROUP BY se.player, p.name
              ORDER BY totalScore DESC'
         )
@@ -121,8 +121,8 @@ class StatisticsService
         $gamesPlayedQuery = $this->em->createQuery(
             'SELECT IDENTITY(se.player) AS playerId, COUNT(DISTINCT se.game) AS gamesPlayed
              FROM App\Entity\ScoreEntry se
-             JOIN se.game g'.$groupJoinGame.'
-             WHERE g.status = :status'.$groupWhereGame.'
+             JOIN se.game g'.$groupJoin.'
+             WHERE g.status = :status'.$groupWhere.'
              GROUP BY se.player'
         )
             ->setParameter('status', GameStatus::Completed);
@@ -140,8 +140,8 @@ class StatisticsService
 
         $takerQuery = $this->em->createQuery(
             'SELECT IDENTITY(g.taker) AS playerId, COUNT(g.id) AS gamesAsTaker
-             FROM App\Entity\Game g'.$groupJoinGame.'
-             WHERE g.status = :status'.$groupWhereGame.'
+             FROM App\Entity\Game g'.$groupJoin.'
+             WHERE g.status = :status'.$groupWhere.'
              GROUP BY g.taker'
         )
             ->setParameter('status', GameStatus::Completed);
@@ -160,8 +160,8 @@ class StatisticsService
         $winQuery = $this->em->createQuery(
             'SELECT IDENTITY(g.taker) AS playerId, COUNT(g.id) AS wins
              FROM App\Entity\Game g
-             JOIN App\Entity\ScoreEntry se WITH se.game = g AND se.player = g.taker'.$groupJoinGame.'
-             WHERE g.status = :status AND se.score > 0'.$groupWhereGame.'
+             JOIN App\Entity\ScoreEntry se WITH se.game = g AND se.player = g.taker'.$groupJoin.'
+             WHERE g.status = :status AND se.score > 0'.$groupWhere.'
              GROUP BY g.taker'
         )
             ->setParameter('status', GameStatus::Completed);

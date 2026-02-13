@@ -7,8 +7,6 @@ namespace App\State;
 use ApiPlatform\Doctrine\Orm\State\ItemProvider;
 use ApiPlatform\Metadata\Operation;
 use ApiPlatform\State\ProviderInterface;
-use App\Entity\Player;
-use App\Entity\PlayerGroup;
 use App\Entity\Session;
 use Doctrine\ORM\EntityManagerInterface;
 
@@ -35,54 +33,8 @@ final readonly class SessionDetailProvider implements ProviderInterface
         }
 
         $session->setCumulativeScores($this->computeCumulativeScores($session));
-        $this->autoAssociatePlayerGroup($session);
 
         return $session;
-    }
-
-    private function autoAssociatePlayerGroup(Session $session): void
-    {
-        if (null !== $session->getPlayerGroup()) {
-            return;
-        }
-
-        $playerIds = $session->getPlayers()->map(
-            static fn (Player $p) => $p->getId()
-        )->getValues();
-
-        if (empty($playerIds)) {
-            return;
-        }
-
-        $count = \count($playerIds);
-
-        /** @var list<PlayerGroup> $matchingGroups */
-        $matchingGroups = $this->em->createQuery(
-            'SELECT pg FROM App\Entity\PlayerGroup pg
-             JOIN pg.players p
-             WHERE p.id IN (:playerIds)
-             GROUP BY pg.id
-             HAVING COUNT(DISTINCT p.id) = :count'
-        )
-            ->setParameter('count', $count)
-            ->setParameter('playerIds', $playerIds)
-            ->getResult();
-
-        $matchingGroups = \array_values(\array_filter(
-            $matchingGroups,
-            static function (PlayerGroup $pg) use ($playerIds): bool {
-                $groupPlayerIds = $pg->getPlayers()->map(
-                    static fn (Player $p) => $p->getId()
-                )->getValues();
-
-                return empty(\array_diff($playerIds, $groupPlayerIds));
-            }
-        ));
-
-        if (1 === \count($matchingGroups)) {
-            $session->setPlayerGroup($matchingGroups[0]);
-            $this->em->flush();
-        }
     }
 
     /**
