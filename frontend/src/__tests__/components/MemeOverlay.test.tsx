@@ -57,11 +57,18 @@ describe("MemeOverlay", () => {
     expect(onDismiss).toHaveBeenCalledOnce();
   });
 
-  it("has accessible role and label", () => {
+  it("uses provided aria-label", () => {
+    render(<MemeOverlay ariaLabel="Mème de défaite" meme={meme} onDismiss={vi.fn()} />);
+
+    const dialog = screen.getByRole("dialog");
+    expect(dialog).toHaveAttribute("aria-label", "Mème de défaite");
+  });
+
+  it("defaults aria-label to Mème", () => {
     render(<MemeOverlay meme={meme} onDismiss={vi.fn()} />);
 
     const dialog = screen.getByRole("dialog");
-    expect(dialog).toHaveAttribute("aria-label", "Mème de victoire");
+    expect(dialog).toHaveAttribute("aria-label", "Mème");
   });
 
   it("cleans up timer on unmount", () => {

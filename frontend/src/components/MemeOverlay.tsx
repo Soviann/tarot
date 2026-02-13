@@ -3,13 +3,14 @@ import { createPortal } from "react-dom";
 import type { MemeConfig } from "../services/memeSelector";
 
 interface MemeOverlayProps {
+  ariaLabel?: string;
   meme: MemeConfig | null;
   onDismiss: () => void;
 }
 
 const DISPLAY_DURATION = 3000;
 
-export default function MemeOverlay({ meme, onDismiss }: MemeOverlayProps) {
+export default function MemeOverlay({ ariaLabel = "Mème", meme, onDismiss }: MemeOverlayProps) {
   useEffect(() => {
     if (!meme) return;
 
@@ -22,7 +23,7 @@ export default function MemeOverlay({ meme, onDismiss }: MemeOverlayProps) {
   return createPortal(
     // eslint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/no-static-element-interactions
     <div
-      aria-label="Mème de victoire"
+      aria-label={ariaLabel}
       className="fixed inset-0 z-60 flex animate-meme-pop-in cursor-pointer flex-col items-center justify-center bg-black/60"
       onClick={onDismiss}
       role="dialog"

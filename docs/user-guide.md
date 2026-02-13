@@ -17,6 +17,7 @@ Application mobile (PWA) de suivi des scores pour le Tarot à 5 joueurs, conform
 - [Classement ELO](#classement-elo)
 - [Utilisation sur Smart TV](#utilisation-sur-smart-tv)
 - [Mèmes de victoire](#mèmes-de-victoire)
+- [Mèmes de défaite](#mèmes-de-défaite)
 - [Thème sombre](#thème-sombre)
 - [Règles de calcul des scores](#règles-de-calcul-des-scores)
 
@@ -352,6 +353,36 @@ Quand une donne est gagnée par l'attaque, un **mème aléatoire** peut apparaî
 | Victoire (60 % pool par défaut) | It's Over 9000 | « It's over 9000 ! » |
 
 **Ordre de priorité** : petit au bout attaque → tirage 40 % (sinon rien) → 40 % Vince selon contrat / 60 % pool aléatoire.
+
+---
+
+## Mèmes de défaite
+
+Quand une donne est perdue par l'attaque, un **mème de défaite** peut apparaître en plein écran pendant 3 secondes.
+
+### Fonctionnement
+
+- Le mème s'affiche environ **40 % du temps** lors d'une défaite de l'attaque
+- **Exception** : certaines défaites « improbables » déclenchent **systématiquement** un mème spécial (Pikachu surpris)
+- Cliquer ou toucher l'écran permet de **fermer le mème** immédiatement
+
+> **Note** : les mèmes n'apparaissent que lors de la **première saisie** d'une donne, pas lors de la modification.
+
+### Quel mème s'affiche ?
+
+| Condition | Image | Légende |
+|-----------|-------|---------|
+| Défaite improbable (**toujours**) : 3 bouts, chelem raté ou garde contre perdue | Pikachu surpris | « Mais... comment ?! » |
+| Petite perdue (40 % Vince inversé) | Vince McMahon inversé niveau 1 | « Même la petite... » |
+| Garde perdue (40 % Vince inversé) | Vince McMahon inversé niveau 2 | « La garde est chutée... » |
+| Garde Sans perdue (40 % Vince inversé) | Vince McMahon inversé niveau 3 | « Garde sans... perdue. » |
+| Défaite (60 % pool par défaut) | Sad Pablo Escobar | « Sad Pablo » |
+| Défaite (60 % pool par défaut) | Crying Michael Jordan | « Crying Jordan » |
+| Défaite (60 % pool par défaut) | First Time? (James Franco) | « First time ? » |
+| Défaite (60 % pool par défaut) | Ah Shit, Here We Go Again (CJ) | « Ah shit, here we go again » |
+| Défaite (60 % pool par défaut) | Why Are We Still Here? | « Why are we still here? Just to suffer? » |
+
+**Ordre de priorité** : défaite improbable (pikachu) → tirage 40 % (sinon rien) → 40 % Vince inversé selon contrat / 60 % pool aléatoire.
 
 ---
 
