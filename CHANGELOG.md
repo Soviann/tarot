@@ -8,6 +8,8 @@ Le format est basé sur [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/)
 
 ### Added
 
+- **Tri et limite des sessions récentes** : l'API retourne les 5 sessions les plus récemment jouées (triées par date de dernière donne), au lieu de toutes les sessions sans tri
+
 - **Pagination de l'historique des donnes** : les donnes sont désormais chargées par pages de 10 depuis l'API (`/sessions/{id}/games`), avec un bouton « Voir plus » pour charger la suite. Nouveau hook `useSessionGames` avec `useInfiniteQuery`. La donne en cours est désormais une propriété dédiée `inProgressGame` sur le détail de session, alimentée par le provider côté serveur. Extension Doctrine `CompletedGamesExtension` pour filtrer les donnes en cours du endpoint paginé.
 
 - **Groupes de joueurs** : création de cercles de jeu avec statistiques et classements filtrés par groupe (#91)
