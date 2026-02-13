@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Service;
 
 use App\Entity\Player;
+use App\Entity\PlayerGroup;
 use App\Enum\Contract;
 use App\Enum\GameStatus;
 use Doctrine\ORM\AbstractQuery;
@@ -400,6 +401,10 @@ class StatisticsService
             'gamesAsTaker' => $gamesAsTaker,
             'gamesPlayed' => $gamesPlayed,
             'player' => ['id' => $playerId, 'name' => $player->getName()],
+            'playerGroups' => \array_map(
+                static fn (PlayerGroup $pg) => ['id' => $pg->getId(), 'name' => $pg->getName()],
+                $player->getPlayerGroups()->getValues(),
+            ),
             'recentScores' => $formattedRecentScores,
             'sessionsPlayed' => $sessionsPlayed,
             'starPenalties' => $starPenalties,
@@ -523,7 +528,7 @@ class StatisticsService
     }
 
     /**
-     * @param AbstractQuery<mixed> $query
+     * @param AbstractQuery<mixed, mixed> $query
      */
     private function setGroupParameter(AbstractQuery $query, ?int $playerGroupId): void
     {

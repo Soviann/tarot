@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useNavigate, useParams, useSearchParams } from "react-router-dom";
+import { Link, useNavigate, useParams, useSearchParams } from "react-router-dom";
 import ContractDistributionChart from "../components/ContractDistributionChart";
 import EloEvolutionChart from "../components/EloEvolutionChart";
 import GroupFilter from "../components/GroupFilter";
@@ -105,6 +105,23 @@ export default function PlayerStats() {
             </span>
           </div>
         </div>
+      )}
+
+      {stats.playerGroups.length > 0 && (
+        <section>
+          <h2 className="mb-2 text-sm font-semibold text-text-secondary">Groupes</h2>
+          <div className="flex flex-wrap gap-2">
+            {stats.playerGroups.map((g) => (
+              <Link
+                key={g.id}
+                to={`/groups/${g.id}`}
+                className="rounded-full bg-surface-elevated px-3 py-1 text-sm font-medium text-accent-500 hover:bg-surface-tertiary"
+              >
+                {g.name}
+              </Link>
+            ))}
+          </div>
+        </section>
       )}
 
       <div className="flex gap-3">

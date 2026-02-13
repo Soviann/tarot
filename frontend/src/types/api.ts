@@ -113,6 +113,7 @@ export interface PlayerStatistics {
   gamesAsTaker: number;
   gamesPlayed: number;
   player: GamePlayer;
+  playerGroups: { id: number; name: string }[];
   recentScores: RecentScoreEntry[];
   sessionsPlayed: number;
   starPenalties: number;
