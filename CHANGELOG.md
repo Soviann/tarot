@@ -12,6 +12,7 @@ Le format est basé sur [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/)
 - **Association automatique** : les sessions sont automatiquement associées au groupe quand tous les joueurs sont membres
 - **Association manuelle** : sélecteur de groupe sur l'écran de session avec propagation des joueurs
 - **Filtre par groupe** : toutes les statistiques et classements filtrables par groupe
+- **Attribution de groupes depuis la modification d'un joueur** : chips de sélection de groupes dans la modale d'édition
 - **Page Groupes** : nouvel onglet dans la navigation pour gérer les groupes
 - **Aide in-app** : section dédiée aux groupes dans la page d'aide
 
@@ -20,6 +21,13 @@ Le format est basé sur [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/)
   - **Défaite** — déclencheurs garantis : You Were the Chosen One / Pikachu surpris / Picard Facepalm (défaite improbable : 3 bouts, chelem raté, garde contre), Crying Jordan (garde sans perdue), First Time? (première défaite du preneur dans la session). 40 % This is Fine, sinon pool : Ah Shit, Just to Suffer, Sad Pablo.
 
 - **Suivi de la durée des donnes** : nouveau champ `completedAt` sur les donnes, renseigné automatiquement à la complétion. Chronomètre en temps réel sur le bandeau de donne en cours. Durée affichée dans l'historique des donnes. Nouvelles statistiques globales (durée moyenne par donne, temps de jeu total) et par joueur. Utilitaire `formatDuration` et hook `useElapsedTime`.
+
+### Fixed
+
+- **Page blanche au clic sur un groupe** : les joueurs étaient rendus comme des IRIs au lieu d'objets (groupe de sérialisation `player-group:detail` manquant sur `Player`)
+- **Création joueur depuis le formulaire de groupe** : le submit remontait dans l'arbre React via le portal et déclenchait la création du groupe prématurément
+- **Classement vide dans les stats d'un groupe** : les INNER JOINs mutuellement exclusifs (game vs star entries) éliminaient toutes les lignes de la requête leaderboard
+- **Groupes non pré-sélectionnés dans la modale d'édition joueur** : groupe de sérialisation `player:read` manquant sur `PlayerGroup.id` et `PlayerGroup.name`
 
 ### Changed
 
