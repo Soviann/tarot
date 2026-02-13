@@ -11,6 +11,7 @@ use ApiPlatform\Metadata\Patch;
 use ApiPlatform\Metadata\Post;
 use App\State\SessionCreateProcessor;
 use App\State\SessionDetailProvider;
+use App\State\SessionPatchProcessor;
 use App\Validator\DealerBelongsToSession;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
@@ -28,6 +29,7 @@ use Symfony\Component\Validator\Constraints as Assert;
         new Patch(
             denormalizationContext: ['groups' => ['session:patch']],
             normalizationContext: ['groups' => ['session:read', 'session:detail']],
+            processor: SessionPatchProcessor::class,
             provider: SessionDetailProvider::class,
         ),
         new Post(processor: SessionCreateProcessor::class),
