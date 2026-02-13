@@ -66,6 +66,12 @@ export interface HydraCollection<T> {
   totalItems: number;
 }
 
+export interface PaginatedCollection<T> extends HydraCollection<T> {
+  "hydra:view"?: {
+    "hydra:next"?: string;
+  };
+}
+
 export interface LeaderboardEntry {
   gamesAsTaker: number;
   gamesPlayed: number;
@@ -149,8 +155,8 @@ export interface SessionDetail {
   createdAt: string;
   cumulativeScores: CumulativeScore[];
   currentDealer: GamePlayer | null;
-  games: Game[];
   id: number;
+  inProgressGame?: Game | null;
   isActive: boolean;
   playerGroup: PlayerGroup | null;
   players: GamePlayer[];

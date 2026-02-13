@@ -14,7 +14,6 @@ const mockSession = {
     { playerId: 1, playerName: "Alice", score: 120 },
     { playerId: 2, playerName: "Bob", score: -30 },
   ],
-  games: [],
   id: 1,
   isActive: true,
   players: [

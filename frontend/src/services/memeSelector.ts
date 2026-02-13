@@ -10,7 +10,6 @@ export interface GameContext {
   attackWins: boolean;
   chelem: Chelem;
   contract: Contract;
-  isFirstTakerDefeat: boolean;
   isSelfCall: boolean;
   oudlers: number;
   petitAuBout: Side;
@@ -50,12 +49,6 @@ const CRYING_JORDAN: MemeConfig = {
   caption: "",
   id: "crying-jordan",
   image: "/memes/crying-jordan.webp",
-};
-
-const FIRST_TIME: MemeConfig = {
-  caption: "",
-  id: "first-time",
-  image: "/memes/first-time.webp",
 };
 
 const THIS_IS_FINE: MemeConfig = {
@@ -109,11 +102,6 @@ export function selectDefeatMeme(ctx: GameContext): MemeConfig | null {
   // Priority 2: Crying Jordan — guaranteed on garde sans perdue
   if (ctx.contract === Contract.GardeSans) {
     return CRYING_JORDAN;
-  }
-
-  // Priority 3: First Time? — guaranteed on taker's first defeat in the session
-  if (ctx.isFirstTakerDefeat) {
-    return FIRST_TIME;
   }
 
   // 40% overall chance of showing a meme

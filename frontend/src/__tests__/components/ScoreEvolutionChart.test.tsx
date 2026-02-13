@@ -1,4 +1,4 @@
-import { Chelem, Contract, GameStatus, Poignee, Side } from "../../types/enums";
+import { Chelem, Contract, Poignee, Side } from "../../types/enums";
 import type { Game, GamePlayer } from "../../types/api";
 import { computeScoreEvolution } from "../../components/ScoreEvolutionChart";
 
@@ -13,8 +13,10 @@ const players: GamePlayer[] = [
 function makeGame(position: number, scores: Record<string, number>): Game {
   return {
     chelem: Chelem.None,
+    completedAt: "2026-02-07T12:05:00+00:00",
     contract: Contract.Petite,
     createdAt: "2026-02-07T12:00:00+00:00",
+    dealer: null,
     id: position,
     oudlers: 2,
     partner: players[1],
@@ -28,7 +30,7 @@ function makeGame(position: number, scores: Record<string, number>): Game {
       player: players.find((p) => p.name === name)!,
       score,
     })),
-    status: GameStatus.Completed,
+    status: "completed",
     taker: players[0],
   };
 }
@@ -65,19 +67,6 @@ describe("computeScoreEvolution", () => {
 
   it("returns empty array for empty games", () => {
     expect(computeScoreEvolution([], players)).toEqual([]);
-  });
-
-  it("filters out in-progress games", () => {
-    const completed = makeGame(1, { Alice: 10, Bob: 10, Charlie: 10, Diana: 10, Eve: 10 });
-    const inProgress: Game = {
-      ...makeGame(2, {}),
-      scoreEntries: [],
-      status: GameStatus.InProgress,
-    };
-
-    const result = computeScoreEvolution([completed, inProgress], players);
-
-    expect(result).toHaveLength(1);
   });
 
   it("sorts games by position", () => {

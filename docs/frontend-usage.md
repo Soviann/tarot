@@ -65,12 +65,13 @@ import type { HydraCollection, Player } from "./types/api";
 | `Game` | `id`, `chelem`, `completedAt`, `contract`, `createdAt`, `dealer`, `oudlers`, `partner`, `petitAuBout`, `poignee`, `poigneeOwner`, `points`, `position`, `scoreEntries`, `status`, `taker` |
 | `GamePlayer` | `id: number`, `name: string` |
 | `HydraCollection<T>` | `member: T[]`, `totalItems: number` |
+| `PaginatedCollection<T>` | extends `HydraCollection<T>` + `hydra:view?: { hydra:next?: string }` |
 | `Player` | `active: boolean`, `createdAt: string`, `id: number`, `name: string`, `playerGroups: PlayerGroup[]` |
 | `PlayerGroup` | `createdAt: string`, `id: number`, `name: string` |
 | `PlayerGroupDetail` | extends `PlayerGroup` + `players: GamePlayer[]` |
 | `ScoreEntry` | `id: number`, `player: GamePlayer`, `score: number` |
 | `Session` | `id: number`, `createdAt: string`, `isActive: boolean`, `lastPlayedAt: string`, `playerGroup: PlayerGroup \| null`, `players: SessionPlayer[]` |
-| `SessionDetail` | `id`, `createdAt`, `currentDealer`, `isActive`, `playerGroup: PlayerGroup \| null`, `players: GamePlayer[]`, `games: Game[]`, `cumulativeScores: CumulativeScore[]`, `starEvents: StarEvent[]` |
+| `SessionDetail` | `id`, `createdAt`, `currentDealer`, `inProgressGame: Game \| null`, `isActive`, `playerGroup: PlayerGroup \| null`, `players: GamePlayer[]`, `cumulativeScores: CumulativeScore[]`, `starEvents: StarEvent[]` |
 | `StarEvent` | `id: number`, `createdAt: string`, `player: GamePlayer` |
 | `SessionPlayer` | `id: number`, `name: string` |
 | `ContractDistributionEntry` | `contract: Contract`, `count: number`, `percentage: number` |
@@ -401,11 +402,32 @@ Retourne une valeur retardée qui ne se met à jour qu'après un délai sans cha
 const debouncedQuery = useDebounce(searchQuery, 300);
 ```
 
+### `useSessionGames`
+
+**Fichier** : `hooks/useSessionGames.ts`
+
+Récupère les donnes terminées d'une session avec pagination infinie (10 par page, triées par position décroissante).
+
+```ts
+const { data, fetchNextPage, hasNextPage, isFetchingNextPage } = useSessionGames(sessionId);
+const allGames = data?.pages.flatMap(p => p.member) ?? [];
+```
+
+| Retour | Type | Description |
+|--------|------|-------------|
+| `data` | `InfiniteData<PaginatedCollection<Game>>` | Pages de donnes chargées |
+| `hasNextPage` | `boolean` | `true` s'il reste des pages à charger |
+| `fetchNextPage` | `() => void` | Charge la page suivante |
+| `isFetchingNextPage` | `boolean` | `true` pendant le chargement de la page suivante |
+| …autres | — | Tous les champs de `UseInfiniteQueryResult` |
+
+**Query key** : `["session", sessionId, "games"]` — invalidé automatiquement par prefix matching quand `["session", sessionId]` est invalidé par les mutations existantes.
+
 ### `useSession`
 
 **Fichier** : `hooks/useSession.ts`
 
-Récupère le détail d'une session (joueurs, donnes, scores cumulés) via l'API.
+Récupère le détail d'une session (joueurs, scores cumulés, donne en cours) via l'API.
 
 ```ts
 const { isPending, session } = useSession(sessionId);
@@ -650,15 +672,15 @@ Page d'aide in-app reprenant le contenu du guide utilisateur (`docs/user-guide.m
 
 **Fonctionnalités** :
 - Tableau des scores cumulés (composant `Scoreboard`) avec avatars et scores colorés
-- Graphique d'évolution des scores (`ScoreEvolutionChart`) visible quand ≥ 2 donnes terminées
-- Bandeau « donne en cours » (`InProgressBanner`) si une donne est au statut `in_progress`
-- Historique des donnes terminées (`GameList`) en ordre anti-chronologique
+- Graphique d'évolution des scores (`ScoreEvolutionChart`) visible quand ≥ 2 donnes terminées (basé sur les donnes chargées)
+- Bandeau « donne en cours » (`InProgressBanner`) si `session.inProgressGame` est non nul
+- Historique des donnes terminées (`GameList`) paginé côté serveur (10 par page, bouton « Voir plus »)
 - Bouton FAB (+) pour démarrer une nouvelle donne (désactivé si donne en cours)
 - Bouton de changement de joueurs (icône ⇄) dans le header (désactivé si donne en cours)
 - Bouton retour vers l'accueil
 - États : chargement, session introuvable
 
-**Hooks utilisés** : `useSession`, `useAddStar`, `useCreateGame`, `useCreateSession` (via SwapPlayersModal), `useCompleteGame`, `useDeleteGame`, `useUpdateDealer`, `useNavigate`
+**Hooks utilisés** : `useSession`, `useSessionGames`, `useAddStar`, `useCreateGame`, `useCreateSession` (via SwapPlayersModal), `useCompleteGame`, `useDeleteGame`, `useUpdateDealer`, `useNavigate`
 
 **Modales** :
 - `ChangeDealerModal` : sélection manuelle du donneur parmi les 5 joueurs
@@ -756,13 +778,17 @@ Liste des donnes terminées en ordre anti-chronologique (position décroissante)
 
 | Prop | Type | Description |
 |------|------|-------------|
-| `games` | `Game[]` | *requis* — donnes terminées |
+| `games` | `Game[]` | *requis* — donnes terminées (triées par position DESC depuis l'API) |
+| `hasNextPage` | `boolean` | *requis* — `true` s'il reste des pages à charger |
+| `isFetchingNextPage` | `boolean` | *requis* — `true` pendant le chargement de la page suivante |
 | `onDeleteLast` | `() => void` | *requis* — action pour supprimer la dernière donne |
 | `onEditLast` | `() => void` | *requis* — action pour modifier la dernière donne |
+| `onLoadMore` | `() => void` | *requis* — action pour charger la page suivante |
 
 **Fonctionnalités** :
 - Chaque carte : avatar preneur, nom, badge contrat, durée de la donne (si `completedAt` disponible), « avec [partenaire] » ou « Seul », donneur, score du preneur
 - Boutons « Modifier » et « Supprimer » uniquement sur la dernière donne (position la plus élevée)
+- Bouton « Voir plus » quand `hasNextPage` est vrai, affichant « Chargement… » pendant le fetch
 - État vide : « Aucune donne jouée »
 
 ### `ChangeDealerModal`
@@ -907,7 +933,7 @@ Modal de complétion (étape 2) ou modification d'une donne. Titre dynamique sel
 |------|------|-------------|
 | `open` | `boolean` | *requis* — afficher ou masquer |
 | `onClose` | `() => void` | *requis* — fermeture |
-| `onGameCompleted` | `(ctx: GameContext) => void` | *optionnel* — callback déclenché après une complétion réussie (pas en édition) |
+| `onGameCompleted` | `(ctx: GameContext) => void` | *optionnel* — callback pour déclencher un mème après une complétion réussie (pas en édition) |
 | `game` | `Game` | *requis* — donne à compléter/modifier |
 | `players` | `GamePlayer[]` | *requis* — les 5 joueurs de la session |
 | `sessionId` | `number` | *requis* — ID de la session |
@@ -1000,7 +1026,7 @@ Graphique linéaire (Recharts) affichant l'évolution des scores cumulés de tou
 
 | Prop | Type | Description |
 |------|------|-------------|
-| `games` | `Game[]` | *requis* — toutes les donnes de la session |
+| `games` | `Game[]` | *requis* — donnes terminées chargées (le graphique s'enrichit au fur et à mesure des « Voir plus ») |
 | `players` | `GamePlayer[]` | *requis* — les 5 joueurs de la session |
 
 **Fonction utilitaire exportée** : `computeScoreEvolution(games, players)` — calcule les scores cumulés par position de donne.
@@ -1081,7 +1107,6 @@ const ctx: GameContext = {
   attackWins: true,
   chelem: "none",
   contract: "garde_contre",
-  isFirstTakerDefeat: false,
   isSelfCall: false,
   oudlers: 2,
   petitAuBout: "none",
@@ -1103,7 +1128,6 @@ if (meme) {
 | `attackWins` | `boolean` | L'attaque a-t-elle gagné |
 | `chelem` | `Chelem` | Type de chelem (pour détecter chelem raté) |
 | `contract` | `Contract` | Contrat joué |
-| `isFirstTakerDefeat` | `boolean` | Première défaite du preneur dans la session |
 | `isSelfCall` | `boolean` | Victoire en solo (appel au roi seul) |
 | `oudlers` | `number` | Nombre de bouts (0-3) |
 | `petitAuBout` | `Side` | Petit au bout (attaque/défense/aucun) |
@@ -1135,10 +1159,9 @@ Sélectionne un mème de défaite en fonction du contexte de la donne. Même pro
 1. `attackWins === true` → retourne `null`
 2. Défaite « improbable » → toujours un mème garanti (aléatoire entre `chosen-one`, `pikachu-surprised` et `picard-facepalm`) : 3 bouts + défaite, chelem raté (`announced_lost`), ou garde contre perdue
 3. Garde sans perdue → toujours `crying-jordan`
-4. Première défaite du preneur dans la session → toujours `first-time`
-5. `Math.random() >= 0.4` → retourne `null` (60 % de chance de ne rien afficher)
-6. `Math.random() < 0.4` → `this-is-fine` (chien dans les flammes)
-7. Sinon → aléatoire dans le pool de défaite :
+4. `Math.random() >= 0.4` → retourne `null` (60 % de chance de ne rien afficher)
+5. `Math.random() < 0.4` → `this-is-fine` (chien dans les flammes)
+6. Sinon → aléatoire dans le pool de défaite :
 
 | ID | Image |
 |----|-------|
@@ -1148,7 +1171,7 @@ Sélectionne un mème de défaite en fonction du contexte de la donne. Même pro
 
 > **Note** : les mèmes n'ont pas de légende textuelle — seule l'image s'affiche (sauf exceptions).
 
-**Assets mèmes** : `frontend/public/memes/*.webp` (16 fichiers). Format `.webp`.
+**Assets mèmes** : `frontend/public/memes/*.webp` (15 fichiers). Format `.webp`.
 
 ---
 

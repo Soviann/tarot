@@ -7,7 +7,6 @@ function makeContext(overrides: Partial<GameContext> = {}): GameContext {
     attackWins: true,
     chelem: Chelem.None,
     contract: Contract.Petite,
-    isFirstTakerDefeat: false,
     isSelfCall: false,
     oudlers: 0,
     petitAuBout: Side.None,
@@ -110,8 +109,7 @@ describe("selectVictoryMeme", () => {
 // Defeat meme priority order:
 // 1. Improbable defeat (3 bouts, chelem raté, garde contre) → guaranteed Pikachu/Picard
 // 2. Garde sans perdue → guaranteed Crying Jordan
-// 3. First taker defeat in session → guaranteed First Time?
-// 4. 40% gate → 40% This is Fine / 60% random pool
+// 3. 40% gate → 40% This is Fine / 60% random pool
 
 const IMPROBABLE_DEFEAT_IDS = ["chosen-one", "picard-facepalm", "pikachu-surprised"];
 
@@ -198,25 +196,7 @@ describe("selectDefeatMeme", () => {
     expect(result!.id).toBe("crying-jordan");
   });
 
-  // --- Priority 3: First Time? on taker's first defeat ---
-
-  it("returns first-time when it is the taker's first defeat in session (guaranteed)", () => {
-    vi.spyOn(Math, "random").mockReturnValue(0.99);
-
-    const result = selectDefeatMeme(makeContext({ attackWins: false, isFirstTakerDefeat: true }));
-
-    expect(result!.id).toBe("first-time");
-  });
-
-  it("does NOT return first-time when taker already lost before", () => {
-    vi.spyOn(Math, "random").mockReturnValue(0.5);
-
-    const result = selectDefeatMeme(makeContext({ attackWins: false, isFirstTakerDefeat: false }));
-
-    expect(result).toBeNull(); // random >= 0.4, no meme
-  });
-
-  // --- Priority order: improbable > crying jordan > first time ---
+  // --- Priority order: improbable > crying jordan ---
 
   it("improbable defeat takes priority over garde sans (crying jordan)", () => {
     vi.spyOn(Math, "random").mockReturnValue(0);
@@ -229,18 +209,6 @@ describe("selectDefeatMeme", () => {
     }));
 
     expect(IMPROBABLE_DEFEAT_IDS).toContain(result!.id);
-  });
-
-  it("crying jordan takes priority over first-time", () => {
-    vi.spyOn(Math, "random").mockReturnValue(0.99);
-
-    const result = selectDefeatMeme(makeContext({
-      attackWins: false,
-      contract: Contract.GardeSans,
-      isFirstTakerDefeat: true,
-    }));
-
-    expect(result!.id).toBe("crying-jordan");
   });
 
   // --- This is Fine ---
@@ -280,11 +248,6 @@ describe("selectDefeatMeme", () => {
     const cryingResult = selectDefeatMeme(makeContext({ attackWins: false, contract: Contract.GardeSans }));
     expect(cryingResult!.id).toBe("crying-jordan");
     expect(cryingResult!.image).toMatch(/^\/memes\/.+\.webp$/);
-
-    // Test First Time
-    const firstTimeResult = selectDefeatMeme(makeContext({ attackWins: false, isFirstTakerDefeat: true }));
-    expect(firstTimeResult!.id).toBe("first-time");
-    expect(firstTimeResult!.image).toMatch(/^\/memes\/.+\.webp$/);
 
     // Test This is Fine (gate + chance both pass)
     vi.spyOn(Math, "random").mockReturnValue(0.1);

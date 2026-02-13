@@ -19,6 +19,7 @@ class GameApiTest extends ApiTestCase
         $game->setContract(Contract::Petite);
         $game->setPosition(1);
         $game->setSession($session);
+        $game->setStatus(GameStatus::Completed);
         $game->setTaker($players[0]);
         $this->em->persist($game);
         $this->em->flush();
@@ -27,6 +28,98 @@ class GameApiTest extends ApiTestCase
 
         $this->assertResponseIsSuccessful();
         $this->assertJsonContains(['totalItems' => 1]);
+    }
+
+    public function testListGamesExcludesInProgress(): void
+    {
+        $session = $this->createSessionWithPlayers('Alice', 'Bob', 'Charlie', 'Diana', 'Eve');
+        $players = $session->getPlayers()->toArray();
+
+        // Donne complétée
+        $game1 = new Game();
+        $game1->setContract(Contract::Petite);
+        $game1->setPosition(1);
+        $game1->setSession($session);
+        $game1->setStatus(GameStatus::Completed);
+        $game1->setTaker($players[0]);
+        $this->em->persist($game1);
+
+        // Donne en cours
+        $game2 = new Game();
+        $game2->setContract(Contract::Garde);
+        $game2->setPosition(2);
+        $game2->setSession($session);
+        $game2->setStatus(GameStatus::InProgress);
+        $game2->setTaker($players[1]);
+        $this->em->persist($game2);
+        $this->em->flush();
+
+        $response = $this->client->request('GET', $this->getIri($session).'/games');
+
+        $this->assertResponseIsSuccessful();
+        $data = $response->toArray();
+        $this->assertSame(1, $data['totalItems']);
+        $this->assertSame($game1->getId(), $data['member'][0]['id']);
+    }
+
+    public function testListGamesPagination(): void
+    {
+        $session = $this->createSessionWithPlayers('Alice', 'Bob', 'Charlie', 'Diana', 'Eve');
+        $players = $session->getPlayers()->toArray();
+
+        // Créer 12 donnes complétées
+        for ($i = 1; $i <= 12; ++$i) {
+            $game = new Game();
+            $game->setContract(Contract::Petite);
+            $game->setPosition($i);
+            $game->setSession($session);
+            $game->setStatus(GameStatus::Completed);
+            $game->setTaker($players[$i % 5]);
+            $this->em->persist($game);
+        }
+        $this->em->flush();
+
+        // Page 1 : 10 items, triés par position DESC
+        $response = $this->client->request('GET', $this->getIri($session).'/games');
+        $this->assertResponseIsSuccessful();
+        $data = $response->toArray();
+        $this->assertSame(12, $data['totalItems']);
+        $this->assertCount(10, $data['member']);
+        $this->assertSame(12, $data['member'][0]['position']);
+        $this->assertSame(3, $data['member'][9]['position']);
+
+        // Page 2 : 2 items restants
+        $response = $this->client->request('GET', $this->getIri($session).'/games?page=2');
+        $this->assertResponseIsSuccessful();
+        $data = $response->toArray();
+        $this->assertCount(2, $data['member']);
+        $this->assertSame(2, $data['member'][0]['position']);
+        $this->assertSame(1, $data['member'][1]['position']);
+    }
+
+    public function testListGamesOrderedByPositionDesc(): void
+    {
+        $session = $this->createSessionWithPlayers('Alice', 'Bob', 'Charlie', 'Diana', 'Eve');
+        $players = $session->getPlayers()->toArray();
+
+        for ($i = 1; $i <= 3; ++$i) {
+            $game = new Game();
+            $game->setContract(Contract::Petite);
+            $game->setPosition($i);
+            $game->setSession($session);
+            $game->setStatus(GameStatus::Completed);
+            $game->setTaker($players[0]);
+            $this->em->persist($game);
+        }
+        $this->em->flush();
+
+        $response = $this->client->request('GET', $this->getIri($session).'/games');
+        $this->assertResponseIsSuccessful();
+        $data = $response->toArray();
+
+        $this->assertSame(3, $data['member'][0]['position']);
+        $this->assertSame(2, $data['member'][1]['position']);
+        $this->assertSame(1, $data['member'][2]['position']);
     }
 
     public function testCreateGameStep1(): void
@@ -339,11 +432,11 @@ class GameApiTest extends ApiTestCase
         $this->client->request('GET', '/api/games/'.$game2->getId());
         $this->assertResponseStatusCodeSame(404);
 
-        // Vérifier que la session ne contient plus que la première donne
-        $response = $this->client->request('GET', '/api/sessions/'.$session->getId());
+        // Vérifier que le sub-resource ne contient plus que la première donne
+        $response = $this->client->request('GET', '/api/sessions/'.$session->getId().'/games');
         $sessionData = $response->toArray();
-        $this->assertCount(1, $sessionData['games']);
-        $this->assertSame($game1->getId(), $sessionData['games'][0]['id']);
+        $this->assertSame(1, $sessionData['totalItems']);
+        $this->assertSame($game1->getId(), $sessionData['member'][0]['id']);
     }
 
     public function testCannotDeleteNonLastGame(): void
@@ -418,9 +511,9 @@ class GameApiTest extends ApiTestCase
         $this->assertResponseStatusCodeSame(204);
 
         // Session vide
-        $response = $this->client->request('GET', '/api/sessions/'.$session->getId());
+        $response = $this->client->request('GET', '/api/sessions/'.$session->getId().'/games');
         $sessionData = $response->toArray();
-        $this->assertCount(0, $sessionData['games']);
+        $this->assertSame(0, $sessionData['totalItems']);
     }
 
     public function testPartnerMustBelongToSession(): void

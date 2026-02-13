@@ -17,45 +17,36 @@ import { FAB } from "../components/ui";
 import { useAddStar } from "../hooks/useAddStar";
 import { useCreateGame } from "../hooks/useCreateGame";
 import { useSession } from "../hooks/useSession";
+import { useSessionGames } from "../hooks/useSessionGames";
 import { useUpdateDealer } from "../hooks/useUpdateDealer";
 import type { GameContext, MemeConfig } from "../services/memeSelector";
 import { selectDefeatMeme, selectVictoryMeme } from "../services/memeSelector";
-import { GameStatus } from "../types/enums";
 
 export default function SessionPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const sessionId = Number(id);
   const { isPending, session } = useSession(sessionId);
+  const {
+    data: gamesData,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+  } = useSessionGames(sessionId);
   const addStar = useAddStar(sessionId);
   const createGame = useCreateGame(sessionId);
   const updateDealer = useUpdateDealer(sessionId);
 
-  const inProgressGame = useMemo(
-    () => session?.games.find((g) => g.status === GameStatus.InProgress) ?? null,
-    [session],
-  );
+  const inProgressGame = session?.inProgressGame ?? null;
 
   const completedGames = useMemo(
-    () => session?.games.filter((g) => g.status === GameStatus.Completed) ?? [],
-    [session],
+    () => gamesData?.pages.flatMap((p) => p.member) ?? [],
+    [gamesData],
   );
 
-  const lastCompletedGame = useMemo(
-    () =>
-      completedGames.length > 0
-        ? completedGames.reduce((a, b) => (a.position > b.position ? a : b))
-        : null,
-    [completedGames],
-  );
+  const lastCompletedGame = completedGames[0] ?? null;
 
-  const lastGame = useMemo(
-    () =>
-      session?.games.length
-        ? session.games.reduce((a, b) => (a.position > b.position ? a : b))
-        : null,
-    [session],
-  );
+  const lastGame = inProgressGame ?? lastCompletedGame;
 
   const [activeMeme, setActiveMeme] = useState<MemeConfig | null>(null);
   const [memeLabel, setMemeLabel] = useState<string | undefined>(undefined);
@@ -68,29 +59,19 @@ export default function SessionPage() {
   const [starPlayerId, setStarPlayerId] = useState<number | null>(null);
   const [swapModalOpen, setSwapModalOpen] = useState(false);
 
-  const handleGameCompleted = useCallback((ctx: GameContext, takerId: number) => {
-    const enrichedCtx = { ...ctx };
-
-    // Check if this is the taker's first defeat in the session
-    if (!ctx.attackWins) {
-      const takerHasLostBefore = completedGames.some(
-        (g) => g.taker.id === takerId && g.scoreEntries.some((e) => e.player.id === takerId && e.score < 0),
-      );
-      enrichedCtx.isFirstTakerDefeat = !takerHasLostBefore;
-    }
-
-    const victoryMeme = selectVictoryMeme(enrichedCtx);
+  const handleGameCompleted = useCallback((ctx: GameContext) => {
+    const victoryMeme = selectVictoryMeme(ctx);
     if (victoryMeme) {
       setMemeLabel("Mème de victoire");
       setActiveMeme(victoryMeme);
       return;
     }
-    const defeatMeme = selectDefeatMeme(enrichedCtx);
+    const defeatMeme = selectDefeatMeme(ctx);
     if (defeatMeme) {
       setMemeLabel("Mème de défaite");
       setActiveMeme(defeatMeme);
     }
-  }, [completedGames]);
+  }, []);
 
   if (isPending) {
     return (
@@ -175,7 +156,7 @@ export default function SessionPage() {
             Évolution des scores
           </h2>
           <ScoreEvolutionChart
-            games={session.games}
+            games={completedGames}
             players={session.players}
           />
         </section>
@@ -187,8 +168,11 @@ export default function SessionPage() {
         </h2>
         <GameList
           games={completedGames}
+          hasNextPage={hasNextPage ?? false}
+          isFetchingNextPage={isFetchingNextPage}
           onDeleteLast={() => setDeleteModalOpen(true)}
           onEditLast={() => setEditModalOpen(true)}
+          onLoadMore={() => fetchNextPage()}
         />
       </div>
 
