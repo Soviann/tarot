@@ -9,8 +9,9 @@ import * as useCreateSessionModule from "../../hooks/useCreateSession";
 import * as useDeleteGameModule from "../../hooks/useDeleteGame";
 import * as usePlayersModule from "../../hooks/usePlayers";
 import * as useSessionModule from "../../hooks/useSession";
+import * as useSessionGamesModule from "../../hooks/useSessionGames";
 import { renderWithProviders } from "../test-utils";
-import type { SessionDetail } from "../../types/api";
+import type { Game, SessionDetail } from "../../types/api";
 
 vi.mock("../../hooks/useAddStar");
 vi.mock("../../hooks/useCompleteGame");
@@ -20,6 +21,7 @@ vi.mock("../../hooks/useCreateSession");
 vi.mock("../../hooks/useDeleteGame");
 vi.mock("../../hooks/usePlayers");
 vi.mock("../../hooks/useSession");
+vi.mock("../../hooks/useSessionGames");
 
 const mockNavigate = vi.fn();
 vi.mock("react-router-dom", async (importOriginal) => {
@@ -39,36 +41,55 @@ const mockPlayers = [
   { id: 5, name: "Eve" },
 ];
 
+const mockCompletedGame: Game = {
+  chelem: "none",
+  completedAt: "2025-02-01T14:05:00+00:00",
+  contract: "garde",
+  createdAt: "2025-02-01T14:10:00+00:00",
+  dealer: null,
+  id: 1,
+  oudlers: 2,
+  partner: { id: 2, name: "Bob" },
+  petitAuBout: "none",
+  poignee: "none",
+  poigneeOwner: "none",
+  points: 56,
+  position: 1,
+  scoreEntries: [
+    { id: 1, player: { id: 1, name: "Alice" }, score: 120 },
+    { id: 2, player: { id: 2, name: "Bob" }, score: 120 },
+    { id: 3, player: { id: 3, name: "Charlie" }, score: -80 },
+    { id: 4, player: { id: 4, name: "Diana" }, score: -80 },
+    { id: 5, player: { id: 5, name: "Eve" }, score: -80 },
+  ],
+  status: "completed",
+  taker: { id: 1, name: "Alice" },
+};
+
+const mockInProgressGame: Game = {
+  chelem: "none",
+  completedAt: null,
+  contract: "petite",
+  createdAt: "2025-02-01T14:20:00+00:00",
+  dealer: null,
+  id: 2,
+  oudlers: null,
+  partner: null,
+  petitAuBout: "none",
+  poignee: "none",
+  poigneeOwner: "none",
+  points: null,
+  position: 2,
+  scoreEntries: [],
+  status: "in_progress",
+  taker: { id: 3, name: "Charlie" },
+};
+
 const mockSession: SessionDetail = {
   createdAt: "2025-02-01T14:00:00+00:00",
   cumulativeScores: [
     { playerId: 1, playerName: "Alice", score: 120 },
     { playerId: 2, playerName: "Bob", score: -30 },
-  ],
-  games: [
-    {
-      chelem: "none",
-      completedAt: "2025-02-01T14:05:00+00:00",
-      contract: "garde",
-      createdAt: "2025-02-01T14:10:00+00:00",
-      id: 1,
-      oudlers: 2,
-      partner: { id: 2, name: "Bob" },
-      petitAuBout: "none",
-      poignee: "none",
-      poigneeOwner: "none",
-      points: 56,
-      position: 1,
-      scoreEntries: [
-        { id: 1, player: { id: 1, name: "Alice" }, score: 120 },
-        { id: 2, player: { id: 2, name: "Bob" }, score: 120 },
-        { id: 3, player: { id: 3, name: "Charlie" }, score: -80 },
-        { id: 4, player: { id: 4, name: "Diana" }, score: -80 },
-        { id: 5, player: { id: 5, name: "Eve" }, score: -80 },
-      ],
-      status: "completed",
-      taker: { id: 1, name: "Alice" },
-    },
   ],
   id: 1,
   isActive: true,
@@ -76,9 +97,20 @@ const mockSession: SessionDetail = {
   starEvents: [],
 };
 
+const mockSessionWithInProgress: SessionDetail = {
+  ...mockSession,
+  inProgressGame: mockInProgressGame,
+};
+
+const mockGamesPage = {
+  member: [mockCompletedGame],
+  totalItems: 1,
+};
+
 function setupMocks(overrides?: {
   createGame?: Partial<ReturnType<typeof useCreateGameModule.useCreateGame>>;
   useSession?: Partial<ReturnType<typeof useSessionModule.useSession>>;
+  useSessionGames?: Partial<ReturnType<typeof useSessionGamesModule.useSessionGames>>;
 }) {
   const createGameMutate = vi.fn();
 
@@ -130,6 +162,41 @@ function setupMocks(overrides?: {
     status: "success",
     ...overrides?.useSession,
   } as unknown as ReturnType<typeof useSessionModule.useSession>);
+
+  vi.mocked(useSessionGamesModule.useSessionGames).mockReturnValue({
+    data: { pageParams: [1], pages: [mockGamesPage] },
+    dataUpdatedAt: 0,
+    error: null,
+    errorUpdateCount: 0,
+    errorUpdatedAt: 0,
+    failureCount: 0,
+    failureReason: null,
+    fetchNextPage: vi.fn(),
+    fetchPreviousPage: vi.fn(),
+    fetchStatus: "idle",
+    hasNextPage: false,
+    hasPreviousPage: false,
+    isError: false,
+    isFetched: true,
+    isFetchedAfterMount: true,
+    isFetching: false,
+    isFetchingNextPage: false,
+    isFetchingPreviousPage: false,
+    isInitialLoading: false,
+    isLoading: false,
+    isLoadingError: false,
+    isPaused: false,
+    isPending: false,
+    isPlaceholderData: false,
+    isRefetchError: false,
+    isRefetching: false,
+    isStale: false,
+    isSuccess: true,
+    promise: Promise.resolve({ pageParams: [1], pages: [mockGamesPage] }),
+    refetch: vi.fn(),
+    status: "success",
+    ...overrides?.useSessionGames,
+  } as unknown as ReturnType<typeof useSessionGamesModule.useSessionGames>);
 
   vi.mocked(useCreateGameModule.useCreateGame).mockReturnValue({
     context: undefined,
@@ -258,30 +325,6 @@ function setupMocks(overrides?: {
 
   return { createGameMutate };
 }
-
-const mockSessionWithInProgress = {
-  ...mockSession,
-  games: [
-    ...mockSession.games,
-    {
-      chelem: "none" as const,
-      completedAt: null,
-      contract: "petite" as const,
-      createdAt: "2025-02-01T14:20:00+00:00",
-      id: 2,
-      oudlers: null,
-      partner: null,
-      petitAuBout: "none" as const,
-      poignee: "none" as const,
-      poigneeOwner: "none" as const,
-      points: null,
-      position: 2,
-      scoreEntries: [],
-      status: "in_progress" as const,
-      taker: { id: 3, name: "Charlie" },
-    },
-  ],
-};
 
 describe("SessionPage", () => {
   afterEach(() => {

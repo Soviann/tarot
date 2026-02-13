@@ -48,7 +48,10 @@ use Symfony\Component\Serializer\Attribute\Groups;
         'sessionId' => new Link(fromClass: Session::class, toProperty: 'session'),
     ],
     operations: [
-        new GetCollection(),
+        new GetCollection(
+            order: ['position' => 'DESC'],
+            paginationItemsPerPage: 10,
+        ),
         new Post(read: false, processor: GameCreateProcessor::class, denormalizationContext: ['groups' => ['game:create']]),
     ],
     normalizationContext: ['groups' => ['game:read']],

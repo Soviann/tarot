@@ -8,6 +8,7 @@ use App\Entity\Game;
 use App\Entity\ScoreEntry;
 use App\Enum\Contract;
 use App\Enum\GameStatus;
+use App\Service\ScoreCalculator;
 
 class SessionApiTest extends ApiTestCase
 {
@@ -180,6 +181,82 @@ class SessionApiTest extends ApiTestCase
         $member = $data['member'][0];
         // lastPlayedAt devrait être >= createdAt de la session (la dernière donne)
         $this->assertGreaterThanOrEqual($member['createdAt'], $member['lastPlayedAt']);
+    }
+
+    public function testSessionDetailContainsInProgressGame(): void
+    {
+        $session = $this->createSessionWithPlayers('Alice', 'Bob', 'Charlie', 'Diana', 'Eve');
+        $players = $session->getPlayers()->toArray();
+
+        // Donne complétée
+        $game1 = new Game();
+        $game1->setContract(Contract::Petite);
+        $game1->setOudlers(2);
+        $game1->setPartner($players[1]);
+        $game1->setPoints(45);
+        $game1->setPosition(1);
+        $game1->setSession($session);
+        $game1->setStatus(GameStatus::Completed);
+        $game1->setTaker($players[0]);
+        $this->em->persist($game1);
+        $calculator = new ScoreCalculator();
+        foreach ($calculator->compute($game1) as $entry) {
+            $this->em->persist($entry);
+            $game1->addScoreEntry($entry);
+        }
+
+        // Donne en cours
+        $game2 = new Game();
+        $game2->setContract(Contract::Garde);
+        $game2->setPosition(2);
+        $game2->setSession($session);
+        $game2->setStatus(GameStatus::InProgress);
+        $game2->setTaker($players[2]);
+        $this->em->persist($game2);
+        $this->em->flush();
+
+        $response = $this->client->request('GET', $this->getIri($session));
+        $this->assertResponseIsSuccessful();
+        $data = $response->toArray();
+
+        // inProgressGame présent et correct
+        $this->assertArrayHasKey('inProgressGame', $data);
+        $this->assertSame($game2->getId(), $data['inProgressGame']['id']);
+        $this->assertSame('in_progress', $data['inProgressGame']['status']);
+        $this->assertSame('garde', $data['inProgressGame']['contract']);
+
+        // games n'est plus sérialisé dans le détail session
+        $this->assertArrayNotHasKey('games', $data);
+    }
+
+    public function testSessionDetailWithNoInProgressGame(): void
+    {
+        $session = $this->createSessionWithPlayers('Alice', 'Bob', 'Charlie', 'Diana', 'Eve');
+        $players = $session->getPlayers()->toArray();
+
+        $game = new Game();
+        $game->setContract(Contract::Petite);
+        $game->setOudlers(2);
+        $game->setPartner($players[1]);
+        $game->setPoints(45);
+        $game->setPosition(1);
+        $game->setSession($session);
+        $game->setStatus(GameStatus::Completed);
+        $game->setTaker($players[0]);
+        $this->em->persist($game);
+        $calculator = new ScoreCalculator();
+        foreach ($calculator->compute($game) as $entry) {
+            $this->em->persist($entry);
+            $game->addScoreEntry($entry);
+        }
+        $this->em->flush();
+
+        $response = $this->client->request('GET', $this->getIri($session));
+        $this->assertResponseIsSuccessful();
+        $data = $response->toArray();
+
+        // JSON-LD omet les valeurs null, inProgressGame ne doit pas apparaître
+        $this->assertArrayNotHasKey('inProgressGame', $data);
     }
 
     /**

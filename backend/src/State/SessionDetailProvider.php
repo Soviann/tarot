@@ -7,7 +7,9 @@ namespace App\State;
 use ApiPlatform\Doctrine\Orm\State\ItemProvider;
 use ApiPlatform\Metadata\Operation;
 use ApiPlatform\State\ProviderInterface;
+use App\Entity\Game;
 use App\Entity\Session;
+use App\Enum\GameStatus;
 use Doctrine\ORM\EntityManagerInterface;
 
 /**
@@ -33,8 +35,17 @@ final readonly class SessionDetailProvider implements ProviderInterface
         }
 
         $session->setCumulativeScores($this->computeCumulativeScores($session));
+        $session->setInProgressGame($this->findInProgressGame($session));
 
         return $session;
+    }
+
+    private function findInProgressGame(Session $session): ?Game
+    {
+        return $this->em->getRepository(Game::class)->findOneBy([
+            'session' => $session,
+            'status' => GameStatus::InProgress,
+        ]);
     }
 
     /**

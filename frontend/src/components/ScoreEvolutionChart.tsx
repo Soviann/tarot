@@ -8,7 +8,6 @@ import {
   YAxis,
 } from "recharts";
 import type { Game, GamePlayer } from "../types/api";
-import { GameStatus } from "../types/enums";
 
 interface ScoreEvolutionChartProps {
   games: Game[];
@@ -27,9 +26,7 @@ export function computeScoreEvolution(
   games: Game[],
   players: GamePlayer[],
 ): Record<string, number | string>[] {
-  const completed = games
-    .filter((g) => g.status === GameStatus.Completed)
-    .sort((a, b) => a.position - b.position);
+  const completed = [...games].sort((a, b) => a.position - b.position);
 
   const cumulative: Record<number, number> = {};
   players.forEach((p) => (cumulative[p.id] = 0));
