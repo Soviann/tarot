@@ -35,7 +35,7 @@ use Symfony\Component\Validator\Constraints as Assert;
 #[UniqueEntity('name')]
 class PlayerGroup
 {
-    #[Groups(['player-group:read', 'session:read'])]
+    #[Groups(['player-group:read', 'player:read', 'session:read'])]
     #[ORM\Id]
     #[ORM\Column]
     #[ORM\GeneratedValue]
@@ -46,7 +46,7 @@ class PlayerGroup
     private \DateTimeImmutable $createdAt;
 
     #[Assert\NotBlank]
-    #[Groups(['player-group:read', 'player-group:write', 'session:read'])]
+    #[Groups(['player-group:read', 'player-group:write', 'player:read', 'session:read'])]
     #[ORM\Column(length: 100, unique: true)]
     private string $name;
 

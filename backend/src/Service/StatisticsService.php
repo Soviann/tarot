@@ -93,9 +93,9 @@ class StatisticsService
      */
     public function getLeaderboard(?int $playerGroupId = null): array
     {
-        $groupJoin = null !== $playerGroupId ? ' JOIN g.session s_grp' : '';
+        $groupJoin = null !== $playerGroupId ? ' LEFT JOIN g.session s_grp' : '';
         $groupWhere = null !== $playerGroupId ? ' AND s_grp.playerGroup = :group' : '';
-        $groupStarJoin = null !== $playerGroupId ? ' JOIN se.session s_star' : '';
+        $groupStarJoin = null !== $playerGroupId ? ' LEFT JOIN se.session s_star' : '';
         $groupStarWhere = null !== $playerGroupId ? ' AND s_star.playerGroup = :group' : '';
 
         $scoreQuery = $this->em->createQuery(

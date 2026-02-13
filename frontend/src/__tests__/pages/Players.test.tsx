@@ -3,18 +3,20 @@ import userEvent from "@testing-library/user-event";
 import Players from "../../pages/Players";
 import * as useCreatePlayerModule from "../../hooks/useCreatePlayer";
 import * as usePlayersModule from "../../hooks/usePlayers";
+import * as usePlayerGroupsModule from "../../hooks/usePlayerGroups";
 import * as useUpdatePlayerModule from "../../hooks/useUpdatePlayer";
 import { ApiError } from "../../services/api";
 import { renderWithProviders } from "../test-utils";
 
-vi.mock("../../hooks/usePlayers");
 vi.mock("../../hooks/useCreatePlayer");
+vi.mock("../../hooks/usePlayerGroups");
+vi.mock("../../hooks/usePlayers");
 vi.mock("../../hooks/useUpdatePlayer");
 
 const mockPlayers = [
-  { active: true, createdAt: "2025-01-15T10:00:00+00:00", id: 1, name: "Alice" },
-  { active: true, createdAt: "2025-01-16T10:00:00+00:00", id: 2, name: "Bob" },
-  { active: true, createdAt: "2025-01-17T10:00:00+00:00", id: 3, name: "Charlie" },
+  { active: true, createdAt: "2025-01-15T10:00:00+00:00", id: 1, name: "Alice", playerGroups: [] },
+  { active: true, createdAt: "2025-01-16T10:00:00+00:00", id: 2, name: "Bob", playerGroups: [] },
+  { active: true, createdAt: "2025-01-17T10:00:00+00:00", id: 3, name: "Charlie", playerGroups: [] },
 ];
 
 function setupMocks(overrides?: {
@@ -26,6 +28,35 @@ function setupMocks(overrides?: {
   const reset = vi.fn();
   const updateMutate = vi.fn();
   const updateReset = vi.fn();
+
+  vi.mocked(usePlayerGroupsModule.usePlayerGroups).mockReturnValue({
+    data: [],
+    dataUpdatedAt: 0,
+    error: null,
+    errorUpdateCount: 0,
+    errorUpdatedAt: 0,
+    failureCount: 0,
+    failureReason: null,
+    fetchStatus: "idle",
+    groups: [],
+    isError: false,
+    isFetched: true,
+    isFetchedAfterMount: true,
+    isFetching: false,
+    isInitialLoading: false,
+    isLoading: false,
+    isLoadingError: false,
+    isPaused: false,
+    isPending: false,
+    isPlaceholderData: false,
+    isRefetchError: false,
+    isRefetching: false,
+    isStale: false,
+    isSuccess: true,
+    promise: Promise.resolve([]),
+    refetch: vi.fn(),
+    status: "success",
+  } as unknown as ReturnType<typeof usePlayerGroupsModule.usePlayerGroups>);
 
   vi.mocked(usePlayersModule.usePlayers).mockReturnValue({
     data: mockPlayers,
@@ -255,7 +286,7 @@ describe("Players page", () => {
     await userEvent.click(screen.getByRole("button", { name: "Enregistrer" }));
 
     expect(updateMutate).toHaveBeenCalledWith(
-      { active: true, id: 1, name: "Alicia" },
+      { active: true, id: 1, name: "Alicia", playerGroups: [] },
       expect.anything(),
     );
   });
@@ -292,8 +323,8 @@ describe("Players page", () => {
 
   it("renders inactive player with visual treatment", () => {
     const playersWithInactive = [
-      { active: true, createdAt: "2025-01-15T10:00:00+00:00", id: 1, name: "Alice" },
-      { active: false, createdAt: "2025-01-16T10:00:00+00:00", id: 2, name: "Bob" },
+      { active: true, createdAt: "2025-01-15T10:00:00+00:00", id: 1, name: "Alice", playerGroups: [] },
+      { active: false, createdAt: "2025-01-16T10:00:00+00:00", id: 2, name: "Bob", playerGroups: [] },
     ];
     setupMocks({
       usePlayers: { data: playersWithInactive, players: playersWithInactive },
