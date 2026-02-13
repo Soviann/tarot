@@ -1,6 +1,8 @@
-import { useNavigate, useParams } from "react-router-dom";
+import { useState } from "react";
+import { Link, useNavigate, useParams, useSearchParams } from "react-router-dom";
 import ContractDistributionChart from "../components/ContractDistributionChart";
 import EloEvolutionChart from "../components/EloEvolutionChart";
+import GroupFilter from "../components/GroupFilter";
 import ScoreTrendChart from "../components/ScoreTrendChart";
 import { PlayerAvatar, ScoreDisplay } from "../components/ui";
 import { usePlayerStats } from "../hooks/usePlayerStats";
@@ -9,8 +11,11 @@ import { formatDuration } from "../utils/formatDuration";
 export default function PlayerStats() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const initialGroupId = searchParams.get("group") ? Number(searchParams.get("group")) : null;
+  const [selectedGroupId, setSelectedGroupId] = useState<number | null>(initialGroupId);
   const playerId = Number(id);
-  const { isPending, stats } = usePlayerStats(playerId);
+  const { isPending, stats } = usePlayerStats(playerId, selectedGroupId);
 
   if (isPending) {
     return (
@@ -62,6 +67,9 @@ export default function PlayerStats() {
         </button>
         <PlayerAvatar name={stats.player.name} playerId={stats.player.id} size="lg" />
         <h1 className="text-xl font-bold text-text-primary">{stats.player.name}</h1>
+        <div className="ml-auto">
+          <GroupFilter onChange={setSelectedGroupId} value={selectedGroupId} />
+        </div>
       </div>
 
       <div className="grid grid-cols-2 gap-3">
@@ -97,6 +105,23 @@ export default function PlayerStats() {
             </span>
           </div>
         </div>
+      )}
+
+      {stats.playerGroups.length > 0 && (
+        <section>
+          <h2 className="mb-2 text-sm font-semibold text-text-secondary">Groupes</h2>
+          <div className="flex flex-wrap gap-2">
+            {stats.playerGroups.map((g) => (
+              <Link
+                key={g.id}
+                to={`/groups/${g.id}`}
+                className="rounded-full bg-surface-elevated px-3 py-1 text-sm font-medium text-accent-500 hover:bg-surface-tertiary"
+              >
+                {g.name}
+              </Link>
+            ))}
+          </div>
+        </section>
       )}
 
       <div className="flex gap-3">

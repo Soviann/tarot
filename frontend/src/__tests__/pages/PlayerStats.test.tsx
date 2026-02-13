@@ -9,6 +9,11 @@ vi.mock("react-router-dom", async (importOriginal) => ({
   ...(await importOriginal()),
   useNavigate: () => mockNavigate,
   useParams: () => ({ id: "1" }),
+  useSearchParams: () => [new URLSearchParams()],
+}));
+
+vi.mock("../../hooks/usePlayerGroups", () => ({
+  usePlayerGroups: () => ({ groups: [], isPending: false }),
 }));
 
 vi.mock("../../hooks/usePlayerStats");
@@ -30,6 +35,7 @@ const mockStats = {
   gamesAsTaker: 35,
   gamesPlayed: 145,
   player: { id: 1, name: "Alice" },
+  playerGroups: [{ id: 1, name: "Mardi soir" }],
   recentScores: [
     { date: "2026-02-07T12:00:00+00:00", gameId: 3, score: 120, sessionId: 1 },
     { date: "2026-02-06T12:00:00+00:00", gameId: 2, score: -60, sessionId: 1 },

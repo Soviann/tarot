@@ -12,6 +12,7 @@ Application mobile (PWA) de suivi des scores pour le Tarot à 5 joueurs, conform
 - [Démarrer une session](#démarrer-une-session)
 - [Écran de session](#écran-de-session)
 - [Saisir une donne](#saisir-une-donne)
+- [Groupes de joueurs](#groupes-de-joueurs)
 - [Consulter les statistiques](#consulter-les-statistiques)
 - [Système d'étoiles](#système-détoiles)
 - [Classement ELO](#classement-elo)
@@ -46,6 +47,7 @@ L'application est une **Progressive Web App** (PWA). Elle s'utilise dans un navi
 | **Preneur** | Le joueur qui a pris (annoncé un contrat) |
 | **Partenaire** | Le joueur dont le roi a été appelé par le preneur (peut être le preneur lui-même s'il appelle son propre roi) |
 | **Contrat** | Engagement du preneur : Petite, Garde, Garde Sans, Garde Contre |
+| **Groupe** | Cercle de jeu regroupant des joueurs (ex : « soirées du mardi »). Permet de filtrer les statistiques. |
 | **Donneur** | Le joueur qui distribue les cartes. Tourne automatiquement après chaque donne. |
 
 ---
@@ -163,6 +165,40 @@ Depuis l'écran de session, il est possible de **changer un ou plusieurs joueurs
 
 - **Bouton + (FAB)** : démarrer une nouvelle donne (désactivé si une donne est en cours)
 - **Modifier** : bouton affiché sur la dernière donne pour modifier ses paramètres
+
+---
+
+## Groupes de joueurs
+
+Les groupes permettent de créer des **cercles de jeu** (ex : « soirées du mardi », « famille ») et d'afficher des statistiques propres à chaque groupe.
+
+### Créer un groupe
+
+1. Aller dans l'onglet **Groupes** dans la barre de navigation basse
+2. Appuyer sur le bouton **+** (en bas à droite)
+3. Saisir un nom et sélectionner les joueurs membres
+4. Valider
+
+### Gérer un groupe
+
+Appuyer sur un groupe pour accéder à sa fiche détaillée :
+
+- **Modifier le nom** : appuyer sur le bouton crayon à côté du nom
+- **Ajouter des membres** : bouton « + Ajouter des joueurs » en bas de la liste
+- **Retirer un membre** : bouton ✕ à côté du joueur
+- **Supprimer le groupe** : bouton rouge en bas de la page (avec confirmation)
+
+### Association automatique
+
+Quand tous les joueurs d'une session appartiennent à un **seul et même groupe**, la session est automatiquement associée à ce groupe lors de sa création.
+
+### Association manuelle
+
+Le **sélecteur de groupe** en haut de l'écran de session permet de changer manuellement le groupe associé. Si des joueurs de la session ne sont pas encore membres du groupe sélectionné, ils sont **automatiquement ajoutés** au groupe.
+
+### Statistiques par groupe
+
+Sur les pages **Statistiques** et **Statistiques par joueur**, un filtre permet de voir les classements et scores uniquement pour les sessions d'un groupe donné. Le filtre n'apparaît que si au moins un groupe existe.
 
 ---
 

@@ -5,10 +5,11 @@ import { usePlayers } from "../hooks/usePlayers";
 import { ApiError } from "../services/api";
 import { Modal, PlayerAvatar, SearchInput } from "./ui";
 
-const MAX_PLAYERS = 5;
+const DEFAULT_MAX_PLAYERS = 5;
 
 interface PlayerSelectorProps {
   isPending?: boolean;
+  maxPlayers?: number;
   onSelectionChange: (ids: number[]) => void;
   onStart?: () => void;
   selectedPlayerIds: number[];
@@ -16,6 +17,7 @@ interface PlayerSelectorProps {
 
 export default function PlayerSelector({
   isPending: isStartPending = false,
+  maxPlayers = DEFAULT_MAX_PLAYERS,
   onSelectionChange,
   onStart,
   selectedPlayerIds,
@@ -40,7 +42,7 @@ export default function PlayerSelector({
     [allPlayers, selectedPlayerIds],
   );
 
-  const isFull = selectedPlayerIds.length >= MAX_PLAYERS;
+  const isFull = selectedPlayerIds.length >= maxPlayers;
   const listVisible = !!search && !isPending && players.length > 0;
 
   const handleSearch = useCallback((value: string) => {
@@ -160,19 +162,22 @@ export default function PlayerSelector({
             <span>{player.name}</span>
           </button>
         ))}
-        {Array.from({ length: MAX_PLAYERS - selectedPlayerIds.length }).map(
-          (_, i) => (
-            <div
-              className="flex size-8 items-center justify-center rounded-full border-2 border-dashed border-surface-border"
-              key={`empty-${i}`}
-            />
-          ),
-        )}
+        {Number.isFinite(maxPlayers) &&
+          Array.from({ length: maxPlayers - selectedPlayerIds.length }).map(
+            (_, i) => (
+              <div
+                className="flex size-8 items-center justify-center rounded-full border-2 border-dashed border-surface-border"
+                key={`empty-${i}`}
+              />
+            ),
+          )}
       </div>
 
-      <p className="text-center text-sm text-text-muted">
-        {selectedPlayerIds.length}/{MAX_PLAYERS} joueurs sélectionnés
-      </p>
+      {Number.isFinite(maxPlayers) && (
+        <p className="text-center text-sm text-text-muted">
+          {selectedPlayerIds.length}/{maxPlayers} joueurs sélectionnés
+        </p>
+      )}
 
       {/* Recherche ou bouton Démarrer */}
       {isFull && onStart ? (

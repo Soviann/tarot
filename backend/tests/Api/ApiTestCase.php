@@ -7,6 +7,7 @@ namespace App\Tests\Api;
 use ApiPlatform\Symfony\Bundle\Test\ApiTestCase as BaseApiTestCase;
 use ApiPlatform\Symfony\Bundle\Test\Client;
 use App\Entity\Player;
+use App\Entity\PlayerGroup;
 use App\Entity\Session;
 use Doctrine\ORM\EntityManagerInterface;
 
@@ -22,6 +23,19 @@ abstract class ApiTestCase extends BaseApiTestCase
     {
         $this->client = static::createClient();
         $this->em = static::getContainer()->get(EntityManagerInterface::class);
+    }
+
+    protected function createPlayerGroup(string $name, Player ...$players): PlayerGroup
+    {
+        $group = new PlayerGroup();
+        $group->setName($name);
+        foreach ($players as $player) {
+            $group->addPlayer($player);
+        }
+        $this->em->persist($group);
+        $this->em->flush();
+
+        return $group;
     }
 
     protected function createPlayer(string $name): Player

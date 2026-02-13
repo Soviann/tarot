@@ -1,13 +1,16 @@
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import ContractDistributionChart from "../components/ContractDistributionChart";
 import EloRanking from "../components/EloRanking";
+import GroupFilter from "../components/GroupFilter";
 import Leaderboard from "../components/Leaderboard";
 import { useGlobalStats } from "../hooks/useGlobalStats";
 import { formatDuration } from "../utils/formatDuration";
 
 export default function Stats() {
   const navigate = useNavigate();
-  const { isPending, stats } = useGlobalStats();
+  const [groupId, setGroupId] = useState<number | null>(null);
+  const { isPending, stats } = useGlobalStats(groupId);
 
   if (isPending) {
     return (
@@ -25,7 +28,10 @@ export default function Stats() {
 
   return (
     <div className="flex flex-col gap-6 p-4 lg:p-8">
-      <h1 className="text-2xl font-bold text-text-primary">Statistiques</h1>
+      <div className="flex items-center justify-between">
+        <h1 className="text-2xl font-bold text-text-primary">Statistiques</h1>
+        <GroupFilter onChange={setGroupId} value={groupId} />
+      </div>
 
       <div className="flex gap-4">
         <div className="flex-1 rounded-xl bg-surface-elevated p-3 text-center">
@@ -73,7 +79,7 @@ export default function Stats() {
         </h2>
         <Leaderboard
           entries={stats.leaderboard}
-          onPlayerClick={(id) => navigate(`/stats/player/${id}`)}
+          onPlayerClick={(id) => navigate(`/stats/player/${id}${groupId ? `?group=${groupId}` : ""}`)}
         />
       </section>
 
@@ -84,7 +90,7 @@ export default function Stats() {
           </h2>
           <EloRanking
             entries={stats.eloRanking}
-            onPlayerClick={(id) => navigate(`/stats/player/${id}`)}
+            onPlayerClick={(id) => navigate(`/stats/player/${id}${groupId ? `?group=${groupId}` : ""}`)}
           />
         </section>
       )}
