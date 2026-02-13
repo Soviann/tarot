@@ -1,10 +1,11 @@
-import { BarChart3, Home, Users } from "lucide-react";
+import { BarChart3, Home, Users, UsersRound } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { NavLink } from "react-router-dom";
 
 const tabs: ReadonlyArray<{ Icon: LucideIcon; label: string; to: string }> = [
   { Icon: Home, label: "Accueil", to: "/" },
   { Icon: BarChart3, label: "Stats", to: "/stats" },
+  { Icon: UsersRound, label: "Groupes", to: "/groups" },
   { Icon: Users, label: "Joueurs", to: "/players" },
 ];
 
