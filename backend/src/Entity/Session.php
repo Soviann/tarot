@@ -63,6 +63,11 @@ class Session
     #[ORM\ManyToOne(targetEntity: Player::class)]
     private ?Player $currentDealer = null;
 
+    #[Groups(['session:read', 'session:patch'])]
+    #[ORM\JoinColumn(nullable: true)]
+    #[ORM\ManyToOne(targetEntity: PlayerGroup::class)]
+    private ?PlayerGroup $playerGroup = null;
+
     /** @var Collection<int, Player> */
     #[Assert\Count(exactly: 5, exactMessage: 'Une session doit avoir exactement 5 joueurs.')]
     #[Groups(['session:read', 'session:write'])]
@@ -185,6 +190,18 @@ class Session
     public function setIsActive(bool $isActive): static
     {
         $this->isActive = $isActive;
+
+        return $this;
+    }
+
+    public function getPlayerGroup(): ?PlayerGroup
+    {
+        return $this->playerGroup;
+    }
+
+    public function setPlayerGroup(?PlayerGroup $playerGroup): static
+    {
+        $this->playerGroup = $playerGroup;
 
         return $this;
     }
