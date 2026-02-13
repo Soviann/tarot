@@ -1,5 +1,5 @@
 import { Layers } from "lucide-react";
-import { useMemo, useState } from "react";
+import { useMemo } from "react";
 import { Link } from "react-router-dom";
 import { useSessions } from "../hooks/useSessions";
 import { formatRelativeDate } from "../services/formatRelativeDate";
@@ -15,11 +15,8 @@ export const EMPTY_STATE_MESSAGES = [
   "Le donneur est prêt. Et vous ?",
 ];
 
-const MAX_VISIBLE = 5;
-
 export default function SessionList() {
   const { isPending, sessions } = useSessions();
-  const [expanded, setExpanded] = useState(false);
 
   const emptyMessage = useMemo(
     () => EMPTY_STATE_MESSAGES[Math.floor(Math.random() * EMPTY_STATE_MESSAGES.length)],
@@ -42,13 +39,10 @@ export default function SessionList() {
     );
   }
 
-  const visible = expanded ? sessions : sessions.slice(0, MAX_VISIBLE);
-  const hasMore = sessions.length > MAX_VISIBLE && !expanded;
-
   return (
     <div className="flex flex-col gap-2">
       <ul className="flex flex-col gap-2">
-        {visible.map((session) => (
+        {sessions.map((session) => (
           <li key={session.id}>
             <Link
               className="block rounded-lg bg-surface-secondary p-3 transition-colors hover:bg-surface-tertiary"
@@ -80,15 +74,6 @@ export default function SessionList() {
           </li>
         ))}
       </ul>
-      {hasMore && (
-        <button
-          className="text-center text-sm font-medium text-accent-500 transition-colors hover:text-accent-600"
-          onClick={() => setExpanded(true)}
-          type="button"
-        >
-          Voir les {sessions.length} sessions
-        </button>
-      )}
     </div>
   );
 }

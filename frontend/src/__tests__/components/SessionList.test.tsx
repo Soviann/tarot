@@ -1,5 +1,4 @@
 import { screen } from "@testing-library/react";
-import userEvent from "@testing-library/user-event";
 import SessionList from "../../components/SessionList";
 import { EMPTY_STATE_MESSAGES } from "../../components/SessionList";
 import * as useSessionsModule from "../../hooks/useSessions";
@@ -132,61 +131,11 @@ describe("SessionList", () => {
     ).toBe(true);
   });
 
-  it("limits display to 5 sessions", () => {
-    const manySessions = Array.from({ length: 8 }, (_, i) => ({
-      createdAt: `2025-02-0${i + 1}T10:00:00+00:00`,
-      id: i + 1,
-      isActive: false,
-      lastPlayedAt: `2025-02-0${i + 1}T10:00:00+00:00`,
-      players: [
-        { id: 1, name: "Alice" },
-        { id: 2, name: "Bob" },
-        { id: 3, name: "Charlie" },
-        { id: 4, name: "Diana" },
-        { id: 5, name: "Eve" },
-      ],
-    }));
-    setupMocks({
-      useSessions: { sessions: manySessions },
-    });
+  it("renders all sessions from API (limited server-side)", () => {
+    setupMocks();
     renderWithProviders(<SessionList />);
 
-    // Should show only 5 session links
     const links = screen.getAllByRole("link");
-    expect(links).toHaveLength(5);
-    // And a "Voir tout" button
-    expect(
-      screen.getByRole("button", { name: /Voir les 8 sessions/ }),
-    ).toBeInTheDocument();
-  });
-
-  it("expands all sessions when 'Voir tout' is clicked", async () => {
-    const manySessions = Array.from({ length: 8 }, (_, i) => ({
-      createdAt: `2025-02-0${i + 1}T10:00:00+00:00`,
-      id: i + 1,
-      isActive: false,
-      lastPlayedAt: `2025-02-0${i + 1}T10:00:00+00:00`,
-      players: [
-        { id: 1, name: "Alice" },
-        { id: 2, name: "Bob" },
-        { id: 3, name: "Charlie" },
-        { id: 4, name: "Diana" },
-        { id: 5, name: "Eve" },
-      ],
-    }));
-    setupMocks({
-      useSessions: { sessions: manySessions },
-    });
-    renderWithProviders(<SessionList />);
-
-    await userEvent.click(
-      screen.getByRole("button", { name: /Voir les 8 sessions/ }),
-    );
-
-    const links = screen.getAllByRole("link");
-    expect(links).toHaveLength(8);
-    expect(
-      screen.queryByRole("button", { name: /Voir/ }),
-    ).not.toBeInTheDocument();
+    expect(links).toHaveLength(2);
   });
 });
