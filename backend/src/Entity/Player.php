@@ -54,7 +54,7 @@ class Player
     private string $name;
 
     /** @var Collection<int, PlayerGroup> */
-    #[Groups(['player:read'])]
+    #[Groups(['player:read', 'player:write'])]
     #[ORM\ManyToMany(targetEntity: PlayerGroup::class, mappedBy: 'players')]
     #[ORM\OrderBy(['name' => 'ASC'])]
     private Collection $playerGroups;
@@ -63,6 +63,16 @@ class Player
     {
         $this->createdAt = new \DateTimeImmutable();
         $this->playerGroups = new ArrayCollection();
+    }
+
+    public function addPlayerGroup(PlayerGroup $playerGroup): static
+    {
+        if (!$this->playerGroups->contains($playerGroup)) {
+            $this->playerGroups->add($playerGroup);
+            $playerGroup->addPlayer($this);
+        }
+
+        return $this;
     }
 
     public function getCreatedAt(): \DateTimeImmutable
@@ -91,6 +101,15 @@ class Player
     public function getPlayerGroups(): Collection
     {
         return $this->playerGroups;
+    }
+
+    public function removePlayerGroup(PlayerGroup $playerGroup): static
+    {
+        if ($this->playerGroups->removeElement($playerGroup)) {
+            $playerGroup->removePlayer($this);
+        }
+
+        return $this;
     }
 
     public function isActive(): bool
