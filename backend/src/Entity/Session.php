@@ -52,7 +52,6 @@ class Session
     private \DateTimeImmutable $createdAt;
 
     /** @var Collection<int, Game> */
-    #[Groups(['session:detail'])]
     #[ORM\OneToMany(targetEntity: Game::class, mappedBy: 'session')]
     private Collection $games;
 
@@ -91,6 +90,12 @@ class Session
      */
     #[Groups(['session:detail'])]
     private ?array $cumulativeScores = null;
+
+    /**
+     * Donne en cours — propriété non persistée, alimentée par SessionDetailProvider.
+     */
+    #[Groups(['session:detail'])]
+    private ?Game $inProgressGame = null;
 
     public function __construct()
     {
@@ -165,6 +170,18 @@ class Session
     public function getGames(): Collection
     {
         return $this->games;
+    }
+
+    public function getInProgressGame(): ?Game
+    {
+        return $this->inProgressGame;
+    }
+
+    public function setInProgressGame(?Game $inProgressGame): static
+    {
+        $this->inProgressGame = $inProgressGame;
+
+        return $this;
     }
 
     public function addGame(Game $game): static

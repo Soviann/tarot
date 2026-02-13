@@ -141,7 +141,7 @@ Si une donne est en cours (étape 1 validée, étape 2 en attente), un bandeau b
 
 ### Historique des donnes
 
-Liste des donnes jouées (la plus récente en premier), montrant pour chaque donne :
+Liste paginée des donnes jouées (les 10 plus récentes en premier, avec un bouton « Voir plus » pour charger la suite), montrant pour chaque donne :
 
 - Le preneur et son partenaire
 - Le donneur de la donne
@@ -408,13 +408,12 @@ Quand une donne est perdue par l'attaque, un **mème de défaite** peut apparaî
 |-----------|-------|---------|
 | Défaite improbable (**toujours**) : 3 bouts, chelem raté ou garde contre perdue | You Were the Chosen One, Pikachu surpris ou Picard Facepalm (aléatoire) | — |
 | Garde sans perdue (**toujours**) | Crying Michael Jordan | — |
-| Première défaite du preneur dans la session (**toujours**) | First Time? (James Franco) | — |
 | Défaite (40 % This is Fine) | This is Fine (chien dans les flammes) | — |
 | Défaite (60 % pool par défaut) | Sad Pablo Escobar | — |
 | Défaite (60 % pool par défaut) | Ah Shit, Here We Go Again (CJ) | — |
 | Défaite (60 % pool par défaut) | Why Are We Still Here? | — |
 
-**Ordre de priorité** : défaite improbable (pikachu/picard) → garde sans (crying jordan) → première défaite du preneur (first time) → tirage 40 % (sinon rien) → 40 % This is Fine / 60 % pool aléatoire.
+**Ordre de priorité** : défaite improbable (pikachu/picard) → garde sans (crying jordan) → tirage 40 % (sinon rien) → 40 % This is Fine / 60 % pool aléatoire.
 
 ---
 

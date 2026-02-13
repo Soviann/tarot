@@ -8,6 +8,8 @@ Le format est basé sur [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/)
 
 ### Added
 
+- **Pagination de l'historique des donnes** : les donnes sont désormais chargées par pages de 10 depuis l'API (`/sessions/{id}/games`), avec un bouton « Voir plus » pour charger la suite. Nouveau hook `useSessionGames` avec `useInfiniteQuery`. La donne en cours est désormais une propriété dédiée `inProgressGame` sur le détail de session, alimentée par le provider côté serveur. Extension Doctrine `CompletedGamesExtension` pour filtrer les donnes en cours du endpoint paginé.
+
 - **Groupes de joueurs** : création de cercles de jeu avec statistiques et classements filtrés par groupe (#91)
 - **Association automatique** : les sessions sont automatiquement associées au groupe quand tous les joueurs sont membres
 - **Association manuelle** : sélecteur de groupe sur l'écran de session avec propagation des joueurs
@@ -18,7 +20,7 @@ Le format est basé sur [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/)
 
 - **Mèmes de victoire et défaite** : système de mèmes plein écran à la complétion d'une donne (~40 % de chance, 3 secondes). Composant `MemeOverlay`, services `selectVictoryMeme` / `selectDefeatMeme`, 16 images dans `public/memes/`.
   - **Victoire** — déclencheurs garantis : Success Kid (petit au bout attaque), Obama se décore (victoire en solo). Pool aléatoire : Borat, Champions, DiCaprio Toast, Over 9000, Pacha.
-  - **Défaite** — déclencheurs garantis : You Were the Chosen One / Pikachu surpris / Picard Facepalm (défaite improbable : 3 bouts, chelem raté, garde contre), Crying Jordan (garde sans perdue), First Time? (première défaite du preneur dans la session). 40 % This is Fine, sinon pool : Ah Shit, Just to Suffer, Sad Pablo.
+  - **Défaite** — déclencheurs garantis : You Were the Chosen One / Pikachu surpris / Picard Facepalm (défaite improbable : 3 bouts, chelem raté, garde contre), Crying Jordan (garde sans perdue). 40 % This is Fine, sinon pool : Ah Shit, Just to Suffer, Sad Pablo.
 
 - **Suivi de la durée des donnes** : nouveau champ `completedAt` sur les donnes, renseigné automatiquement à la complétion. Chronomètre en temps réel sur le bandeau de donne en cours. Durée affichée dans l'historique des donnes. Nouvelles statistiques globales (durée moyenne par donne, temps de jeu total) et par joueur. Utilitaire `formatDuration` et hook `useElapsedTime`.
 
@@ -28,6 +30,10 @@ Le format est basé sur [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/)
 - **Création joueur depuis le formulaire de groupe** : le submit remontait dans l'arbre React via le portal et déclenchait la création du groupe prématurément
 - **Classement vide dans les stats d'un groupe** : les INNER JOINs mutuellement exclusifs (game vs star entries) éliminaient toutes les lignes de la requête leaderboard
 - **Groupes non pré-sélectionnés dans la modale d'édition joueur** : groupe de sérialisation `player:read` manquant sur `PlayerGroup.id` et `PlayerGroup.name`
+
+### Removed
+
+- **Mème « First Time? »** : suppression du mème garanti à la première défaite du preneur dans la session (incompatible avec la pagination côté serveur — seules les donnes chargées étaient vérifiées)
 
 ### Changed
 

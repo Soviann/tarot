@@ -9,6 +9,7 @@ const baseGame: Game = {
   completedAt: "2025-02-01T14:05:00+00:00",
   contract: "garde",
   createdAt: "2025-02-01T14:00:00+00:00",
+  dealer: null,
   id: 1,
   oudlers: 2,
   partner: { id: 2, name: "Bob" },
@@ -28,8 +29,8 @@ const baseGame: Game = {
   taker: { id: 3, name: "Charlie" },
 };
 
+// Games arrive already sorted by position DESC from the API
 const games: Game[] = [
-  baseGame,
   {
     ...baseGame,
     contract: "petite",
@@ -45,12 +46,21 @@ const games: Game[] = [
     ],
     taker: { id: 1, name: "Alice" },
   },
+  baseGame,
 ];
 
+const defaultProps = {
+  hasNextPage: false,
+  isFetchingNextPage: false,
+  onDeleteLast: () => {},
+  onEditLast: () => {},
+  onLoadMore: () => {},
+};
+
 describe("GameList", () => {
-  it("renders games in reverse position order (latest first)", () => {
+  it("renders games in order (latest first)", () => {
     renderWithProviders(
-      <GameList games={games} onDeleteLast={() => {}} onEditLast={() => {}} />,
+      <GameList games={games} {...defaultProps} />,
     );
 
     const items = screen.getAllByRole("listitem");
@@ -62,7 +72,7 @@ describe("GameList", () => {
 
   it("shows taker name for each game", () => {
     renderWithProviders(
-      <GameList games={games} onDeleteLast={() => {}} onEditLast={() => {}} />,
+      <GameList games={games} {...defaultProps} />,
     );
 
     expect(screen.getByText("Alice")).toBeInTheDocument();
@@ -71,7 +81,7 @@ describe("GameList", () => {
 
   it("shows partner name or Seul", () => {
     renderWithProviders(
-      <GameList games={games} onDeleteLast={() => {}} onEditLast={() => {}} />,
+      <GameList games={games} {...defaultProps} />,
     );
 
     expect(screen.getByText("avec Bob")).toBeInTheDocument();
@@ -80,7 +90,7 @@ describe("GameList", () => {
 
   it("shows taker score from scoreEntries", () => {
     renderWithProviders(
-      <GameList games={games} onDeleteLast={() => {}} onEditLast={() => {}} />,
+      <GameList games={games} {...defaultProps} />,
     );
 
     // Charlie's score in game 1: +120, Alice's score in game 2: +200
@@ -91,7 +101,7 @@ describe("GameList", () => {
   it("shows edit button only on the last game (highest position)", async () => {
     const onEditLast = vi.fn();
     renderWithProviders(
-      <GameList games={games} onDeleteLast={() => {}} onEditLast={onEditLast} />,
+      <GameList games={games} {...defaultProps} onEditLast={onEditLast} />,
     );
 
     const editButtons = screen.getAllByRole("button", { name: "Modifier" });
@@ -104,7 +114,7 @@ describe("GameList", () => {
   it("shows delete button only on the last game and calls onDeleteLast", async () => {
     const onDeleteLast = vi.fn();
     renderWithProviders(
-      <GameList games={games} onDeleteLast={onDeleteLast} onEditLast={() => {}} />,
+      <GameList games={games} {...defaultProps} onDeleteLast={onDeleteLast} />,
     );
 
     const deleteButtons = screen.getAllByRole("button", { name: "Supprimer" });
@@ -116,7 +126,7 @@ describe("GameList", () => {
 
   it("shows duration for completed games with completedAt", () => {
     renderWithProviders(
-      <GameList games={games} onDeleteLast={() => {}} onEditLast={() => {}} />,
+      <GameList games={games} {...defaultProps} />,
     );
 
     // baseGame: createdAt 14:00, completedAt 14:05 → 5min
@@ -129,7 +139,7 @@ describe("GameList", () => {
       completedAt: null,
     }));
     renderWithProviders(
-      <GameList games={gamesWithoutCompletedAt} onDeleteLast={() => {}} onEditLast={() => {}} />,
+      <GameList games={gamesWithoutCompletedAt} {...defaultProps} />,
     );
 
     // No duration text should appear
@@ -138,9 +148,43 @@ describe("GameList", () => {
 
   it("renders empty state when no games", () => {
     renderWithProviders(
-      <GameList games={[]} onDeleteLast={() => {}} onEditLast={() => {}} />,
+      <GameList games={[]} {...defaultProps} />,
     );
 
     expect(screen.getByText("Aucune donne jouée")).toBeInTheDocument();
+  });
+
+  it("shows 'Voir plus' button when hasNextPage is true", () => {
+    renderWithProviders(
+      <GameList games={games} {...defaultProps} hasNextPage={true} />,
+    );
+
+    expect(screen.getByRole("button", { name: "Voir plus" })).toBeInTheDocument();
+  });
+
+  it("does not show 'Voir plus' button when hasNextPage is false", () => {
+    renderWithProviders(
+      <GameList games={games} {...defaultProps} hasNextPage={false} />,
+    );
+
+    expect(screen.queryByRole("button", { name: "Voir plus" })).not.toBeInTheDocument();
+  });
+
+  it("calls onLoadMore when 'Voir plus' is clicked", async () => {
+    const onLoadMore = vi.fn();
+    renderWithProviders(
+      <GameList games={games} {...defaultProps} hasNextPage={true} onLoadMore={onLoadMore} />,
+    );
+
+    await userEvent.click(screen.getByRole("button", { name: "Voir plus" }));
+    expect(onLoadMore).toHaveBeenCalledOnce();
+  });
+
+  it("shows loading state when fetching next page", () => {
+    renderWithProviders(
+      <GameList games={games} {...defaultProps} hasNextPage={true} isFetchingNextPage={true} />,
+    );
+
+    expect(screen.getByText("Chargement…")).toBeInTheDocument();
   });
 });
