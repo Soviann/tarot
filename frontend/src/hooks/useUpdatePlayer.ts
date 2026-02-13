@@ -6,6 +6,7 @@ interface UpdatePlayerVariables {
   active?: boolean;
   id: number;
   name?: string;
+  playerGroups?: string[];
 }
 
 export function useUpdatePlayer() {
@@ -19,6 +20,7 @@ export function useUpdatePlayer() {
         method: "PATCH",
       }),
     onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["player-groups"] });
       queryClient.invalidateQueries({ queryKey: ["players"] });
     },
   });

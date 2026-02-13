@@ -2,6 +2,7 @@ import { Pencil, Plus } from "lucide-react";
 import { type FormEvent, useCallback, useState } from "react";
 import { FAB, Modal, PlayerAvatar, SearchInput } from "../components/ui";
 import { useCreatePlayer } from "../hooks/useCreatePlayer";
+import { usePlayerGroups } from "../hooks/usePlayerGroups";
 import { usePlayers } from "../hooks/usePlayers";
 import { useUpdatePlayer } from "../hooks/useUpdatePlayer";
 import { ApiError } from "../services/api";
@@ -14,8 +15,10 @@ export default function Players() {
   const [editingPlayer, setEditingPlayer] = useState<Player | null>(null);
   const [editName, setEditName] = useState("");
   const [editActive, setEditActive] = useState(true);
+  const [editGroupIds, setEditGroupIds] = useState<number[]>([]);
 
   const { isPending, players } = usePlayers(search);
+  const { groups } = usePlayerGroups();
   const createPlayer = useCreatePlayer();
   const updatePlayer = useUpdatePlayer();
 
@@ -45,8 +48,9 @@ export default function Players() {
     (player: Player) => {
       updatePlayer.reset();
       setEditingPlayer(player);
-      setEditName(player.name);
       setEditActive(player.active);
+      setEditGroupIds(player.playerGroups.map((g) => g.id));
+      setEditName(player.name);
     },
     [updatePlayer],
   );
@@ -62,11 +66,27 @@ export default function Players() {
       const trimmed = editName.trim();
       if (!trimmed) return;
       updatePlayer.mutate(
-        { active: editActive, id: editingPlayer.id, name: trimmed },
+        {
+          active: editActive,
+          id: editingPlayer.id,
+          name: trimmed,
+          playerGroups: editGroupIds.map((id) => `/api/player-groups/${id}`),
+        },
         { onSuccess: () => closeEditModal() },
       );
     },
-    [closeEditModal, editActive, editName, editingPlayer, updatePlayer],
+    [closeEditModal, editActive, editGroupIds, editName, editingPlayer, updatePlayer],
+  );
+
+  const toggleGroup = useCallback(
+    (groupId: number) => {
+      setEditGroupIds((prev) =>
+        prev.includes(groupId)
+          ? prev.filter((id) => id !== groupId)
+          : [...prev, groupId],
+      );
+    },
+    [],
   );
 
   const isDuplicate =
@@ -217,6 +237,32 @@ export default function Players() {
               </p>
             )}
           </div>
+          {groups.length > 0 && (
+            <div>
+              <p className="mb-2 text-sm font-medium text-text-secondary">
+                Groupes
+              </p>
+              <div className="flex flex-wrap gap-2">
+                {groups.map((group) => {
+                  const isSelected = editGroupIds.includes(group.id);
+                  return (
+                    <button
+                      className={`rounded-full px-3 py-1 text-sm font-medium transition-colors ${
+                        isSelected
+                          ? "bg-accent-500 text-white"
+                          : "bg-surface-secondary text-text-secondary hover:bg-surface-tertiary"
+                      }`}
+                      key={group.id}
+                      onClick={() => toggleGroup(group.id)}
+                      type="button"
+                    >
+                      {group.name}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          )}
           <div className="flex items-center justify-between">
             <span className="text-sm font-medium text-text-primary">
               Joueur actif

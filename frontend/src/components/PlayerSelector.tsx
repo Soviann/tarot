@@ -125,6 +125,7 @@ export default function PlayerSelector({
   const handleSubmit = useCallback(
     (e: FormEvent) => {
       e.preventDefault();
+      e.stopPropagation();
       const trimmed = newName.trim();
       if (!trimmed) return;
       createPlayer.mutate(trimmed, {

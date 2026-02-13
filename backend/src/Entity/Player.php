@@ -30,7 +30,7 @@ use Symfony\Component\Validator\Constraints as Assert;
 #[UniqueEntity('name')]
 class Player
 {
-    #[Groups(['player:read', 'session:detail', 'session:read'])]
+    #[Groups(['player-group:detail', 'player:read', 'session:detail', 'session:read'])]
     #[ORM\Id]
     #[ORM\Column]
     #[ORM\GeneratedValue]
@@ -49,12 +49,12 @@ class Player
     private int $eloRating = 1500;
 
     #[Assert\NotBlank]
-    #[Groups(['game:read', 'player:read', 'player:write', 'score-entry:read', 'session:detail', 'session:read'])]
+    #[Groups(['game:read', 'player-group:detail', 'player:read', 'player:write', 'score-entry:read', 'session:detail', 'session:read'])]
     #[ORM\Column(length: 50, unique: true)]
     private string $name;
 
     /** @var Collection<int, PlayerGroup> */
-    #[Groups(['player:read'])]
+    #[Groups(['player:read', 'player:write'])]
     #[ORM\ManyToMany(targetEntity: PlayerGroup::class, mappedBy: 'players')]
     #[ORM\OrderBy(['name' => 'ASC'])]
     private Collection $playerGroups;
@@ -63,6 +63,16 @@ class Player
     {
         $this->createdAt = new \DateTimeImmutable();
         $this->playerGroups = new ArrayCollection();
+    }
+
+    public function addPlayerGroup(PlayerGroup $playerGroup): static
+    {
+        if (!$this->playerGroups->contains($playerGroup)) {
+            $this->playerGroups->add($playerGroup);
+            $playerGroup->addPlayer($this);
+        }
+
+        return $this;
     }
 
     public function getCreatedAt(): \DateTimeImmutable
@@ -91,6 +101,15 @@ class Player
     public function getPlayerGroups(): Collection
     {
         return $this->playerGroups;
+    }
+
+    public function removePlayerGroup(PlayerGroup $playerGroup): static
+    {
+        if ($this->playerGroups->removeElement($playerGroup)) {
+            $playerGroup->removePlayer($this);
+        }
+
+        return $this;
     }
 
     public function isActive(): bool
