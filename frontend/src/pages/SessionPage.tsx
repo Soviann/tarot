@@ -1,10 +1,11 @@
 import { useQueryClient } from "@tanstack/react-query";
-import { ArrowLeftRight, BarChart3, Lock, QrCode } from "lucide-react";
+import { ArrowLeftRight, BarChart3, Lock, LockOpen, QrCode, Users } from "lucide-react";
 import { useCallback, useMemo, useState } from "react";
-import { Link, useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import AddStarModal from "../components/AddStarModal";
 import BadgeUnlockedModal from "../components/BadgeUnlockedModal";
 import ChangeDealerModal from "../components/ChangeDealerModal";
+import ChangeGroupModal from "../components/ChangeGroupModal";
 import CompleteGameModal from "../components/CompleteGameModal";
 import DeleteGameModal from "../components/DeleteGameModal";
 import GameList from "../components/GameList";
@@ -13,16 +14,18 @@ import MemeOverlay from "../components/MemeOverlay";
 import NewGameModal from "../components/NewGameModal";
 import Scoreboard from "../components/Scoreboard";
 import ScoreEvolutionChart from "../components/ScoreEvolutionChart";
-import SessionGroupSelector from "../components/SessionGroupSelector";
 import ShareQrCodeModal from "../components/ShareQrCodeModal";
 import SwapPlayersModal from "../components/SwapPlayersModal";
-import { FAB, UndoFAB } from "../components/ui";
+import { FAB, Modal, OverflowMenu, UndoFAB } from "../components/ui";
+import type { OverflowMenuItem } from "../components/ui/OverflowMenu";
 import { useAddStar } from "../hooks/useAddStar";
 import { useCloseSession } from "../hooks/useCloseSession";
 import { useCreateGame } from "../hooks/useCreateGame";
+import { usePlayerGroups } from "../hooks/usePlayerGroups";
 import { useSession } from "../hooks/useSession";
 import { useSessionGames } from "../hooks/useSessionGames";
 import { useUpdateDealer } from "../hooks/useUpdateDealer";
+import { useUpdateSessionGroup } from "../hooks/useUpdateSessionGroup";
 import { apiFetch } from "../services/api";
 import type { GameContext, MemeConfig } from "../services/memeSelector";
 import { selectDefeatMeme, selectVictoryMeme } from "../services/memeSelector";
@@ -42,7 +45,9 @@ export default function SessionPage() {
   const addStar = useAddStar(sessionId);
   const closeSession = useCloseSession(sessionId);
   const createGame = useCreateGame(sessionId);
+  const { groups } = usePlayerGroups();
   const updateDealer = useUpdateDealer(sessionId);
+  const updateGroup = useUpdateSessionGroup(sessionId);
 
   const inProgressGame = session?.inProgressGame ?? null;
 
@@ -58,17 +63,40 @@ export default function SessionPage() {
   const queryClient = useQueryClient();
   const [activeMeme, setActiveMeme] = useState<MemeConfig | null>(null);
   const [badgeModalBadges, setBadgeModalBadges] = useState<Record<string, Badge[]> | null>(null);
-  const [memeLabel, setMemeLabel] = useState<string | undefined>(undefined);
   const [changeDealerModalOpen, setChangeDealerModalOpen] = useState(false);
+  const [changeGroupModalOpen, setChangeGroupModalOpen] = useState(false);
+  const [closeConfirmOpen, setCloseConfirmOpen] = useState(false);
   const [completeModalOpen, setCompleteModalOpen] = useState(false);
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [editModalOpen, setEditModalOpen] = useState(false);
+  const [memeLabel, setMemeLabel] = useState<string | undefined>(undefined);
   const [newGameModalOpen, setNewGameModalOpen] = useState(false);
   const [shareModalOpen, setShareModalOpen] = useState(false);
   const [starModalOpen, setStarModalOpen] = useState(false);
   const [starPlayerId, setStarPlayerId] = useState<number | null>(null);
   const [swapModalOpen, setSwapModalOpen] = useState(false);
   const [undoGameId, setUndoGameId] = useState<number | null>(null);
+
+  const overflowItems: OverflowMenuItem[] = useMemo(() => {
+    const items: OverflowMenuItem[] = [
+      { href: `/sessions/${sessionId}/summary`, icon: <BarChart3 size={18} />, label: "Récap de session" },
+      { icon: <QrCode size={18} />, label: "Partager (QR)", onClick: () => setShareModalOpen(true) },
+      { disabled: !!inProgressGame, icon: <ArrowLeftRight size={18} />, label: "Modifier les joueurs", onClick: () => setSwapModalOpen(true) },
+    ];
+    if (groups.length > 0) {
+      items.push({ icon: <Users size={18} />, label: "Changer le groupe", onClick: () => setChangeGroupModalOpen(true) });
+    }
+    if (session?.isActive) {
+      items.push({
+        icon: <Lock size={18} />,
+        label: "Terminer la session",
+        onClick: () => setCloseConfirmOpen(true),
+      });
+    } else {
+      items.push({ icon: <LockOpen size={18} />, label: "Réouvrir la session", onClick: () => closeSession.mutate(true) });
+    }
+    return items;
+  }, [closeSession, groups.length, inProgressGame, session?.isActive, sessionId]);
 
   const handleGameCompleted = useCallback((ctx: GameContext) => {
     const victoryMeme = selectVictoryMeme(ctx);
@@ -136,70 +164,18 @@ export default function SessionPage() {
         <h1 className="text-lg font-bold text-text-primary">
           Session #{session.id}
         </h1>
-        {session.isActive && (
-          <button
-            aria-label="Terminer la session"
-            className="ml-auto rounded-lg p-1 text-text-secondary lg:p-2"
-            disabled={closeSession.isPending}
-            onClick={() => {
-              if (window.confirm("Voulez-vous terminer cette session ?")) {
-                closeSession.mutate(false, {
-                  onSuccess: () => navigate(`/sessions/${sessionId}/summary`),
-                });
-              }
-            }}
-            type="button"
-          >
-            <Lock size={20} />
-          </button>
-        )}
-      </div>
-
-      <div className="flex items-center gap-2">
-        <SessionGroupSelector
-          currentGroupId={session.playerGroup?.id ?? null}
-          sessionId={sessionId}
-        />
-        <Link
-          aria-label="Voir le récap"
-          className="ml-auto rounded-lg p-1 text-text-secondary lg:p-2"
-          to={`/sessions/${sessionId}/summary`}
-        >
-          <BarChart3 size={20} />
-        </Link>
-        <button
-          aria-label="Partager"
-          className="rounded-lg p-1 text-text-secondary lg:p-2"
-          onClick={() => setShareModalOpen(true)}
-          type="button"
-        >
-          <QrCode size={20} />
-        </button>
-        <button
-          aria-label="Modifier les joueurs"
-          className="rounded-lg p-1 text-text-secondary disabled:opacity-40 lg:p-2"
-          disabled={!!inProgressGame}
-          onClick={() => setSwapModalOpen(true)}
-          type="button"
-        >
-          <ArrowLeftRight size={20} />
-        </button>
+        <div className="ml-auto">
+          <OverflowMenu
+            items={overflowItems}
+            label="Actions de session"
+          />
+        </div>
       </div>
 
       {!session.isActive && (
-        <div className="flex items-center justify-between rounded-lg bg-amber-50 p-3 text-amber-800 dark:bg-amber-900/30 dark:text-amber-200">
-          <div className="flex items-center gap-2">
-            <Lock size={16} />
-            <span className="text-sm font-medium">Session terminée</span>
-          </div>
-          <button
-            className="rounded-md bg-amber-100 px-3 py-1 text-xs font-medium text-amber-800 hover:bg-amber-200 dark:bg-amber-800 dark:text-amber-200 dark:hover:bg-amber-700"
-            disabled={closeSession.isPending}
-            onClick={() => closeSession.mutate(true)}
-            type="button"
-          >
-            Réouvrir
-          </button>
+        <div className="flex items-center gap-2 rounded-lg bg-amber-50 p-3 text-amber-800 dark:bg-amber-900/30 dark:text-amber-200">
+          <Lock size={16} />
+          <span className="text-sm font-medium">Session terminée</span>
         </div>
       )}
 
@@ -326,10 +302,9 @@ export default function SessionPage() {
         currentPlayerIds={session.players.map((p) => p.id)}
         onClose={() => setSwapModalOpen(false)}
         onSwap={(newSession) => {
+          setSwapModalOpen(false);
           if (newSession.id !== sessionId) {
             navigate(`/sessions/${newSession.id}`);
-          } else {
-            setSwapModalOpen(false);
           }
         }}
         open={swapModalOpen}
@@ -370,6 +345,49 @@ export default function SessionPage() {
           players={session.players}
         />
       )}
+
+      <ChangeGroupModal
+        currentGroupId={session.playerGroup?.id ?? null}
+        groups={groups}
+        isPending={updateGroup.isPending}
+        onClose={() => setChangeGroupModalOpen(false)}
+        onConfirm={(groupId) => {
+          updateGroup.mutate(groupId, {
+            onSuccess: () => setChangeGroupModalOpen(false),
+          });
+        }}
+        open={changeGroupModalOpen}
+      />
+
+      <Modal onClose={() => setCloseConfirmOpen(false)} open={closeConfirmOpen} title="Terminer la session">
+        <p className="mb-4 text-sm text-text-secondary">
+          Voulez-vous terminer cette session ? Vous pourrez la réouvrir plus tard.
+        </p>
+        <div className="flex gap-3">
+          <button
+            className="flex-1 rounded-xl bg-surface-secondary py-3 text-sm font-semibold text-text-secondary transition-colors"
+            onClick={() => setCloseConfirmOpen(false)}
+            type="button"
+          >
+            Annuler
+          </button>
+          <button
+            className="flex-1 rounded-xl bg-accent-500 py-3 text-sm font-semibold text-white transition-colors disabled:opacity-40"
+            disabled={closeSession.isPending}
+            onClick={() => {
+              closeSession.mutate(false, {
+                onSuccess: () => {
+                  setCloseConfirmOpen(false);
+                  navigate(`/sessions/${sessionId}/summary`);
+                },
+              });
+            }}
+            type="button"
+          >
+            Terminer
+          </button>
+        </div>
+      </Modal>
 
       <ShareQrCodeModal
         onClose={() => setShareModalOpen(false)}
