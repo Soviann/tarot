@@ -6,7 +6,7 @@ import EloEvolutionChart from "../components/EloEvolutionChart";
 import GroupFilter from "../components/GroupFilter";
 import PersonalRecords from "../components/PersonalRecords";
 import ScoreTrendChart from "../components/ScoreTrendChart";
-import { PlayerAvatar } from "../components/ui";
+import { PlayerAvatar, Select } from "../components/ui";
 import { usePlayerStats } from "../hooks/usePlayerStats";
 import { formatDuration } from "../utils/formatDuration";
 
@@ -31,6 +31,21 @@ export default function PlayerStats() {
   const playerId = Number(id);
   const { isPending, stats } = usePlayerStats(playerId, selectedGroupId);
 
+  const rolesTotal = stats ? stats.gamesAsTaker + stats.gamesAsPartner + stats.gamesAsDefender : 0;
+
+  const availableSections = useMemo(() => {
+    if (!stats) return ALL_SECTIONS;
+    const hasData: Record<PlayerStatsSection, boolean> = {
+      badges: true,
+      contracts: stats.contractDistribution.length > 0,
+      elo: stats.eloHistory.length > 0,
+      records: true,
+      roles: rolesTotal > 0,
+      scores: stats.recentScores.length > 0,
+    };
+    return ALL_SECTIONS.filter((s) => hasData[s.value]);
+  }, [rolesTotal, stats]);
+
   if (isPending) {
     return (
       <div className="p-4 text-center text-text-muted">Chargement…</div>
@@ -45,8 +60,6 @@ export default function PlayerStats() {
     );
   }
 
-  const rolesTotal = stats.gamesAsTaker + stats.gamesAsPartner + stats.gamesAsDefender;
-
   // Map PlayerContractEntry[] to ContractDistributionEntry[] for the shared chart
   const contractChartData = stats.contractDistribution.map((d) => ({
     contract: d.contract,
@@ -55,18 +68,6 @@ export default function PlayerStats() {
       ? Math.round((d.count / stats.gamesAsTaker) * 1000) / 10
       : 0,
   }));
-
-  const availableSections = useMemo(() => {
-    const hasData: Record<PlayerStatsSection, boolean> = {
-      badges: true,
-      contracts: stats.contractDistribution.length > 0,
-      elo: stats.eloHistory.length > 0,
-      records: true,
-      roles: rolesTotal > 0,
-      scores: stats.recentScores.length > 0,
-    };
-    return ALL_SECTIONS.filter((s) => hasData[s.value]);
-  }, [rolesTotal, stats.contractDistribution.length, stats.eloHistory.length, stats.recentScores.length]);
 
   return (
     <div className="flex flex-col gap-6 p-4 lg:p-8">
@@ -150,19 +151,12 @@ export default function PlayerStats() {
         </section>
       )}
 
-      <div>
-        <label className="sr-only" htmlFor="stats-section">Section</label>
-        <select
-          className="w-full rounded-xl bg-surface-elevated px-4 py-3 text-sm font-semibold text-text-primary"
-          id="stats-section"
-          onChange={(e) => setSelectedSection(e.target.value as PlayerStatsSection)}
-          value={selectedSection}
-        >
-          {availableSections.map((s) => (
-            <option key={s.value} value={s.value}>{s.label}</option>
-          ))}
-        </select>
-      </div>
+      <Select
+        id="stats-section"
+        onChange={(v) => setSelectedSection(v as PlayerStatsSection)}
+        options={availableSections}
+        value={selectedSection}
+      />
 
       {selectedSection === "records" && (
         <PersonalRecords records={stats.records} />

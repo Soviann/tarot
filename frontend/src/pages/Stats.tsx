@@ -6,6 +6,7 @@ import EloRanking from "../components/EloRanking";
 import GlobalEloEvolutionChart from "../components/GlobalEloEvolutionChart";
 import GroupFilter from "../components/GroupFilter";
 import Leaderboard from "../components/Leaderboard";
+import { Select } from "../components/ui";
 import { useGlobalStats } from "../hooks/useGlobalStats";
 import { formatDuration } from "../utils/formatDuration";
 
@@ -105,19 +106,12 @@ export default function Stats() {
         />
       </section>
 
-      <div>
-        <label className="sr-only" htmlFor="stats-section">Section</label>
-        <select
-          className="w-full rounded-xl bg-surface-elevated px-4 py-3 text-sm font-semibold text-text-primary"
-          id="stats-section"
-          onChange={(e) => setSelectedSection(e.target.value as GlobalStatsSection)}
-          value={selectedSection}
-        >
-          {availableSections.map((s) => (
-            <option key={s.value} value={s.value}>{s.label}</option>
-          ))}
-        </select>
-      </div>
+      <Select
+        id="stats-section"
+        onChange={(v) => setSelectedSection(v as GlobalStatsSection)}
+        options={availableSections}
+        value={selectedSection}
+      />
 
       {selectedSection === "elo-ranking" && (
         <section>

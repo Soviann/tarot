@@ -5,5 +5,6 @@ export { default as OverflowMenu } from "./OverflowMenu";
 export { default as PlayerAvatar } from "./PlayerAvatar";
 export { default as ScoreDisplay } from "./ScoreDisplay";
 export { default as SearchInput } from "./SearchInput";
+export { default as Select } from "./Select";
 export { default as Stepper } from "./Stepper";
 export { default as UndoFAB } from "./UndoFAB";
