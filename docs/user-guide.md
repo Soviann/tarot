@@ -338,7 +338,7 @@ Le système ELO fournit un **classement dynamique** qui tient compte du niveau d
 
 ### Où le trouver
 
-- **Page Statistiques** : une section **« Classement ELO »** affiche tous les joueurs triés par rating décroissant, avec un code couleur (vert > 1500, rouge < 1500)
+- **Page Statistiques** : une section **« Classement ELO »** affiche tous les joueurs triés par rating décroissant, avec un code couleur (vert > 1500, rouge < 1500). En dessous, un graphique **« Évolution ELO »** montre les courbes de tous les joueurs sur un même graphique, avec des chips cliquables pour masquer/afficher chaque joueur. La ligne de référence à 1500 sert de repère.
 - **Statistiques d'un joueur** : la carte « ELO » affiche le rating actuel, et un graphique **« Évolution ELO »** montre la courbe au fil des donnes
 
 ### Recalcul et suppression

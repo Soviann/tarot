@@ -7,6 +7,13 @@ export interface EloHistoryEntry {
   ratingChange: number;
 }
 
+export interface EloEvolutionPlayer {
+  history: { date: string; gameId: number; ratingAfter: number }[];
+  playerColor: string | null;
+  playerId: number;
+  playerName: string;
+}
+
 export interface EloRankingEntry {
   eloRating: number;
   gamesPlayed: number;
@@ -55,6 +62,7 @@ export interface GamePlayer {
 export interface GlobalStatistics {
   averageGameDuration: number | null;
   contractDistribution: ContractDistributionEntry[];
+  eloEvolution: EloEvolutionPlayer[];
   eloRanking: EloRankingEntry[];
   leaderboard: LeaderboardEntry[];
   totalGames: number;
