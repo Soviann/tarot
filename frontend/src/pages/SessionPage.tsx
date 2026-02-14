@@ -133,6 +133,26 @@ export default function SessionPage() {
         <h1 className="text-lg font-bold text-text-primary">
           Session #{session.id}
         </h1>
+        {session.isActive && (
+          <button
+            aria-label="Terminer la session"
+            className="ml-auto rounded-lg p-1 text-text-secondary lg:p-2"
+            disabled={closeSession.isPending}
+            onClick={() => {
+              if (window.confirm("Voulez-vous terminer cette session ?")) {
+                closeSession.mutate(false, {
+                  onSuccess: () => navigate(`/sessions/${sessionId}/summary`),
+                });
+              }
+            }}
+            type="button"
+          >
+            <Lock size={20} />
+          </button>
+        )}
+      </div>
+
+      <div className="flex items-center gap-2">
         <SessionGroupSelector
           currentGroupId={session.playerGroup?.id ?? null}
           sessionId={sessionId}
@@ -152,23 +172,6 @@ export default function SessionPage() {
         >
           <QrCode size={20} />
         </button>
-        {session.isActive && (
-          <button
-            aria-label="Terminer la session"
-            className="rounded-lg p-1 text-text-secondary lg:p-2"
-            disabled={closeSession.isPending}
-            onClick={() => {
-              if (window.confirm("Voulez-vous terminer cette session ?")) {
-                closeSession.mutate(false, {
-                  onSuccess: () => navigate(`/sessions/${sessionId}/summary`),
-                });
-              }
-            }}
-            type="button"
-          >
-            <Lock size={20} />
-          </button>
-        )}
         <button
           aria-label="Modifier les joueurs"
           className="rounded-lg p-1 text-text-secondary disabled:opacity-40 lg:p-2"
