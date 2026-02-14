@@ -13,8 +13,6 @@ use Doctrine\ORM\EntityManagerInterface;
 
 class StatisticsService
 {
-    private const REQUIRED_POINTS = [0 => 56, 1 => 51, 2 => 41, 3 => 36];
-
     public function __construct(
         private readonly EntityManagerInterface $em,
     ) {
@@ -87,12 +85,12 @@ class StatisticsService
             $grouped[$playerId]['contracts'][] = [
                 'contract' => $contract,
                 'count' => $count,
-                'winRate' => $count > 0 ? round($wins / $count * 100, 1) : 0.0,
+                'winRate' => $count > 0 ? \round($wins / $count * 100, 1) : 0.0,
                 'wins' => $wins,
             ];
         }
 
-        return array_values($grouped);
+        return \array_values($grouped);
     }
 
     /**
@@ -122,11 +120,11 @@ class StatisticsService
         /** @var list<array{contract: Contract, count: int|string}> $rows */
         $rows = $query->getResult();
 
-        return array_map(
+        return \array_map(
             static fn (array $row) => [
                 'contract' => $row['contract']->value,
                 'count' => (int) $row['count'],
-                'percentage' => round((int) $row['count'] / $total * 100, 2),
+                'percentage' => \round((int) $row['count'] / $total * 100, 2),
             ],
             $rows,
         );
@@ -172,7 +170,7 @@ class StatisticsService
             ];
         }
 
-        return array_values($grouped);
+        return \array_values($grouped);
     }
 
     /**
@@ -197,7 +195,7 @@ class StatisticsService
         /** @var list<array{eloRating: int|string, gamesPlayed: int|string, playerColor: string|null, playerId: int|string, playerName: string}> $rows */
         $rows = $query->getResult();
 
-        return array_map(
+        return \array_map(
             static fn (array $row) => [
                 'eloRating' => (int) $row['eloRating'],
                 'gamesPlayed' => (int) $row['gamesPlayed'],
@@ -298,7 +296,7 @@ class StatisticsService
             $wins[(int) $row['playerId']] = (int) $row['wins'];
         }
 
-        return array_map(
+        return \array_map(
             static fn (array $row) => [
                 'gamesAsTaker' => $gamesAsTaker[(int) $row['playerId']] ?? 0,
                 'gamesPlayed' => $gamesPlayed[(int) $row['playerId']] ?? 0,
@@ -307,7 +305,7 @@ class StatisticsService
                 'playerName' => $row['playerName'],
                 'totalScore' => (int) $row['totalScore'],
                 'winRate' => ($gamesAsTaker[(int) $row['playerId']] ?? 0) > 0
-                    ? round(($wins[(int) $row['playerId']] ?? 0) / $gamesAsTaker[(int) $row['playerId']] * 100, 1)
+                    ? \round(($wins[(int) $row['playerId']] ?? 0) / $gamesAsTaker[(int) $row['playerId']] * 100, 1)
                     : 0.0,
                 'wins' => $wins[(int) $row['playerId']] ?? 0,
             ],
@@ -336,7 +334,7 @@ class StatisticsService
         /** @var list<array{date: \DateTimeImmutable, gameId: int|string, ratingAfter: int|string, ratingChange: int|string}> $rows */
         $rows = $query->getResult();
 
-        return array_map(
+        return \array_map(
             static fn (array $row) => [
                 'date' => $row['date']->format(\DateTimeInterface::ATOM),
                 'gameId' => (int) $row['gameId'],
@@ -466,8 +464,8 @@ class StatisticsService
                 if (null === $row['points'] || null === $row['oudlers']) {
                     continue;
                 }
-                $required = self::REQUIRED_POINTS[(int) $row['oudlers']] ?? 56;
-                $diff = abs((float) $row['points'] - $required);
+                $required = ScoreCalculator::REQUIRED_POINTS[(int) $row['oudlers']] ?? 56;
+                $diff = \abs((float) $row['points'] - $required);
                 if ($diff > $maxDiff) {
                     $maxDiff = $diff;
                     $maxDiffRow = $row;
@@ -627,12 +625,12 @@ class StatisticsService
             $contractWins[$row['contract']->value] = (int) $row['wins'];
         }
 
-        $contractDistribution = array_map(
+        $contractDistribution = \array_map(
             static fn (array $row) => [
                 'contract' => $row['contract']->value,
                 'count' => (int) $row['count'],
                 'winRate' => (int) $row['count'] > 0
-                    ? round(($contractWins[$row['contract']->value] ?? 0) / (int) $row['count'] * 100, 1)
+                    ? \round(($contractWins[$row['contract']->value] ?? 0) / (int) $row['count'] * 100, 1)
                     : 0.0,
                 'wins' => $contractWins[$row['contract']->value] ?? 0,
             ],
@@ -655,7 +653,7 @@ class StatisticsService
         /** @var list<array{date: \DateTimeImmutable, gameId: int|string, score: int|string, sessionId: int|string}> $recentScores */
         $recentScores = $recentScoresQuery->getResult();
 
-        $formattedRecentScores = array_map(
+        $formattedRecentScores = \array_map(
             static fn (array $row) => [
                 'date' => $row['date']->format(\DateTimeInterface::ATOM),
                 'gameId' => (int) $row['gameId'],
@@ -677,13 +675,13 @@ class StatisticsService
         $this->setGroupParameter($starsQuery, $playerGroupId);
         $totalStars = (int) $starsQuery->getSingleScalarResult();
 
-        $starPenalties = (int) floor($totalStars / 3);
+        $starPenalties = (int) \floor($totalStars / 3);
 
         $durationStats = $this->getPlayerDurationStats($player, $playerGroupId);
 
         return [
             'averageGameDurationSeconds' => $durationStats['averageGameDurationSeconds'],
-            'averageScore' => null !== $scoreAgg['averageScore'] ? round((float) $scoreAgg['averageScore'], 1) : 0.0,
+            'averageScore' => null !== $scoreAgg['averageScore'] ? \round((float) $scoreAgg['averageScore'], 1) : 0.0,
             'bestGameScore' => (int) ($scoreAgg['bestGameScore'] ?? 0),
             'contractDistribution' => $contractDistribution,
             'eloHistory' => $this->getPlayerEloHistory($player, $playerGroupId),
@@ -693,7 +691,7 @@ class StatisticsService
             'gamesAsTaker' => $gamesAsTaker,
             'gamesPlayed' => $gamesPlayed,
             'player' => ['id' => $playerId, 'name' => $player->getName()],
-            'playerGroups' => array_map(
+            'playerGroups' => \array_map(
                 static fn (PlayerGroup $pg) => ['id' => $pg->getId(), 'name' => $pg->getName()],
                 $player->getPlayerGroups()->getValues(),
             ),
@@ -703,7 +701,7 @@ class StatisticsService
             'starPenalties' => $starPenalties,
             'totalPlayTimeSeconds' => $durationStats['totalPlayTimeSeconds'],
             'totalStars' => $totalStars,
-            'winRateAsTaker' => $gamesAsTaker > 0 ? round($winsAsTaker / $gamesAsTaker * 100, 1) : 0.0,
+            'winRateAsTaker' => $gamesAsTaker > 0 ? \round($winsAsTaker / $gamesAsTaker * 100, 1) : 0.0,
             'worstGameScore' => (int) ($scoreAgg['worstGameScore'] ?? 0),
         ];
     }
@@ -725,7 +723,7 @@ class StatisticsService
         /** @var string|null $avg */
         $avg = $query->getSingleScalarResult();
 
-        return null !== $avg ? (int) round((float) $avg) : null;
+        return null !== $avg ? (int) \round((float) $avg) : null;
     }
 
     /**
@@ -752,7 +750,7 @@ class StatisticsService
         $row = $query->getSingleResult();
 
         return [
-            'averageGameDurationSeconds' => null !== $row['avg'] ? (int) round((float) $row['avg']) : null,
+            'averageGameDurationSeconds' => null !== $row['avg'] ? (int) \round((float) $row['avg']) : null,
             'totalPlayTimeSeconds' => (int) ($row['total'] ?? 0),
         ];
     }
