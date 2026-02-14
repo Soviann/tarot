@@ -1,6 +1,7 @@
 export { default as ContractBadge } from "./ContractBadge";
 export { default as FAB } from "./FAB";
 export { default as Modal } from "./Modal";
+export { default as OverflowMenu } from "./OverflowMenu";
 export { default as PlayerAvatar } from "./PlayerAvatar";
 export { default as ScoreDisplay } from "./ScoreDisplay";
 export { default as SearchInput } from "./SearchInput";

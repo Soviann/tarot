@@ -154,24 +154,33 @@ Liste paginée des donnes jouées (les 10 plus récentes en premier, avec un bou
 - Le contrat (badge coloré) et la **durée de la donne** (si disponible)
 - Le résultat (gain/perte du preneur)
 
+### Menu d'actions (⋮)
+
+La ligne du header de session affiche un bouton **⋮** (trois points verticaux) qui regroupe les actions secondaires :
+
+- **Récap de session** : ouvre le récapitulatif de la session
+- **Partager (QR)** : affiche un QR code pour partager l'URL de la session
+- **Modifier les joueurs** : change un ou plusieurs joueurs de la session
+- **Changer le groupe** : associe la session à un groupe de joueurs (visible uniquement si des groupes existent)
+- **Terminer la session** / **Réouvrir la session** : clôture ou réouverture de la session
+
 ### Modifier les joueurs
 
-Depuis l'écran de session, il est possible de **changer un ou plusieurs joueurs** sans repasser par l'accueil :
+Depuis le menu **⋮**, appuyer sur **Modifier les joueurs** :
 
-1. Appuyer sur le bouton **⇄** (flèches) à droite du titre « Session #X »
-2. La modale de sélection s'ouvre avec les **5 joueurs actuels** pré-sélectionnés
-3. Désélectionner le(s) joueur(s) à remplacer et sélectionner le(s) nouveau(x)
-4. Appuyer sur **Confirmer**
+1. La modale de sélection s'ouvre avec les **5 joueurs actuels** pré-sélectionnés
+2. Désélectionner le(s) joueur(s) à remplacer et sélectionner le(s) nouveau(x)
+3. Appuyer sur **Confirmer**
 
 > **Session intelligente** : si une session active existe déjà avec les 5 joueurs choisis, l'application y navigue directement. Sinon, une nouvelle session est créée.
 
-> **Note** : le bouton est **désactivé** tant qu'une donne est en cours. Terminez ou supprimez la donne avant de modifier les joueurs.
+> **Note** : l'option est **désactivée** tant qu'une donne est en cours. Terminez ou supprimez la donne avant de modifier les joueurs.
 
 ### Partager une session (QR code)
 
 Pour permettre aux autres joueurs de suivre les scores sur leur propre téléphone :
 
-1. Appuyer sur le bouton **QR code** (icône grille) à droite du titre « Session #X »
+1. Appuyer sur le menu **⋮** puis **Partager (QR)**
 2. Une modale affiche un **QR code** encodant l'URL de la session
 3. Les autres joueurs scannent le QR code avec leur appareil photo pour ouvrir la session en **mode consultation**
 4. Appuyer sur **« Plein écran »** pour agrandir le QR code (facilite le scan à distance ou depuis une TV)
@@ -211,7 +220,7 @@ Quand tous les joueurs d'une session appartiennent à un **seul et même groupe*
 
 ### Association manuelle
 
-Le **sélecteur de groupe** en haut de l'écran de session permet de changer manuellement le groupe associé. Si des joueurs de la session ne sont pas encore membres du groupe sélectionné, ils sont **automatiquement ajoutés** au groupe.
+Depuis le menu **⋮** de l'écran de session, l'option **Changer le groupe** ouvre une modale permettant de changer le groupe associé. Si des joueurs de la session ne sont pas encore membres du groupe sélectionné, ils sont **automatiquement ajoutés** au groupe.
 
 ### Statistiques par groupe
 
@@ -225,15 +234,16 @@ Sur les pages **Statistiques** et **Statistiques par joueur**, un filtre permet 
 
 Pour marquer une session comme terminée (plus de nouvelles donnes possibles) :
 
-1. Sur l'écran de session, appuyer sur le bouton **cadenas** (🔒) dans la barre du titre
-2. La session passe en mode « terminée » et le **récapitulatif** s'affiche automatiquement
-3. Un bandeau ambre « Session terminée » apparaît sur l'écran de session avec un bouton **Réouvrir** si besoin
+1. Depuis le menu **⋮**, appuyer sur **Terminer la session**
+2. Confirmer dans la modale de confirmation
+3. La session passe en mode « terminée » et le **récapitulatif** s'affiche automatiquement
+4. Un bandeau ambre « Session terminée » apparaît sur l'écran de session
 
-> **Réouverture** : la clôture n'est pas irréversible. Le bouton « Réouvrir » dans le bandeau permet de reprendre la session.
+> **Réouverture** : la clôture n'est pas irréversible. Depuis le menu **⋮**, l'option **Réouvrir la session** permet de reprendre la session.
 
 ### Récapitulatif de session
 
-Le récapitulatif est accessible **à tout moment** via le bouton **graphique** (📊) dans la barre du titre de l'écran de session, que la session soit ouverte ou clôturée.
+Le récapitulatif est accessible **à tout moment** via le menu **⋮** → **Récap de session** dans la barre du titre de l'écran de session, que la session soit ouverte ou clôturée.
 
 Il affiche :
 

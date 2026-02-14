@@ -6,6 +6,10 @@ Le format est basé sur [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/)
 
 ## [Unreleased]
 
+### Changed
+
+- **Session — menu overflow** : toutes les actions du header de session (récap, QR code, modifier les joueurs, changer le groupe, terminer/réouvrir) sont regroupées dans un menu « ⋮ » (overflow) à droite du titre. Le header passe à une seule ligne (titre + menu). Nouveau composant UI réutilisable `OverflowMenu` et nouvelle modale `ChangeGroupModal`.
+
 ### Added
 
 - **Badges et succès** : système de gamification avec 15 badges débloqués automatiquement selon l'activité des joueurs (Première donne, Centurion, Kamikaze, Sans filet, Noctambule, etc.). Les badges se débloquent à la complétion d'une donne, à l'ajout d'une étoile, ou de manière rétroactive lors de la consultation des statistiques. Une modale dédiée s'affiche pour annoncer les nouveaux badges débloqués. Section grille dans les statistiques par joueur avec compteur (X/15), badges débloqués en premier avec date, badges verrouillés grisés.
