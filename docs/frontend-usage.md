@@ -75,7 +75,8 @@ import type { HydraCollection, Player } from "./types/api";
 | `GlobalStatistics` | `averageGameDuration: number \| null`, `contractDistribution: ContractDistributionEntry[]`, `contractSuccessRateByPlayer: ContractSuccessRatePlayer[]`, `eloEvolution: EloEvolutionPlayer[]`, `eloRanking: EloRankingEntry[]`, `leaderboard: LeaderboardEntry[]`, `totalGames`, `totalPlayTime: number`, `totalSessions`, `totalStars` |
 | `LeaderboardEntry` | `gamesAsTaker`, `gamesPlayed`, `playerColor: string \| null`, `playerId`, `playerName`, `totalScore`, `winRate`, `wins` |
 | `PlayerContractEntry` | `contract: Contract`, `count`, `winRate`, `wins` |
-| `PlayerStatistics` | `averageGameDurationSeconds: number \| null`, `averageScore`, `bestGameScore`, `contractDistribution`, `eloHistory: EloHistoryEntry[]`, `eloRating: number`, `gamesAsDefender`, `gamesAsPartner`, `gamesAsTaker`, `gamesPlayed`, `player`, `playerGroups: { id: number; name: string }[]`, `recentScores`, `sessionsPlayed`, `starPenalties`, `totalPlayTimeSeconds: number`, `totalStars`, `winRateAsTaker`, `worstGameScore` |
+| `PersonalRecord` | `contract: string \| null`, `date: string`, `sessionId: number \| null`, `type: string`, `value: number` |
+| `PlayerStatistics` | `averageGameDurationSeconds: number \| null`, `averageScore`, `bestGameScore`, `contractDistribution`, `eloHistory: EloHistoryEntry[]`, `eloRating: number`, `gamesAsDefender`, `gamesAsPartner`, `gamesAsTaker`, `gamesPlayed`, `player`, `playerGroups: { id: number; name: string }[]`, `records: PersonalRecord[]`, `recentScores`, `sessionsPlayed`, `starPenalties`, `totalPlayTimeSeconds: number`, `totalStars`, `winRateAsTaker`, `worstGameScore` |
 | `RecentScoreEntry` | `date: string`, `gameId: number`, `score: number`, `sessionId: number` |
 
 ### `ApiError`
@@ -649,7 +650,7 @@ Page d'aide in-app reprenant le contenu du guide utilisateur (`docs/user-guide.m
 - Filtre par groupe (`GroupFilter`) — filtre les statistiques par groupe (initialisation depuis `?group=`)
 - Métriques clés : donnes jouées, taux de victoire, score moyen, ELO, sessions, durée moyenne par donne et temps de jeu total (si disponible)
 - Groupes du joueur : badges cliquables renvoyant vers `/groups/:id`
-- Meilleur et pire score
+- Records personnels (`PersonalRecords`) : meilleur score, pire score, série de victoires, meilleure session, plus grand écart
 - Répartition des rôles (preneur / partenaire / défenseur) en barre visuelle
 - Répartition des contrats pris (`ContractDistributionChart`)
 - Évolution des scores récents (`ScoreTrendChart`)
@@ -994,6 +995,23 @@ Tableau croisé joueurs × contrats. Affiche le taux de réussite (%) et le nomb
 | Prop | Type | Description |
 |------|------|-------------|
 | `data` | `ContractSuccessRatePlayer[]` | *requis* — données par joueur |
+
+### `PersonalRecords`
+
+**Fichier** : `components/PersonalRecords.tsx`
+
+Affiche les records personnels d'un joueur sous forme de cartes (meilleur score, pire score, série de victoires, meilleure session, plus grand écart). Chaque record affiche l'icône, le libellé, la valeur formatée, la date, le contrat (badge) et un lien vers la session.
+
+| Prop | Type | Description |
+|------|------|-------------|
+| `records` | `PersonalRecord[]` | *requis* — liste des records du joueur |
+
+**Fonctionnalités** :
+- Ordre d'affichage fixe : meilleur score → pire score → série de victoires → meilleure session → plus grand écart
+- Formatage spécifique par type : signe moins typographique (U+2212) pour le pire score, « X donnes » pour la série, « X pts » pour l'écart
+- Badge contrat (`ContractBadge`) si le record est lié à un contrat
+- Lien « Voir » vers la session si `sessionId` est présent
+- Retourne `null` si la liste est vide
 
 ### `ScoreTrendChart`
 

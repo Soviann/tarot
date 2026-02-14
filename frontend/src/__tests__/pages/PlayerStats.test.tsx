@@ -41,6 +41,11 @@ const mockStats = {
     { date: "2026-02-06T12:00:00+00:00", gameId: 2, score: -60, sessionId: 1 },
     { date: "2026-02-05T12:00:00+00:00", gameId: 1, score: 80, sessionId: 1 },
   ],
+  records: [
+    { contract: "garde", date: "2026-02-07T12:00:00+00:00", sessionId: 1, type: "best_score", value: 240 },
+    { contract: "petite", date: "2026-02-06T12:00:00+00:00", sessionId: 1, type: "worst_score", value: -360 },
+    { contract: null, date: "2026-02-07T12:00:00+00:00", sessionId: null, type: "win_streak", value: 3 },
+  ],
   sessionsPlayed: 10,
   starPenalties: 0,
   totalPlayTimeSeconds: 4800,
@@ -115,7 +120,7 @@ describe("PlayerStats page", () => {
     expect(screen.getByText("Évolution ELO")).toBeInTheDocument();
   });
 
-  it("renders best and worst scores", () => {
+  it("renders personal records section", () => {
     vi.mocked(usePlayerStatsModule.usePlayerStats).mockReturnValue({
       isPending: false,
       stats: mockStats,
@@ -123,8 +128,10 @@ describe("PlayerStats page", () => {
 
     renderWithProviders(<PlayerStats />);
 
-    expect(screen.getByText("+240")).toBeInTheDocument();
-    expect(screen.getByText("-360")).toBeInTheDocument();
+    expect(screen.getByText("Records personnels")).toBeInTheDocument();
+    expect(screen.getByText("Meilleur score")).toBeInTheDocument();
+    expect(screen.getByText("Pire score")).toBeInTheDocument();
+    expect(screen.getByText("240")).toBeInTheDocument();
   });
 
   it("renders role breakdown", () => {

@@ -85,12 +85,12 @@ class StatisticsService
             $grouped[$playerId]['contracts'][] = [
                 'contract' => $contract,
                 'count' => $count,
-                'winRate' => $count > 0 ? round($wins / $count * 100, 1) : 0.0,
+                'winRate' => $count > 0 ? \round($wins / $count * 100, 1) : 0.0,
                 'wins' => $wins,
             ];
         }
 
-        return array_values($grouped);
+        return \array_values($grouped);
     }
 
     /**
@@ -120,11 +120,11 @@ class StatisticsService
         /** @var list<array{contract: Contract, count: int|string}> $rows */
         $rows = $query->getResult();
 
-        return array_map(
+        return \array_map(
             static fn (array $row) => [
                 'contract' => $row['contract']->value,
                 'count' => (int) $row['count'],
-                'percentage' => round((int) $row['count'] / $total * 100, 2),
+                'percentage' => \round((int) $row['count'] / $total * 100, 2),
             ],
             $rows,
         );
@@ -170,7 +170,7 @@ class StatisticsService
             ];
         }
 
-        return array_values($grouped);
+        return \array_values($grouped);
     }
 
     /**
@@ -195,7 +195,7 @@ class StatisticsService
         /** @var list<array{eloRating: int|string, gamesPlayed: int|string, playerColor: string|null, playerId: int|string, playerName: string}> $rows */
         $rows = $query->getResult();
 
-        return array_map(
+        return \array_map(
             static fn (array $row) => [
                 'eloRating' => (int) $row['eloRating'],
                 'gamesPlayed' => (int) $row['gamesPlayed'],
@@ -296,7 +296,7 @@ class StatisticsService
             $wins[(int) $row['playerId']] = (int) $row['wins'];
         }
 
-        return array_map(
+        return \array_map(
             static fn (array $row) => [
                 'gamesAsTaker' => $gamesAsTaker[(int) $row['playerId']] ?? 0,
                 'gamesPlayed' => $gamesPlayed[(int) $row['playerId']] ?? 0,
@@ -305,7 +305,7 @@ class StatisticsService
                 'playerName' => $row['playerName'],
                 'totalScore' => (int) $row['totalScore'],
                 'winRate' => ($gamesAsTaker[(int) $row['playerId']] ?? 0) > 0
-                    ? round(($wins[(int) $row['playerId']] ?? 0) / $gamesAsTaker[(int) $row['playerId']] * 100, 1)
+                    ? \round(($wins[(int) $row['playerId']] ?? 0) / $gamesAsTaker[(int) $row['playerId']] * 100, 1)
                     : 0.0,
                 'wins' => $wins[(int) $row['playerId']] ?? 0,
             ],
@@ -334,7 +334,7 @@ class StatisticsService
         /** @var list<array{date: \DateTimeImmutable, gameId: int|string, ratingAfter: int|string, ratingChange: int|string}> $rows */
         $rows = $query->getResult();
 
-        return array_map(
+        return \array_map(
             static fn (array $row) => [
                 'date' => $row['date']->format(\DateTimeInterface::ATOM),
                 'gameId' => (int) $row['gameId'],
@@ -346,7 +346,177 @@ class StatisticsService
     }
 
     /**
-     * @return array{averageGameDurationSeconds: int|null, averageScore: float, bestGameScore: int, contractDistribution: list<array{contract: string, count: int, winRate: float, wins: int}>, eloHistory: list<array{date: string, gameId: int, ratingAfter: int, ratingChange: int}>, eloRating: int, gamesAsDefender: int, gamesAsPartner: int, gamesAsTaker: int, gamesPlayed: int, player: array{id: int|null, name: string}, recentScores: list<array{date: string, gameId: int, score: int, sessionId: int}>, sessionsPlayed: int, starPenalties: int, totalPlayTimeSeconds: int, totalStars: int, winRateAsTaker: float, worstGameScore: int}
+     * @return list<array{contract: string|null, date: string, sessionId: int|null, type: string, value: int|float}>
+     */
+    public function getPlayerRecords(Player $player, ?int $playerGroupId = null): array
+    {
+        $groupJoinGame = null !== $playerGroupId ? ' JOIN g.session s_grp' : '';
+        $groupWhereGame = null !== $playerGroupId ? ' AND s_grp.playerGroup = :group' : '';
+
+        $records = [];
+
+        // 1. Best score (any role)
+        $bestQuery = $this->em->createQuery(
+            'SELECT se.score, g.createdAt AS date, IDENTITY(g.session) AS sessionId, g.contract AS contract
+             FROM App\Entity\ScoreEntry se
+             JOIN se.game g'.$groupJoinGame.'
+             WHERE se.player = :player AND g.status = :status'.$groupWhereGame.'
+             ORDER BY se.score DESC'
+        )
+            ->setParameter('player', $player)
+            ->setParameter('status', GameStatus::Completed)
+            ->setMaxResults(1);
+
+        $this->setGroupParameter($bestQuery, $playerGroupId);
+
+        /** @var list<array{contract: Contract, date: \DateTimeImmutable, score: int|string, sessionId: int|string}> $bestRows */
+        $bestRows = $bestQuery->getResult();
+
+        if (!empty($bestRows)) {
+            $row = $bestRows[0];
+            $records[] = [
+                'contract' => $row['contract']->value,
+                'date' => $row['date']->format(\DateTimeInterface::ATOM),
+                'sessionId' => (int) $row['sessionId'],
+                'type' => 'best_score',
+                'value' => (int) $row['score'],
+            ];
+        }
+
+        // 2. Worst score (any role)
+        $worstQuery = $this->em->createQuery(
+            'SELECT se.score, g.createdAt AS date, IDENTITY(g.session) AS sessionId, g.contract AS contract
+             FROM App\Entity\ScoreEntry se
+             JOIN se.game g'.$groupJoinGame.'
+             WHERE se.player = :player AND g.status = :status'.$groupWhereGame.'
+             ORDER BY se.score ASC'
+        )
+            ->setParameter('player', $player)
+            ->setParameter('status', GameStatus::Completed)
+            ->setMaxResults(1);
+
+        $this->setGroupParameter($worstQuery, $playerGroupId);
+
+        /** @var list<array{contract: Contract, date: \DateTimeImmutable, score: int|string, sessionId: int|string}> $worstRows */
+        $worstRows = $worstQuery->getResult();
+
+        if (!empty($worstRows)) {
+            $row = $worstRows[0];
+            $records[] = [
+                'contract' => $row['contract']->value,
+                'date' => $row['date']->format(\DateTimeInterface::ATOM),
+                'sessionId' => (int) $row['sessionId'],
+                'type' => 'worst_score',
+                'value' => (int) $row['score'],
+            ];
+        }
+
+        // 3. Win streak + Biggest diff (as taker) — single query
+        $takerQuery = $this->em->createQuery(
+            'SELECT se.score, g.createdAt AS date, IDENTITY(g.session) AS sessionId,
+                    g.contract AS contract, g.points AS points, g.oudlers AS oudlers
+             FROM App\Entity\Game g
+             JOIN App\Entity\ScoreEntry se WITH se.game = g AND se.player = g.taker'.$groupJoinGame.'
+             WHERE g.taker = :player AND g.status = :status'.$groupWhereGame.'
+             ORDER BY g.createdAt ASC'
+        )
+            ->setParameter('player', $player)
+            ->setParameter('status', GameStatus::Completed);
+
+        $this->setGroupParameter($takerQuery, $playerGroupId);
+
+        /** @var list<array{contract: Contract, date: \DateTimeImmutable, oudlers: int|null, points: float|null, score: int|string, sessionId: int|string}> $takerRows */
+        $takerRows = $takerQuery->getResult();
+
+        if (!empty($takerRows)) {
+            // Win streak
+            $currentStreak = 0;
+            $maxStreak = 0;
+            $maxStreakEndDate = null;
+
+            foreach ($takerRows as $row) {
+                if ((int) $row['score'] > 0) {
+                    ++$currentStreak;
+                    if ($currentStreak > $maxStreak) {
+                        $maxStreak = $currentStreak;
+                        $maxStreakEndDate = $row['date'];
+                    }
+                } else {
+                    $currentStreak = 0;
+                }
+            }
+
+            if ($maxStreak > 0 && null !== $maxStreakEndDate) {
+                $records[] = [
+                    'contract' => null,
+                    'date' => $maxStreakEndDate->format(\DateTimeInterface::ATOM),
+                    'sessionId' => null,
+                    'type' => 'win_streak',
+                    'value' => $maxStreak,
+                ];
+            }
+
+            // Biggest point difference
+            $maxDiff = 0.0;
+            $maxDiffRow = null;
+
+            foreach ($takerRows as $row) {
+                if (null === $row['points'] || null === $row['oudlers']) {
+                    continue;
+                }
+                $required = ScoreCalculator::REQUIRED_POINTS[(int) $row['oudlers']] ?? 56;
+                $diff = \abs((float) $row['points'] - $required);
+                if ($diff > $maxDiff) {
+                    $maxDiff = $diff;
+                    $maxDiffRow = $row;
+                }
+            }
+
+            if (null !== $maxDiffRow) {
+                $records[] = [
+                    'contract' => $maxDiffRow['contract']->value,
+                    'date' => $maxDiffRow['date']->format(\DateTimeInterface::ATOM),
+                    'sessionId' => (int) $maxDiffRow['sessionId'],
+                    'type' => 'biggest_diff',
+                    'value' => $maxDiff,
+                ];
+            }
+        }
+
+        // 4. Best session total
+        $sessionQuery = $this->em->createQuery(
+            'SELECT IDENTITY(g.session) AS sessionId, SUM(se.score) AS total, MIN(g.createdAt) AS firstDate
+             FROM App\Entity\ScoreEntry se
+             JOIN se.game g'.$groupJoinGame.'
+             WHERE se.player = :player AND g.status = :status'.$groupWhereGame.'
+             GROUP BY g.session
+             ORDER BY total DESC'
+        )
+            ->setParameter('player', $player)
+            ->setParameter('status', GameStatus::Completed)
+            ->setMaxResults(1);
+
+        $this->setGroupParameter($sessionQuery, $playerGroupId);
+
+        /** @var list<array{firstDate: string, sessionId: int|string, total: int|string}> $sessionRows */
+        $sessionRows = $sessionQuery->getResult();
+
+        if (!empty($sessionRows)) {
+            $row = $sessionRows[0];
+            $records[] = [
+                'contract' => null,
+                'date' => (new \DateTimeImmutable($row['firstDate']))->format(\DateTimeInterface::ATOM),
+                'sessionId' => (int) $row['sessionId'],
+                'type' => 'best_session',
+                'value' => (int) $row['total'],
+            ];
+        }
+
+        return $records;
+    }
+
+    /**
+     * @return array{averageGameDurationSeconds: int|null, averageScore: float, bestGameScore: int, contractDistribution: list<array{contract: string, count: int, winRate: float, wins: int}>, eloHistory: list<array{date: string, gameId: int, ratingAfter: int, ratingChange: int}>, eloRating: int, gamesAsDefender: int, gamesAsPartner: int, gamesAsTaker: int, gamesPlayed: int, player: array{id: int|null, name: string}, playerGroups: list<array{id: int|null, name: string}>, recentScores: list<array{date: string, gameId: int, score: int, sessionId: int}>, records: list<array{contract: string|null, date: string, sessionId: int|null, type: string, value: int|float}>, sessionsPlayed: int, starPenalties: int, totalPlayTimeSeconds: int, totalStars: int, winRateAsTaker: float, worstGameScore: int}
      */
     public function getPlayerStats(Player $player, ?int $playerGroupId = null): array
     {
@@ -455,12 +625,12 @@ class StatisticsService
             $contractWins[$row['contract']->value] = (int) $row['wins'];
         }
 
-        $contractDistribution = array_map(
+        $contractDistribution = \array_map(
             static fn (array $row) => [
                 'contract' => $row['contract']->value,
                 'count' => (int) $row['count'],
                 'winRate' => (int) $row['count'] > 0
-                    ? round(($contractWins[$row['contract']->value] ?? 0) / (int) $row['count'] * 100, 1)
+                    ? \round(($contractWins[$row['contract']->value] ?? 0) / (int) $row['count'] * 100, 1)
                     : 0.0,
                 'wins' => $contractWins[$row['contract']->value] ?? 0,
             ],
@@ -483,7 +653,7 @@ class StatisticsService
         /** @var list<array{date: \DateTimeImmutable, gameId: int|string, score: int|string, sessionId: int|string}> $recentScores */
         $recentScores = $recentScoresQuery->getResult();
 
-        $formattedRecentScores = array_map(
+        $formattedRecentScores = \array_map(
             static fn (array $row) => [
                 'date' => $row['date']->format(\DateTimeInterface::ATOM),
                 'gameId' => (int) $row['gameId'],
@@ -505,13 +675,13 @@ class StatisticsService
         $this->setGroupParameter($starsQuery, $playerGroupId);
         $totalStars = (int) $starsQuery->getSingleScalarResult();
 
-        $starPenalties = (int) floor($totalStars / 3);
+        $starPenalties = (int) \floor($totalStars / 3);
 
         $durationStats = $this->getPlayerDurationStats($player, $playerGroupId);
 
         return [
             'averageGameDurationSeconds' => $durationStats['averageGameDurationSeconds'],
-            'averageScore' => null !== $scoreAgg['averageScore'] ? round((float) $scoreAgg['averageScore'], 1) : 0.0,
+            'averageScore' => null !== $scoreAgg['averageScore'] ? \round((float) $scoreAgg['averageScore'], 1) : 0.0,
             'bestGameScore' => (int) ($scoreAgg['bestGameScore'] ?? 0),
             'contractDistribution' => $contractDistribution,
             'eloHistory' => $this->getPlayerEloHistory($player, $playerGroupId),
@@ -521,16 +691,17 @@ class StatisticsService
             'gamesAsTaker' => $gamesAsTaker,
             'gamesPlayed' => $gamesPlayed,
             'player' => ['id' => $playerId, 'name' => $player->getName()],
-            'playerGroups' => array_map(
+            'playerGroups' => \array_map(
                 static fn (PlayerGroup $pg) => ['id' => $pg->getId(), 'name' => $pg->getName()],
                 $player->getPlayerGroups()->getValues(),
             ),
             'recentScores' => $formattedRecentScores,
+            'records' => $this->getPlayerRecords($player, $playerGroupId),
             'sessionsPlayed' => $sessionsPlayed,
             'starPenalties' => $starPenalties,
             'totalPlayTimeSeconds' => $durationStats['totalPlayTimeSeconds'],
             'totalStars' => $totalStars,
-            'winRateAsTaker' => $gamesAsTaker > 0 ? round($winsAsTaker / $gamesAsTaker * 100, 1) : 0.0,
+            'winRateAsTaker' => $gamesAsTaker > 0 ? \round($winsAsTaker / $gamesAsTaker * 100, 1) : 0.0,
             'worstGameScore' => (int) ($scoreAgg['worstGameScore'] ?? 0),
         ];
     }
@@ -552,7 +723,7 @@ class StatisticsService
         /** @var string|null $avg */
         $avg = $query->getSingleScalarResult();
 
-        return null !== $avg ? (int) round((float) $avg) : null;
+        return null !== $avg ? (int) \round((float) $avg) : null;
     }
 
     /**
@@ -579,7 +750,7 @@ class StatisticsService
         $row = $query->getSingleResult();
 
         return [
-            'averageGameDurationSeconds' => null !== $row['avg'] ? (int) round((float) $row['avg']) : null,
+            'averageGameDurationSeconds' => null !== $row['avg'] ? (int) \round((float) $row['avg']) : null,
             'totalPlayTimeSeconds' => (int) ($row['total'] ?? 0),
         ];
     }

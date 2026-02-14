@@ -285,7 +285,7 @@ Appuyer sur un joueur dans le classement pour voir ses statistiques détaillées
 L'écran de détail d'un joueur affiche :
 
 - **Métriques clés** : donnes jouées, taux de victoire (en tant que preneur), score moyen, sessions jouées, **durée moyenne par donne** et **temps de jeu total** (si disponible)
-- **Meilleur et pire score** : les scores extrêmes du joueur
+- **Records personnels** : meilleur score, pire score, série de victoires consécutives (en tant que preneur), meilleure session (total de points dans une session) et plus grand écart (différence entre points réalisés et points requis). Chaque record indique la date, le contrat (si applicable) et un lien vers la session concernée.
 - **Répartition des rôles** : barre visuelle montrant combien de fois le joueur a été preneur, partenaire ou défenseur
 - **Contrats pris** : graphique à barres des contrats joués en tant que preneur
 - **Évolution des scores** : graphique linéaire des 50 derniers scores
