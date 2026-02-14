@@ -22,6 +22,14 @@ export interface EloRankingEntry {
   playerName: string;
 }
 
+export interface Badge {
+  description: string;
+  emoji: string;
+  label: string;
+  type: string;
+  unlockedAt: string | null;
+}
+
 export interface ContractSuccessRatePlayer {
   color: string | null;
   contracts: PlayerContractEntry[];
@@ -48,6 +56,7 @@ export interface Game {
   createdAt: string;
   dealer: GamePlayer | null;
   id: number;
+  newBadges?: Record<string, Badge[]> | null;
   oudlers: number | null;
   partner: GamePlayer | null;
   petitAuBout: Side;
@@ -136,6 +145,7 @@ export interface PlayerContractEntry {
 }
 
 export interface PlayerStatistics {
+  badges: Badge[];
   averageGameDurationSeconds: number | null;
   averageScore: number;
   bestGameScore: number;
@@ -235,5 +245,6 @@ export interface SessionSummary {
 export interface StarEvent {
   createdAt: string;
   id: number;
+  newBadges?: Record<string, Badge[]> | null;
   player: GamePlayer;
 }
