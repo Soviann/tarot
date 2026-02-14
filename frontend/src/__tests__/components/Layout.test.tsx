@@ -22,11 +22,10 @@ describe("Layout", () => {
     expect(wrapper?.className).toMatch(/bg-surface-secondary/);
   });
 
-  it("renders a help icon link pointing to /aide", () => {
+  it("does not render a help icon link", () => {
     renderWithProviders(<Layout />);
 
-    const helpLink = screen.getByRole("link", { name: /aide/i });
-    expect(helpLink).toHaveAttribute("href", "/aide");
+    expect(screen.queryByRole("link", { name: /aide/i })).not.toBeInTheDocument();
   });
 
   it("renders a theme toggle button", () => {
