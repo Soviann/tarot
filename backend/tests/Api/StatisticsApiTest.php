@@ -356,6 +356,66 @@ class StatisticsApiTest extends ApiTestCase
         $this->assertSame('#ef4444', $aliceElo['playerColor']);
     }
 
+    public function testGlobalStatisticsIncludesEloEvolution(): void
+    {
+        $this->client->disableReboot();
+
+        // Create and complete a game via API to trigger ELO history entries
+        $response = $this->client->request('POST', '/api/sessions/'.$this->session->getId().'/games', [
+            'headers' => ['Content-Type' => 'application/ld+json'],
+            'json' => [
+                'contract' => 'petite',
+                'taker' => $this->getIri($this->players['Alice']),
+            ],
+        ]);
+        $this->assertResponseStatusCodeSame(201);
+        $gameIri = $response->toArray()['@id'];
+
+        $this->client->request('PATCH', $gameIri, [
+            'headers' => ['Content-Type' => 'application/merge-patch+json'],
+            'json' => [
+                'oudlers' => 2,
+                'partner' => $this->getIri($this->players['Bob']),
+                'points' => 45,
+                'status' => 'completed',
+            ],
+        ]);
+        $this->assertResponseIsSuccessful();
+
+        $response = $this->client->request('GET', '/api/statistics');
+        $this->assertResponseIsSuccessful();
+        $data = $response->toArray();
+
+        $this->assertArrayHasKey('eloEvolution', $data);
+        $this->assertIsArray($data['eloEvolution']);
+        $this->assertNotEmpty($data['eloEvolution']);
+
+        // Each entry should have player info + history array
+        $firstPlayer = $data['eloEvolution'][0];
+        $this->assertArrayHasKey('history', $firstPlayer);
+        $this->assertArrayHasKey('playerColor', $firstPlayer);
+        $this->assertArrayHasKey('playerId', $firstPlayer);
+        $this->assertArrayHasKey('playerName', $firstPlayer);
+
+        $this->assertNotEmpty($firstPlayer['history']);
+        $firstEntry = $firstPlayer['history'][0];
+        $this->assertArrayHasKey('date', $firstEntry);
+        $this->assertArrayHasKey('gameId', $firstEntry);
+        $this->assertArrayHasKey('ratingAfter', $firstEntry);
+    }
+
+    public function testGlobalStatisticsEloEvolutionEmptyWithoutEloHistory(): void
+    {
+        // Seed data has no ELO history (games created directly, not via API processor)
+        $response = $this->client->request('GET', '/api/statistics');
+
+        $this->assertResponseIsSuccessful();
+        $data = $response->toArray();
+
+        $this->assertArrayHasKey('eloEvolution', $data);
+        $this->assertSame([], $data['eloEvolution']);
+    }
+
     public function testGlobalStatisticsWithNonExistentGroup(): void
     {
         $response = $this->client->request('GET', '/api/statistics?playerGroup=99999');

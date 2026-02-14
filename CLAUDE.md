@@ -35,6 +35,8 @@ tarot/
 
 - Edit files when asked. Don't create issues or plans unless requested.
 - Prefer acting over asking.
+- **No codebase exploration.** CLAUDE.md, MEMORY.md, and `memory/patterns.md` contain all needed context (file paths, patterns, conventions). Jump straight to implementation. Only read files you are about to edit — never glob/grep to "understand the codebase" first.
+- **Keep `memory/patterns.md` up to date.** When adding new entities, hooks, components, pages, or routes, update the file map in `memory/patterns.md` in the same session.
 
 ## Plans
 
