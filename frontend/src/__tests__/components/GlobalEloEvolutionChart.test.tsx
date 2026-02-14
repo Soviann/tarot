@@ -104,16 +104,28 @@ describe("GlobalEloEvolutionChart", () => {
     expect(container.innerHTML).toBe("");
   });
 
-  it("renders player filter chips", () => {
+  it("renders a dropdown button for player filter", () => {
     render(<GlobalEloEvolutionChart data={sampleData} />);
+
+    expect(screen.getByRole("button", { name: /joueurs/i })).toBeInTheDocument();
+  });
+
+  it("shows player list when dropdown is opened", async () => {
+    const user = userEvent.setup();
+    render(<GlobalEloEvolutionChart data={sampleData} />);
+
+    await user.click(screen.getByRole("button", { name: /joueurs/i }));
 
     expect(screen.getByText("Alice")).toBeInTheDocument();
     expect(screen.getByText("Bob")).toBeInTheDocument();
   });
 
-  it("toggles player visibility when chip is clicked", async () => {
+  it("toggles player visibility when clicking in dropdown", async () => {
     const user = userEvent.setup();
     render(<GlobalEloEvolutionChart data={sampleData} />);
+
+    // Open dropdown
+    await user.click(screen.getByRole("button", { name: /joueurs/i }));
 
     // Click Alice to hide her
     await user.click(screen.getByText("Alice"));
@@ -125,5 +137,16 @@ describe("GlobalEloEvolutionChart", () => {
     // Click again to show
     await user.click(screen.getByText("Alice"));
     expect(screen.getByTestId("line-Alice")).toBeInTheDocument();
+  });
+
+  it("displays color indicator for each player in dropdown", async () => {
+    const user = userEvent.setup();
+    render(<GlobalEloEvolutionChart data={sampleData} />);
+
+    await user.click(screen.getByRole("button", { name: /joueurs/i }));
+
+    // Alice has custom color #ef4444
+    const aliceIndicator = screen.getByTestId("color-indicator-Alice");
+    expect(aliceIndicator).toHaveStyle({ backgroundColor: "#ef4444" });
   });
 });

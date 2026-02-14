@@ -1,4 +1,5 @@
-import { useMemo, useState } from "react";
+import { ChevronDown } from "lucide-react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   Line,
   LineChart,
@@ -16,6 +17,11 @@ const avatarColors = [
   "var(--color-avatar-2)",
   "var(--color-avatar-3)",
   "var(--color-avatar-4)",
+  "var(--color-avatar-5)",
+  "var(--color-avatar-6)",
+  "var(--color-avatar-7)",
+  "var(--color-avatar-8)",
+  "var(--color-avatar-9)",
 ];
 
 interface GlobalEloEvolutionChartProps {
@@ -64,14 +70,39 @@ export default function GlobalEloEvolutionChart({
   data,
 }: GlobalEloEvolutionChartProps) {
   const [hiddenPlayers, setHiddenPlayers] = useState<Set<number>>(new Set());
+  const [dropdownOpen, setDropdownOpen] = useState(false);
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  const close = useCallback(() => setDropdownOpen(false), []);
+
+  useEffect(() => {
+    if (!dropdownOpen) return;
+
+    const handleMouseDown = (e: MouseEvent) => {
+      if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
+        close();
+      }
+    };
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") close();
+    };
+
+    document.addEventListener("keydown", handleKeyDown);
+    document.addEventListener("mousedown", handleMouseDown);
+    return () => {
+      document.removeEventListener("keydown", handleKeyDown);
+      document.removeEventListener("mousedown", handleMouseDown);
+    };
+  }, [close, dropdownOpen]);
 
   // Pre-compute color map: playerId → color (custom or avatar fallback)
   const playerColorMap = useMemo(
     () =>
       new Map(
-        data.map((p, i) => [
+        data.map((p) => [
           p.playerId,
-          p.playerColor ?? avatarColors[i % avatarColors.length],
+          p.playerColor ?? avatarColors[p.playerId % avatarColors.length],
         ]),
       ),
     [data],
@@ -82,6 +113,7 @@ export default function GlobalEloEvolutionChart({
   if (data.length === 0) return null;
 
   const visiblePlayers = data.filter((p) => !hiddenPlayers.has(p.playerId));
+  const visibleCount = visiblePlayers.length;
 
   const togglePlayer = (playerId: number) => {
     setHiddenPlayers((prev) => {
@@ -97,28 +129,41 @@ export default function GlobalEloEvolutionChart({
 
   return (
     <div>
-      <div className="mb-3 flex flex-wrap gap-2">
-        {data.map((player) => {
-          const color = playerColorMap.get(player.playerId)!;
-          const isHidden = hiddenPlayers.has(player.playerId);
-          return (
-            <button
-              className={`rounded-full px-3 py-1 text-xs font-medium transition-opacity ${
-                isHidden ? "opacity-40" : ""
-              }`}
-              key={player.playerId}
-              onClick={() => togglePlayer(player.playerId)}
-              style={{
-                backgroundColor: isHidden ? undefined : color,
-                border: `2px solid ${color}`,
-                color: isHidden ? color : "#fff",
-              }}
-              type="button"
-            >
-              {player.playerName}
-            </button>
-          );
-        })}
+      <div className="relative mb-3" ref={containerRef}>
+        <button
+          className="inline-flex items-center gap-1.5 rounded-lg border border-surface-border bg-surface-elevated px-3 py-1.5 text-xs font-medium text-text-primary"
+          onClick={() => setDropdownOpen((prev) => !prev)}
+          type="button"
+        >
+          Joueurs ({visibleCount}/{data.length})
+          <ChevronDown size={14} />
+        </button>
+
+        {dropdownOpen && (
+          <div className="absolute left-0 top-full z-50 mt-1 min-w-40 rounded-lg border border-surface-border bg-surface-elevated py-1 shadow-lg">
+            {data.map((player) => {
+              const color = playerColorMap.get(player.playerId)!;
+              const isVisible = !hiddenPlayers.has(player.playerId);
+              return (
+                <button
+                  className="flex w-full items-center gap-2.5 px-3 py-2 text-left text-sm text-text-primary hover:bg-surface-secondary"
+                  key={player.playerId}
+                  onClick={() => togglePlayer(player.playerId)}
+                  type="button"
+                >
+                  <span
+                    className="inline-block size-3 shrink-0 rounded-full"
+                    data-testid={`color-indicator-${player.playerName}`}
+                    style={{ backgroundColor: color, opacity: isVisible ? 1 : 0.3 }}
+                  />
+                  <span className={isVisible ? "" : "opacity-40"}>
+                    {player.playerName}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+        )}
       </div>
       <div className="h-64 lg:h-96">
         <ResponsiveContainer height="100%" width="100%">
