@@ -146,17 +146,18 @@ gh pr merge N --squash                       # 6. Squash merge (branch auto-dele
 
 ### Project workflows (all enabled)
 
-GitHub Project workflows automate board transitions — **no manual board moves needed**:
+GitHub Project workflows automate some board transitions:
 - **Auto-add to project**: new issues/PRs are added to the board automatically
 - **Item added to project**: sets initial status on add
-- **Pull request linked to issue**: moves to `In Progress`
 - **Pull request merged** / **Item closed**: moves to `Done`
 - **Auto-close issue**: closes issue when linked PR merges
+
+**Manual step required**: move the issue to `In Progress` when you start working on it.
 
 ### Rules
 
 1. **All work starts from an issue.** Check existing issues first; create if none exists.
-2. **Board transitions are automatic** (see workflows above). No manual `gh project item-add` or `gh project item-edit` needed.
+2. **Move issue to `In Progress`** manually when starting work (use `gh project item-edit`). Other transitions (Done, auto-close) are automatic.
 3. **New ideas** without immediate implementation → `Backlog` (set manually only for new issues that need triaging).
 4. **Close issues** via PR with `fixes #N` in PR body (auto-closes on merge).
 5. **Labels**: use existing (`enhancement`, `bug`, etc.). Don't create new ones without asking.
@@ -167,7 +168,7 @@ GitHub Project workflows automate board transitions — **no manual board moves 
 - **Prefer `gh` CLI** over MCP tools for simple queries (less verbose output)
 - **Max `perPage: 5`** unless more results are explicitly needed
 - **No exploratory chains**: one targeted call, not list → read → read
-- **No manual board moves**: project workflows handle all transitions automatically
+- **One manual board move**: move issue to `In Progress` when starting work; all other transitions are automatic
 - `fixes #N` in the PR body auto-closes the issue on merge — never close manually
 
 ### Quick reference
@@ -189,8 +190,8 @@ git tag -a vX.Y.Z -m "vX.Y.Z"
 git push origin vX.Y.Z
 gh release create vX.Y.Z --generate-notes
 
-# Project board — fully automated by workflows, no manual commands needed
-# Manual override (rare): gh project item-edit --project-id PVT_kwHOANG8LM4BOble --id <ITEM_ID> \
+# Project board — move to In Progress manually, other transitions are automatic
+# gh project item-edit --project-id PVT_kwHOANG8LM4BOble --id <ITEM_ID> \
 #   --field-id PVTSSF_lAHOANG8LM4BOblezg9IsCA --single-select-option-id <OPTION_ID>
 # Column option IDs: Backlog=858f7025  Todo=f75ad846  InProgress=47fc9ee4  Done=98236657
 ```
