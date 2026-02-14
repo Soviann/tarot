@@ -169,4 +169,63 @@ class PlayerApiTest extends ApiTestCase
         $this->assertResponseStatusCodeSame(201);
         $this->assertJsonContains(['color' => null]);
     }
+
+    public function testLastActivityAtDefaultsToNull(): void
+    {
+        $this->client->request('POST', '/api/players', [
+            'headers' => ['Content-Type' => 'application/ld+json'],
+            'json' => ['name' => 'Alice'],
+        ]);
+
+        $this->assertResponseStatusCodeSame(201);
+        $this->assertJsonContains(['lastActivityAt' => null]);
+    }
+
+    public function testLastActivityAtInResponseFormat(): void
+    {
+        $this->createPlayer('Alice');
+
+        $response = $this->client->request('GET', '/api/players');
+
+        $this->assertResponseIsSuccessful();
+        $data = $response->toArray();
+        $member = $data['member'][0];
+        $this->assertArrayHasKey('lastActivityAt', $member);
+    }
+
+    public function testLastActivityAtUpdatedOnGameCompletion(): void
+    {
+        $session = $this->createSessionWithPlayers('Alice', 'Bob', 'Charlie', 'Diana', 'Eve');
+        $players = $session->getPlayers()->toArray();
+
+        $this->client->disableReboot();
+
+        // Créer une donne en cours
+        $response = $this->client->request('POST', $this->getIri($session).'/games', [
+            'headers' => ['Content-Type' => 'application/ld+json'],
+            'json' => [
+                'contract' => 'petite',
+                'taker' => $this->getIri($players[0]),
+            ],
+        ]);
+        $gameIri = $response->toArray()['@id'];
+
+        // Compléter la donne
+        $this->client->request('PATCH', $gameIri, [
+            'headers' => ['Content-Type' => 'application/merge-patch+json'],
+            'json' => [
+                'oudlers' => 2,
+                'points' => 45,
+                'status' => 'completed',
+            ],
+        ]);
+        $this->assertResponseIsSuccessful();
+
+        // Vérifier que lastActivityAt est renseigné pour le preneur et un autre joueur
+        $response = $this->client->request('GET', $this->getIri($players[0]));
+        $this->assertNotNull($response->toArray()['lastActivityAt']);
+
+        $response = $this->client->request('GET', $this->getIri($players[3]));
+        $this->assertNotNull($response->toArray()['lastActivityAt']);
+    }
 }

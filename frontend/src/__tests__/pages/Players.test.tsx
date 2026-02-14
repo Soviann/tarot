@@ -14,9 +14,9 @@ vi.mock("../../hooks/usePlayers");
 vi.mock("../../hooks/useUpdatePlayer");
 
 const mockPlayers = [
-  { active: true, createdAt: "2025-01-15T10:00:00+00:00", id: 1, name: "Alice", playerGroups: [] },
-  { active: true, createdAt: "2025-01-16T10:00:00+00:00", id: 2, name: "Bob", playerGroups: [] },
-  { active: true, createdAt: "2025-01-17T10:00:00+00:00", id: 3, name: "Charlie", playerGroups: [] },
+  { active: true, createdAt: "2025-01-15T10:00:00+00:00", id: 1, lastActivityAt: "2026-02-14T10:00:00+00:00", name: "Alice", playerGroups: [] },
+  { active: true, createdAt: "2025-01-16T10:00:00+00:00", id: 2, lastActivityAt: "2026-02-13T10:00:00+00:00", name: "Bob", playerGroups: [] },
+  { active: true, createdAt: "2025-01-17T10:00:00+00:00", id: 3, lastActivityAt: null, name: "Charlie", playerGroups: [] },
 ];
 
 function setupMocks(overrides?: {
@@ -321,10 +321,31 @@ describe("Players page", () => {
     expect(screen.getByText("Erreur lors de la modification.")).toBeInTheDocument();
   });
 
+  it("displays relative date for players with last activity", () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date("2026-02-14T20:00:00"));
+    setupMocks();
+    renderWithProviders(<Players />);
+
+    // Alice has lastActivityAt today → "Aujourd'hui"
+    expect(screen.getByText("Aujourd'hui")).toBeInTheDocument();
+    // Bob has lastActivityAt yesterday → "Hier"
+    expect(screen.getByText("Hier")).toBeInTheDocument();
+    vi.useRealTimers();
+  });
+
+  it("displays creation date for players without last activity", () => {
+    setupMocks();
+    renderWithProviders(<Players />);
+
+    // Charlie has null lastActivityAt → should show creation date
+    expect(screen.getByText("17/01/2025")).toBeInTheDocument();
+  });
+
   it("renders inactive player with visual treatment", () => {
     const playersWithInactive = [
-      { active: true, createdAt: "2025-01-15T10:00:00+00:00", id: 1, name: "Alice", playerGroups: [] },
-      { active: false, createdAt: "2025-01-16T10:00:00+00:00", id: 2, name: "Bob", playerGroups: [] },
+      { active: true, createdAt: "2025-01-15T10:00:00+00:00", id: 1, lastActivityAt: null, name: "Alice", playerGroups: [] },
+      { active: false, createdAt: "2025-01-16T10:00:00+00:00", id: 2, lastActivityAt: null, name: "Bob", playerGroups: [] },
     ];
     setupMocks({
       usePlayers: { data: playersWithInactive, players: playersWithInactive },
@@ -384,7 +405,7 @@ describe("Players page", () => {
 
   it("resets color to auto", async () => {
     const playersWithColor = [
-      { active: true, color: "#ef4444", createdAt: "2025-01-15T10:00:00+00:00", id: 1, name: "Alice", playerGroups: [] },
+      { active: true, color: "#ef4444", createdAt: "2025-01-15T10:00:00+00:00", id: 1, lastActivityAt: null, name: "Alice", playerGroups: [] },
     ];
     const { updateMutate } = setupMocks({
       usePlayers: { data: playersWithColor, players: playersWithColor },
