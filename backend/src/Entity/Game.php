@@ -29,14 +29,14 @@ use Symfony\Component\Serializer\Attribute\Groups;
 #[ApiResource(
     operations: [
         new Delete(
-            processor: GameDeleteProcessor::class,
-            validate: true,
             validationContext: ['groups' => ['Default', 'game:delete']],
+            validate: true,
+            processor: GameDeleteProcessor::class,
         ),
         new Get(),
         new Patch(
-            processor: GameCompleteProcessor::class,
             validationContext: ['groups' => ['Default', 'game:patch']],
+            processor: GameCompleteProcessor::class,
         ),
     ],
     normalizationContext: ['groups' => ['game:read']],
@@ -44,15 +44,16 @@ use Symfony\Component\Serializer\Attribute\Groups;
 )]
 #[ApiResource(
     uriTemplate: '/sessions/{sessionId}/games',
-    uriVariables: [
-        'sessionId' => new Link(fromClass: Session::class, toProperty: 'session'),
-    ],
     operations: [
         new GetCollection(
-            order: ['position' => 'DESC'],
             paginationItemsPerPage: 10,
+            order: ['position' => 'DESC'],
         ),
-        new Post(read: false, processor: GameCreateProcessor::class, denormalizationContext: ['groups' => ['game:create']]),
+        new Post(denormalizationContext: ['groups' => ['game:create']], read: false, processor: GameCreateProcessor::class
+        ),
+    ],
+    uriVariables: [
+        'sessionId' => new Link(toProperty: 'session', fromClass: Session::class),
     ],
     normalizationContext: ['groups' => ['game:read']],
 )]
