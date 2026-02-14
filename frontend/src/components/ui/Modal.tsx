@@ -19,26 +19,32 @@ export default function Modal({ children, onClose, open, title }: ModalProps) {
   const [visible, setVisible] = useState(false);
   const [animateIn, setAnimateIn] = useState(false);
 
-  // Open: mount portal then trigger enter animation on next frame
-  // Close: start exit animation, unmount after transition or safety timeout
   useEffect(() => {
     if (open) {
       setVisible(true);
       const raf = requestAnimationFrame(() => setAnimateIn(true));
       return () => cancelAnimationFrame(raf);
-    } else if (visible) {
+    } else {
       setAnimateIn(false);
-      // Safety fallback: unmount after animation duration in case transitionend doesn't fire
+    }
+  }, [open]);
+
+  // Safety fallback: unmount after animation duration in case transitionend doesn't fire
+  useEffect(() => {
+    if (!animateIn && visible && !open) {
       const timeout = setTimeout(() => setVisible(false), 200);
       return () => clearTimeout(timeout);
     }
-  }, [open, visible]);
+  }, [animateIn, open, visible]);
 
-  const handleTransitionEnd = useCallback(() => {
-    if (!open) {
-      setVisible(false);
-    }
-  }, [open]);
+  const handleTransitionEnd = useCallback(
+    (e: React.TransitionEvent) => {
+      if (e.target === e.currentTarget && e.propertyName === "transform" && !open) {
+        setVisible(false);
+      }
+    },
+    [open],
+  );
 
   const handleKeyDown = useCallback(
     (e: KeyboardEvent) => {

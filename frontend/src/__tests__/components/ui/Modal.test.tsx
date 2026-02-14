@@ -211,13 +211,38 @@ describe("Modal", () => {
         </Modal>,
       );
 
-      // Fire transitionend to signal animation is done
+      // Fire transitionend on the dialog panel with correct propertyName
       const dialog = screen.getByRole("dialog");
       act(() => {
-        fireEvent.transitionEnd(dialog);
+        fireEvent.transitionEnd(dialog, { propertyName: "transform" });
       });
 
       // Now modal should be gone
+      expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+    });
+
+    it("removes modal from DOM via safety timeout when transitionend does not fire", () => {
+      const { rerender } = renderWithProviders(
+        <Modal onClose={() => {}} open title="Titre">
+          <p>Contenu</p>
+        </Modal>,
+      );
+
+      // Close the modal
+      rerender(
+        <Modal onClose={() => {}} open={false} title="Titre">
+          <p>Contenu</p>
+        </Modal>,
+      );
+
+      // Do NOT fire transitionEnd — simulate it not firing
+      expect(screen.getByRole("dialog")).toBeInTheDocument();
+
+      // Advance past the 200ms safety timeout
+      act(() => {
+        vi.advanceTimersByTime(200);
+      });
+
       expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
     });
   });
