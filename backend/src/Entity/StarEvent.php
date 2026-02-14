@@ -15,12 +15,12 @@ use Symfony\Component\Validator\Constraints as Assert;
 
 #[ApiResource(
     uriTemplate: '/sessions/{sessionId}/star-events',
-    uriVariables: [
-        'sessionId' => new Link(fromClass: Session::class, toProperty: 'session'),
-    ],
     operations: [
         new GetCollection(),
         new Post(read: false, processor: StarEventCreateProcessor::class),
+    ],
+    uriVariables: [
+        'sessionId' => new Link(toProperty: 'session', fromClass: Session::class),
     ],
     normalizationContext: ['groups' => ['star-event:read']],
     denormalizationContext: ['groups' => ['star-event:write']],
