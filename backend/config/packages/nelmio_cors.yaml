@@ -1,3 +1,4 @@
+# yaml-language-server: $schema=../../vendor/symfony/dependency-injection/Loader/schema/services.schema.json
 nelmio_cors:
     defaults:
         allow_headers: ['Content-Type', 'Authorization']
