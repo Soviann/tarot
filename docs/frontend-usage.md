@@ -685,7 +685,7 @@ Page d'aide in-app reprenant le contenu du guide utilisateur (`docs/user-guide.m
 - Métriques clés : total de donnes, de sessions, durée moyenne par donne et temps de jeu total (si disponible)
 - Classement (`Leaderboard`) trié par score total décroissant
 - Classement ELO (`EloRanking`) trié par rating décroissant (masqué si aucune donnée)
-- Évolution ELO (`GlobalEloEvolutionChart`) — graphique multi-lignes avec filtrage par joueur via chips (masqué si aucune donnée)
+- Évolution ELO (`GlobalEloEvolutionChart`) — graphique multi-lignes avec filtrage par joueur via menu déroulant (masqué si aucune donnée)
 - Répartition des contrats (`ContractDistributionChart`) en barres horizontales
 - Taux de réussite par contrat (`ContractSuccessRateTable`) — tableau croisé joueurs × contrats (masqué si aucune donnée)
 - Navigation vers le détail d'un joueur au clic (propage le filtre groupe via `?group=`)
@@ -1187,14 +1187,14 @@ Graphique linéaire (Recharts) affichant l'évolution du rating ELO d'un joueur 
 
 **Fichier** : `components/GlobalEloEvolutionChart.tsx`
 
-Graphique linéaire multi-joueurs (Recharts) affichant l'évolution du rating ELO de tous les joueurs avec ligne de référence y=1500, filtrage par joueur via chips cliquables et `connectNulls` pour les joueurs absents de certaines donnes.
+Graphique linéaire multi-joueurs (Recharts) affichant l'évolution du rating ELO de tous les joueurs avec ligne de référence y=1500, filtrage par joueur via un **menu déroulant** avec indicateurs de couleur et `connectNulls` pour les joueurs absents de certaines donnes.
 
 | Prop | Type | Description |
 |------|------|-------------|
 | `data` | `EloEvolutionPlayer[]` | *requis* — données d'évolution par joueur (depuis l'API globale) |
 
 **Fonctionnalités** :
-- Chips colorées pour chaque joueur — clic pour masquer/afficher la ligne
+- Menu déroulant « Joueurs » avec indicateurs de couleur — clic pour masquer/afficher la ligne
 - Couleur personnalisée du joueur (si définie), sinon fallback sur la palette avatar
 - Tooltip montrant les ratings de tous les joueurs visibles
 - Ligne de référence à y=1500
@@ -1205,7 +1205,7 @@ Graphique linéaire multi-joueurs (Recharts) affichant l'évolution du rating EL
 
 **Fichier** : `components/ScoreEvolutionChart.tsx`
 
-Graphique linéaire (Recharts) affichant l'évolution des scores cumulés de tous les joueurs au fil des donnes. Une ligne par joueur, colorée par couleur d'avatar.
+Graphique linéaire (Recharts) affichant l'évolution des scores cumulés de tous les joueurs au fil des donnes. Une ligne par joueur, colorée par couleur d'avatar personnalisée (ou couleur par défaut basée sur `playerId % 10`). Des **chips colorées** au-dessus du graphique permettent de masquer/afficher chaque joueur individuellement.
 
 | Prop | Type | Description |
 |------|------|-------------|
