@@ -150,6 +150,21 @@ const { isDark, toggle } = useTheme();
 
 **Prérequis** : composant dans un `<ThemeProvider>`.
 
+### `useToast`
+
+**Fichier** : `hooks/useToast.ts`
+
+```ts
+const { dismiss, toast, toastError, toasts } = useToast();
+```
+
+- `toast(message)` — affiche un toast de succès (auto-dismiss 2 s)
+- `toastError(message)` — affiche un toast d'erreur (auto-dismiss 3 s)
+- `dismiss(id)` — ferme un toast manuellement
+- `toasts` — liste des toasts actifs (`ToastItem[]`)
+
+**Prérequis** : composant dans un `<ToastProvider>` (déjà dans `App.tsx`).
+
 ### `useAnimatedCounter`
 
 **Fichier** : `hooks/useAnimatedCounter.ts`
@@ -1356,7 +1371,7 @@ Sélectionne un mème de défaite en fonction du contexte de la donne. Même pro
 Tous les composants sont exportés depuis `components/ui/index.ts` :
 
 ```tsx
-import { ContractBadge, FAB, Modal, OverflowMenu, PlayerAvatar, ScoreDisplay, SearchInput, Select, Stepper, UndoFAB } from "./components/ui";
+import { ContractBadge, FAB, Modal, OverflowMenu, PlayerAvatar, ScoreDisplay, SearchInput, Select, Stepper, Toast, ToastContainer, UndoFAB } from "./components/ui";
 ```
 
 ### `PlayerAvatar`
@@ -1507,6 +1522,30 @@ Dialogue modal en portail avec focus trap et fermeture Escape/backdrop. Plein é
   <p>Voulez-vous vraiment supprimer ?</p>
 </Modal>
 ```
+
+### `Toast` / `ToastContainer`
+
+**Fichiers** : `components/ui/Toast.tsx`, `components/ui/ToastContainer.tsx`
+
+Toast de confirmation discret (haut de l'écran, auto-dismiss). Utilise le contexte `useToast`.
+
+`ToastContainer` est déjà rendu dans `App.tsx` — pas besoin de l'ajouter manuellement.
+
+```tsx
+import { useToast } from "../hooks/useToast";
+
+const { toast, toastError } = useToast();
+
+// Toast de succès (auto-dismiss 2 s)
+toast("Joueur créé");
+
+// Toast d'erreur (auto-dismiss 3 s)
+toastError("Erreur de connexion");
+```
+
+Comportement : max 3 toasts empilés, animation slide-down, clic pour fermer, icône CheckCircle (succès) ou XCircle (erreur).
+
+---
 
 ### `Stepper`
 

@@ -690,6 +690,6 @@ describe("SessionPage", () => {
     await userEvent.click(screen.getByRole("button", { name: "Actions de session" }));
     await userEvent.click(screen.getByText("Réouvrir la session"));
 
-    expect(closeSessionMutate).toHaveBeenCalledWith(true);
+    expect(closeSessionMutate).toHaveBeenCalledWith(true, expect.objectContaining({ onSuccess: expect.any(Function) }));
   });
 });

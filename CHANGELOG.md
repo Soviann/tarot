@@ -6,6 +6,10 @@ Le format est basé sur [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/)
 
 ## [Unreleased]
 
+### Added
+
+- **Toasts de confirmation** : un toast discret (haut de l'écran, auto-dismiss 2 s) confirme désormais chaque action utilisateur réussie — création de joueur/session/donne, ajout d'étoile, modification du donneur, gestion des groupes, clôture de session, etc. Icône et couleur distinctes pour succès (vert) et erreur (rouge). Maximum 3 toasts empilés, animation d'apparition fluide, compatible dark mode.
+
 ### Changed
 
 - **Statistiques — sections en menu déroulant** : les pages de statistiques globales et par joueur affichent désormais les métriques clés et le classement en haut, suivis d'un menu déroulant permettant de choisir la section détaillée à afficher. Réduit le scroll sur mobile.
