@@ -6,7 +6,13 @@ Le format est basé sur [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/)
 
 ## [Unreleased]
 
+### Added
+
+- **Légende du graphique d'évolution des scores** : le graphique de la page session affiche désormais des chips filtrables permettant d'identifier et de masquer/afficher chaque joueur. Les couleurs des courbes correspondent aux couleurs d'avatar personnalisées des joueurs (ou à la couleur par défaut).
+
 ### Changed
+
+- **Graphique ELO global** : les chips de filtrage des joueurs sont remplacées par un menu déroulant « Joueurs » avec indicateurs de couleur, plus adapté quand le nombre de joueurs est élevé. Les couleurs utilisent désormais les 10 couleurs d'avatar (au lieu de 5) et sont basées sur `playerId % 10`.
 
 - **Session — menu overflow** : toutes les actions du header de session (récap, QR code, modifier les joueurs, changer le groupe, terminer/réouvrir) sont regroupées dans un menu « ⋮ » (overflow) à droite du titre. Le header passe à une seule ligne (titre + menu). Nouveau composant UI réutilisable `OverflowMenu` et nouvelle modale `ChangeGroupModal`.
 

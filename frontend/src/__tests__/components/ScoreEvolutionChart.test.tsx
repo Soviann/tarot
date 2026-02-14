@@ -1,13 +1,26 @@
+import { render, screen } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import { Chelem, Contract, Poignee, Side } from "../../types/enums";
 import type { Game, GamePlayer } from "../../types/api";
-import { computeScoreEvolution } from "../../components/ScoreEvolutionChart";
+import ScoreEvolutionChart, { computeScoreEvolution } from "../../components/ScoreEvolutionChart";
+
+// Mock Recharts to avoid jsdom rendering issues
+vi.mock("recharts", () => ({
+  Line: ({ dataKey }: { dataKey: string }) => <div data-testid={`line-${dataKey}`} />,
+  LineChart: ({ children }: { children: React.ReactNode }) => <div data-testid="line-chart">{children}</div>,
+  ReferenceLine: () => <div data-testid="reference-line" />,
+  ResponsiveContainer: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
+  Tooltip: () => <div data-testid="tooltip" />,
+  XAxis: () => <div data-testid="x-axis" />,
+  YAxis: () => <div data-testid="y-axis" />,
+}));
 
 const players: GamePlayer[] = [
-  { id: 1, name: "Alice" },
-  { id: 2, name: "Bob" },
-  { id: 3, name: "Charlie" },
-  { id: 4, name: "Diana" },
-  { id: 5, name: "Eve" },
+  { color: "#ef4444", id: 1, name: "Alice" },
+  { color: null, id: 2, name: "Bob" },
+  { color: null, id: 3, name: "Charlie" },
+  { color: null, id: 4, name: "Diana" },
+  { color: null, id: 5, name: "Eve" },
 ];
 
 function makeGame(position: number, scores: Record<string, number>): Game {
@@ -35,14 +48,14 @@ function makeGame(position: number, scores: Record<string, number>): Game {
   };
 }
 
+const twoGames = [
+  makeGame(1, { Alice: 58, Bob: 29, Charlie: -29, Diana: -29, Eve: -29 }),
+  makeGame(2, { Alice: -68, Bob: -68, Charlie: 136, Diana: 68, Eve: -68 }),
+];
+
 describe("computeScoreEvolution", () => {
   it("computes cumulative scores across games", () => {
-    const games = [
-      makeGame(1, { Alice: 58, Bob: 29, Charlie: -29, Diana: -29, Eve: -29 }),
-      makeGame(2, { Alice: -68, Bob: -68, Charlie: 136, Diana: 68, Eve: -68 }),
-    ];
-
-    const result = computeScoreEvolution(games, players);
+    const result = computeScoreEvolution(twoGames, players);
 
     expect(result).toHaveLength(2);
     // Game 1
@@ -80,5 +93,55 @@ describe("computeScoreEvolution", () => {
     expect(result[1].position).toBe(2);
     // Cumulative: game1 Alice=50, game2 Alice=50+(-10)=40
     expect(result[1].Alice).toBe(40);
+  });
+});
+
+describe("ScoreEvolutionChart", () => {
+  it("renders nothing when fewer than 2 games", () => {
+    const { container } = render(
+      <ScoreEvolutionChart games={[twoGames[0]]} players={players} />,
+    );
+
+    expect(container.innerHTML).toBe("");
+  });
+
+  it("renders chart with all player lines by default", () => {
+    render(<ScoreEvolutionChart games={twoGames} players={players} />);
+
+    expect(screen.getByTestId("line-chart")).toBeInTheDocument();
+    expect(screen.getByTestId("line-Alice")).toBeInTheDocument();
+    expect(screen.getByTestId("line-Bob")).toBeInTheDocument();
+  });
+
+  it("renders player filter chips", () => {
+    render(<ScoreEvolutionChart games={twoGames} players={players} />);
+
+    expect(screen.getByText("Alice")).toBeInTheDocument();
+    expect(screen.getByText("Bob")).toBeInTheDocument();
+    expect(screen.getByText("Charlie")).toBeInTheDocument();
+  });
+
+  it("toggles player visibility when chip is clicked", async () => {
+    const user = userEvent.setup();
+    render(<ScoreEvolutionChart games={twoGames} players={players} />);
+
+    // Click Alice to hide her
+    await user.click(screen.getByText("Alice"));
+
+    // Alice line should be hidden
+    expect(screen.queryByTestId("line-Alice")).not.toBeInTheDocument();
+    expect(screen.getByTestId("line-Bob")).toBeInTheDocument();
+
+    // Click again to show
+    await user.click(screen.getByText("Alice"));
+    expect(screen.getByTestId("line-Alice")).toBeInTheDocument();
+  });
+
+  it("uses player custom color for chip", () => {
+    render(<ScoreEvolutionChart games={twoGames} players={players} />);
+
+    const aliceChip = screen.getByText("Alice");
+    // Alice has custom color #ef4444
+    expect(aliceChip).toHaveStyle({ backgroundColor: "#ef4444" });
   });
 });

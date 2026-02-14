@@ -362,7 +362,7 @@ L'écran de détail d'un joueur affiche :
 
 ### Évolution des scores en session
 
-Depuis l'**écran de session**, un graphique d'évolution apparaît automatiquement dès qu'au moins **2 donnes sont terminées**. Il montre les scores cumulés de chaque joueur au fil des donnes, avec une ligne de couleur par joueur.
+Depuis l'**écran de session**, un graphique d'évolution apparaît automatiquement dès qu'au moins **2 donnes sont terminées**. Il montre les scores cumulés de chaque joueur au fil des donnes, avec une ligne de couleur par joueur. Des **chips colorées** au-dessus du graphique permettent d'identifier chaque joueur et de masquer/afficher ses scores en cliquant dessus. Les couleurs correspondent aux couleurs d'avatar des joueurs.
 
 ---
 
@@ -409,7 +409,7 @@ Le système ELO fournit un **classement dynamique** qui tient compte du niveau d
 
 ### Où le trouver
 
-- **Page Statistiques** : une section **« Classement ELO »** affiche tous les joueurs triés par rating décroissant, avec un code couleur (vert > 1500, rouge < 1500). En dessous, un graphique **« Évolution ELO »** montre les courbes de tous les joueurs sur un même graphique, avec des chips cliquables pour masquer/afficher chaque joueur. La ligne de référence à 1500 sert de repère.
+- **Page Statistiques** : une section **« Classement ELO »** affiche tous les joueurs triés par rating décroissant, avec un code couleur (vert > 1500, rouge < 1500). En dessous, un graphique **« Évolution ELO »** montre les courbes de tous les joueurs sur un même graphique, avec un menu déroulant « Joueurs » pour masquer/afficher chaque joueur. La ligne de référence à 1500 sert de repère.
 - **Statistiques d'un joueur** : la carte « ELO » affiche le rating actuel, et un graphique **« Évolution ELO »** montre la courbe au fil des donnes
 
 ### Recalcul et suppression
