@@ -8,6 +8,8 @@ Le format est basé sur [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/)
 
 ### Changed
 
+- **Toggle thème sombre** : déplacé du header global vers la page d'accueil, à côté du bouton d'aide, pour ne plus pousser le contenu vers le bas.
+
 - **Bouton d'aide** : visible uniquement sur la page d'accueil, aligné à droite du titre « Sessions récentes » (au lieu d'être dans le header global).
 
 ### Added
