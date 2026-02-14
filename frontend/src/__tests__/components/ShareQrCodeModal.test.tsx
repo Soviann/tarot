@@ -4,7 +4,7 @@ import ShareQrCodeModal from "../../components/ShareQrCodeModal";
 import { renderWithProviders } from "../test-utils";
 
 vi.mock("qrcode.react", () => ({
-  QRCodeSVG: (props: { size: number; value: string }) => (
+  QRCodeSVG: (props: { value: string }) => (
     <div data-testid="qr-code" data-value={props.value} />
   ),
 }));
@@ -70,6 +70,21 @@ describe("ShareQrCodeModal", () => {
 
     const qrCodes = screen.getAllByTestId("qr-code");
     expect(qrCodes.length).toBe(1);
+  });
+
+  it("exits fullscreen mode when Escape is pressed", async () => {
+    renderWithProviders(
+      <ShareQrCodeModal onClose={vi.fn()} open={true} sessionId={42} />,
+    );
+
+    await userEvent.click(
+      screen.getByRole("button", { name: "Plein écran" }),
+    );
+    expect(screen.getAllByTestId("qr-code").length).toBe(2);
+
+    await userEvent.keyboard("{Escape}");
+
+    expect(screen.getAllByTestId("qr-code").length).toBe(1);
   });
 
   it("calls onClose when modal is closed", async () => {

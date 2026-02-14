@@ -174,7 +174,7 @@ Pour permettre aux autres joueurs de suivre les scores sur leur propre télépho
 3. Les autres joueurs scannent le QR code avec leur appareil photo pour ouvrir la session en **mode consultation**
 4. Appuyer sur **« Plein écran »** pour agrandir le QR code (facilite le scan à distance ou depuis une TV)
 
-> **Note** : la session ouverte via QR code est en **lecture seule** — seul l'organisateur saisit les donnes.
+> **Note** : toute personne ayant l'URL peut interagir avec la session. En pratique, seul l'organisateur saisit les donnes.
 
 ### Actions
 

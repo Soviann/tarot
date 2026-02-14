@@ -1,6 +1,6 @@
 import { Maximize2, X } from "lucide-react";
 import { QRCodeSVG } from "qrcode.react";
-import { useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import Modal from "./ui/Modal";
 
@@ -22,6 +22,16 @@ export default function ShareQrCodeModal({
     setFullscreen(false);
     onClose();
   };
+
+  const handleEscape = useCallback((e: KeyboardEvent) => {
+    if (e.key === "Escape") setFullscreen(false);
+  }, []);
+
+  useEffect(() => {
+    if (!fullscreen) return;
+    document.addEventListener("keydown", handleEscape);
+    return () => document.removeEventListener("keydown", handleEscape);
+  }, [fullscreen, handleEscape]);
 
   return (
     <>
@@ -46,16 +56,22 @@ export default function ShareQrCodeModal({
 
       {fullscreen &&
         createPortal(
-          <div className="fixed inset-0 z-[60] flex items-center justify-center bg-white">
+          // White background is intentional: QR codes need high contrast for scanning
+          <div
+            aria-label="QR code plein écran"
+            aria-modal="true"
+            className="fixed inset-0 z-[60] flex items-center justify-center bg-white"
+            role="dialog"
+          >
             <button
               aria-label="Fermer le plein écran"
-              className="absolute right-4 top-4 rounded-full bg-gray-100 p-2 text-gray-600 transition-colors hover:bg-gray-200"
+              className="absolute right-4 top-4 rounded-full bg-surface-secondary p-2 text-text-secondary transition-colors hover:bg-surface-tertiary"
               onClick={() => setFullscreen(false)}
               type="button"
             >
               <X size={24} />
             </button>
-            <QRCodeSVG size={Math.min(window.innerWidth, window.innerHeight) * 0.7} value={sessionUrl} />
+            <QRCodeSVG className="h-[70vmin] w-[70vmin]" value={sessionUrl} />
           </div>,
           document.body,
         )}
