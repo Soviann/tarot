@@ -520,4 +520,22 @@ describe("SessionPage", () => {
       screen.getByText("Modifier les joueurs", { selector: "h2" }),
     ).toBeInTheDocument();
   });
+
+  it("shows share button", () => {
+    setupMocks();
+    renderWithProviders(<SessionPage />);
+
+    expect(
+      screen.getByRole("button", { name: "Partager" }),
+    ).toBeInTheDocument();
+  });
+
+  it("opens ShareQrCodeModal when share button is clicked", async () => {
+    setupMocks();
+    renderWithProviders(<SessionPage />);
+
+    await userEvent.click(screen.getByRole("button", { name: "Partager" }));
+
+    expect(screen.getByText("Partager la session")).toBeInTheDocument();
+  });
 });

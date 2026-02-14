@@ -1,5 +1,5 @@
 import { useQueryClient } from "@tanstack/react-query";
-import { ArrowLeftRight } from "lucide-react";
+import { ArrowLeftRight, QrCode } from "lucide-react";
 import { useCallback, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import AddStarModal from "../components/AddStarModal";
@@ -13,6 +13,7 @@ import NewGameModal from "../components/NewGameModal";
 import Scoreboard from "../components/Scoreboard";
 import ScoreEvolutionChart from "../components/ScoreEvolutionChart";
 import SessionGroupSelector from "../components/SessionGroupSelector";
+import ShareQrCodeModal from "../components/ShareQrCodeModal";
 import SwapPlayersModal from "../components/SwapPlayersModal";
 import { FAB, UndoFAB } from "../components/ui";
 import { useAddStar } from "../hooks/useAddStar";
@@ -58,6 +59,7 @@ export default function SessionPage() {
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [editModalOpen, setEditModalOpen] = useState(false);
   const [newGameModalOpen, setNewGameModalOpen] = useState(false);
+  const [shareModalOpen, setShareModalOpen] = useState(false);
   const [starModalOpen, setStarModalOpen] = useState(false);
   const [starPlayerId, setStarPlayerId] = useState<number | null>(null);
   const [swapModalOpen, setSwapModalOpen] = useState(false);
@@ -134,8 +136,16 @@ export default function SessionPage() {
           sessionId={sessionId}
         />
         <button
+          aria-label="Partager"
+          className="ml-auto rounded-lg p-1 text-text-secondary lg:p-2"
+          onClick={() => setShareModalOpen(true)}
+          type="button"
+        >
+          <QrCode size={20} />
+        </button>
+        <button
           aria-label="Modifier les joueurs"
-          className="ml-auto rounded-lg p-1 text-text-secondary disabled:opacity-40 lg:p-2"
+          className="rounded-lg p-1 text-text-secondary disabled:opacity-40 lg:p-2"
           disabled={!!inProgressGame}
           onClick={() => setSwapModalOpen(true)}
           type="button"
@@ -303,6 +313,12 @@ export default function SessionPage() {
           players={session.players}
         />
       )}
+
+      <ShareQrCodeModal
+        onClose={() => setShareModalOpen(false)}
+        open={shareModalOpen}
+        sessionId={sessionId}
+      />
 
       <MemeOverlay ariaLabel={memeLabel} meme={activeMeme} onDismiss={() => { setActiveMeme(null); setMemeLabel(undefined); }} />
     </div>

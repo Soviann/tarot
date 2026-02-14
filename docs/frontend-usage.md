@@ -674,6 +674,7 @@ Page d'aide in-app reprenant le contenu du guide utilisateur (`docs/user-guide.m
 - Bandeau « donne en cours » (`InProgressBanner`) si `session.inProgressGame` est non nul
 - Historique des donnes terminées (`GameList`) paginé côté serveur (10 par page, bouton « Voir plus »)
 - Bouton FAB (+) pour démarrer une nouvelle donne (désactivé si donne en cours)
+- Bouton de partage QR code dans le header (ouvre `ShareQrCodeModal`)
 - Bouton de changement de joueurs (icône ⇄) dans le header (désactivé si donne en cours)
 - Bouton retour vers l'accueil
 - États : chargement, session introuvable
@@ -681,6 +682,7 @@ Page d'aide in-app reprenant le contenu du guide utilisateur (`docs/user-guide.m
 **Hooks utilisés** : `useSession`, `useSessionGames`, `useAddStar`, `useCreateGame`, `useCreateSession` (via SwapPlayersModal), `useCompleteGame`, `useDeleteGame`, `useUpdateDealer`, `useNavigate`
 
 **Modales** :
+- `ShareQrCodeModal` : affichage d'un QR code encodant l'URL de la session avec mode plein écran
 - `ChangeDealerModal` : sélection manuelle du donneur parmi les 5 joueurs
 - `SwapPlayersModal` : changement de joueurs avec navigation vers la session résultante
 - `NewGameModal` : sélection preneur + contrat (étape 1)
@@ -831,6 +833,27 @@ Modal de confirmation avant d'attribuer une étoile à un joueur. Composant pré
 - Bouton « Annuler » (ferme la modal) et « Confirmer » (couleur accent, non destructif)
 - Bouton « Confirmer » désactivé pendant la mutation
 - Affichage d'erreur si la mutation échoue
+
+### `ShareQrCodeModal`
+
+**Fichier** : `components/ShareQrCodeModal.tsx`
+
+Modal affichant un QR code encodant l'URL de la session pour partage facile.
+
+| Prop | Type | Description |
+|------|------|-------------|
+| `onClose` | `() => void` | *requis* — fermeture |
+| `open` | `boolean` | *requis* — afficher ou masquer |
+| `sessionId` | `number` | *requis* — ID de la session |
+
+**Fonctionnalités** :
+- QR code SVG généré via `qrcode.react` (taille 200px dans la modal)
+- URL affichée en texte sous le QR code
+- Bouton « Plein écran » pour afficher le QR code en overlay plein écran sur fond blanc
+- Fermeture du plein écran via bouton ✕ en haut à droite
+- Réinitialise l'état plein écran à la fermeture de la modal
+
+**Dépendances** : `qrcode.react`
 
 ### `DeleteGameModal`
 
