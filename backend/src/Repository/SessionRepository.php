@@ -10,7 +10,7 @@ use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 
 /**
- * @php-template T of Session
+ * @extends ServiceEntityRepository<Session>
  */
 final class SessionRepository extends ServiceEntityRepository
 {
@@ -28,7 +28,8 @@ final class SessionRepository extends ServiceEntityRepository
     {
         $qb = $this->getEntityManager()->createQueryBuilder();
 
-        return $qb
+        /** @var int|string $affected */
+        $affected = $qb
             ->update(Session::class, 's')
             ->set('s.isActive', ':inactive')
             ->where('s.playerGroup = :group')
@@ -38,5 +39,7 @@ final class SessionRepository extends ServiceEntityRepository
             ->setParameter('active', true)
             ->getQuery()
             ->execute();
+
+        return (int) $affected;
     }
 }
