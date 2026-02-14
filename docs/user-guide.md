@@ -362,7 +362,7 @@ L'écran de détail d'un joueur affiche :
 - **Groupes** (toujours visibles) : badges cliquables vers la page du groupe
 - **Menu déroulant de section** : un sélecteur permet de choisir la section affichée parmi :
   - **Records personnels** (par défaut) : meilleur score, pire score, série de victoires consécutives (en tant que preneur), meilleure session (total de points dans une session) et plus grand écart (différence entre points réalisés et points requis). Chaque record indique la date, le contrat (si applicable) et un lien vers la session concernée.
-  - **Badges** : grille des badges débloqués et verrouillés
+  - **Badges** : grille des badges débloqués (verrouillés masqués par défaut, révélables via un bouton)
   - **Répartition des rôles** : barre visuelle montrant combien de fois le joueur a été preneur, partenaire ou défenseur
   - **Contrats** : graphique à barres des contrats joués en tant que preneur
   - **Évolution des scores** : graphique linéaire des 50 derniers scores
@@ -534,7 +534,8 @@ Quand un ou plusieurs badges sont débloqués, une **modale** s'affiche automati
 
 Sur la page **Statistiques d'un joueur** (accessible via Stats → clic sur un joueur), une section **Badges (X/15)** affiche :
 - Les badges **débloqués** en premier, avec leur date d'obtention
-- Les badges **verrouillés** grisés ensuite, avec leur condition de déblocage
+- Un bouton **« Voir les X restants »** pour révéler les badges verrouillés (grisés, avec leur condition de déblocage)
+- Un clic sur **« Masquer les badges verrouillés »** les cache à nouveau
 
 ---
 
