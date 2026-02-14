@@ -14,14 +14,6 @@ Le format est basé sur [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/)
 
 - **Clôture en masse** : depuis la page d'un groupe de joueurs, bouton « Clôturer les sessions » pour terminer toutes les sessions ouvertes du groupe en un clic.
 
-### Changed
-
-- **Toggle thème sombre** : déplacé du header global vers la page d'accueil, à côté du bouton d'aide, pour ne plus pousser le contenu vers le bas.
-
-- **Bouton d'aide** : visible uniquement sur la page d'accueil, aligné à droite du titre « Sessions récentes » (au lieu d'être dans le header global).
-
-### Added
-
 - **QR code de partage** : bouton « Partager » (icône QR code) sur l'écran de session, affichant un QR code encodant l'URL directe de la session. Mode plein écran disponible pour faciliter le scan par les autres joueurs. Nouvelle dépendance `qrcode.react`.
 
 - **Records personnels** : meilleur/pire score, série de victoires consécutives, meilleure session, plus grand écart de points. Chaque record indique la valeur, la date, le contrat et un lien vers la session. Affiché sur la page de statistiques par joueur en remplacement des simples meilleur/pire scores.
@@ -53,6 +45,12 @@ Le format est basé sur [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/)
   - **Défaite** — déclencheurs garantis : You Were the Chosen One / Pikachu surpris / Picard Facepalm (défaite improbable : 3 bouts, chelem raté, garde contre), Crying Jordan (garde sans perdue). 40 % This is Fine, sinon pool : Ah Shit, Just to Suffer, Sad Pablo.
 
 - **Suivi de la durée des donnes** : nouveau champ `completedAt` sur les donnes, renseigné automatiquement à la complétion. Chronomètre en temps réel sur le bandeau de donne en cours. Durée affichée dans l'historique des donnes. Nouvelles statistiques globales (durée moyenne par donne, temps de jeu total) et par joueur. Utilitaire `formatDuration` et hook `useElapsedTime`.
+
+### Changed
+
+- **Toggle thème sombre** : déplacé du header global vers la page d'accueil, à côté du bouton d'aide, pour ne plus pousser le contenu vers le bas.
+
+- **Bouton d'aide** : visible uniquement sur la page d'accueil, aligné à droite du titre « Sessions récentes » (au lieu d'être dans le header global).
 
 ### Fixed
 

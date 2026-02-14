@@ -339,6 +339,8 @@ export default function SessionSummary() {
         a.href = dataUrl;
         a.click();
       }
+    } catch (error) {
+      console.error("Échec du partage :", error);
     } finally {
       setIsSharing(false);
     }

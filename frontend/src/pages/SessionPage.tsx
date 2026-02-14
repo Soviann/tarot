@@ -158,9 +158,11 @@ export default function SessionPage() {
             className="rounded-lg p-1 text-text-secondary lg:p-2"
             disabled={closeSession.isPending}
             onClick={() => {
-              closeSession.mutate(false, {
-                onSuccess: () => navigate(`/sessions/${sessionId}/summary`),
-              });
+              if (window.confirm("Voulez-vous terminer cette session ?")) {
+                closeSession.mutate(false, {
+                  onSuccess: () => navigate(`/sessions/${sessionId}/summary`),
+                });
+              }
             }}
             type="button"
           >

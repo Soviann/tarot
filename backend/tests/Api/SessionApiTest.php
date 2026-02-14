@@ -350,7 +350,7 @@ class SessionApiTest extends ApiTestCase
         }
         $this->em->flush();
 
-        $response = $this->client->request('GET', '/api/sessions/' . $session->getId() . '/summary');
+        $response = $this->client->request('GET', '/api/sessions/'.$session->getId().'/summary');
 
         $this->assertResponseIsSuccessful();
         $data = $response->toArray();
@@ -376,7 +376,7 @@ class SessionApiTest extends ApiTestCase
         $session2->setPlayerGroup($group);
         $this->em->flush();
 
-        $this->client->request('POST', '/api/player-groups/' . $group->getId() . '/close-sessions');
+        $this->client->request('POST', '/api/player-groups/'.$group->getId().'/close-sessions');
 
         $this->assertResponseIsSuccessful();
 
@@ -395,7 +395,7 @@ class SessionApiTest extends ApiTestCase
         $session->setPlayerGroup($group);
         $this->em->flush();
 
-        $response = $this->client->request('POST', '/api/player-groups/' . $group->getId() . '/close-sessions');
+        $response = $this->client->request('POST', '/api/player-groups/'.$group->getId().'/close-sessions');
 
         $this->assertResponseIsSuccessful();
         $data = $response->toArray();

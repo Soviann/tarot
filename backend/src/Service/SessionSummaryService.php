@@ -321,7 +321,7 @@ class SessionSummaryService
             ->setMaxResults(1)
             ->getResult();
 
-        if (empty($rows)) {
+        if (empty($rows) || (int) $rows[0]['totalTakerScore'] <= 0) {
             return null;
         }
 
