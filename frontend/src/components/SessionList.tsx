@@ -3,7 +3,7 @@ import { useMemo } from "react";
 import { Link } from "react-router-dom";
 import { useSessions } from "../hooks/useSessions";
 import { formatRelativeDate } from "../services/formatRelativeDate";
-import { PlayerAvatar } from "./ui";
+import { EmptyState, PlayerAvatar, Spinner } from "./ui";
 
 export const EMPTY_STATE_MESSAGES = [
   "Les cartes n'attendent que vous ! Sélectionnez 5 joueurs pour commencer.",
@@ -24,17 +24,13 @@ export default function SessionList() {
   );
 
   if (isPending) {
-    return <p className="py-4 text-center text-text-muted">Chargement…</p>;
+    return <Spinner size="sm" />;
   }
 
   if (sessions.length === 0) {
     return (
-      <div
-        className="flex flex-col items-center gap-3 py-8 text-center"
-        data-testid="empty-state"
-      >
-        <Layers className="text-text-muted" size={40} />
-        <p className="text-text-muted">{emptyMessage}</p>
+      <div data-testid="empty-state">
+        <EmptyState icon={<Layers size={40} />} message={emptyMessage} />
       </div>
     );
   }

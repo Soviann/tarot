@@ -1,6 +1,6 @@
-import { Pencil, Plus } from "lucide-react";
+import { Pencil, Plus, UserX } from "lucide-react";
 import { type FormEvent, useCallback, useState } from "react";
-import { FAB, Modal, PlayerAvatar, SearchInput } from "../components/ui";
+import { EmptyState, FAB, Modal, PlayerAvatar, SearchInput, Spinner } from "../components/ui";
 import { useCreatePlayer } from "../hooks/useCreatePlayer";
 import { usePlayerGroups } from "../hooks/usePlayerGroups";
 import { usePlayers } from "../hooks/usePlayers";
@@ -133,14 +133,13 @@ export default function Players() {
         placeholder="Rechercher un joueur…"
       />
 
-      {isPending && (
-        <p className="py-8 text-center text-text-muted">Chargement…</p>
-      )}
+      {isPending && <Spinner />}
 
       {!isPending && players.length === 0 && (
-        <p className="py-8 text-center text-text-muted">
-          Aucun joueur trouvé
-        </p>
+        <EmptyState
+          icon={<UserX size={40} />}
+          message="Aucun joueur trouvé"
+        />
       )}
 
       {!isPending && players.length > 0 && (

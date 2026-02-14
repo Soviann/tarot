@@ -4,7 +4,7 @@ import { useCreatePlayer } from "../hooks/useCreatePlayer";
 import { usePlayers } from "../hooks/usePlayers";
 import { useToast } from "../hooks/useToast";
 import { ApiError } from "../services/api";
-import { Modal, PlayerAvatar, SearchInput } from "./ui";
+import { Modal, PlayerAvatar, SearchInput, Spinner } from "./ui";
 
 const DEFAULT_MAX_PLAYERS = 5;
 
@@ -216,9 +216,7 @@ export default function PlayerSelector({
           {/* Liste des joueurs (visible uniquement lors d'une recherche) */}
           {search && (
             <>
-              {isPending && (
-                <p className="py-4 text-center text-text-muted">Chargement…</p>
-              )}
+              {isPending && <Spinner size="sm" />}
 
               {!isPending && players.length === 0 && (
                 <p className="py-4 text-center text-text-muted">

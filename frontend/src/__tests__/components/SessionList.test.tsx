@@ -115,7 +115,7 @@ describe("SessionList", () => {
     });
     renderWithProviders(<SessionList />);
 
-    expect(screen.getByText("Chargement…")).toBeInTheDocument();
+    expect(screen.getByRole("status")).toBeInTheDocument();
   });
 
   it("shows random empty state message when no sessions", () => {

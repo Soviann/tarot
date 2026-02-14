@@ -6,7 +6,7 @@ import EloEvolutionChart from "../components/EloEvolutionChart";
 import GroupFilter from "../components/GroupFilter";
 import PersonalRecords from "../components/PersonalRecords";
 import ScoreTrendChart from "../components/ScoreTrendChart";
-import { PlayerAvatar, Select } from "../components/ui";
+import { PlayerAvatar, Select, Spinner } from "../components/ui";
 import { usePlayerStats } from "../hooks/usePlayerStats";
 import { formatDuration } from "../utils/formatDuration";
 
@@ -48,7 +48,7 @@ export default function PlayerStats() {
 
   if (isPending) {
     return (
-      <div className="p-4 text-center text-text-muted">Chargement…</div>
+      <div className="p-4"><Spinner /></div>
     );
   }
 

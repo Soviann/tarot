@@ -1371,7 +1371,7 @@ Sélectionne un mème de défaite en fonction du contexte de la donne. Même pro
 Tous les composants sont exportés depuis `components/ui/index.ts` :
 
 ```tsx
-import { ContractBadge, FAB, Modal, OverflowMenu, PlayerAvatar, ScoreDisplay, SearchInput, Select, Stepper, Toast, ToastContainer, UndoFAB } from "./components/ui";
+import { ContractBadge, EmptyState, FAB, Modal, OverflowMenu, PlayerAvatar, ScoreDisplay, SearchInput, Select, Spinner, Stepper, Toast, ToastContainer, UndoFAB } from "./components/ui";
 ```
 
 ### `PlayerAvatar`
@@ -1426,6 +1426,29 @@ Affiche un score avec couleur (vert/rouge/gris) et animation optionnelle.
 <ScoreDisplay value={42} />    // "+42" en vert
 <ScoreDisplay value={-15} />   // "-15" en rouge
 <ScoreDisplay value={0} />     // "0" en gris
+```
+
+### `EmptyState`
+
+**Fichier** : `components/ui/EmptyState.tsx`
+
+Affiche un état vide avec icône, message et bouton d'action optionnel.
+
+| Prop | Type | Description |
+|------|------|-------------|
+| `icon` | `ReactNode` | *requis* — icône illustrant l'état vide (lucide-react, taille 40) |
+| `message` | `string` | *requis* — texte descriptif |
+| `action` | `{ label: string; onClick: () => void }` | *optionnel* — bouton CTA |
+
+```tsx
+<EmptyState
+  action={{ label: "Créer un groupe", onClick: openModal }}
+  icon={<Users size={40} />}
+  message="Aucun groupe créé"
+/>
+
+{/* Sans action */}
+<EmptyState icon={<UserX size={40} />} message="Aucun joueur trouvé" />
 ```
 
 ### `FAB`
@@ -1546,6 +1569,29 @@ toastError("Erreur de connexion");
 Comportement : max 3 toasts empilés, animation slide-down, clic pour fermer, icône CheckCircle (succès) ou XCircle (erreur).
 
 ---
+
+### `Spinner`
+
+**Fichier** : `components/ui/Spinner.tsx`
+
+Indicateur de chargement animé (cercle tournant accent-500). Accessible avec `role="status"` et texte masqué pour lecteurs d'écran.
+
+| Prop | Type | Défaut | Description |
+|------|------|--------|-------------|
+| `size` | `"xs" \| "sm" \| "md"` | `"md"` | `md` = 32px, padding `py-8`. `sm` = 20px, padding `py-4`. `xs` = 16px (bouton inline). |
+| `inline` | `boolean` | `false` | Si `true`, rend uniquement le SVG sans wrapper ni `role="status"`. |
+| `className` | `string` | `"text-accent-500"` | Classe CSS pour la couleur du SVG. |
+
+```tsx
+{/* Chargement pleine page */}
+<Spinner />
+
+{/* Chargement inline (liste, sélecteur) */}
+<Spinner size="sm" />
+
+{/* Dans un bouton (SVG seul, couleur héritée) */}
+<Spinner className="text-text-secondary" inline size="xs" />
+```
 
 ### `Stepper`
 

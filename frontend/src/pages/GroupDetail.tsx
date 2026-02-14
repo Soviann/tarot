@@ -2,7 +2,7 @@ import { ArrowLeft, Check, Pencil, Trash2, UserMinus, UserPlus } from "lucide-re
 import { type FormEvent, useCallback, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import PlayerSelector from "../components/PlayerSelector";
-import { Modal, PlayerAvatar } from "../components/ui";
+import { EmptyState, Modal, PlayerAvatar, Spinner } from "../components/ui";
 import { useCloseGroupSessions } from "../hooks/useCloseGroupSessions";
 import { useDeletePlayerGroup } from "../hooks/useDeletePlayerGroup";
 import { usePlayerGroup } from "../hooks/usePlayerGroup";
@@ -101,9 +101,7 @@ export default function GroupDetail() {
 
   if (isPending) {
     return (
-      <div className="p-4 lg:p-8">
-        <p className="py-8 text-center text-text-muted">Chargement…</p>
-      </div>
+      <div className="p-4 lg:p-8"><Spinner /></div>
     );
   }
 
@@ -198,9 +196,11 @@ export default function GroupDetail() {
         </div>
 
         {group.players.length === 0 && (
-          <p className="py-4 text-center text-text-muted">
-            Aucun membre dans ce groupe
-          </p>
+          <EmptyState
+            action={{ label: "Ajouter des membres", onClick: openAddModal }}
+            icon={<UserPlus size={40} />}
+            message="Aucun membre dans ce groupe"
+          />
         )}
 
         {group.players.length > 0 && (

@@ -22,6 +22,7 @@ Application mobile (PWA) de suivi des scores pour le Tarot à 5 joueurs, conform
 - [Mèmes de défaite](#mèmes-de-défaite)
 - [Badges et succès](#badges-et-succès)
 - [Thème sombre](#thème-sombre)
+- [Chargement et états vides](#chargement-et-états-vides)
 - [Règles de calcul des scores](#règles-de-calcul-des-scores)
 
 ---
@@ -558,6 +559,14 @@ Chaque action réussie déclenche un **toast de confirmation** — un petit band
 Exemples : « Joueur créé », « Donne enregistrée », « Session terminée », « Étoile ajoutée », « Groupe supprimé », etc.
 
 Les toasts s'empilent verticalement (3 maximum) et peuvent être fermés en les touchant.
+
+---
+
+## Chargement et états vides
+
+Pendant le chargement des données, un **spinner animé** (cercle tournant) s'affiche à la place du contenu. Cet indicateur est accessible aux lecteurs d'écran.
+
+Quand une page est vide (aucun groupe, aucun joueur trouvé, aucun membre dans un groupe…), une **illustration avec un message explicatif** apparaît. Un bouton d'action est proposé lorsque c'est pertinent (ex : « Créer un groupe » sur la page des groupes vide).
 
 ---
 
