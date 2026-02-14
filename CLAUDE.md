@@ -11,25 +11,14 @@
 
 ```
 tarot/
-├── .ddev/            # DDEV config (repo root = project root)
 ├── backend/          # Symfony API — PHP 8.3
-│   ├── src/Entity/   # Player, Session, Game, ScoreEntry
-│   ├── src/Enum/     # Contract, Poignee, Side, Chelem, GameStatus
-│   ├── src/Service/  # ScoreCalculator
-│   └── tests/
 ├── frontend/         # React PWA — TypeScript
-│   └── src/
-│       ├── components/ui/  # Reusable UI components (design system)
-│       ├── hooks/          # Custom React hooks
-│       └── types/          # TypeScript enums mirroring backend
-├── docs/
-│   ├── plans/              # Temporary design docs (gitignored, deleted after implementation)
-│   ├── frontend-usage.md   # Developer reference: components, hooks, tokens
-│   └── user-guide.md       # End-user guide: how to use the app
+├── docs/             # user-guide.md, frontend-usage.md, plans/
 ├── CLAUDE.md
-├── README.md
 └── CHANGELOG.md
 ```
+
+> Detailed file map (entities, hooks, components, routes, API endpoints): see `memory/patterns.md`
 
 ## Approach
 
@@ -42,11 +31,6 @@ tarot/
 
 - Store in `docs/plans/` (project-local, never global).
 - Temporary — delete after the related PR is merged.
-
-## Workflow
-
-- **Complex tasks**: plan mode → approval → implementation
-- **Split** large changes into verifiable chunks
 
 ## Mandatory TDD
 
@@ -113,7 +97,7 @@ Format: `<type>(scope): description` — Types: `feat`, `fix`, `chore`, `refacto
 - PR body: summary + `fixes #N`
 - Merge strategy: **squash merge** (`--squash`) → one commit per issue on main
 - Request code review (agent) before merge
-- **Always** update CHANGELOG after merge.
+- **Always** update CHANGELOG on the feature branch, before merge.
 
 ### Tags & Releases
 
@@ -210,8 +194,6 @@ Two living docs in `docs/` must be maintained:
 
 ## Code Conventions
 
-- **Alphabetical ordering**: constructor assignments, associative array keys, YAML keys
-- **DRY**: extract at 3+ occurrences (2 if complex)
 - **Backend enums**: PHP backed enums for all fixed value sets
 - **Backend quality**: PHPStan (level max) auto-enforced by PostToolUse hook; PHP CS Fixer (`@Symfony` + `@Symfony:risky`) run on all modified PHP files before each commit
 - **API responses**: use API Platform serialization groups, not custom DTOs unless needed
