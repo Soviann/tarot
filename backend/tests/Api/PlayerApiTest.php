@@ -221,9 +221,11 @@ class PlayerApiTest extends ApiTestCase
         ]);
         $this->assertResponseIsSuccessful();
 
-        // Vérifier que lastActivityAt est renseigné pour tous les joueurs de la session
+        // Vérifier que lastActivityAt est renseigné pour le preneur et un autre joueur
         $response = $this->client->request('GET', $this->getIri($players[0]));
-        $data = $response->toArray();
-        $this->assertNotNull($data['lastActivityAt']);
+        $this->assertNotNull($response->toArray()['lastActivityAt']);
+
+        $response = $this->client->request('GET', $this->getIri($players[3]));
+        $this->assertNotNull($response->toArray()['lastActivityAt']);
     }
 }

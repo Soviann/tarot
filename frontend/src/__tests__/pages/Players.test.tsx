@@ -322,6 +322,8 @@ describe("Players page", () => {
   });
 
   it("displays relative date for players with last activity", () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date("2026-02-14T20:00:00"));
     setupMocks();
     renderWithProviders(<Players />);
 
@@ -329,6 +331,7 @@ describe("Players page", () => {
     expect(screen.getByText("Aujourd'hui")).toBeInTheDocument();
     // Bob has lastActivityAt yesterday → "Hier"
     expect(screen.getByText("Hier")).toBeInTheDocument();
+    vi.useRealTimers();
   });
 
   it("displays creation date for players without last activity", () => {
