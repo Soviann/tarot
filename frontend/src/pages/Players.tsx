@@ -52,7 +52,7 @@ export default function Players() {
         },
       });
     },
-    [closeModal, createPlayer, newName],
+    [closeModal, createPlayer, newName, toast],
   );
 
   const openEditModal = useCallback(
@@ -93,7 +93,7 @@ export default function Players() {
         },
       );
     },
-    [closeEditModal, editActive, editColor, editGroupIds, editName, editingPlayer, updatePlayer],
+    [closeEditModal, editActive, editColor, editGroupIds, editName, editingPlayer, toast, updatePlayer],
   );
 
   const toggleGroup = useCallback(

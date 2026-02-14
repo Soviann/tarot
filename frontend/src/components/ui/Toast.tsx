@@ -11,7 +11,7 @@ export default function Toast({ onDismiss, toast }: ToastProps) {
 
   return (
     <div
-      className={`flex items-center gap-2 rounded-xl px-4 py-2.5 shadow-lg
+      className={`flex cursor-pointer items-center gap-2 rounded-xl px-4 py-2.5 shadow-lg
         bg-white dark:bg-surface-elevated
         animate-toast-in
         ${isError ? "text-red-600 dark:text-red-400" : "text-emerald-600 dark:text-emerald-400"}`}

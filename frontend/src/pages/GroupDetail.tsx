@@ -48,7 +48,7 @@ export default function GroupDetail() {
         },
       );
     },
-    [editName, groupId, updateGroup],
+    [editName, groupId, toast, updateGroup],
   );
 
   const openAddModal = useCallback(() => {
@@ -70,7 +70,7 @@ export default function GroupDetail() {
         },
       },
     );
-  }, [groupId, selectedPlayerIds, updateGroup]);
+  }, [groupId, selectedPlayerIds, toast, updateGroup]);
 
   const handleRemovePlayer = useCallback(
     (playerId: number) => {
@@ -82,7 +82,7 @@ export default function GroupDetail() {
         onSuccess: () => toast("Joueur retiré"),
       });
     },
-    [group, groupId, updateGroup],
+    [group, groupId, toast, updateGroup],
   );
 
   const handleDelete = useCallback(() => {
@@ -92,7 +92,7 @@ export default function GroupDetail() {
         navigate("/groups");
       },
     });
-  }, [deleteGroup, groupId, navigate]);
+  }, [deleteGroup, groupId, navigate, toast]);
 
   const isNameDuplicate =
     updateGroup.isError &&

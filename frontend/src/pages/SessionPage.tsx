@@ -98,7 +98,7 @@ export default function SessionPage() {
       items.push({ icon: <LockOpen size={18} />, label: "Réouvrir la session", onClick: () => closeSession.mutate(true, { onSuccess: () => toast("Session rouverte") }) });
     }
     return items;
-  }, [closeSession, groups.length, inProgressGame, session?.isActive, sessionId]);
+  }, [closeSession, groups.length, inProgressGame, session?.isActive, sessionId, toast]);
 
   const handleGameCompleted = useCallback((ctx: GameContext) => {
     const victoryMeme = selectVictoryMeme(ctx);

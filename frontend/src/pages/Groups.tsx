@@ -51,7 +51,7 @@ export default function Groups() {
         },
       );
     },
-    [closeModal, createGroup, newName, selectedPlayerIds],
+    [closeModal, createGroup, newName, selectedPlayerIds, toast],
   );
 
   const handleDelete = useCallback(() => {
@@ -62,7 +62,7 @@ export default function Groups() {
         setDeletingGroup(null);
       },
     });
-  }, [deleteGroup, deletingGroup]);
+  }, [deleteGroup, deletingGroup, toast]);
 
   const isDuplicate =
     createGroup.isError &&

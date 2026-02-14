@@ -42,7 +42,7 @@ export default function Home() {
         navigate(`/sessions/${session.id}`);
       },
     });
-  }, [canStart, createSession, navigate, selectedPlayerIds]);
+  }, [canStart, createSession, navigate, selectedPlayerIds, toast]);
 
   return (
     <div className="flex flex-col gap-6 overflow-x-hidden p-4 lg:p-8">

@@ -140,7 +140,7 @@ export default function PlayerSelector({
         },
       });
     },
-    [closeModal, createPlayer, isFull, newName, onSelectionChange, selectedPlayerIds],
+    [closeModal, createPlayer, isFull, newName, onSelectionChange, selectedPlayerIds, toast],
   );
 
   const isDuplicate =
