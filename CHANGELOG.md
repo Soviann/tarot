@@ -6,13 +6,13 @@ Le format est basé sur [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/)
 
 ## [Unreleased]
 
-### Changed
-
-- **Toggle thème sombre** : déplacé du header global vers la page d'accueil, à côté du bouton d'aide, pour ne plus pousser le contenu vers le bas.
-
-- **Bouton d'aide** : visible uniquement sur la page d'accueil, aligné à droite du titre « Sessions récentes » (au lieu d'être dans le header global).
-
 ### Added
+
+- **Résumé de session** : écran récapitulatif visuel avec classement (podium + tableau), faits marquants (MVP, lanterne rouge, meilleure/pire donne, contrat favori, durée, nombre de donnes, étoiles) et titres humoristiques (Le Boucher, L'Éternel Défenseur, Le Flambeur). Accessible via le bouton graphique sur l'écran de session. Design optimisé pour le screenshot avec partage en image (Web Share API ou téléchargement).
+
+- **Clôture de session** : bouton « Terminer la session » (icône cadenas) verrouillant la session pour empêcher la création de nouvelles donnes. La session peut être réouverte à tout moment. Le récap s'affiche automatiquement à la clôture.
+
+- **Clôture en masse** : depuis la page d'un groupe de joueurs, bouton « Clôturer les sessions » pour terminer toutes les sessions ouvertes du groupe en un clic.
 
 - **QR code de partage** : bouton « Partager » (icône QR code) sur l'écran de session, affichant un QR code encodant l'URL directe de la session. Mode plein écran disponible pour faciliter le scan par les autres joueurs. Nouvelle dépendance `qrcode.react`.
 
@@ -45,6 +45,12 @@ Le format est basé sur [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/)
   - **Défaite** — déclencheurs garantis : You Were the Chosen One / Pikachu surpris / Picard Facepalm (défaite improbable : 3 bouts, chelem raté, garde contre), Crying Jordan (garde sans perdue). 40 % This is Fine, sinon pool : Ah Shit, Just to Suffer, Sad Pablo.
 
 - **Suivi de la durée des donnes** : nouveau champ `completedAt` sur les donnes, renseigné automatiquement à la complétion. Chronomètre en temps réel sur le bandeau de donne en cours. Durée affichée dans l'historique des donnes. Nouvelles statistiques globales (durée moyenne par donne, temps de jeu total) et par joueur. Utilitaire `formatDuration` et hook `useElapsedTime`.
+
+### Changed
+
+- **Toggle thème sombre** : déplacé du header global vers la page d'accueil, à côté du bouton d'aide, pour ne plus pousser le contenu vers le bas.
+
+- **Bouton d'aide** : visible uniquement sur la page d'accueil, aligné à droite du titre « Sessions récentes » (au lieu d'être dans le header global).
 
 ### Fixed
 

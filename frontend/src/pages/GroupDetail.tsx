@@ -3,6 +3,7 @@ import { type FormEvent, useCallback, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import PlayerSelector from "../components/PlayerSelector";
 import { Modal, PlayerAvatar } from "../components/ui";
+import { useCloseGroupSessions } from "../hooks/useCloseGroupSessions";
 import { useDeletePlayerGroup } from "../hooks/useDeletePlayerGroup";
 import { usePlayerGroup } from "../hooks/usePlayerGroup";
 import { useUpdatePlayerGroup } from "../hooks/useUpdatePlayerGroup";
@@ -13,6 +14,7 @@ export default function GroupDetail() {
   const navigate = useNavigate();
   const groupId = Number(id);
   const { group, isPending } = usePlayerGroup(groupId);
+  const closeGroupSessions = useCloseGroupSessions();
   const updateGroup = useUpdatePlayerGroup();
   const deleteGroup = useDeletePlayerGroup();
 
@@ -145,6 +147,20 @@ export default function GroupDetail() {
       {isNameDuplicate && (
         <p className="text-sm text-red-500">Ce nom est déjà utilisé.</p>
       )}
+
+      {/* Clôturer les sessions */}
+      <button
+        className="rounded-lg bg-amber-100 px-3 py-2 text-sm font-medium text-amber-800 transition-colors hover:bg-amber-200 disabled:opacity-50 dark:bg-amber-900/30 dark:text-amber-200 dark:hover:bg-amber-700"
+        disabled={closeGroupSessions.isPending}
+        onClick={() => {
+          if (window.confirm("Voulez-vous clôturer toutes les sessions ouvertes de ce groupe ?")) {
+            closeGroupSessions.mutate(groupId);
+          }
+        }}
+        type="button"
+      >
+        {closeGroupSessions.isPending ? "Clôture en cours…" : "Clôturer les sessions"}
+      </button>
 
       {/* Membres */}
       <section>

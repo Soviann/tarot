@@ -516,6 +516,24 @@ class GameApiTest extends ApiTestCase
         $this->assertSame(0, $sessionData['totalItems']);
     }
 
+    public function testCannotCreateGameOnClosedSession(): void
+    {
+        $session = $this->createSessionWithPlayers('Alice', 'Bob', 'Charlie', 'Diana', 'Eve');
+        $session->setIsActive(false);
+        $this->em->flush();
+        $players = $session->getPlayers()->toArray();
+
+        $this->client->request('POST', $this->getIri($session).'/games', [
+            'headers' => ['Content-Type' => 'application/ld+json'],
+            'json' => [
+                'contract' => 'petite',
+                'taker' => $this->getIri($players[0]),
+            ],
+        ]);
+
+        $this->assertResponseStatusCodeSame(422);
+    }
+
     public function testPartnerMustBelongToSession(): void
     {
         $session = $this->createSessionWithPlayers('Alice', 'Bob', 'Charlie', 'Diana', 'Eve');
