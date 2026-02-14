@@ -6,6 +6,10 @@ Le format est basé sur [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/)
 
 ## [Unreleased]
 
+### Changed
+
+- **Statistiques — sections en menu déroulant** : les pages de statistiques globales et par joueur affichent désormais les métriques clés et le classement en haut, suivis d'un menu déroulant permettant de choisir la section détaillée à afficher. Réduit le scroll sur mobile.
+
 ### Fixed
 
 - **Dark mode — contraste** : les textes secondaires et discrets (`text-muted`, `text-secondary`) sont désormais plus lisibles en mode sombre (conformité WCAG AA 4.5:1). Les socles du podium (récap de session) sont plus vibrants en dark mode. Les liens accent (page d'aide) utilisent un bleu clair visible sur fond sombre.

@@ -684,10 +684,7 @@ Page d'aide in-app reprenant le contenu du guide utilisateur (`docs/user-guide.m
 - Filtre par groupe (`GroupFilter`) — filtre toutes les statistiques par groupe de joueurs
 - Métriques clés : total de donnes, de sessions, durée moyenne par donne et temps de jeu total (si disponible)
 - Classement (`Leaderboard`) trié par score total décroissant
-- Classement ELO (`EloRanking`) trié par rating décroissant (masqué si aucune donnée)
-- Évolution ELO (`GlobalEloEvolutionChart`) — graphique multi-lignes avec filtrage par joueur via menu déroulant (masqué si aucune donnée)
-- Répartition des contrats (`ContractDistributionChart`) en barres horizontales
-- Taux de réussite par contrat (`ContractSuccessRateTable`) — tableau croisé joueurs × contrats (masqué si aucune donnée)
+- **Menu déroulant de section** : les sections détaillées sont accessibles via un `<select>` (une seule visible à la fois) — Classement ELO, Évolution ELO, Répartition des contrats, Taux de réussite par contrat
 - Navigation vers le détail d'un joueur au clic (propage le filtre groupe via `?group=`)
 - États : chargement, erreur
 
@@ -706,11 +703,7 @@ Page d'aide in-app reprenant le contenu du guide utilisateur (`docs/user-guide.m
 - Filtre par groupe (`GroupFilter`) — filtre les statistiques par groupe (initialisation depuis `?group=`)
 - Métriques clés : donnes jouées, taux de victoire, score moyen, ELO, sessions, durée moyenne par donne et temps de jeu total (si disponible)
 - Groupes du joueur : badges cliquables renvoyant vers `/groups/:id`
-- Records personnels (`PersonalRecords`) : meilleur score, pire score, série de victoires, meilleure session, plus grand écart
-- Répartition des rôles (preneur / partenaire / défenseur) en barre visuelle
-- Répartition des contrats pris (`ContractDistributionChart`)
-- Évolution des scores récents (`ScoreTrendChart`)
-- Évolution ELO (`EloEvolutionChart`) — graphique linéaire avec ligne de référence y=1500
+- **Menu déroulant de section** : les sections détaillées sont accessibles via un `<select>` (une seule visible à la fois) — Records personnels, Badges, Répartition des rôles, Contrats, Évolution des scores, Évolution ELO
 - Bouton retour vers `/stats`
 - États : chargement, joueur introuvable
 

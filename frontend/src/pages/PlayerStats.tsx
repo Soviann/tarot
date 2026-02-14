@@ -16,6 +16,7 @@ export default function PlayerStats() {
   const [searchParams] = useSearchParams();
   const initialGroupId = searchParams.get("group") ? Number(searchParams.get("group")) : null;
   const [selectedGroupId, setSelectedGroupId] = useState<number | null>(initialGroupId);
+  const [selectedSection, setSelectedSection] = useState("records");
   const playerId = Number(id);
   const { isPending, stats } = usePlayerStats(playerId, selectedGroupId);
 
@@ -126,11 +127,32 @@ export default function PlayerStats() {
         </section>
       )}
 
-      <PersonalRecords records={stats.records} />
+      <div>
+        <label className="sr-only" htmlFor="stats-section">Section</label>
+        <select
+          className="w-full rounded-xl bg-surface-elevated px-4 py-3 text-sm font-semibold text-text-primary"
+          id="stats-section"
+          onChange={(e) => setSelectedSection(e.target.value)}
+          value={selectedSection}
+        >
+          <option value="records">Records personnels</option>
+          <option value="badges">Badges</option>
+          <option value="roles">Répartition des rôles</option>
+          <option value="contracts">Contrats</option>
+          <option value="scores">Évolution des scores</option>
+          <option value="elo">Évolution ELO</option>
+        </select>
+      </div>
 
-      <BadgeGrid badges={stats.badges} />
+      {selectedSection === "records" && (
+        <PersonalRecords records={stats.records} />
+      )}
 
-      {rolesTotal > 0 && (
+      {selectedSection === "badges" && (
+        <BadgeGrid badges={stats.badges} />
+      )}
+
+      {selectedSection === "roles" && rolesTotal > 0 && (
         <section>
           <h2 className="mb-2 text-sm font-semibold text-text-secondary">
             Répartition des rôles
@@ -166,7 +188,7 @@ export default function PlayerStats() {
         </section>
       )}
 
-      {stats.contractDistribution.length > 0 && (
+      {selectedSection === "contracts" && stats.contractDistribution.length > 0 && (
         <section>
           <h2 className="mb-2 text-sm font-semibold text-text-secondary">
             Contrats (preneur)
@@ -175,7 +197,7 @@ export default function PlayerStats() {
         </section>
       )}
 
-      {stats.recentScores.length > 0 && (
+      {selectedSection === "scores" && stats.recentScores.length > 0 && (
         <section>
           <h2 className="mb-2 text-sm font-semibold text-text-secondary">
             Évolution des scores récents
@@ -184,7 +206,7 @@ export default function PlayerStats() {
         </section>
       )}
 
-      {stats.eloHistory.length > 0 && (
+      {selectedSection === "elo" && stats.eloHistory.length > 0 && (
         <section>
           <h2 className="mb-2 text-sm font-semibold text-text-secondary">
             Évolution ELO

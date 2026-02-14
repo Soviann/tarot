@@ -12,6 +12,7 @@ import { formatDuration } from "../utils/formatDuration";
 export default function Stats() {
   const navigate = useNavigate();
   const [groupId, setGroupId] = useState<number | null>(null);
+  const [selectedSection, setSelectedSection] = useState("elo-ranking");
   const { isPending, stats } = useGlobalStats(groupId);
 
   if (isPending) {
@@ -85,7 +86,22 @@ export default function Stats() {
         />
       </section>
 
-      {stats.eloRanking.length > 0 && (
+      <div>
+        <label className="sr-only" htmlFor="stats-section">Section</label>
+        <select
+          className="w-full rounded-xl bg-surface-elevated px-4 py-3 text-sm font-semibold text-text-primary"
+          id="stats-section"
+          onChange={(e) => setSelectedSection(e.target.value)}
+          value={selectedSection}
+        >
+          <option value="elo-ranking">Classement ELO</option>
+          <option value="elo-evolution">Évolution ELO</option>
+          <option value="contracts">Répartition des contrats</option>
+          <option value="success-rate">Taux de réussite par contrat</option>
+        </select>
+      </div>
+
+      {selectedSection === "elo-ranking" && stats.eloRanking.length > 0 && (
         <section>
           <h2 className="mb-2 text-sm font-semibold text-text-secondary">
             Classement ELO
@@ -97,7 +113,7 @@ export default function Stats() {
         </section>
       )}
 
-      {stats.eloEvolution.length > 0 && (
+      {selectedSection === "elo-evolution" && stats.eloEvolution.length > 0 && (
         <section>
           <h2 className="mb-2 text-sm font-semibold text-text-secondary">
             Évolution ELO
@@ -106,14 +122,16 @@ export default function Stats() {
         </section>
       )}
 
-      <section>
-        <h2 className="mb-2 text-sm font-semibold text-text-secondary">
-          Répartition des contrats
-        </h2>
-        <ContractDistributionChart data={stats.contractDistribution} />
-      </section>
+      {selectedSection === "contracts" && (
+        <section>
+          <h2 className="mb-2 text-sm font-semibold text-text-secondary">
+            Répartition des contrats
+          </h2>
+          <ContractDistributionChart data={stats.contractDistribution} />
+        </section>
+      )}
 
-      {stats.contractSuccessRateByPlayer.length > 0 && (
+      {selectedSection === "success-rate" && stats.contractSuccessRateByPlayer.length > 0 && (
         <section>
           <h2 className="mb-2 text-sm font-semibold text-text-secondary">
             Taux de réussite par contrat

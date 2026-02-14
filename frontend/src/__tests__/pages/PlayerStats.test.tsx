@@ -1,4 +1,4 @@
-import { screen } from "@testing-library/react";
+import { screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import * as usePlayerStatsModule from "../../hooks/usePlayerStats";
 import PlayerStats from "../../pages/PlayerStats";
@@ -110,7 +110,7 @@ describe("PlayerStats page", () => {
     expect(screen.getByText("1520")).toBeInTheDocument();
   });
 
-  it("renders ELO evolution chart section", () => {
+  it("renders a section selector dropdown with all options", () => {
     vi.mocked(usePlayerStatsModule.usePlayerStats).mockReturnValue({
       isPending: false,
       stats: mockStats,
@@ -118,10 +118,21 @@ describe("PlayerStats page", () => {
 
     renderWithProviders(<PlayerStats />);
 
-    expect(screen.getByText("Évolution ELO")).toBeInTheDocument();
+    const selector = screen.getByRole("combobox", { name: "Section" });
+    expect(selector).toBeInTheDocument();
+
+    const options = within(selector).getAllByRole("option");
+    expect(options.map((o) => o.textContent)).toEqual([
+      "Records personnels",
+      "Badges",
+      "Répartition des rôles",
+      "Contrats",
+      "Évolution des scores",
+      "Évolution ELO",
+    ]);
   });
 
-  it("renders personal records section", () => {
+  it("shows records section by default and hides others", () => {
     vi.mocked(usePlayerStatsModule.usePlayerStats).mockReturnValue({
       isPending: false,
       stats: mockStats,
@@ -129,23 +140,71 @@ describe("PlayerStats page", () => {
 
     renderWithProviders(<PlayerStats />);
 
-    expect(screen.getByText("Records personnels")).toBeInTheDocument();
+    // Records visible by default
     expect(screen.getByText("Meilleur score")).toBeInTheDocument();
     expect(screen.getByText("Pire score")).toBeInTheDocument();
-    expect(screen.getByText("240")).toBeInTheDocument();
+
+    // Other sections hidden (check section-specific content, not dropdown option text)
+    expect(screen.queryByText("Preneur: 35")).not.toBeInTheDocument();
+    expect(screen.queryByText("Contrats (preneur)")).not.toBeInTheDocument();
+    expect(screen.queryByRole("heading", { name: "Évolution des scores récents" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("heading", { name: "Évolution ELO" })).not.toBeInTheDocument();
   });
 
-  it("renders role breakdown", () => {
+  it("switches visible section when dropdown changes", async () => {
+    const user = userEvent.setup();
     vi.mocked(usePlayerStatsModule.usePlayerStats).mockReturnValue({
       isPending: false,
       stats: mockStats,
     } as ReturnType<typeof usePlayerStatsModule.usePlayerStats>);
 
     renderWithProviders(<PlayerStats />);
+
+    const selector = screen.getByRole("combobox", { name: "Section" });
+
+    // Switch to Répartition des rôles
+    await user.selectOptions(selector, "roles");
 
     expect(screen.getByText("Preneur: 35")).toBeInTheDocument();
     expect(screen.getByText("Partenaire: 20")).toBeInTheDocument();
     expect(screen.getByText("Défenseur: 90")).toBeInTheDocument();
+
+    // Records should be hidden (check content, not heading that's also in dropdown)
+    expect(screen.queryByText("Meilleur score")).not.toBeInTheDocument();
+  });
+
+  it("keeps metrics visible regardless of selected section", async () => {
+    const user = userEvent.setup();
+    vi.mocked(usePlayerStatsModule.usePlayerStats).mockReturnValue({
+      isPending: false,
+      stats: mockStats,
+    } as ReturnType<typeof usePlayerStatsModule.usePlayerStats>);
+
+    renderWithProviders(<PlayerStats />);
+
+    const selector = screen.getByRole("combobox", { name: "Section" });
+    await user.selectOptions(selector, "elo");
+
+    // Metrics still visible
+    expect(screen.getByText("145")).toBeInTheDocument();
+    expect(screen.getByText("Donnes jouées")).toBeInTheDocument();
+    expect(screen.getByText("ELO")).toBeInTheDocument();
+  });
+
+  it("keeps groups visible regardless of selected section", async () => {
+    const user = userEvent.setup();
+    vi.mocked(usePlayerStatsModule.usePlayerStats).mockReturnValue({
+      isPending: false,
+      stats: mockStats,
+    } as ReturnType<typeof usePlayerStatsModule.usePlayerStats>);
+
+    renderWithProviders(<PlayerStats />);
+
+    const selector = screen.getByRole("combobox", { name: "Section" });
+    await user.selectOptions(selector, "contracts");
+
+    // Groups still visible
+    expect(screen.getByText("Mardi soir")).toBeInTheDocument();
   });
 
   it("renders duration metrics", () => {
