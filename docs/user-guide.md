@@ -20,6 +20,7 @@ Application mobile (PWA) de suivi des scores pour le Tarot à 5 joueurs, conform
 - [Utilisation sur Smart TV](#utilisation-sur-smart-tv)
 - [Mèmes de victoire](#mèmes-de-victoire)
 - [Mèmes de défaite](#mèmes-de-défaite)
+- [Badges et succès](#badges-et-succès)
 - [Thème sombre](#thème-sombre)
 - [Règles de calcul des scores](#règles-de-calcul-des-scores)
 
@@ -484,6 +485,38 @@ Quand une donne est perdue par l'attaque, un **mème de défaite** peut apparaî
 | Défaite (60 % pool par défaut) | Why Are We Still Here? | — |
 
 **Ordre de priorité** : défaite improbable (pikachu/picard) → garde sans (crying jordan) → tirage 40 % (sinon rien) → 40 % This is Fine / 60 % pool aléatoire.
+
+---
+
+## Badges et succès
+
+L'application propose un système de **15 badges** (succès) que les joueurs débloquent automatiquement au fil de leurs parties.
+
+### Catégories
+
+| Catégorie | Badges |
+|-----------|--------|
+| **Progression** | 🎮 Première donne, 🔟 Habitué (10 sessions), 💯 Centurion (100 donnes) |
+| **Performance** | 🔥 Inarrêtable (5 victoires d'affilée), 👑 Premier Chelem, ⚔️ Kamikaze (Garde Contre), 🎯 Sans filet (Garde Sans réussie), 🃏 Petit malin (5 Petits au bout), 🛡️ Muraille (10 victoires défense d'affilée) |
+| **Fun** | 📈 Comeback (dernier → premier), 💀 Lanterne rouge (5× dernier), ⭐ Collectionneur d'étoiles (10 étoiles) |
+| **Social** | 🌙 Noctambule (donne après minuit), ⏰ Marathon (session > 3h), 👥 Sociable (10 joueurs différents) |
+
+### Quand sont-ils débloqués ?
+
+Les badges sont vérifiés automatiquement :
+- À chaque **donne complétée** (pour tous les joueurs de la session)
+- À chaque **étoile ajoutée** (pour tous les joueurs de la session)
+- À la **consultation des statistiques** d'un joueur (attribution rétroactive)
+
+### Notification
+
+Quand un ou plusieurs badges sont débloqués, une **modale** s'affiche automatiquement sur l'écran de session, listant pour chaque joueur concerné les badges nouvellement obtenus (emoji + nom + description).
+
+### Consulter ses badges
+
+Sur la page **Statistiques d'un joueur** (accessible via Stats → clic sur un joueur), une section **Badges (X/15)** affiche :
+- Les badges **débloqués** en premier, avec leur date d'obtention
+- Les badges **verrouillés** grisés ensuite, avec leur condition de déblocage
 
 ---
 

@@ -10,6 +10,8 @@ use ApiPlatform\State\ProcessorInterface;
 use App\Entity\ScoreEntry;
 use App\Entity\Session;
 use App\Entity\StarEvent;
+use App\Enum\BadgeType;
+use App\Service\BadgeChecker;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpKernel\Exception\UnprocessableEntityHttpException;
 
@@ -25,6 +27,7 @@ final readonly class StarEventCreateProcessor implements ProcessorInterface
     private const int STARS_PER_PENALTY = 3;
 
     public function __construct(
+        private BadgeChecker $badgeChecker,
         private EntityManagerInterface $em,
         private PersistProcessor $persistProcessor,
     ) {
@@ -73,6 +76,16 @@ final readonly class StarEventCreateProcessor implements ProcessorInterface
         // Déclencher la pénalité si le total est un multiple de 3
         if ($totalStars > 0 && 0 === $totalStars % self::STARS_PER_PENALTY) {
             $this->applyPenalty($session, $player);
+        }
+
+        // Vérifier les badges (ex : StarCollector)
+        $newBadges = $this->badgeChecker->checkAndAward($session);
+        if (!empty($newBadges)) {
+            $formatted = [];
+            foreach ($newBadges as $playerId => $badges) {
+                $formatted[$playerId] = \array_map(static fn (BadgeType $b) => $b->toArray(), $badges);
+            }
+            $starEvent->setNewBadges($formatted);
         }
 
         return $starEvent;
