@@ -4,6 +4,17 @@ declare(strict_types=1);
 
 namespace App\Repository;
 
+use App\Dto\BestSessionTotalDto;
+use App\Dto\CumulativeScoreDto;
+use App\Dto\GamesPlayedCountDto;
+use App\Dto\GameTakerScoreDto;
+use App\Dto\LeaderboardScoreDto;
+use App\Dto\PlayerExtremeScoreDto;
+use App\Dto\PlayerScoreSumDto;
+use App\Dto\RecentScoreDto;
+use App\Dto\ScoreEntryPositionDto;
+use App\Dto\TakerGameHighlightDto;
+use App\Dto\TotalTakerScoreDto;
 use App\Entity\Player;
 use App\Entity\ScoreEntry;
 use App\Entity\Session;
@@ -21,14 +32,11 @@ final class ScoreEntryRepository extends ServiceEntityRepository
         parent::__construct($registry, ScoreEntry::class);
     }
 
-    /**
-     * @return array{contract: string, gameId: int, playerName: string, score: int}|null
-     */
-    public function findBestTakerGameForSession(Session $session): ?array
+    public function findBestTakerGameForSession(Session $session): ?TakerGameHighlightDto
     {
-        /** @var list<array{contract: \App\Enum\Contract, gameId: int|string, playerName: string, score: int|string}> $results */
+        /** @var list<TakerGameHighlightDto> $results */
         $results = $this->createQueryBuilder('se')
-            ->select('g.id AS gameId', 'p.name AS playerName', 'g.contract AS contract', 'se.score AS score')
+            ->select('NEW App\Dto\TakerGameHighlightDto(g.contract, g.id, p.name, se.score)')
             ->join('se.game', 'g')
             ->join('g.taker', 'p')
             ->andWhere('g.session = :session')
@@ -41,28 +49,14 @@ final class ScoreEntryRepository extends ServiceEntityRepository
             ->getQuery()
             ->getResult();
 
-        if (empty($results)) {
-            return null;
-        }
-
-        $row = $results[0];
-
-        return [
-            'contract' => $row['contract']->value,
-            'gameId' => (int) $row['gameId'],
-            'playerName' => $row['playerName'],
-            'score' => (int) $row['score'],
-        ];
+        return $results[0] ?? null;
     }
 
-    /**
-     * @return array{contract: string, gameId: int, playerName: string, score: int}|null
-     */
-    public function findWorstTakerGameForSession(Session $session): ?array
+    public function findWorstTakerGameForSession(Session $session): ?TakerGameHighlightDto
     {
-        /** @var list<array{contract: \App\Enum\Contract, gameId: int|string, playerName: string, score: int|string}> $results */
+        /** @var list<TakerGameHighlightDto> $results */
         $results = $this->createQueryBuilder('se')
-            ->select('g.id AS gameId', 'p.name AS playerName', 'g.contract AS contract', 'se.score AS score')
+            ->select('NEW App\Dto\TakerGameHighlightDto(g.contract, g.id, p.name, se.score)')
             ->join('se.game', 'g')
             ->join('g.taker', 'p')
             ->andWhere('g.session = :session')
@@ -75,43 +69,26 @@ final class ScoreEntryRepository extends ServiceEntityRepository
             ->getQuery()
             ->getResult();
 
-        if (empty($results)) {
-            return null;
-        }
-
-        $row = $results[0];
-
-        return [
-            'contract' => $row['contract']->value,
-            'gameId' => (int) $row['gameId'],
-            'playerName' => $row['playerName'],
-            'score' => (int) $row['score'],
-        ];
+        return $results[0] ?? null;
     }
 
     /**
-     * @return array<array{playerId: int, playerName: string, score: int}>
+     * @return list<CumulativeScoreDto>
      */
     public function getCumulativeScoresForSession(Session $session): array
     {
-        /** @var list<array{playerId: int|string, playerName: string, totalScore: string}> $results */
-        $results = $this->createQueryBuilder('se')
-            ->select('IDENTITY(se.player) AS playerId', 'p.name AS playerName', 'SUM(se.score) AS totalScore')
+        $qb = $this->createQueryBuilder('se')
+            ->select('NEW App\Dto\CumulativeScoreDto(IDENTITY(se.player), p.name, SUM(se.score))')
             ->leftJoin('se.game', 'g')
             ->join('se.player', 'p')
             ->andWhere('g.session = :session OR (se.game IS NULL AND se.session = :session)')
             ->setParameter('session', $session)
             ->groupBy('se.player')
             ->addGroupBy('p.name')
-            ->orderBy('p.name', 'ASC')
-            ->getQuery()
-            ->getResult();
+            ->orderBy('p.name', 'ASC');
 
-        return \array_map(static fn (array $row) => [
-            'playerId' => (int) $row['playerId'],
-            'playerName' => $row['playerName'],
-            'score' => (int) $row['totalScore'],
-        ], $results);
+        /** @var list<CumulativeScoreDto> */
+        return $qb->getQuery()->getResult();
     }
 
     /**
@@ -162,14 +139,11 @@ final class ScoreEntryRepository extends ServiceEntityRepository
         return $scoreMap;
     }
 
-    /**
-     * @return array{playerColor: string|null, playerId: int, playerName: string, totalTakerScore: int}|null
-     */
-    public function getTotalTakerScoreByPlayerForSession(Session $session): ?array
+    public function getTotalTakerScoreByPlayerForSession(Session $session): ?TotalTakerScoreDto
     {
-        /** @var list<array{playerColor: string|null, playerId: int|string, playerName: string, totalTakerScore: int|string}> $results */
+        /** @var list<TotalTakerScoreDto> $results */
         $results = $this->createQueryBuilder('se')
-            ->select('IDENTITY(g.taker) AS playerId', 'p.name AS playerName', 'p.color AS playerColor', 'SUM(se.score) AS totalTakerScore')
+            ->select('NEW App\Dto\TotalTakerScoreDto(p.color, IDENTITY(g.taker), p.name, SUM(se.score))')
             ->join('se.game', 'g')
             ->join('g.taker', 'p')
             ->andWhere('g.session = :session')
@@ -180,23 +154,12 @@ final class ScoreEntryRepository extends ServiceEntityRepository
             ->groupBy('g.taker')
             ->addGroupBy('p.name')
             ->addGroupBy('p.color')
-            ->orderBy('totalTakerScore', 'DESC')
+            ->orderBy('SUM(se.score)', 'DESC')
             ->setMaxResults(1)
             ->getQuery()
             ->getResult();
 
-        if (empty($results)) {
-            return null;
-        }
-
-        $row = $results[0];
-
-        return [
-            'playerColor' => $row['playerColor'],
-            'playerId' => (int) $row['playerId'],
-            'playerName' => $row['playerName'],
-            'totalTakerScore' => (int) $row['totalTakerScore'],
-        ];
+        return $results[0] ?? null;
     }
 
     public function countCompletedGameEntriesForPlayer(Player $player): int
@@ -261,13 +224,13 @@ final class ScoreEntryRepository extends ServiceEntityRepository
     }
 
     /**
-     * @return list<array{playerId: int, position: int, score: int}>
+     * @return list<ScoreEntryPositionDto>
      */
     public function getEntriesForSessionByPosition(int $sessionId): array
     {
-        /** @var list<array{playerId: int|string, position: int|string, score: int|string}> $results */
-        $results = $this->createQueryBuilder('se')
-            ->select('IDENTITY(se.player) AS playerId', 'se.score', 'g.position')
+        /** @var list<ScoreEntryPositionDto> */
+        return $this->createQueryBuilder('se')
+            ->select('NEW App\Dto\ScoreEntryPositionDto(IDENTITY(se.player), g.position, se.score)')
             ->join('se.game', 'g')
             ->andWhere('g.session = :session')
             ->andWhere('g.status = :status')
@@ -276,36 +239,25 @@ final class ScoreEntryRepository extends ServiceEntityRepository
             ->orderBy('g.position', 'ASC')
             ->getQuery()
             ->getResult();
-
-        return \array_map(static fn (array $row) => [
-            'playerId' => (int) $row['playerId'],
-            'position' => (int) $row['position'],
-            'score' => (int) $row['score'],
-        ], $results);
     }
 
     /**
-     * @return list<array{playerId: int, totalScore: int}>
+     * @return list<PlayerScoreSumDto>
      */
     public function getScoreSumsByPlayerForSession(int $sessionId): array
     {
-        /** @var list<array{playerId: int|string, totalScore: int|string}> $results */
-        $results = $this->createQueryBuilder('se')
-            ->select('IDENTITY(se.player) AS playerId', 'SUM(se.score) AS totalScore')
+        /** @var list<PlayerScoreSumDto> */
+        return $this->createQueryBuilder('se')
+            ->select('NEW App\Dto\PlayerScoreSumDto(IDENTITY(se.player), SUM(se.score))')
             ->join('se.game', 'g')
             ->andWhere('g.session = :session')
             ->andWhere('g.status = :status')
             ->setParameter('session', $sessionId)
             ->setParameter('status', GameStatus::Completed)
             ->groupBy('se.player')
-            ->orderBy('totalScore', 'ASC')
+            ->orderBy('SUM(se.score)', 'ASC')
             ->getQuery()
             ->getResult();
-
-        return \array_map(static fn (array $row) => [
-            'playerId' => (int) $row['playerId'],
-            'totalScore' => (int) $row['totalScore'],
-        ], $results);
     }
 
     /**
@@ -336,12 +288,12 @@ final class ScoreEntryRepository extends ServiceEntityRepository
     }
 
     /**
-     * @return list<array{date: \DateTimeImmutable, gameId: int|string, score: int|string, sessionId: int|string}>
+     * @return list<RecentScoreDto>
      */
     public function getPlayerRecentScores(Player $player, ?int $playerGroupId = null, int $limit = 50): array
     {
         $qb = $this->createQueryBuilder('se')
-            ->select('se.score AS score', 'g.id AS gameId', 'g.createdAt AS date', 'IDENTITY(g.session) AS sessionId')
+            ->select('NEW App\Dto\RecentScoreDto(g.createdAt, g.id, se.score, IDENTITY(g.session))')
             ->join('se.game', 'g')
             ->andWhere('se.player = :player')
             ->andWhere('g.status = :status')
@@ -352,19 +304,14 @@ final class ScoreEntryRepository extends ServiceEntityRepository
 
         $this->applyGroupFilter($qb, $playerGroupId);
 
-        /** @var list<array{date: \DateTimeImmutable, gameId: int|string, score: int|string, sessionId: int|string}> $result */
-        $result = $qb->getQuery()->getResult();
-
-        return $result;
+        /** @var list<RecentScoreDto> */
+        return $qb->getQuery()->getResult();
     }
 
-    /**
-     * @return array{contract: \App\Enum\Contract, date: \DateTimeImmutable, score: int, sessionId: int}|null
-     */
-    public function getPlayerBestScore(Player $player, ?int $playerGroupId = null): ?array
+    public function getPlayerBestScore(Player $player, ?int $playerGroupId = null): ?PlayerExtremeScoreDto
     {
         $qb = $this->createQueryBuilder('se')
-            ->select('se.score', 'g.createdAt AS date', 'IDENTITY(g.session) AS sessionId', 'g.contract AS contract')
+            ->select('NEW App\Dto\PlayerExtremeScoreDto(g.contract, g.createdAt, se.score, IDENTITY(g.session))')
             ->join('se.game', 'g')
             ->andWhere('se.player = :player')
             ->andWhere('g.status = :status')
@@ -375,30 +322,16 @@ final class ScoreEntryRepository extends ServiceEntityRepository
 
         $this->applyGroupFilter($qb, $playerGroupId);
 
-        /** @var list<array{contract: \App\Enum\Contract, date: \DateTimeImmutable, score: int|string, sessionId: int|string}> $results */
+        /** @var list<PlayerExtremeScoreDto> $results */
         $results = $qb->getQuery()->getResult();
 
-        if (empty($results)) {
-            return null;
-        }
-
-        $row = $results[0];
-
-        return [
-            'contract' => $row['contract'],
-            'date' => $row['date'],
-            'score' => (int) $row['score'],
-            'sessionId' => (int) $row['sessionId'],
-        ];
+        return $results[0] ?? null;
     }
 
-    /**
-     * @return array{contract: \App\Enum\Contract, date: \DateTimeImmutable, score: int, sessionId: int}|null
-     */
-    public function getPlayerWorstScore(Player $player, ?int $playerGroupId = null): ?array
+    public function getPlayerWorstScore(Player $player, ?int $playerGroupId = null): ?PlayerExtremeScoreDto
     {
         $qb = $this->createQueryBuilder('se')
-            ->select('se.score', 'g.createdAt AS date', 'IDENTITY(g.session) AS sessionId', 'g.contract AS contract')
+            ->select('NEW App\Dto\PlayerExtremeScoreDto(g.contract, g.createdAt, se.score, IDENTITY(g.session))')
             ->join('se.game', 'g')
             ->andWhere('se.player = :player')
             ->andWhere('g.status = :status')
@@ -409,65 +342,41 @@ final class ScoreEntryRepository extends ServiceEntityRepository
 
         $this->applyGroupFilter($qb, $playerGroupId);
 
-        /** @var list<array{contract: \App\Enum\Contract, date: \DateTimeImmutable, score: int|string, sessionId: int|string}> $results */
+        /** @var list<PlayerExtremeScoreDto> $results */
         $results = $qb->getQuery()->getResult();
 
-        if (empty($results)) {
-            return null;
-        }
-
-        $row = $results[0];
-
-        return [
-            'contract' => $row['contract'],
-            'date' => $row['date'],
-            'score' => (int) $row['score'],
-            'sessionId' => (int) $row['sessionId'],
-        ];
+        return $results[0] ?? null;
     }
 
-    /**
-     * @return array{firstDate: string, sessionId: int, total: int}|null
-     */
-    public function getPlayerBestSessionTotal(Player $player, ?int $playerGroupId = null): ?array
+    public function getPlayerBestSessionTotal(Player $player, ?int $playerGroupId = null): ?BestSessionTotalDto
     {
         $qb = $this->createQueryBuilder('se')
-            ->select('IDENTITY(g.session) AS sessionId', 'SUM(se.score) AS total', 'MIN(g.createdAt) AS firstDate')
+            ->select('NEW App\Dto\BestSessionTotalDto(MIN(g.createdAt), IDENTITY(g.session), SUM(se.score))')
             ->join('se.game', 'g')
             ->andWhere('se.player = :player')
             ->andWhere('g.status = :status')
             ->setParameter('player', $player)
             ->setParameter('status', GameStatus::Completed)
             ->groupBy('g.session')
-            ->orderBy('total', 'DESC')
+            ->orderBy('SUM(se.score)', 'DESC')
             ->setMaxResults(1);
 
         $this->applyGroupFilter($qb, $playerGroupId);
 
-        /** @var list<array{firstDate: string|\DateTimeImmutable, sessionId: int|string, total: int|string}> $results */
+        /** @var list<BestSessionTotalDto> $results */
         $results = $qb->getQuery()->getResult();
 
-        if (empty($results)) {
-            return null;
-        }
-
-        $row = $results[0];
-
-        return [
-            'firstDate' => $row['firstDate'] instanceof \DateTimeImmutable ? $row['firstDate']->format(\DateTimeInterface::ATOM) : $row['firstDate'],
-            'sessionId' => (int) $row['sessionId'],
-            'total' => (int) $row['total'],
-        ];
+        return $results[0] ?? null;
     }
 
     /**
-     * @return list<array{gameId: int, partnerId: int|null, takerId: int, takerScore: int}>
+     * @return list<GameTakerScoreDto>
      */
     public function getGamesWithTakerScoreForPlayer(Player $player): array
     {
-        /** @var list<array{gameId: int|string, partnerId: int|string|null, takerId: int|string, takerScore: int|string}> $results */
-        $results = $this->createQueryBuilder('se')
-            ->select('g.id AS gameId', 'IDENTITY(g.taker) AS takerId', 'IDENTITY(g.partner) AS partnerId', 'se2.score AS takerScore')
+        /** @var list<GameTakerScoreDto> */
+        return $this->createQueryBuilder('se')
+            ->select('NEW App\Dto\GameTakerScoreDto(g.id, IDENTITY(g.partner), IDENTITY(g.taker), se2.score)')
             ->join('se.game', 'g')
             ->join('g.scoreEntries', 'se2')
             ->andWhere('se.player = :player')
@@ -478,28 +387,21 @@ final class ScoreEntryRepository extends ServiceEntityRepository
             ->orderBy('g.createdAt', 'ASC')
             ->getQuery()
             ->getResult();
-
-        return \array_map(static fn (array $row) => [
-            'gameId' => (int) $row['gameId'],
-            'partnerId' => null !== $row['partnerId'] ? (int) $row['partnerId'] : null,
-            'takerId' => (int) $row['takerId'],
-            'takerScore' => (int) $row['takerScore'],
-        ], $results);
     }
 
     /**
-     * @return list<array{playerColor: string|null, playerId: int|string, playerName: string, totalScore: int|string}>
+     * @return list<LeaderboardScoreDto>
      */
     public function getLeaderboardScores(?int $playerGroupId = null): array
     {
         $qb = $this->createQueryBuilder('se')
-            ->select('IDENTITY(se.player) AS playerId', 'p.name AS playerName', 'p.color AS playerColor', 'SUM(se.score) AS totalScore')
+            ->select('NEW App\Dto\LeaderboardScoreDto(p.color, IDENTITY(se.player), p.name, SUM(se.score))')
             ->join('se.player', 'p')
             ->leftJoin('se.game', 'g')
             ->groupBy('se.player')
             ->addGroupBy('p.color')
             ->addGroupBy('p.name')
-            ->orderBy('totalScore', 'DESC');
+            ->orderBy('SUM(se.score)', 'DESC');
 
         if (null !== $playerGroupId) {
             $qb->leftJoin('App\Entity\Session', 's_grp', 'WITH', 'se.session = s_grp')
@@ -511,19 +413,17 @@ final class ScoreEntryRepository extends ServiceEntityRepository
                ->setParameter('status', GameStatus::Completed);
         }
 
-        /** @var list<array{playerColor: string|null, playerId: int|string, playerName: string, totalScore: int|string}> $result */
-        $result = $qb->getQuery()->getResult();
-
-        return $result;
+        /** @var list<LeaderboardScoreDto> */
+        return $qb->getQuery()->getResult();
     }
 
     /**
-     * @return list<array{gamesPlayed: int|string, playerId: int|string}>
+     * @return list<GamesPlayedCountDto>
      */
     public function countGamesPlayedByPlayer(?int $playerGroupId = null): array
     {
         $qb = $this->createQueryBuilder('se')
-            ->select('IDENTITY(se.player) AS playerId', 'COUNT(DISTINCT se.game) AS gamesPlayed')
+            ->select('NEW App\Dto\GamesPlayedCountDto(COUNT(DISTINCT se.game), IDENTITY(se.player))')
             ->join('se.game', 'g')
             ->andWhere('g.status = :status')
             ->setParameter('status', GameStatus::Completed)
@@ -535,10 +435,8 @@ final class ScoreEntryRepository extends ServiceEntityRepository
                ->setParameter('group', $playerGroupId);
         }
 
-        /** @var list<array{gamesPlayed: int|string, playerId: int|string}> $result */
-        $result = $qb->getQuery()->getResult();
-
-        return $result;
+        /** @var list<GamesPlayedCountDto> */
+        return $qb->getQuery()->getResult();
     }
 
     private function applyGroupFilter(\Doctrine\ORM\QueryBuilder $qb, ?int $playerGroupId, string $gameAlias = 'g'): void

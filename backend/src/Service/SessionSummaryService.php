@@ -150,7 +150,18 @@ class SessionSummaryService
      */
     private function findBestGame(Session $session): ?array
     {
-        return $this->scoreEntryRepository->findBestTakerGameForSession($session);
+        $dto = $this->scoreEntryRepository->findBestTakerGameForSession($session);
+
+        if (null === $dto) {
+            return null;
+        }
+
+        return [
+            'contract' => $dto->contract->value,
+            'gameId' => $dto->gameId,
+            'playerName' => $dto->playerName,
+            'score' => $dto->score,
+        ];
     }
 
     /**
@@ -160,7 +171,18 @@ class SessionSummaryService
      */
     private function findWorstGame(Session $session): ?array
     {
-        return $this->scoreEntryRepository->findWorstTakerGameForSession($session);
+        $dto = $this->scoreEntryRepository->findWorstTakerGameForSession($session);
+
+        if (null === $dto) {
+            return null;
+        }
+
+        return [
+            'contract' => $dto->contract->value,
+            'gameId' => $dto->gameId,
+            'playerName' => $dto->playerName,
+            'score' => $dto->score,
+        ];
     }
 
     /**
@@ -170,7 +192,16 @@ class SessionSummaryService
      */
     private function findMostPlayedContract(Session $session): ?array
     {
-        return $this->gameRepository->findMostPlayedContractForSession($session);
+        $dto = $this->gameRepository->findMostPlayedContractForSession($session);
+
+        if (null === $dto) {
+            return null;
+        }
+
+        return [
+            'contract' => $dto->contract->value,
+            'count' => $dto->count,
+        ];
     }
 
     /**
@@ -236,15 +267,15 @@ class SessionSummaryService
     {
         $result = $this->scoreEntryRepository->getTotalTakerScoreByPlayerForSession($session);
 
-        if (null === $result || $result['totalTakerScore'] <= 0) {
+        if (null === $result || $result->totalTakerScore <= 0) {
             return null;
         }
 
         return [
             'description' => "A inflig\u{00E9} le plus de points aux d\u{00E9}fenseurs",
-            'playerColor' => $result['playerColor'],
-            'playerId' => $result['playerId'],
-            'playerName' => $result['playerName'],
+            'playerColor' => $result->playerColor,
+            'playerId' => $result->playerId,
+            'playerName' => $result->playerName,
             'title' => 'Le Boucher',
         ];
     }
@@ -309,9 +340,9 @@ class SessionSummaryService
 
         return [
             'description' => "A tent\u{00E9} le plus de Garde Sans/Contre",
-            'playerColor' => $result['playerColor'],
-            'playerId' => $result['playerId'],
-            'playerName' => $result['playerName'],
+            'playerColor' => $result->playerColor,
+            'playerId' => $result->playerId,
+            'playerName' => $result->playerName,
             'title' => 'Le Flambeur',
         ];
     }
