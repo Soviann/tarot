@@ -99,6 +99,7 @@
   }
 
   .dark {
+    --color-accent-500: #7fa5d2;
     --color-score-negative: #f87171;
     --color-score-positive: #4ade80;
     --color-surface-border: #374151;
@@ -107,8 +108,8 @@
     --color-surface-secondary: #1f2937;
     --color-surface-tertiary: #374151;
     --color-text-inverse: #111827;
-    --color-text-muted: #6b7280;
+    --color-text-muted: #9ca3af;
     --color-text-primary: #f9fafb;
-    --color-text-secondary: #9ca3af;
+    --color-text-secondary: #d1d5db;
   }
 }
