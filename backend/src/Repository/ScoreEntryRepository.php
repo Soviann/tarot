@@ -107,8 +107,8 @@ final class ScoreEntryRepository extends ServiceEntityRepository
             ->getQuery()
             ->getResult();
 
-        return array_map(static fn (array $row) => [
-            'playerId' => $row['playerId'],
+        return \array_map(static fn (array $row) => [
+            'playerId' => (int) $row['playerId'],
             'playerName' => $row['playerName'],
             'score' => (int) $row['totalScore'],
         ], $results);
@@ -257,7 +257,7 @@ final class ScoreEntryRepository extends ServiceEntityRepository
             ->getQuery()
             ->getResult();
 
-        return array_map(static fn (array $row): int => (int) $row['sessionId'], $results);
+        return \array_map(static fn (array $row): int => (int) $row['sessionId'], $results);
     }
 
     /**
@@ -277,7 +277,7 @@ final class ScoreEntryRepository extends ServiceEntityRepository
             ->getQuery()
             ->getResult();
 
-        return array_map(static fn (array $row) => [
+        return \array_map(static fn (array $row) => [
             'playerId' => (int) $row['playerId'],
             'position' => (int) $row['position'],
             'score' => (int) $row['score'],
@@ -302,7 +302,7 @@ final class ScoreEntryRepository extends ServiceEntityRepository
             ->getQuery()
             ->getResult();
 
-        return array_map(static fn (array $row) => [
+        return \array_map(static fn (array $row) => [
             'playerId' => (int) $row['playerId'],
             'totalScore' => (int) $row['totalScore'],
         ], $results);
@@ -336,7 +336,7 @@ final class ScoreEntryRepository extends ServiceEntityRepository
     }
 
     /**
-     * @return list<array{date: \DateTimeImmutable, gameId: int, score: int, sessionId: int}>
+     * @return list<array{date: \DateTimeImmutable, gameId: int|string, score: int|string, sessionId: int|string}>
      */
     public function getPlayerRecentScores(Player $player, ?int $playerGroupId = null, int $limit = 50): array
     {
@@ -352,8 +352,10 @@ final class ScoreEntryRepository extends ServiceEntityRepository
 
         $this->applyGroupFilter($qb, $playerGroupId);
 
-        /** @var list<array{date: \DateTimeImmutable, gameId: int|string, score: int|string, sessionId: int|string}> */
-        return $qb->getQuery()->getResult();
+        /** @var list<array{date: \DateTimeImmutable, gameId: int|string, score: int|string, sessionId: int|string}> $result */
+        $result = $qb->getQuery()->getResult();
+
+        return $result;
     }
 
     /**
@@ -458,15 +460,6 @@ final class ScoreEntryRepository extends ServiceEntityRepository
         ];
     }
 
-    private function applyGroupFilter(\Doctrine\ORM\QueryBuilder $qb, ?int $playerGroupId, string $gameAlias = 'g'): void
-    {
-        if (null !== $playerGroupId) {
-            $qb->join($gameAlias.'.session', 's_grp')
-               ->andWhere('s_grp.playerGroup = :group')
-               ->setParameter('group', $playerGroupId);
-        }
-    }
-
     /**
      * @return list<array{gameId: int, partnerId: int|null, takerId: int, takerScore: int}>
      */
@@ -486,7 +479,7 @@ final class ScoreEntryRepository extends ServiceEntityRepository
             ->getQuery()
             ->getResult();
 
-        return array_map(static fn (array $row) => [
+        return \array_map(static fn (array $row) => [
             'gameId' => (int) $row['gameId'],
             'partnerId' => null !== $row['partnerId'] ? (int) $row['partnerId'] : null,
             'takerId' => (int) $row['takerId'],
@@ -518,7 +511,10 @@ final class ScoreEntryRepository extends ServiceEntityRepository
                ->setParameter('status', GameStatus::Completed);
         }
 
-        return $qb->getQuery()->getResult();
+        /** @var list<array{playerColor: string|null, playerId: int|string, playerName: string, totalScore: int|string}> $result */
+        $result = $qb->getQuery()->getResult();
+
+        return $result;
     }
 
     /**
@@ -539,6 +535,18 @@ final class ScoreEntryRepository extends ServiceEntityRepository
                ->setParameter('group', $playerGroupId);
         }
 
-        return $qb->getQuery()->getResult();
+        /** @var list<array{gamesPlayed: int|string, playerId: int|string}> $result */
+        $result = $qb->getQuery()->getResult();
+
+        return $result;
+    }
+
+    private function applyGroupFilter(\Doctrine\ORM\QueryBuilder $qb, ?int $playerGroupId, string $gameAlias = 'g'): void
+    {
+        if (null !== $playerGroupId) {
+            $qb->join($gameAlias.'.session', 's_grp')
+               ->andWhere('s_grp.playerGroup = :group')
+               ->setParameter('group', $playerGroupId);
+        }
     }
 }

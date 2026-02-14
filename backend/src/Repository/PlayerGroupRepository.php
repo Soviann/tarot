@@ -20,11 +20,13 @@ final class PlayerGroupRepository extends ServiceEntityRepository
 
     /**
      * @param int[] $playerIds
+     *
      * @return list<PlayerGroup>
      */
     public function findMatchingExactPlayers(array $playerIds, int $count): array
     {
-        return $this->createQueryBuilder('pg')
+        /** @var list<PlayerGroup> $result */
+        $result = $this->createQueryBuilder('pg')
             ->join('pg.players', 'p')
             ->andWhere('p.id IN (:playerIds)')
             ->setParameter('playerIds', $playerIds)
@@ -33,5 +35,7 @@ final class PlayerGroupRepository extends ServiceEntityRepository
             ->setParameter('count', $count)
             ->getQuery()
             ->getResult();
+
+        return $result;
     }
 }

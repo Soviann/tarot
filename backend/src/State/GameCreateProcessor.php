@@ -34,7 +34,7 @@ final readonly class GameCreateProcessor implements ProcessorInterface
     {
         $session = $this->sessionRepository->find($uriVariables['sessionId']);
 
-        if (null === $session) { // @phpstan-ignore identical.alwaysFalse
+        if (null === $session) {
             throw new UnprocessableEntityHttpException('Session introuvable.');
         }
 

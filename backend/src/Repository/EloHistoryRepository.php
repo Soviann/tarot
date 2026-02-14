@@ -40,7 +40,10 @@ final class EloHistoryRepository extends ServiceEntityRepository
 
         $this->applyGroupFilter($qb, $playerGroupId);
 
-        return $qb->getQuery()->getResult();
+        /** @var list<array{date: \DateTimeImmutable, gameId: int|string, playerColor: string|null, playerId: int|string, playerName: string, ratingAfter: int|string}> $result */
+        $result = $qb->getQuery()->getResult();
+
+        return $result;
     }
 
     /**
@@ -59,11 +62,14 @@ final class EloHistoryRepository extends ServiceEntityRepository
 
         $this->applyGroupFilter($qb, $playerGroupId);
 
-        return $qb->getQuery()->getResult();
+        /** @var list<array{eloRating: int|string, gamesPlayed: int|string, playerColor: string|null, playerId: int|string, playerName: string}> $result */
+        $result = $qb->getQuery()->getResult();
+
+        return $result;
     }
 
     /**
-     * @return list<array{date: \DateTimeImmutable, gameId: int, ratingAfter: int, ratingChange: int}>
+     * @return list<array{date: \DateTimeImmutable, gameId: int|string, ratingAfter: int|string, ratingChange: int|string}>
      */
     public function getPlayerHistory(Player $player, ?int $playerGroupId = null): array
     {
@@ -75,8 +81,10 @@ final class EloHistoryRepository extends ServiceEntityRepository
 
         $this->applyGroupFilter($qb, $playerGroupId);
 
-        /** @var list<array{date: \DateTimeImmutable, gameId: int|string, ratingAfter: int|string, ratingChange: int|string}> */
-        return $qb->getQuery()->getResult();
+        /** @var list<array{date: \DateTimeImmutable, gameId: int|string, ratingAfter: int|string, ratingChange: int|string}> $result */
+        $result = $qb->getQuery()->getResult();
+
+        return $result;
     }
 
     private function applyGroupFilter(\Doctrine\ORM\QueryBuilder $qb, ?int $playerGroupId): void

@@ -31,19 +31,19 @@ class BadgeCheckerTest extends ApiTestCase
         parent::setUp();
 
         $gameRepository = $this->em->getRepository(Game::class);
-        assert($gameRepository instanceof GameRepository);
+        \assert($gameRepository instanceof GameRepository);
 
         $playerBadgeRepository = self::getContainer()->get(PlayerBadgeRepository::class);
-        assert($playerBadgeRepository instanceof PlayerBadgeRepository);
+        \assert($playerBadgeRepository instanceof PlayerBadgeRepository);
 
         $scoreEntryRepository = $this->em->getRepository(ScoreEntry::class);
-        assert($scoreEntryRepository instanceof ScoreEntryRepository);
+        \assert($scoreEntryRepository instanceof ScoreEntryRepository);
 
         $sessionRepository = $this->em->getRepository(Session::class);
-        assert($sessionRepository instanceof SessionRepository);
+        \assert($sessionRepository instanceof SessionRepository);
 
         $starEventRepository = $this->em->getRepository(StarEvent::class);
-        assert($starEventRepository instanceof StarEventRepository);
+        \assert($starEventRepository instanceof StarEventRepository);
 
         $this->checker = new BadgeChecker(
             $this->em,

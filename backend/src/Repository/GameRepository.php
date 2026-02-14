@@ -142,8 +142,8 @@ final class GameRepository extends ServiceEntityRepository
 
     public function getMaxCompletedAtForSession(Session $session): ?string
     {
-        /** @var string|null */
-        return $this->createQueryBuilder('g')
+        /** @var string|null $result */
+        $result = $this->createQueryBuilder('g')
             ->select('MAX(g.completedAt)')
             ->andWhere('g.session = :session')
             ->andWhere('g.status = :status')
@@ -152,6 +152,8 @@ final class GameRepository extends ServiceEntityRepository
             ->setParameter('status', GameStatus::Completed)
             ->getQuery()
             ->getSingleScalarResult();
+
+        return $result;
     }
 
     public function getMaxPositionForSession(Session $session): int
@@ -247,7 +249,7 @@ final class GameRepository extends ServiceEntityRepository
             ->getQuery()
             ->getResult();
 
-        return array_map(static fn (array $row): int => (int) $row['sessionId'], $results);
+        return \array_map(static fn (array $row): int => (int) $row['sessionId'], $results);
     }
 
     /**
@@ -268,7 +270,7 @@ final class GameRepository extends ServiceEntityRepository
             ->getQuery()
             ->getResult();
 
-        return array_map(static fn (array $row): int => (int) $row['score'], $results);
+        return \array_map(static fn (array $row): int => (int) $row['score'], $results);
     }
 
     /**
@@ -285,7 +287,10 @@ final class GameRepository extends ServiceEntityRepository
 
         $this->applyGroupFilter($qb, $playerGroupId);
 
-        return $qb->getQuery()->getResult();
+        /** @var list<array{contract: Contract, count: int|string}> $result */
+        $result = $qb->getQuery()->getResult();
+
+        return $result;
     }
 
     /**
@@ -305,7 +310,10 @@ final class GameRepository extends ServiceEntityRepository
 
         $this->applyGroupFilter($qb, $playerGroupId);
 
-        return $qb->getQuery()->getResult();
+        /** @var list<array{contract: Contract, count: int|string, playerColor: string|null, playerId: int|string, playerName: string}> $result */
+        $result = $qb->getQuery()->getResult();
+
+        return $result;
     }
 
     /**
@@ -324,7 +332,10 @@ final class GameRepository extends ServiceEntityRepository
 
         $this->applyGroupFilter($qb, $playerGroupId);
 
-        return $qb->getQuery()->getResult();
+        /** @var list<array{contract: Contract, playerId: int|string, wins: int|string}> $result */
+        $result = $qb->getQuery()->getResult();
+
+        return $result;
     }
 
     public function countCompleted(?int $playerGroupId = null): int
@@ -384,7 +395,10 @@ final class GameRepository extends ServiceEntityRepository
 
         $this->applyGroupFilter($qb, $playerGroupId);
 
-        return $qb->getQuery()->getResult();
+        /** @var list<array{gamesAsTaker: int|string, playerId: int|string}> $result */
+        $result = $qb->getQuery()->getResult();
+
+        return $result;
     }
 
     /**
@@ -402,7 +416,10 @@ final class GameRepository extends ServiceEntityRepository
 
         $this->applyGroupFilter($qb, $playerGroupId);
 
-        return $qb->getQuery()->getResult();
+        /** @var list<array{playerId: int|string, wins: int|string}> $result */
+        $result = $qb->getQuery()->getResult();
+
+        return $result;
     }
 
     public function countPlayerGamesAsTaker(Player $player, ?int $playerGroupId = null): int
@@ -481,7 +498,7 @@ final class GameRepository extends ServiceEntityRepository
         /** @var list<array{contract: Contract, count: int|string}> $results */
         $results = $qb->getQuery()->getResult();
 
-        return array_map(static fn (array $row) => [
+        return \array_map(static fn (array $row) => [
             'contract' => $row['contract'],
             'count' => (int) $row['count'],
         ], $results);
@@ -507,7 +524,7 @@ final class GameRepository extends ServiceEntityRepository
         /** @var list<array{contract: Contract, wins: int|string}> $results */
         $results = $qb->getQuery()->getResult();
 
-        return array_map(static fn (array $row) => [
+        return \array_map(static fn (array $row) => [
             'contract' => $row['contract'],
             'wins' => (int) $row['wins'],
         ], $results);
@@ -532,7 +549,7 @@ final class GameRepository extends ServiceEntityRepository
         /** @var list<array{contract: Contract, date: \DateTimeImmutable, oudlers: int|null, points: float|null, score: int|string, sessionId: int|string}> $results */
         $results = $qb->getQuery()->getResult();
 
-        return array_map(static fn (array $row) => [
+        return \array_map(static fn (array $row) => [
             'contract' => $row['contract'],
             'date' => $row['date'],
             'oudlers' => $row['oudlers'],

@@ -133,7 +133,7 @@ final readonly class BadgeChecker
     private function checkChampionStreak(Player $player): bool
     {
         $scores = $this->gameRepository->getTakerScoresForPlayer($player);
-        $games = array_map(static fn (int $score): array => ['score' => $score], $scores);
+        $games = \array_map(static fn (int $score): array => ['score' => $score], $scores);
 
         return $this->maxStreak($games, static fn (array $game): bool => $game['score'] > 0) >= 5;
     }

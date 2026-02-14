@@ -76,7 +76,8 @@ final class SessionRepository extends ServiceEntityRepository
      */
     public function findRecentWithLastActivity(int $maxResults = 5): array
     {
-        return $this->createQueryBuilder('s')
+        /** @var Session[] $result */
+        $result = $this->createQueryBuilder('s')
             ->addSelect('COALESCE(MAX(g.createdAt), s.createdAt) AS HIDDEN lastActivity')
             ->leftJoin('s.games', 'g')
             ->groupBy('s')
@@ -84,6 +85,8 @@ final class SessionRepository extends ServiceEntityRepository
             ->setMaxResults($maxResults)
             ->getQuery()
             ->getResult();
+
+        return $result;
     }
 
     public function countDistinctCoPlayersForPlayer(Player $player): int
