@@ -10,6 +10,8 @@ use ApiPlatform\State\ProcessorInterface;
 use App\Entity\Player;
 use App\Entity\PlayerGroup;
 use App\Entity\Session;
+use App\Repository\PlayerGroupRepository;
+use App\Repository\SessionRepository;
 use Doctrine\ORM\EntityManagerInterface;
 
 /**
@@ -23,6 +25,8 @@ final readonly class SessionCreateProcessor implements ProcessorInterface
     public function __construct(
         private EntityManagerInterface $em,
         private PersistProcessor $persistProcessor,
+        private PlayerGroupRepository $playerGroupRepository,
+        private SessionRepository $sessionRepository,
     ) {
     }
 
@@ -38,7 +42,8 @@ final readonly class SessionCreateProcessor implements ProcessorInterface
             $playerIds[] = $id;
         }
 
-        $existing = $this->findActiveSessionWithSamePlayers($playerIds, \count($playerIds));
+        $count = \count($playerIds);
+        $existing = $this->sessionRepository->findActiveWithExactPlayers($playerIds, $count);
 
         if (null !== $existing) {
             return $existing;
@@ -52,7 +57,7 @@ final readonly class SessionCreateProcessor implements ProcessorInterface
             $session->setCurrentDealer($firstPlayer);
         }
 
-        $this->autoAssociatePlayerGroup($session, $playerIds);
+        $this->autoAssociatePlayerGroup($session, $playerIds, $count);
         $this->em->flush();
 
         return $session;
@@ -61,25 +66,13 @@ final readonly class SessionCreateProcessor implements ProcessorInterface
     /**
      * @param int[] $playerIds
      */
-    private function autoAssociatePlayerGroup(Session $session, array $playerIds): void
+    private function autoAssociatePlayerGroup(Session $session, array $playerIds, int $count): void
     {
         if (empty($playerIds)) {
             return;
         }
 
-        $count = \count($playerIds);
-
-        /** @var list<PlayerGroup> $matchingGroups */
-        $matchingGroups = $this->em->createQuery(
-            'SELECT pg FROM App\Entity\PlayerGroup pg
-             JOIN pg.players p
-             WHERE p.id IN (:playerIds)
-             GROUP BY pg.id
-             HAVING COUNT(DISTINCT p.id) = :count'
-        )
-            ->setParameter('count', $count)
-            ->setParameter('playerIds', $playerIds)
-            ->getResult();
+        $matchingGroups = $this->playerGroupRepository->findMatchingExactPlayers($playerIds, $count);
 
         $matchingGroups = \array_values(\array_filter(
             $matchingGroups,
@@ -95,35 +88,5 @@ final readonly class SessionCreateProcessor implements ProcessorInterface
         if (1 === \count($matchingGroups)) {
             $session->setPlayerGroup($matchingGroups[0]);
         }
-    }
-
-    /**
-     * @param int[] $playerIds
-     */
-    private function findActiveSessionWithSamePlayers(array $playerIds, int $count): ?Session
-    {
-        $dql = <<<'DQL'
-            SELECT s FROM App\Entity\Session s
-            JOIN s.players p
-            WHERE s.isActive = true
-            AND p.id IN (:playerIds)
-            GROUP BY s.id
-            HAVING COUNT(DISTINCT p.id) = :count
-            DQL;
-
-        /** @var Session[] $candidates */
-        $candidates = $this->em->createQuery($dql)
-            ->setParameter('count', $count)
-            ->setParameter('playerIds', $playerIds)
-            ->getResult();
-
-        // Vérifier qu'une session candidate a exactement le bon nombre de joueurs (pas plus)
-        foreach ($candidates as $session) {
-            if ($session->getPlayers()->count() === $count) {
-                return $session;
-            }
-        }
-
-        return null;
     }
 }

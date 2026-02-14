@@ -11,11 +11,13 @@ use ApiPlatform\Metadata\GetCollection;
 use ApiPlatform\Metadata\Link;
 use ApiPlatform\Metadata\Patch;
 use ApiPlatform\Metadata\Post;
+use App\Dto\NewBadgesDto;
 use App\Enum\Chelem;
 use App\Enum\Contract;
 use App\Enum\GameStatus;
 use App\Enum\Poignee;
 use App\Enum\Side;
+use App\Repository\GameRepository;
 use App\State\GameCompleteProcessor;
 use App\State\GameCreateProcessor;
 use App\State\GameDeleteProcessor;
@@ -29,14 +31,14 @@ use Symfony\Component\Serializer\Attribute\Groups;
 #[ApiResource(
     operations: [
         new Delete(
-            processor: GameDeleteProcessor::class,
-            validate: true,
             validationContext: ['groups' => ['Default', 'game:delete']],
+            validate: true,
+            processor: GameDeleteProcessor::class,
         ),
         new Get(),
         new Patch(
-            processor: GameCompleteProcessor::class,
             validationContext: ['groups' => ['Default', 'game:patch']],
+            processor: GameCompleteProcessor::class,
         ),
     ],
     normalizationContext: ['groups' => ['game:read']],
@@ -44,20 +46,21 @@ use Symfony\Component\Serializer\Attribute\Groups;
 )]
 #[ApiResource(
     uriTemplate: '/sessions/{sessionId}/games',
-    uriVariables: [
-        'sessionId' => new Link(fromClass: Session::class, toProperty: 'session'),
-    ],
     operations: [
         new GetCollection(
-            order: ['position' => 'DESC'],
             paginationItemsPerPage: 10,
+            order: ['position' => 'DESC'],
         ),
-        new Post(read: false, processor: GameCreateProcessor::class, denormalizationContext: ['groups' => ['game:create']]),
+        new Post(denormalizationContext: ['groups' => ['game:create']], read: false, processor: GameCreateProcessor::class
+        ),
+    ],
+    uriVariables: [
+        'sessionId' => new Link(toProperty: 'session', fromClass: Session::class),
     ],
     normalizationContext: ['groups' => ['game:read']],
 )]
 #[OnlyLastGameEditable(groups: ['game:delete', 'game:patch'])]
-#[ORM\Entity]
+#[ORM\Entity(repositoryClass: GameRepository::class)]
 #[PlayersBelongToSession(groups: ['game:patch'])]
 class Game
 {
@@ -135,9 +138,8 @@ class Game
     #[ORM\JoinColumn(nullable: false)]
     private Player $taker;
 
-    /** @var array<int, list<array{description: string, emoji: string, label: string, type: string}>>|null */
     #[Groups(['game:read'])]
-    private ?array $newBadges = null;
+    private ?NewBadgesDto $newBadges = null;
 
     public function __construct()
     {
@@ -203,18 +205,12 @@ class Game
         return $this;
     }
 
-    /**
-     * @return array<int, list<array{description: string, emoji: string, label: string, type: string}>>|null
-     */
-    public function getNewBadges(): ?array
+    public function getNewBadges(): ?NewBadgesDto
     {
         return $this->newBadges;
     }
 
-    /**
-     * @param array<int, list<array{description: string, emoji: string, label: string, type: string}>>|null $newBadges
-     */
-    public function setNewBadges(?array $newBadges): static
+    public function setNewBadges(?NewBadgesDto $newBadges): static
     {
         $this->newBadges = $newBadges;
 

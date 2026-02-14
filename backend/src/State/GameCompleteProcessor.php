@@ -7,9 +7,9 @@ namespace App\State;
 use ApiPlatform\Doctrine\Common\State\PersistProcessor;
 use ApiPlatform\Metadata\Operation;
 use ApiPlatform\State\ProcessorInterface;
+use App\Dto\NewBadgesDto;
 use App\Entity\EloHistory;
 use App\Entity\Game;
-use App\Enum\BadgeType;
 use App\Enum\GameStatus;
 use App\Service\BadgeChecker;
 use App\Service\Scoring\EloCalculator;
@@ -26,6 +26,7 @@ final readonly class GameCompleteProcessor implements ProcessorInterface
     public function __construct(
         private BadgeChecker $badgeChecker,
         private EloCalculator $eloCalculator,
+        private EloRevertHelper $eloRevertHelper,
         private EntityManagerInterface $em,
         private PersistProcessor $persistProcessor,
         private ScoreCalculator $scoreCalculator,
@@ -43,7 +44,7 @@ final readonly class GameCompleteProcessor implements ProcessorInterface
             $wasAlreadyCompleted = !$data->getScoreEntries()->isEmpty();
 
             if ($wasAlreadyCompleted) {
-                EloRevertHelper::revert($data, $this->em);
+                $this->eloRevertHelper->revert($data);
             }
 
             $this->computeScores($data);
@@ -66,11 +67,7 @@ final readonly class GameCompleteProcessor implements ProcessorInterface
         if (GameStatus::Completed === $data->getStatus() && !$wasAlreadyCompleted) {
             $newBadges = $this->badgeChecker->checkAndAward($data->getSession());
             if (!empty($newBadges)) {
-                $formatted = [];
-                foreach ($newBadges as $playerId => $badges) {
-                    $formatted[$playerId] = \array_map(static fn (BadgeType $b) => $b->toArray(), $badges);
-                }
-                $game->setNewBadges($formatted);
+                $game->setNewBadges(NewBadgesDto::fromAwardedBadges($newBadges));
             }
         }
 

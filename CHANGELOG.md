@@ -6,6 +6,10 @@ Le format est basé sur [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/)
 
 ## [Unreleased]
 
+### Changed
+
+- **Requêtes BDD centralisées dans les repositories** : toutes les requêtes Doctrine (~73) ont été migrées des services, controllers, processors et validateurs vers des repositories dédiés par entité (GameRepository, ScoreEntryRepository, StarEventRepository, EloHistoryRepository, PlayerRepository, PlayerGroupRepository, PlayerBadgeRepository). Utilisation exclusive du QueryBuilder (plus de DQL brut). EloRevertHelper converti de classe statique en service injectable.
+
 ### Added
 
 - **Animation des modales** : les modales s'ouvrent avec un slide-up depuis le bas (200 ms ease-out) et se ferment avec un slide-down. Le backdrop apparaît et disparaît en fondu (200 ms). Améliore la fluidité de l'interface.

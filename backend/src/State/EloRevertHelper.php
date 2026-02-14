@@ -4,23 +4,28 @@ declare(strict_types=1);
 
 namespace App\State;
 
-use App\Entity\EloHistory;
 use App\Entity\Game;
+use App\Repository\EloHistoryRepository;
 use Doctrine\ORM\EntityManagerInterface;
 
 /**
  * Restaure les ELO des joueurs à l'état précédent une donne, et supprime les EloHistory associées.
  */
-final class EloRevertHelper
+final readonly class EloRevertHelper
 {
-    public static function revert(Game $game, EntityManagerInterface $em): void
+    public function __construct(
+        private EloHistoryRepository $eloHistoryRepository,
+        private EntityManagerInterface $em,
+    ) {
+    }
+
+    public function revert(Game $game): void
     {
-        /** @var list<EloHistory> $histories */
-        $histories = $em->getRepository(EloHistory::class)->findBy(['game' => $game]);
+        $histories = $this->eloHistoryRepository->findByGame($game);
 
         foreach ($histories as $history) {
             $history->getPlayer()->setEloRating($history->getRatingBefore());
-            $em->remove($history);
+            $this->em->remove($history);
         }
     }
 }

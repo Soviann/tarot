@@ -7,10 +7,13 @@ namespace App\State;
 use ApiPlatform\Doctrine\Common\State\PersistProcessor;
 use ApiPlatform\Metadata\Operation;
 use ApiPlatform\State\ProcessorInterface;
+use App\Dto\NewBadgesDto;
+use App\Entity\Player;
 use App\Entity\ScoreEntry;
 use App\Entity\Session;
 use App\Entity\StarEvent;
-use App\Enum\BadgeType;
+use App\Repository\SessionRepository;
+use App\Repository\StarEventRepository;
 use App\Service\BadgeChecker;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpKernel\Exception\UnprocessableEntityHttpException;
@@ -30,6 +33,8 @@ final readonly class StarEventCreateProcessor implements ProcessorInterface
         private BadgeChecker $badgeChecker,
         private EntityManagerInterface $em,
         private PersistProcessor $persistProcessor,
+        private SessionRepository $sessionRepository,
+        private StarEventRepository $starEventRepository,
     ) {
     }
 
@@ -38,8 +43,7 @@ final readonly class StarEventCreateProcessor implements ProcessorInterface
      */
     public function process(mixed $data, Operation $operation, array $uriVariables = [], array $context = []): StarEvent
     {
-        /** @var Session|null $session */
-        $session = $this->em->getRepository(Session::class)->find($uriVariables['sessionId']);
+        $session = $this->sessionRepository->find($uriVariables['sessionId']);
 
         if (null === $session) {
             throw new UnprocessableEntityHttpException('Session introuvable.');
@@ -66,12 +70,7 @@ final readonly class StarEventCreateProcessor implements ProcessorInterface
         $starEvent = $this->persistProcessor->process($data, $operation, $uriVariables, $context);
 
         // Compter le nombre total d'étoiles pour ce joueur dans cette session
-        $totalStars = (int) $this->em->createQuery(
-            'SELECT COUNT(se.id) FROM App\Entity\StarEvent se WHERE se.session = :session AND se.player = :player'
-        )
-            ->setParameter('player', $player)
-            ->setParameter('session', $session)
-            ->getSingleScalarResult();
+        $totalStars = $this->starEventRepository->countBySessionAndPlayer($session, $player);
 
         // Déclencher la pénalité si le total est un multiple de 3
         if ($totalStars > 0 && 0 === $totalStars % self::STARS_PER_PENALTY) {
@@ -81,17 +80,13 @@ final readonly class StarEventCreateProcessor implements ProcessorInterface
         // Vérifier les badges (ex : StarCollector)
         $newBadges = $this->badgeChecker->checkAndAward($session);
         if (!empty($newBadges)) {
-            $formatted = [];
-            foreach ($newBadges as $playerId => $badges) {
-                $formatted[$playerId] = \array_map(static fn (BadgeType $b) => $b->toArray(), $badges);
-            }
-            $starEvent->setNewBadges($formatted);
+            $starEvent->setNewBadges(NewBadgesDto::fromAwardedBadges($newBadges));
         }
 
         return $starEvent;
     }
 
-    private function applyPenalty(Session $session, \App\Entity\Player $penalizedPlayer): void
+    private function applyPenalty(Session $session, Player $penalizedPlayer): void
     {
         $bonusPerPlayer = self::PENALTY_POINTS / 4;
 
