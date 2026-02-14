@@ -29,10 +29,10 @@ use Symfony\Component\Validator\Constraints as Assert;
         ),
         new GetCollection(provider: SessionCollectionProvider::class),
         new Patch(
-            denormalizationContext: ['groups' => ['session:patch']],
             normalizationContext: ['groups' => ['session:read', 'session:detail']],
-            processor: SessionPatchProcessor::class,
+            denormalizationContext: ['groups' => ['session:patch']],
             provider: SessionDetailProvider::class,
+            processor: SessionPatchProcessor::class,
         ),
         new Post(processor: SessionCreateProcessor::class),
     ],
