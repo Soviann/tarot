@@ -6,6 +6,7 @@ namespace App\Service;
 
 use App\Entity\Player;
 use App\Entity\PlayerGroup;
+use App\Enum\BadgeType;
 use App\Enum\Contract;
 use App\Enum\GameStatus;
 use Doctrine\ORM\AbstractQuery;
@@ -516,7 +517,7 @@ class StatisticsService
     }
 
     /**
-     * @return array{averageGameDurationSeconds: int|null, averageScore: float, bestGameScore: int, contractDistribution: list<array{contract: string, count: int, winRate: float, wins: int}>, eloHistory: list<array{date: string, gameId: int, ratingAfter: int, ratingChange: int}>, eloRating: int, gamesAsDefender: int, gamesAsPartner: int, gamesAsTaker: int, gamesPlayed: int, player: array{id: int|null, name: string}, playerGroups: list<array{id: int|null, name: string}>, recentScores: list<array{date: string, gameId: int, score: int, sessionId: int}>, records: list<array{contract: string|null, date: string, sessionId: int|null, type: string, value: int|float}>, sessionsPlayed: int, starPenalties: int, totalPlayTimeSeconds: int, totalStars: int, winRateAsTaker: float, worstGameScore: int}
+     * @return array{badges: list<array{description: string, emoji: string, label: string, type: string, unlockedAt: string|null}>, averageGameDurationSeconds: int|null, averageScore: float, bestGameScore: int, contractDistribution: list<array{contract: string, count: int, winRate: float, wins: int}>, eloHistory: list<array{date: string, gameId: int, ratingAfter: int, ratingChange: int}>, eloRating: int, gamesAsDefender: int, gamesAsPartner: int, gamesAsTaker: int, gamesPlayed: int, player: array{id: int|null, name: string}, playerGroups: list<array{id: int|null, name: string}>, recentScores: list<array{date: string, gameId: int, score: int, sessionId: int}>, records: list<array{contract: string|null, date: string, sessionId: int|null, type: string, value: int|float}>, sessionsPlayed: int, starPenalties: int, totalPlayTimeSeconds: int, totalStars: int, winRateAsTaker: float, worstGameScore: int}
      */
     public function getPlayerStats(Player $player, ?int $playerGroupId = null): array
     {
@@ -680,6 +681,7 @@ class StatisticsService
         $durationStats = $this->getPlayerDurationStats($player, $playerGroupId);
 
         return [
+            'badges' => $this->getPlayerBadges($player),
             'averageGameDurationSeconds' => $durationStats['averageGameDurationSeconds'],
             'averageScore' => null !== $scoreAgg['averageScore'] ? \round((float) $scoreAgg['averageScore'], 1) : 0.0,
             'bestGameScore' => (int) ($scoreAgg['bestGameScore'] ?? 0),
@@ -816,6 +818,35 @@ class StatisticsService
         $this->setGroupParameter($query, $playerGroupId);
 
         return (int) $query->getSingleScalarResult();
+    }
+
+    /**
+     * @return list<array{description: string, emoji: string, label: string, type: string, unlockedAt: string|null}>
+     */
+    private function getPlayerBadges(Player $player): array
+    {
+        /** @var list<array{badgeType: BadgeType, unlockedAt: \DateTimeImmutable}> $awarded */
+        $awarded = $this->em->createQuery(
+            'SELECT pb.badgeType, pb.unlockedAt FROM App\Entity\PlayerBadge pb
+             WHERE pb.player = :player ORDER BY pb.unlockedAt ASC'
+        )
+            ->setParameter('player', $player)
+            ->getResult();
+
+        $awardedMap = [];
+        foreach ($awarded as $row) {
+            $awardedMap[$row['badgeType']->value] = $row['unlockedAt']->format(\DateTimeInterface::ATOM);
+        }
+
+        $badges = [];
+        foreach (BadgeType::cases() as $badgeType) {
+            $badges[] = [
+                ...$badgeType->toArray(),
+                'unlockedAt' => $awardedMap[$badgeType->value] ?? null,
+            ];
+        }
+
+        return $badges;
     }
 
     /**

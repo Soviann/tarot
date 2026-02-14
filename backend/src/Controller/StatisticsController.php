@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Controller;
 
 use App\Entity\Player;
+use App\Service\BadgeChecker;
 use App\Service\StatisticsService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -15,6 +16,7 @@ use Symfony\Component\Routing\Attribute\Route;
 class StatisticsController
 {
     public function __construct(
+        private readonly BadgeChecker $badgeChecker,
         private readonly EntityManagerInterface $em,
         private readonly StatisticsService $statisticsService,
     ) {
@@ -48,6 +50,8 @@ class StatisticsController
         if (null === $player) {
             throw new NotFoundHttpException('Joueur introuvable.');
         }
+
+        $this->badgeChecker->checkAndAwardForPlayer($player);
 
         $playerGroupId = $request->query->has('playerGroup')
             ? (int) $request->query->get('playerGroup')
