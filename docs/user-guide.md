@@ -154,24 +154,33 @@ Liste paginée des donnes jouées (les 10 plus récentes en premier, avec un bou
 - Le contrat (badge coloré) et la **durée de la donne** (si disponible)
 - Le résultat (gain/perte du preneur)
 
+### Menu d'actions (⋮)
+
+La ligne du header de session affiche un bouton **⋮** (trois points verticaux) qui regroupe les actions secondaires :
+
+- **Récap de session** : ouvre le récapitulatif de la session
+- **Partager (QR)** : affiche un QR code pour partager l'URL de la session
+- **Modifier les joueurs** : change un ou plusieurs joueurs de la session
+- **Changer le groupe** : associe la session à un groupe de joueurs (visible uniquement si des groupes existent)
+- **Terminer la session** / **Réouvrir la session** : clôture ou réouverture de la session
+
 ### Modifier les joueurs
 
-Depuis l'écran de session, il est possible de **changer un ou plusieurs joueurs** sans repasser par l'accueil :
+Depuis le menu **⋮**, appuyer sur **Modifier les joueurs** :
 
-1. Appuyer sur le bouton **⇄** (flèches) à droite du titre « Session #X »
-2. La modale de sélection s'ouvre avec les **5 joueurs actuels** pré-sélectionnés
-3. Désélectionner le(s) joueur(s) à remplacer et sélectionner le(s) nouveau(x)
-4. Appuyer sur **Confirmer**
+1. La modale de sélection s'ouvre avec les **5 joueurs actuels** pré-sélectionnés
+2. Désélectionner le(s) joueur(s) à remplacer et sélectionner le(s) nouveau(x)
+3. Appuyer sur **Confirmer**
 
 > **Session intelligente** : si une session active existe déjà avec les 5 joueurs choisis, l'application y navigue directement. Sinon, une nouvelle session est créée.
 
-> **Note** : le bouton est **désactivé** tant qu'une donne est en cours. Terminez ou supprimez la donne avant de modifier les joueurs.
+> **Note** : l'option est **désactivée** tant qu'une donne est en cours. Terminez ou supprimez la donne avant de modifier les joueurs.
 
 ### Partager une session (QR code)
 
 Pour permettre aux autres joueurs de suivre les scores sur leur propre téléphone :
 
-1. Appuyer sur le bouton **QR code** (icône grille) à droite du titre « Session #X »
+1. Appuyer sur le menu **⋮** puis **Partager (QR)**
 2. Une modale affiche un **QR code** encodant l'URL de la session
 3. Les autres joueurs scannent le QR code avec leur appareil photo pour ouvrir la session en **mode consultation**
 4. Appuyer sur **« Plein écran »** pour agrandir le QR code (facilite le scan à distance ou depuis une TV)
@@ -233,7 +242,7 @@ Pour marquer une session comme terminée (plus de nouvelles donnes possibles) :
 
 ### Récapitulatif de session
 
-Le récapitulatif est accessible **à tout moment** via le bouton **graphique** (📊) dans la barre du titre de l'écran de session, que la session soit ouverte ou clôturée.
+Le récapitulatif est accessible **à tout moment** via le menu **⋮** → **Récap de session** dans la barre du titre de l'écran de session, que la session soit ouverte ou clôturée.
 
 Il affiche :
 

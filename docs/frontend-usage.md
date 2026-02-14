@@ -1022,18 +1022,20 @@ Sélecteur de groupe partagé pour filtrer les statistiques. Retourne `null` si 
 
 **Hooks utilisés** : `usePlayerGroups`
 
-### `SessionGroupSelector`
+### `ChangeGroupModal`
 
-**Fichier** : `components/SessionGroupSelector.tsx`
+**Fichier** : `components/ChangeGroupModal.tsx`
 
-Sélecteur de groupe pour une session. Retourne `null` si aucun groupe n'existe.
+Modale de sélection du groupe pour une session. Affiche la liste des groupes existants et l'option « Aucun groupe ». Le groupe actuel est mis en surbrillance.
 
 | Prop | Type | Description |
 |------|------|-------------|
 | `currentGroupId` | `number \| null` | *requis* — ID du groupe actuel |
-| `sessionId` | `number` | *requis* — ID de la session |
-
-**Hooks utilisés** : `usePlayerGroups`, `useUpdateSessionGroup`
+| `groups` | `PlayerGroup[]` | *requis* — liste des groupes disponibles |
+| `isPending` | `boolean` | *requis* — désactive les boutons pendant la mutation |
+| `onClose` | `() => void` | *requis* — fermeture de la modale |
+| `onConfirm` | `(groupId: number \| null) => void` | *requis* — appelé avec l'ID sélectionné |
+| `open` | `boolean` | *requis* — visibilité |
 
 ### `NewGameModal`
 
@@ -1362,7 +1364,7 @@ Sélectionne un mème de défaite en fonction du contexte de la donne. Même pro
 Tous les composants sont exportés depuis `components/ui/index.ts` :
 
 ```tsx
-import { ContractBadge, FAB, Modal, PlayerAvatar, ScoreDisplay, SearchInput, Stepper, UndoFAB } from "./components/ui";
+import { ContractBadge, FAB, Modal, OverflowMenu, PlayerAvatar, ScoreDisplay, SearchInput, Stepper, UndoFAB } from "./components/ui";
 ```
 
 ### `PlayerAvatar`
@@ -1458,6 +1460,38 @@ Bouton d'action flottant temporaire (bas gauche) avec décompte circulaire SVG d
 - Au clic : `onUndo` est appelé, le timer est annulé (pas de `onDismiss`)
 - À l'expiration : `onDismiss` est appelé automatiquement
 - Animation CSS `animate-undo-countdown` définie dans `index.css`
+
+### `OverflowMenu`
+
+**Fichier** : `components/ui/OverflowMenu.tsx`
+
+Menu déroulant déclenché par un bouton « … » (icône `EllipsisVertical`). Supporte les items bouton et les items lien (navigation interne).
+
+| Prop | Type | Description |
+|------|------|-------------|
+| `items` | `OverflowMenuItem[]` | *requis* — liste des items du menu |
+| `label` | `string` | *requis* — aria-label du bouton déclencheur |
+
+**`OverflowMenuItem`** :
+
+| Champ | Type | Description |
+|-------|------|-------------|
+| `icon` | `ReactNode` | *requis* — icône affichée à gauche |
+| `label` | `string` | *requis* — texte de l'item |
+| `onClick` | `() => void` | Action au clic (pour les items bouton) |
+| `href` | `string` | Lien interne (pour les items navigation, utilise `<Link>`) |
+| `disabled` | `boolean` | Désactive l'item (opacity réduite, clic ignoré) |
+
+```tsx
+<OverflowMenu
+  items={[
+    { href: "/sessions/1/summary", icon: <BarChart3 size={18} />, label: "Récap" },
+    { icon: <QrCode size={18} />, label: "Partager", onClick: () => setShareOpen(true) },
+    { disabled: true, icon: <ArrowLeftRight size={18} />, label: "Modifier", onClick: () => {} },
+  ]}
+  label="Actions"
+/>
+```
 
 ### `Modal`
 
