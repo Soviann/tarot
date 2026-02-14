@@ -1,6 +1,6 @@
 import { X } from "lucide-react";
 import type { ReactNode } from "react";
-import { useCallback, useEffect, useId, useRef } from "react";
+import { useCallback, useEffect, useId, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 
 interface ModalProps {
@@ -16,6 +16,29 @@ const FOCUSABLE_SELECTOR =
 export default function Modal({ children, onClose, open, title }: ModalProps) {
   const dialogRef = useRef<HTMLDivElement>(null);
   const titleId = useId();
+  const [visible, setVisible] = useState(false);
+  const [animateIn, setAnimateIn] = useState(false);
+
+  // Open: mount portal then trigger enter animation on next frame
+  // Close: start exit animation, unmount after transition or safety timeout
+  useEffect(() => {
+    if (open) {
+      setVisible(true);
+      const raf = requestAnimationFrame(() => setAnimateIn(true));
+      return () => cancelAnimationFrame(raf);
+    } else if (visible) {
+      setAnimateIn(false);
+      // Safety fallback: unmount after animation duration in case transitionend doesn't fire
+      const timeout = setTimeout(() => setVisible(false), 200);
+      return () => clearTimeout(timeout);
+    }
+  }, [open, visible]);
+
+  const handleTransitionEnd = useCallback(() => {
+    if (!open) {
+      setVisible(false);
+    }
+  }, [open]);
 
   const handleKeyDown = useCallback(
     (e: KeyboardEvent) => {
@@ -63,19 +86,20 @@ export default function Modal({ children, onClose, open, title }: ModalProps) {
     };
   }, [handleKeyDown, open]);
 
-  if (!open) return null;
+  if (!visible) return null;
 
   return createPortal(
     // eslint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/no-static-element-interactions
     <div
-      className="fixed inset-0 z-50 flex items-end justify-center bg-black/50 sm:items-center"
+      className={`fixed inset-0 z-50 flex items-end justify-center transition-opacity duration-200 sm:items-center ${animateIn ? "opacity-100 bg-black/50" : "opacity-0 bg-black/0"}`}
       onClick={onClose}
     >
       <div
         aria-labelledby={titleId}
         aria-modal="true"
-        className="w-full max-w-lg rounded-t-2xl bg-surface-primary p-6 shadow-xl sm:rounded-2xl"
+        className={`w-full max-w-lg rounded-t-2xl bg-surface-primary p-6 shadow-xl transition-transform duration-200 ease-out sm:rounded-2xl ${animateIn ? "translate-y-0" : "translate-y-full"}`}
         onClick={(e) => e.stopPropagation()}
+        onTransitionEnd={handleTransitionEnd}
         ref={dialogRef}
         role="dialog"
       >

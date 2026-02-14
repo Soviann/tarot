@@ -1,4 +1,4 @@
-import { fireEvent, screen } from "@testing-library/react";
+import { act, fireEvent, screen } from "@testing-library/react";
 import Modal from "../../../components/ui/Modal";
 import { renderWithProviders } from "../../test-utils";
 
@@ -134,5 +134,91 @@ describe("Modal", () => {
 
     const action2 = screen.getByText("Action 2");
     expect(document.activeElement).toBe(action2);
+  });
+
+  describe("animations", () => {
+    beforeEach(() => {
+      vi.useFakeTimers({
+        toFake: ["setTimeout", "clearTimeout", "requestAnimationFrame", "cancelAnimationFrame"],
+      });
+    });
+
+    afterEach(() => {
+      vi.useRealTimers();
+    });
+
+    it("applies enter animation classes when opening", () => {
+      renderWithProviders(
+        <Modal onClose={() => {}} open title="Titre">
+          <p>Contenu</p>
+        </Modal>,
+      );
+
+      // Advance past requestAnimationFrame to trigger enter animation
+      act(() => {
+        vi.runAllTimers();
+      });
+
+      const dialog = screen.getByRole("dialog");
+      const backdrop = dialog.parentElement!;
+
+      // Backdrop should have opacity transition
+      expect(backdrop.className).toContain("opacity-100");
+
+      // Panel should have translate-y-0 (animated to position)
+      expect(dialog.className).toContain("translate-y-0");
+    });
+
+    it("keeps modal in DOM during close animation", () => {
+      const { rerender } = renderWithProviders(
+        <Modal onClose={() => {}} open title="Titre">
+          <p>Contenu</p>
+        </Modal>,
+      );
+
+      expect(screen.getByRole("dialog")).toBeInTheDocument();
+
+      // Close the modal
+      rerender(
+        <Modal onClose={() => {}} open={false} title="Titre">
+          <p>Contenu</p>
+        </Modal>,
+      );
+
+      // Modal should still be visible during exit animation
+      expect(screen.getByRole("dialog")).toBeInTheDocument();
+
+      // Backdrop should have exit opacity class
+      const dialog = screen.getByRole("dialog");
+      const backdrop = dialog.parentElement!;
+      expect(backdrop.className).toContain("opacity-0");
+
+      // Panel should have exit translate class
+      expect(dialog.className).toContain("translate-y-full");
+    });
+
+    it("removes modal from DOM after close animation completes", () => {
+      const { rerender } = renderWithProviders(
+        <Modal onClose={() => {}} open title="Titre">
+          <p>Contenu</p>
+        </Modal>,
+      );
+
+      // Close the modal
+      rerender(
+        <Modal onClose={() => {}} open={false} title="Titre">
+          <p>Contenu</p>
+        </Modal>,
+      );
+
+      // Fire transitionend to signal animation is done
+      const dialog = screen.getByRole("dialog");
+      act(() => {
+        fireEvent.transitionEnd(dialog);
+      });
+
+      // Now modal should be gone
+      expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+    });
   });
 });

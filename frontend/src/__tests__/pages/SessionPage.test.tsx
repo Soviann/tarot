@@ -1,4 +1,4 @@
-import { screen } from "@testing-library/react";
+import { screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import SessionPage from "../../pages/SessionPage";
 import * as useAddStarModule from "../../hooks/useAddStar";
@@ -662,7 +662,9 @@ describe("SessionPage", () => {
     await userEvent.click(screen.getByRole("button", { name: "Annuler" }));
 
     expect(closeSessionMutate).not.toHaveBeenCalled();
-    expect(screen.queryByText(/Voulez-vous terminer/)).not.toBeInTheDocument();
+    await waitFor(() => {
+      expect(screen.queryByText(/Voulez-vous terminer/)).not.toBeInTheDocument();
+    });
   });
 
   it("shows Réouvrir la session for inactive sessions", async () => {
