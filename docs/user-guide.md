@@ -429,9 +429,15 @@ Quand une donne est perdue par l'attaque, un **mème de défaite** peut apparaî
 
 ## Thème sombre
 
-L'application supporte un **mode sombre**. Pour basculer entre les thèmes clair et sombre, utiliser le bouton de bascule dans l'interface.
+L'application supporte un **mode sombre**. Pour basculer entre les thèmes clair et sombre, appuyer sur l'icône **lune** (☽) en haut à droite de l'écran, à gauche de l'icône d'aide. En mode sombre, l'icône devient un **soleil** (☀).
 
-Le choix est **mémorisé** automatiquement et persiste entre les visites.
+### Détection automatique
+
+Au premier lancement, l'application suit la **préférence système** du navigateur (`prefers-color-scheme`). Si le système est en mode sombre, l'application l'adopte automatiquement.
+
+### Persistance
+
+Le choix est **mémorisé** automatiquement dans le navigateur (`localStorage`) et persiste entre les visites.
 
 ---
 
