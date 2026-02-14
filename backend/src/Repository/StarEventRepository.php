@@ -41,4 +41,14 @@ final class StarEventRepository extends ServiceEntityRepository
             ->getQuery()
             ->getSingleScalarResult();
     }
+
+    public function countByPlayer(Player $player): int
+    {
+        return (int) $this->createQueryBuilder('se')
+            ->select('COUNT(se.id)')
+            ->andWhere('se.player = :player')
+            ->setParameter('player', $player)
+            ->getQuery()
+            ->getSingleScalarResult();
+    }
 }

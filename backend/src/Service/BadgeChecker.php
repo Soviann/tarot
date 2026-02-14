@@ -10,8 +10,12 @@ use App\Entity\Session;
 use App\Enum\BadgeType;
 use App\Enum\Chelem;
 use App\Enum\Contract;
-use App\Enum\GameStatus;
 use App\Enum\Side;
+use App\Repository\GameRepository;
+use App\Repository\PlayerBadgeRepository;
+use App\Repository\ScoreEntryRepository;
+use App\Repository\SessionRepository;
+use App\Repository\StarEventRepository;
 use Doctrine\ORM\EntityManagerInterface;
 
 /**
@@ -30,6 +34,11 @@ final readonly class BadgeChecker
 {
     public function __construct(
         private EntityManagerInterface $em,
+        private GameRepository $gameRepository,
+        private PlayerBadgeRepository $playerBadgeRepository,
+        private ScoreEntryRepository $scoreEntryRepository,
+        private SessionRepository $sessionRepository,
+        private StarEventRepository $starEventRepository,
     ) {
     }
 
@@ -64,7 +73,7 @@ final readonly class BadgeChecker
      */
     public function checkAndAwardForPlayer(Player $player, bool $flush = true): array
     {
-        $existingTypes = $this->getExistingBadgeTypes($player);
+        $existingTypes = $this->playerBadgeRepository->getExistingBadgeTypesForPlayer($player);
         $newBadges = [];
 
         foreach (BadgeType::cases() as $badgeType) {
@@ -115,16 +124,7 @@ final readonly class BadgeChecker
      */
     private function checkCenturion(Player $player): bool
     {
-        $count = (int) $this->em->createQuery(
-            'SELECT COUNT(se.id) FROM App\Entity\ScoreEntry se
-             JOIN se.game g
-             WHERE se.player = :player AND g.status = :status'
-        )
-            ->setParameter('player', $player)
-            ->setParameter('status', GameStatus::Completed)
-            ->getSingleScalarResult();
-
-        return $count >= 100;
+        return $this->scoreEntryRepository->countCompletedGameEntriesForPlayer($player) >= 100;
     }
 
     /**
@@ -132,16 +132,8 @@ final readonly class BadgeChecker
      */
     private function checkChampionStreak(Player $player): bool
     {
-        /** @var list<array{score: int}> $games */
-        $games = $this->em->createQuery(
-            'SELECT se.score FROM App\Entity\Game g
-             JOIN g.scoreEntries se
-             WHERE g.taker = :player AND g.status = :status AND se.player = :player
-             ORDER BY g.createdAt ASC'
-        )
-            ->setParameter('player', $player)
-            ->setParameter('status', GameStatus::Completed)
-            ->getResult();
+        $scores = $this->gameRepository->getTakerScoresForPlayer($player);
+        $games = array_map(static fn (int $score): array => ['score' => $score], $scores);
 
         return $this->maxStreak($games, static fn (array $game): bool => $game['score'] > 0) >= 5;
     }
@@ -151,18 +143,10 @@ final readonly class BadgeChecker
      */
     private function checkComeback(Player $player): bool
     {
-        /** @var list<array{sessionId: int}> $sessions */
-        $sessions = $this->em->createQuery(
-            'SELECT DISTINCT IDENTITY(se.session) AS sessionId FROM App\Entity\ScoreEntry se
-             JOIN se.game g
-             WHERE se.player = :player AND g.status = :status'
-        )
-            ->setParameter('player', $player)
-            ->setParameter('status', GameStatus::Completed)
-            ->getResult();
+        $sessionIds = $this->scoreEntryRepository->getDistinctCompletedSessionIdsForPlayer($player);
 
-        foreach ($sessions as $row) {
-            if ($this->checkComebackInSession((int) $row['sessionId'], $player)) {
+        foreach ($sessionIds as $sessionId) {
+            if ($this->checkComebackInSession($sessionId, $player)) {
                 return true;
             }
         }
@@ -172,17 +156,7 @@ final readonly class BadgeChecker
 
     private function checkComebackInSession(int $sessionId, Player $player): bool
     {
-        /** @var list<array{playerId: int, score: int, position: int}> $entries */
-        $entries = $this->em->createQuery(
-            'SELECT IDENTITY(se.player) AS playerId, se.score, g.position
-             FROM App\Entity\ScoreEntry se
-             JOIN se.game g
-             WHERE g.session = :session AND g.status = :status
-             ORDER BY g.position ASC'
-        )
-            ->setParameter('session', $sessionId)
-            ->setParameter('status', GameStatus::Completed)
-            ->getResult();
+        $entries = $this->scoreEntryRepository->getEntriesForSessionByPosition($sessionId);
 
         if (0 === \count($entries)) {
             return false;
@@ -195,8 +169,8 @@ final readonly class BadgeChecker
         $currentPosition = 0;
 
         foreach ($entries as $entry) {
-            $pid = (int) $entry['playerId'];
-            $pos = (int) $entry['position'];
+            $pid = $entry['playerId'];
+            $pos = $entry['position'];
 
             if ($pos !== $currentPosition) {
                 // New game: check if player is last after previous game
@@ -214,7 +188,7 @@ final readonly class BadgeChecker
                 $currentPosition = $pos;
             }
 
-            $cumulative[$pid] = ($cumulative[$pid] ?? 0) + (int) $entry['score'];
+            $cumulative[$pid] = ($cumulative[$pid] ?? 0) + $entry['score'];
         }
 
         // After last game: check if player finished first
@@ -240,16 +214,7 @@ final readonly class BadgeChecker
      */
     private function checkFirstChelem(Player $player): bool
     {
-        $count = (int) $this->em->createQuery(
-            'SELECT COUNT(g.id) FROM App\Entity\Game g
-             WHERE g.taker = :player AND g.status = :status AND g.chelem = :chelem'
-        )
-            ->setParameter('chelem', Chelem::AnnouncedWon)
-            ->setParameter('player', $player)
-            ->setParameter('status', GameStatus::Completed)
-            ->getSingleScalarResult();
-
-        return $count >= 1;
+        return $this->gameRepository->countByTakerAndStatusAndChelem($player, Chelem::AnnouncedWon) >= 1;
     }
 
     /**
@@ -257,16 +222,7 @@ final readonly class BadgeChecker
      */
     private function checkFirstGame(Player $player): bool
     {
-        $count = (int) $this->em->createQuery(
-            'SELECT COUNT(se.id) FROM App\Entity\ScoreEntry se
-             JOIN se.game g
-             WHERE se.player = :player AND g.status = :status'
-        )
-            ->setParameter('player', $player)
-            ->setParameter('status', GameStatus::Completed)
-            ->getSingleScalarResult();
-
-        return $count >= 1;
+        return $this->scoreEntryRepository->countCompletedGameEntriesForPlayer($player) >= 1;
     }
 
     /**
@@ -274,16 +230,7 @@ final readonly class BadgeChecker
      */
     private function checkKamikaze(Player $player): bool
     {
-        $count = (int) $this->em->createQuery(
-            'SELECT COUNT(g.id) FROM App\Entity\Game g
-             WHERE g.taker = :player AND g.status = :status AND g.contract = :contract'
-        )
-            ->setParameter('contract', Contract::GardeContre)
-            ->setParameter('player', $player)
-            ->setParameter('status', GameStatus::Completed)
-            ->getSingleScalarResult();
-
-        return $count >= 1;
+        return $this->gameRepository->countByTakerAndStatusAndContract($player, Contract::GardeContre) >= 1;
     }
 
     /**
@@ -291,19 +238,11 @@ final readonly class BadgeChecker
      */
     private function checkLastPlace(Player $player): bool
     {
-        /** @var list<array{sessionId: int}> $sessions */
-        $sessions = $this->em->createQuery(
-            'SELECT DISTINCT IDENTITY(se.session) AS sessionId FROM App\Entity\ScoreEntry se
-             JOIN se.game g
-             WHERE se.player = :player AND g.status = :status'
-        )
-            ->setParameter('player', $player)
-            ->setParameter('status', GameStatus::Completed)
-            ->getResult();
+        $sessionIds = $this->scoreEntryRepository->getDistinctCompletedSessionIdsForPlayer($player);
 
         $lastPlaceCount = 0;
-        foreach ($sessions as $row) {
-            if ($this->isLastInSession((int) $row['sessionId'], $player)) {
+        foreach ($sessionIds as $sessionId) {
+            if ($this->isLastInSession($sessionId, $player)) {
                 ++$lastPlaceCount;
             }
         }
@@ -313,24 +252,13 @@ final readonly class BadgeChecker
 
     private function isLastInSession(int $sessionId, Player $player): bool
     {
-        /** @var list<array{playerId: int, totalScore: string}> $scores */
-        $scores = $this->em->createQuery(
-            'SELECT IDENTITY(se.player) AS playerId, SUM(se.score) AS totalScore
-             FROM App\Entity\ScoreEntry se
-             JOIN se.game g
-             WHERE g.session = :session AND g.status = :status
-             GROUP BY se.player
-             ORDER BY totalScore ASC'
-        )
-            ->setParameter('session', $sessionId)
-            ->setParameter('status', GameStatus::Completed)
-            ->getResult();
+        $scores = $this->scoreEntryRepository->getScoreSumsByPlayerForSession($sessionId);
 
         if (0 === \count($scores)) {
             return false;
         }
 
-        return (int) $scores[0]['playerId'] === $player->getId();
+        return $scores[0]['playerId'] === $player->getId();
     }
 
     /**
@@ -338,21 +266,7 @@ final readonly class BadgeChecker
      */
     private function checkMarathon(Player $player): bool
     {
-        /** @var list<array{sessionId: int, maxDuration: string}> $sessions */
-        $sessions = $this->em->createQuery(
-            'SELECT IDENTITY(g.session) AS sessionId, MAX(TIMESTAMPDIFF(SECOND, s.createdAt, g.completedAt)) AS maxDuration
-             FROM App\Entity\Game g
-             JOIN g.session s
-             JOIN s.players p
-             WHERE p = :player AND g.status = :status
-             AND g.completedAt IS NOT NULL
-             GROUP BY g.session
-             HAVING MAX(TIMESTAMPDIFF(SECOND, s.createdAt, g.completedAt)) > :threshold'
-        )
-            ->setParameter('player', $player)
-            ->setParameter('status', GameStatus::Completed)
-            ->setParameter('threshold', 3 * 3600)
-            ->getResult();
+        $sessions = $this->gameRepository->getMarathonSessionsForPlayer($player, 3 * 3600);
 
         return \count($sessions) >= 1;
     }
@@ -362,18 +276,7 @@ final readonly class BadgeChecker
      */
     private function checkNightOwl(Player $player): bool
     {
-        $count = (int) $this->em->createQuery(
-            'SELECT COUNT(se.id) FROM App\Entity\ScoreEntry se
-             JOIN se.game g
-             WHERE se.player = :player AND g.status = :status
-             AND g.completedAt IS NOT NULL
-             AND HOUR(g.completedAt) >= 0 AND HOUR(g.completedAt) < 5'
-        )
-            ->setParameter('player', $player)
-            ->setParameter('status', GameStatus::Completed)
-            ->getSingleScalarResult();
-
-        return $count >= 1;
+        return $this->scoreEntryRepository->countNightOwlGamesForPlayer($player) >= 1;
     }
 
     /**
@@ -381,19 +284,7 @@ final readonly class BadgeChecker
      */
     private function checkNoNet(Player $player): bool
     {
-        $count = (int) $this->em->createQuery(
-            'SELECT COUNT(g.id) FROM App\Entity\Game g
-             JOIN g.scoreEntries se
-             WHERE g.taker = :player AND g.status = :status
-             AND g.contract = :contract
-             AND se.player = :player AND se.score > 0'
-        )
-            ->setParameter('contract', Contract::GardeSans)
-            ->setParameter('player', $player)
-            ->setParameter('status', GameStatus::Completed)
-            ->getSingleScalarResult();
-
-        return $count >= 1;
+        return $this->gameRepository->countWonGamesWithContract($player, Contract::GardeSans) >= 1;
     }
 
     /**
@@ -401,19 +292,7 @@ final readonly class BadgeChecker
      */
     private function checkPetitMalin(Player $player): bool
     {
-        $count = (int) $this->em->createQuery(
-            'SELECT COUNT(g.id) FROM App\Entity\Game g
-             JOIN g.scoreEntries se
-             WHERE g.taker = :player AND g.status = :status
-             AND g.petitAuBout = :petitAuBout
-             AND se.player = :player AND se.score > 0'
-        )
-            ->setParameter('petitAuBout', Side::Attack)
-            ->setParameter('player', $player)
-            ->setParameter('status', GameStatus::Completed)
-            ->getSingleScalarResult();
-
-        return $count >= 5;
+        return $this->gameRepository->countWonGamesWithPetitAuBout($player, Side::Attack) >= 5;
     }
 
     /**
@@ -421,16 +300,7 @@ final readonly class BadgeChecker
      */
     private function checkRegular(Player $player): bool
     {
-        $count = (int) $this->em->createQuery(
-            'SELECT COUNT(DISTINCT g.session) FROM App\Entity\ScoreEntry se
-             JOIN se.game g
-             WHERE se.player = :player AND g.status = :status'
-        )
-            ->setParameter('player', $player)
-            ->setParameter('status', GameStatus::Completed)
-            ->getSingleScalarResult();
-
-        return $count >= 10;
+        return $this->scoreEntryRepository->countDistinctCompletedSessionsForPlayer($player) >= 10;
     }
 
     /**
@@ -438,18 +308,7 @@ final readonly class BadgeChecker
      */
     private function checkSocial(Player $player): bool
     {
-        $count = (int) $this->em->createQuery(
-            'SELECT COUNT(DISTINCT p2.id) FROM App\Entity\Session s
-             JOIN s.players p
-             JOIN s.players p2
-             JOIN s.games g
-             WHERE p = :player AND p2 != :player AND g.status = :status'
-        )
-            ->setParameter('player', $player)
-            ->setParameter('status', GameStatus::Completed)
-            ->getSingleScalarResult();
-
-        return $count >= 10;
+        return $this->sessionRepository->countDistinctCoPlayersForPlayer($player) >= 10;
     }
 
     /**
@@ -457,14 +316,7 @@ final readonly class BadgeChecker
      */
     private function checkStarCollector(Player $player): bool
     {
-        $count = (int) $this->em->createQuery(
-            'SELECT COUNT(se.id) FROM App\Entity\StarEvent se
-             WHERE se.player = :player'
-        )
-            ->setParameter('player', $player)
-            ->getSingleScalarResult();
-
-        return $count >= 10;
+        return $this->starEventRepository->countByPlayer($player) >= 10;
     }
 
     /**
@@ -473,20 +325,7 @@ final readonly class BadgeChecker
      */
     private function checkWall(Player $player): bool
     {
-        // Fetch all games where player participated, ordered by createdAt
-        /** @var list<array{gameId: int, partnerId: int|null, takerId: int, takerScore: int}> $games */
-        $games = $this->em->createQuery(
-            'SELECT g.id AS gameId, IDENTITY(g.taker) AS takerId, IDENTITY(g.partner) AS partnerId, se2.score AS takerScore
-             FROM App\Entity\ScoreEntry se
-             JOIN se.game g
-             JOIN g.scoreEntries se2
-             WHERE se.player = :player AND g.status = :status
-             AND se2.player = g.taker
-             ORDER BY g.createdAt ASC'
-        )
-            ->setParameter('player', $player)
-            ->setParameter('status', GameStatus::Completed)
-            ->getResult();
+        $games = $this->scoreEntryRepository->getGamesWithTakerScoreForPlayer($player);
 
         $playerId = $player->getId();
         $max = 0;
@@ -506,21 +345,6 @@ final readonly class BadgeChecker
         }
 
         return $max >= 10;
-    }
-
-    /**
-     * @return list<BadgeType>
-     */
-    private function getExistingBadgeTypes(Player $player): array
-    {
-        /** @var list<array{badgeType: BadgeType}> $rows */
-        $rows = $this->em->createQuery(
-            'SELECT pb.badgeType FROM App\Entity\PlayerBadge pb WHERE pb.player = :player'
-        )
-            ->setParameter('player', $player)
-            ->getResult();
-
-        return \array_map(static fn (array $row): BadgeType => $row['badgeType'], $rows);
     }
 
     /**

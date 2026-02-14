@@ -4,8 +4,10 @@ declare(strict_types=1);
 
 namespace App\Repository;
 
+use App\Entity\Player;
 use App\Entity\PlayerGroup;
 use App\Entity\Session;
+use App\Enum\GameStatus;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 
@@ -82,5 +84,21 @@ final class SessionRepository extends ServiceEntityRepository
             ->setMaxResults($maxResults)
             ->getQuery()
             ->getResult();
+    }
+
+    public function countDistinctCoPlayersForPlayer(Player $player): int
+    {
+        return (int) $this->createQueryBuilder('s')
+            ->select('COUNT(DISTINCT p2.id)')
+            ->join('s.players', 'p')
+            ->join('s.players', 'p2')
+            ->join('s.games', 'g')
+            ->andWhere('p = :player')
+            ->andWhere('p2 != :player')
+            ->andWhere('g.status = :status')
+            ->setParameter('player', $player)
+            ->setParameter('status', GameStatus::Completed)
+            ->getQuery()
+            ->getSingleScalarResult();
     }
 }

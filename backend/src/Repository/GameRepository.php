@@ -5,9 +5,12 @@ declare(strict_types=1);
 namespace App\Repository;
 
 use App\Entity\Game;
+use App\Entity\Player;
 use App\Entity\Session;
+use App\Enum\Chelem;
 use App\Enum\Contract;
 use App\Enum\GameStatus;
+use App\Enum\Side;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 
@@ -159,5 +162,112 @@ final class GameRepository extends ServiceEntityRepository
             ->setParameter('session', $session)
             ->getQuery()
             ->getSingleScalarResult();
+    }
+
+    public function countByTakerAndStatusAndChelem(Player $player, Chelem $chelem): int
+    {
+        return (int) $this->createQueryBuilder('g')
+            ->select('COUNT(g.id)')
+            ->andWhere('g.taker = :player')
+            ->andWhere('g.status = :status')
+            ->andWhere('g.chelem = :chelem')
+            ->setParameter('chelem', $chelem)
+            ->setParameter('player', $player)
+            ->setParameter('status', GameStatus::Completed)
+            ->getQuery()
+            ->getSingleScalarResult();
+    }
+
+    public function countByTakerAndStatusAndContract(Player $player, Contract $contract): int
+    {
+        return (int) $this->createQueryBuilder('g')
+            ->select('COUNT(g.id)')
+            ->andWhere('g.taker = :player')
+            ->andWhere('g.status = :status')
+            ->andWhere('g.contract = :contract')
+            ->setParameter('contract', $contract)
+            ->setParameter('player', $player)
+            ->setParameter('status', GameStatus::Completed)
+            ->getQuery()
+            ->getSingleScalarResult();
+    }
+
+    public function countWonGamesWithContract(Player $player, Contract $contract): int
+    {
+        return (int) $this->createQueryBuilder('g')
+            ->select('COUNT(g.id)')
+            ->join('g.scoreEntries', 'se')
+            ->andWhere('g.taker = :player')
+            ->andWhere('g.status = :status')
+            ->andWhere('g.contract = :contract')
+            ->andWhere('se.player = :player')
+            ->andWhere('se.score > 0')
+            ->setParameter('contract', $contract)
+            ->setParameter('player', $player)
+            ->setParameter('status', GameStatus::Completed)
+            ->getQuery()
+            ->getSingleScalarResult();
+    }
+
+    public function countWonGamesWithPetitAuBout(Player $player, Side $side): int
+    {
+        return (int) $this->createQueryBuilder('g')
+            ->select('COUNT(g.id)')
+            ->join('g.scoreEntries', 'se')
+            ->andWhere('g.taker = :player')
+            ->andWhere('g.status = :status')
+            ->andWhere('g.petitAuBout = :petitAuBout')
+            ->andWhere('se.player = :player')
+            ->andWhere('se.score > 0')
+            ->setParameter('petitAuBout', $side)
+            ->setParameter('player', $player)
+            ->setParameter('status', GameStatus::Completed)
+            ->getQuery()
+            ->getSingleScalarResult();
+    }
+
+    /**
+     * @return list<int>
+     */
+    public function getMarathonSessionsForPlayer(Player $player, int $thresholdSeconds): array
+    {
+        /** @var list<array{sessionId: int|string}> $results */
+        $results = $this->createQueryBuilder('g')
+            ->select('IDENTITY(g.session) AS sessionId')
+            ->join('g.session', 's')
+            ->join('s.players', 'p')
+            ->andWhere('p = :player')
+            ->andWhere('g.status = :status')
+            ->andWhere('g.completedAt IS NOT NULL')
+            ->setParameter('player', $player)
+            ->setParameter('status', GameStatus::Completed)
+            ->groupBy('g.session')
+            ->having('MAX(TIMESTAMPDIFF(SECOND, s.createdAt, g.completedAt)) > :threshold')
+            ->setParameter('threshold', $thresholdSeconds)
+            ->getQuery()
+            ->getResult();
+
+        return array_map(static fn (array $row): int => (int) $row['sessionId'], $results);
+    }
+
+    /**
+     * @return list<int>
+     */
+    public function getTakerScoresForPlayer(Player $player): array
+    {
+        /** @var list<array{score: int|string}> $results */
+        $results = $this->createQueryBuilder('g')
+            ->select('se.score')
+            ->join('g.scoreEntries', 'se')
+            ->andWhere('g.taker = :player')
+            ->andWhere('g.status = :status')
+            ->andWhere('se.player = :player')
+            ->setParameter('player', $player)
+            ->setParameter('status', GameStatus::Completed)
+            ->orderBy('g.createdAt', 'ASC')
+            ->getQuery()
+            ->getResult();
+
+        return array_map(static fn (array $row): int => (int) $row['score'], $results);
     }
 }
