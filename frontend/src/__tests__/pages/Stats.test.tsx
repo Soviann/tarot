@@ -63,7 +63,7 @@ describe("Stats page", () => {
 
     renderWithProviders(<Stats />);
 
-    expect(screen.getByText("Chargement…")).toBeInTheDocument();
+    expect(screen.getByRole("status")).toBeInTheDocument();
   });
 
   it("shows error state when stats is null", () => {

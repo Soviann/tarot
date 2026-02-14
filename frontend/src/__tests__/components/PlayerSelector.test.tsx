@@ -293,7 +293,7 @@ describe("PlayerSelector", () => {
 
     await searchFor("a");
 
-    expect(screen.getByText("Chargement…")).toBeInTheDocument();
+    expect(screen.getByRole("status")).toBeInTheDocument();
   });
 
   it("hides inactive players from selection list", async () => {

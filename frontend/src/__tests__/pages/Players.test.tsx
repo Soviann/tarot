@@ -237,7 +237,7 @@ describe("Players page", () => {
     });
     renderWithProviders(<Players />);
 
-    expect(screen.getByText("Chargement…")).toBeInTheDocument();
+    expect(screen.getByRole("status")).toBeInTheDocument();
   });
 
   // --- Edit modal tests ---

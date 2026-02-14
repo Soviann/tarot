@@ -2,7 +2,7 @@ import { Plus, Trash2, Users } from "lucide-react";
 import { type FormEvent, useCallback, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import PlayerSelector from "../components/PlayerSelector";
-import { FAB, Modal } from "../components/ui";
+import { EmptyState, FAB, Modal, Spinner } from "../components/ui";
 import { useCreatePlayerGroup } from "../hooks/useCreatePlayerGroup";
 import { useDeletePlayerGroup } from "../hooks/useDeletePlayerGroup";
 import { usePlayerGroups } from "../hooks/usePlayerGroups";
@@ -80,14 +80,14 @@ export default function Groups() {
         )}
       </header>
 
-      {isPending && (
-        <p className="py-8 text-center text-text-muted">Chargement…</p>
-      )}
+      {isPending && <Spinner />}
 
       {!isPending && groups.length === 0 && (
-        <p className="py-8 text-center text-text-muted">
-          Aucun groupe créé
-        </p>
+        <EmptyState
+          action={{ label: "Créer un groupe", onClick: openModal }}
+          icon={<Users size={40} />}
+          message="Aucun groupe créé"
+        />
       )}
 
       {!isPending && groups.length > 0 && (

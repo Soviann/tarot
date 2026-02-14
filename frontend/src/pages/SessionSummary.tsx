@@ -1,8 +1,7 @@
 import { ArrowLeft, Download, Share2 } from "lucide-react";
 import { useCallback, useRef, useState } from "react";
 import { Link, useParams } from "react-router-dom";
-import PlayerAvatar from "../components/ui/PlayerAvatar";
-import ScoreDisplay from "../components/ui/ScoreDisplay";
+import { PlayerAvatar, ScoreDisplay, Spinner } from "../components/ui";
 import { useSessionSummary } from "../hooks/useSessionSummary";
 import type {
   SessionAward,
@@ -345,7 +344,7 @@ export default function SessionSummary() {
 
   if (isPending) {
     return (
-      <div className="p-4 text-center text-text-muted">Chargement…</div>
+      <div className="p-4"><Spinner /></div>
     );
   }
 

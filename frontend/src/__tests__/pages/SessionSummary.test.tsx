@@ -54,7 +54,7 @@ describe("SessionSummary page", () => {
 
     renderWithProviders(<SessionSummary />);
 
-    expect(screen.getByText("Chargement…")).toBeInTheDocument();
+    expect(screen.getByRole("status")).toBeInTheDocument();
   });
 
   it("shows error state when summary is null", () => {

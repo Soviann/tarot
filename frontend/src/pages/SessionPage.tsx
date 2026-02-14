@@ -16,7 +16,7 @@ import Scoreboard from "../components/Scoreboard";
 import ScoreEvolutionChart from "../components/ScoreEvolutionChart";
 import ShareQrCodeModal from "../components/ShareQrCodeModal";
 import SwapPlayersModal from "../components/SwapPlayersModal";
-import { FAB, Modal, OverflowMenu, UndoFAB } from "../components/ui";
+import { FAB, Modal, OverflowMenu, Spinner, UndoFAB } from "../components/ui";
 import type { OverflowMenuItem } from "../components/ui/OverflowMenu";
 import { useAddStar } from "../hooks/useAddStar";
 import { useCloseSession } from "../hooks/useCloseSession";
@@ -128,7 +128,7 @@ export default function SessionPage() {
 
   if (isPending) {
     return (
-      <div className="p-4 text-center text-text-muted">Chargement…</div>
+      <div className="p-4"><Spinner /></div>
     );
   }
 
