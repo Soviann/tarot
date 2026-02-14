@@ -13,6 +13,7 @@ use ApiPlatform\Metadata\Patch;
 use ApiPlatform\Metadata\Post;
 use App\Dto\NewBadgesDto;
 use App\Enum\Chelem;
+use App\Repository\GameRepository;
 use App\Enum\Contract;
 use App\Enum\GameStatus;
 use App\Enum\Poignee;
@@ -59,7 +60,7 @@ use Symfony\Component\Serializer\Attribute\Groups;
     normalizationContext: ['groups' => ['game:read']],
 )]
 #[OnlyLastGameEditable(groups: ['game:delete', 'game:patch'])]
-#[ORM\Entity]
+#[ORM\Entity(repositoryClass: GameRepository::class)]
 #[PlayersBelongToSession(groups: ['game:patch'])]
 class Game
 {

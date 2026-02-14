@@ -9,6 +9,7 @@ use ApiPlatform\Metadata\GetCollection;
 use ApiPlatform\Metadata\Link;
 use ApiPlatform\Metadata\Post;
 use App\Dto\NewBadgesDto;
+use App\Repository\StarEventRepository;
 use App\State\StarEventCreateProcessor;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Serializer\Attribute\Groups;
@@ -26,7 +27,7 @@ use Symfony\Component\Validator\Constraints as Assert;
     normalizationContext: ['groups' => ['star-event:read']],
     denormalizationContext: ['groups' => ['star-event:write']],
 )]
-#[ORM\Entity]
+#[ORM\Entity(repositoryClass: StarEventRepository::class)]
 class StarEvent
 {
     #[Groups(['session:detail', 'star-event:read'])]

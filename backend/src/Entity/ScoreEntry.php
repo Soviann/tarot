@@ -4,10 +4,11 @@ declare(strict_types=1);
 
 namespace App\Entity;
 
+use App\Repository\ScoreEntryRepository;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Serializer\Attribute\Groups;
 
-#[ORM\Entity]
+#[ORM\Entity(repositoryClass: ScoreEntryRepository::class)]
 class ScoreEntry
 {
     #[ORM\ManyToOne(targetEntity: Game::class, inversedBy: 'scoreEntries')]
