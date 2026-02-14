@@ -1,6 +1,7 @@
 import { ChevronDown } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { useCompleteGame } from "../hooks/useCompleteGame";
+import { useToast } from "../hooks/useToast";
 import type { GameContext } from "../services/memeSelector";
 import { calculateScore, REQUIRED_POINTS } from "../services/scoreCalculator";
 import type { Badge, Game, GamePlayer } from "../types/api";
@@ -41,6 +42,7 @@ const chelemOptions: { label: string; value: ChelemType }[] = [
 
 export default function CompleteGameModal({ game, onBadgesUnlocked, onClose, onGameCompleted, onGameSaved, open, players, sessionId }: CompleteGameModalProps) {
   const completeGame = useCompleteGame(game.id, sessionId);
+  const { toast } = useToast();
   const isEditMode = game.status === GameStatus.Completed;
 
   const [bonusesOpen, setBonusesOpen] = useState(false);
@@ -124,6 +126,7 @@ export default function CompleteGameModal({ game, onBadgesUnlocked, onClose, onG
       },
       {
         onSuccess: (data) => {
+          toast(isEditMode ? "Donne modifiée" : "Donne enregistrée");
           if (!isEditMode && scoreResult) {
             onGameCompleted?.({
               attackWins: scoreResult.attackWins,

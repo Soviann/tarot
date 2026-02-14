@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useCreateSession } from "../hooks/useCreateSession";
+import { useToast } from "../hooks/useToast";
 import type { Session } from "../types/api";
 import PlayerSelector from "./PlayerSelector";
 import { Modal } from "./ui";
@@ -19,6 +20,7 @@ export default function SwapPlayersModal({
 }: SwapPlayersModalProps) {
   const [selectedPlayerIds, setSelectedPlayerIds] = useState<number[]>(currentPlayerIds);
   const createSession = useCreateSession();
+  const { toast } = useToast();
 
   useEffect(() => {
     if (open) {
@@ -28,7 +30,12 @@ export default function SwapPlayersModal({
   }, [open]); // eslint-disable-line react-hooks/exhaustive-deps
 
   function handleConfirm() {
-    createSession.mutate(selectedPlayerIds, { onSuccess: onSwap });
+    createSession.mutate(selectedPlayerIds, {
+      onSuccess: (session) => {
+        toast("Joueurs modifiés");
+        onSwap(session);
+      },
+    });
   }
 
   return (

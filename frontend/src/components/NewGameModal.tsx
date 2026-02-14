@@ -1,6 +1,7 @@
 import { RotateCcw } from "lucide-react";
 import { useEffect, useState } from "react";
 import type { useCreateGame } from "../hooks/useCreateGame";
+import { useToast } from "../hooks/useToast";
 import type { GamePlayer } from "../types/api";
 import { Contract } from "../types/enums";
 import type { Contract as ContractType } from "../types/enums";
@@ -25,6 +26,7 @@ const contracts: { colorClass: string; label: string; value: ContractType }[] = 
 export default function NewGameModal({ createGame, currentDealerName, lastGameConfig, onClose, open, players }: NewGameModalProps) {
   const [selectedContract, setSelectedContract] = useState<ContractType | null>(null);
   const [selectedTakerId, setSelectedTakerId] = useState<number | null>(null);
+  const { toast } = useToast();
 
   useEffect(() => {
     if (open) {
@@ -40,7 +42,12 @@ export default function NewGameModal({ createGame, currentDealerName, lastGameCo
     if (!canSubmit) return;
     createGame.mutate(
       { contract: selectedContract, takerId: selectedTakerId },
-      { onSuccess: () => onClose() },
+      {
+        onSuccess: () => {
+          toast("Donne créée");
+          onClose();
+        },
+      },
     );
   }
 
