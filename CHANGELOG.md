@@ -8,6 +8,7 @@ Le format est basé sur [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/)
 
 ### Added
 
+- **Animation des modales** : les modales s'ouvrent avec un slide-up depuis le bas (200 ms ease-out) et se ferment avec un slide-down. Le backdrop apparaît et disparaît en fondu (200 ms). Améliore la fluidité de l'interface.
 - **Spinner de chargement animé** : indicateur de chargement animé (cercle tournant accent) remplaçant le texte brut « Chargement… » sur toutes les pages. Accessible (`role="status"`, texte masqué pour lecteurs d'écran). Deux tailles : `md` (pleine page) et `sm` (inline).
 - **États vides illustrés** : icônes et messages explicites sur les pages sans contenu (groupes, joueurs, détail groupe, sessions). Bouton d'action contextuel quand applicable (ex : « Créer un groupe » sur la page groupes vide).
 - **Toasts de confirmation** : un toast discret (haut de l'écran, auto-dismiss 2 s) confirme désormais chaque action utilisateur réussie — création de joueur/session/donne, ajout d'étoile, modification du donneur, gestion des groupes, clôture de session, etc. Icône et couleur distinctes pour succès (vert) et erreur (rouge). Maximum 3 toasts empilés, animation d'apparition fluide, compatible dark mode.
