@@ -784,7 +784,7 @@ Page d'aide in-app reprenant le contenu du guide utilisateur (`docs/user-guide.m
 
 **Fichier** : `components/BadgeGrid.tsx`
 
-Grille affichant les 15 badges d'un joueur (débloqués en premier avec date, verrouillés grisés ensuite). Titre avec compteur (X/Y).
+Grille affichant les badges d'un joueur. Seuls les badges débloqués sont visibles par défaut ; un bouton toggle permet de révéler/masquer les badges verrouillés. Titre avec compteur (X/Y).
 
 | Prop | Type | Description |
 |------|------|-------------|
@@ -794,7 +794,8 @@ Grille affichant les 15 badges d'un joueur (débloqués en premier avec date, ve
 - Header « Badges (X/Y) » avec compteur débloqués/total
 - Grille 3 colonnes mobile, 5 colonnes TV (`grid-cols-3 lg:grid-cols-5`)
 - Badges débloqués : fond élevé, emoji + nom + date au format `fr-FR`
-- Badges verrouillés : fond secondaire, `opacity-40`
+- Badges verrouillés masqués par défaut ; bouton « Voir les X restants » / « Masquer les badges verrouillés » pour toggle
+- Badges verrouillés (quand révélés) : fond secondaire, `opacity-40`
 
 ### `BadgeUnlockedModal`
 

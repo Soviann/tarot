@@ -15,6 +15,7 @@ Le format est basé sur [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/)
 ### Changed
 
 - **Statistiques — sections en menu déroulant** : les pages de statistiques globales et par joueur affichent désormais les métriques clés et le classement en haut, suivis d'un menu déroulant permettant de choisir la section détaillée à afficher. Réduit le scroll sur mobile.
+- **Badges — masquer les verrouillés par défaut** : seuls les badges débloqués sont affichés. Un bouton « Voir les X restants » permet de révéler les badges verrouillés à la demande.
 
 ### Fixed
 
