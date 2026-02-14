@@ -1,5 +1,6 @@
 interface PlayerAvatarProps {
   className?: string;
+  color?: string | null;
   name: string;
   playerId?: number;
   size?: "lg" | "md" | "sm";
@@ -34,6 +35,7 @@ function hashCode(str: string): number {
 
 export default function PlayerAvatar({
   className = "",
+  color,
   name,
   playerId,
   size = "md",
@@ -43,14 +45,18 @@ export default function PlayerAvatar({
     parts.length > 1
       ? (parts[0][0] + parts[1][0]).toUpperCase()
       : name.slice(0, 2).toUpperCase();
-  const colorIndex = playerId !== undefined ? playerId % 10 : hashCode(name) % 10;
-  const colorClass = avatarColors[colorIndex];
+  const useCustomColor = !!color;
+  const colorIndex =
+    playerId !== undefined ? playerId % 10 : hashCode(name) % 10;
+  const colorClass = useCustomColor ? "" : avatarColors[colorIndex];
+  const inlineStyle = useCustomColor ? { backgroundColor: color } : undefined;
 
   return (
     <div
       aria-label={name}
       className={`${colorClass} ${sizeClasses[size]} inline-flex items-center justify-center rounded-full font-semibold text-white ${className}`.trim()}
       role="img"
+      style={inlineStyle}
     >
       {initials}
     </div>

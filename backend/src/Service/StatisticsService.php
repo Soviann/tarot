@@ -56,7 +56,7 @@ class StatisticsService
     }
 
     /**
-     * @return list<array{eloRating: int, gamesPlayed: int, playerId: int, playerName: string}>
+     * @return list<array{eloRating: int, gamesPlayed: int, playerColor: string|null, playerId: int, playerName: string}>
      */
     public function getEloRanking(?int $playerGroupId = null): array
     {
@@ -64,23 +64,24 @@ class StatisticsService
         $groupWhere = null !== $playerGroupId ? ' WHERE s_grp.playerGroup = :group' : '';
 
         $query = $this->em->createQuery(
-            'SELECT IDENTITY(eh.player) AS playerId, p.name AS playerName, p.eloRating AS eloRating,
+            'SELECT IDENTITY(eh.player) AS playerId, p.name AS playerName, p.color AS playerColor, p.eloRating AS eloRating,
                     COUNT(DISTINCT eh.game) AS gamesPlayed
              FROM App\Entity\EloHistory eh
              JOIN eh.player p'.$groupJoin.$groupWhere.'
-             GROUP BY eh.player, p.name, p.eloRating
+             GROUP BY eh.player, p.color, p.name, p.eloRating
              ORDER BY eloRating DESC'
         );
 
         $this->setGroupParameter($query, $playerGroupId);
 
-        /** @var list<array{eloRating: int|string, gamesPlayed: int|string, playerId: int|string, playerName: string}> $rows */
+        /** @var list<array{eloRating: int|string, gamesPlayed: int|string, playerColor: string|null, playerId: int|string, playerName: string}> $rows */
         $rows = $query->getResult();
 
         return \array_map(
             static fn (array $row) => [
                 'eloRating' => (int) $row['eloRating'],
                 'gamesPlayed' => (int) $row['gamesPlayed'],
+                'playerColor' => $row['playerColor'],
                 'playerId' => (int) $row['playerId'],
                 'playerName' => $row['playerName'],
             ],
@@ -89,7 +90,7 @@ class StatisticsService
     }
 
     /**
-     * @return list<array{gamesAsTaker: int, gamesPlayed: int, playerId: int, playerName: string, totalScore: int, winRate: float, wins: int}>
+     * @return list<array{gamesAsTaker: int, gamesPlayed: int, playerColor: string|null, playerId: int, playerName: string, totalScore: int, winRate: float, wins: int}>
      */
     public function getLeaderboard(?int $playerGroupId = null): array
     {
@@ -99,19 +100,19 @@ class StatisticsService
         $groupStarWhere = null !== $playerGroupId ? ' AND s_star.playerGroup = :group' : '';
 
         $scoreQuery = $this->em->createQuery(
-            'SELECT IDENTITY(se.player) AS playerId, p.name AS playerName, SUM(se.score) AS totalScore
+            'SELECT IDENTITY(se.player) AS playerId, p.name AS playerName, p.color AS playerColor, SUM(se.score) AS totalScore
              FROM App\Entity\ScoreEntry se
              JOIN se.player p
              LEFT JOIN se.game g'.$groupJoin.$groupStarJoin.'
              WHERE (g IS NOT NULL AND g.status = :status'.$groupWhere.') OR (se.game IS NULL'.$groupStarWhere.')
-             GROUP BY se.player, p.name
+             GROUP BY se.player, p.color, p.name
              ORDER BY totalScore DESC'
         )
             ->setParameter('status', GameStatus::Completed);
 
         $this->setGroupParameter($scoreQuery, $playerGroupId);
 
-        /** @var list<array{playerId: int|string, playerName: string, totalScore: int|string}> $scoreRows */
+        /** @var list<array{playerColor: string|null, playerId: int|string, playerName: string, totalScore: int|string}> $scoreRows */
         $scoreRows = $scoreQuery->getResult();
 
         if (empty($scoreRows)) {
@@ -181,6 +182,7 @@ class StatisticsService
             static fn (array $row) => [
                 'gamesAsTaker' => $gamesAsTaker[(int) $row['playerId']] ?? 0,
                 'gamesPlayed' => $gamesPlayed[(int) $row['playerId']] ?? 0,
+                'playerColor' => $row['playerColor'],
                 'playerId' => (int) $row['playerId'],
                 'playerName' => $row['playerName'],
                 'totalScore' => (int) $row['totalScore'],

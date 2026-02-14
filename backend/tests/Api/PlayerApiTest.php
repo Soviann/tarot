@@ -118,4 +118,55 @@ class PlayerApiTest extends ApiTestCase
         $this->assertResponseIsSuccessful();
         $this->assertJsonContains(['active' => true, 'name' => 'Alice']);
     }
+
+    public function testSetPlayerColor(): void
+    {
+        $player = $this->createPlayer('Alice');
+
+        $this->client->request('PATCH', $this->getIri($player), [
+            'headers' => ['Content-Type' => 'application/merge-patch+json'],
+            'json' => ['color' => '#ef4444'],
+        ]);
+
+        $this->assertResponseIsSuccessful();
+        $this->assertJsonContains(['color' => '#ef4444', 'name' => 'Alice']);
+    }
+
+    public function testSetPlayerColorInvalid(): void
+    {
+        $player = $this->createPlayer('Alice');
+
+        $this->client->request('PATCH', $this->getIri($player), [
+            'headers' => ['Content-Type' => 'application/merge-patch+json'],
+            'json' => ['color' => 'not-a-color'],
+        ]);
+
+        $this->assertResponseStatusCodeSame(422);
+    }
+
+    public function testClearPlayerColor(): void
+    {
+        $player = $this->createPlayer('Alice');
+        $player->setColor('#ef4444');
+        $this->em->flush();
+
+        $this->client->request('PATCH', $this->getIri($player), [
+            'headers' => ['Content-Type' => 'application/merge-patch+json'],
+            'json' => ['color' => null],
+        ]);
+
+        $this->assertResponseIsSuccessful();
+        $this->assertJsonContains(['color' => null]);
+    }
+
+    public function testPlayerColorDefaultsToNull(): void
+    {
+        $this->client->request('POST', '/api/players', [
+            'headers' => ['Content-Type' => 'application/ld+json'],
+            'json' => ['name' => 'Alice'],
+        ]);
+
+        $this->assertResponseStatusCodeSame(201);
+        $this->assertJsonContains(['color' => null]);
+    }
 }

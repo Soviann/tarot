@@ -65,7 +65,7 @@ export default function PlayerStats() {
             />
           </svg>
         </button>
-        <PlayerAvatar name={stats.player.name} playerId={stats.player.id} size="lg" />
+        <PlayerAvatar color={stats.player.color} name={stats.player.name} playerId={stats.player.id} size="lg" />
         <h1 className="text-xl font-bold text-text-primary">{stats.player.name}</h1>
         <div className="ml-auto">
           <GroupFilter onChange={setSelectedGroupId} value={selectedGroupId} />

@@ -47,6 +47,7 @@ export default function GameList({
             >
               <div className="flex items-center gap-3">
                 <PlayerAvatar
+                  color={game.taker.color}
                   name={game.taker.name}
                   playerId={game.taker.id}
                   size="sm"

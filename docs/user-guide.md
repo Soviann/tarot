@@ -62,7 +62,7 @@ Accessible via l'onglet **Joueurs** dans la barre de navigation basse.
 2. Saisir le nom du joueur
 3. Valider
 
-> Chaque joueur possède un **avatar coloré** généré automatiquement à partir de ses initiales. La couleur est cohérente : un même joueur aura toujours la même couleur.
+> Chaque joueur possède un **avatar coloré** généré automatiquement à partir de ses initiales. Par défaut, la couleur est déterministe (basée sur l'ID du joueur). Il est possible de **personnaliser cette couleur** depuis la modale de modification (voir ci-dessous).
 
 ### Modifier un joueur
 
@@ -70,8 +70,12 @@ Accessible via l'onglet **Joueurs** dans la barre de navigation basse.
 2. Appuyer sur le bouton **crayon** (✏️) à droite du joueur
 3. La modale « Modifier le joueur » s'ouvre avec le nom pré-rempli
 4. Modifier le **nom** si souhaité
-5. Utiliser l'**interrupteur « Joueur actif »** pour activer ou désactiver le joueur
-6. Appuyer sur **Enregistrer**
+5. Choisir une **couleur d'avatar** :
+   - **Auto** : couleur déterministe par défaut (basée sur l'ID)
+   - **Palette** : 10 couleurs prédéfinies (rouge, orange, jaune, vert, turquoise, bleu, indigo, violet, rose, gris)
+   - **Personnalisée** : sélecteur de couleur libre (cercle coloré à droite de la palette)
+6. Utiliser l'**interrupteur « Joueur actif »** pour activer ou désactiver le joueur
+7. Appuyer sur **Enregistrer**
 
 > **Désactivation** : un joueur désactivé reste visible dans la liste (nom barré + badge « Inactif » + avatar grisé), mais **n'apparaît plus** dans la sélection de joueurs lors de la création d'une session. Ses données historiques (scores, statistiques, classement ELO) sont conservées.
 

@@ -147,7 +147,7 @@ export default function CompleteGameModal({ game, onClose, onGameCompleted, onGa
       <div className="flex max-h-[70vh] flex-col gap-4 overflow-y-auto">
         {/* Bandeau info preneur */}
         <div className="flex items-center gap-3 rounded-xl bg-surface-secondary p-3">
-          <PlayerAvatar name={game.taker.name} playerId={game.taker.id} size="md" />
+          <PlayerAvatar color={game.taker.color} name={game.taker.name} playerId={game.taker.id} size="md" />
           <div className="flex flex-col gap-1">
             <span className="text-sm font-medium text-text-primary">{game.taker.name}</span>
             <ContractBadge contract={game.contract} />
@@ -177,7 +177,7 @@ export default function CompleteGameModal({ game, onClose, onGameCompleted, onGa
                 onClick={() => handleSelectPartner(player.id)}
                 type="button"
               >
-                <PlayerAvatar name={player.name} playerId={player.id} size="md" />
+                <PlayerAvatar color={player.color} name={player.name} playerId={player.id} size="md" />
               </button>
             ))}
           </div>

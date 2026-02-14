@@ -52,6 +52,7 @@ export default function SessionList() {
                 <div className="flex items-center gap-1">
                   {session.players.map((p) => (
                     <PlayerAvatar
+                      color={p.color}
                       key={p.id}
                       name={p.name}
                       playerId={p.id}

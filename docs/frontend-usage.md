@@ -63,22 +63,22 @@ import type { HydraCollection, Player } from "./types/api";
 |------|--------|
 | `CumulativeScore` | `playerId: number`, `playerName: string`, `score: number` |
 | `Game` | `id`, `chelem`, `completedAt`, `contract`, `createdAt`, `dealer`, `oudlers`, `partner`, `petitAuBout`, `poignee`, `poigneeOwner`, `points`, `position`, `scoreEntries`, `status`, `taker` |
-| `GamePlayer` | `id: number`, `name: string` |
+| `GamePlayer` | `color: string \| null`, `id: number`, `name: string` |
 | `HydraCollection<T>` | `member: T[]`, `totalItems: number` |
 | `PaginatedCollection<T>` | extends `HydraCollection<T>` + `hydra:view?: { hydra:next?: string }` |
-| `Player` | `active: boolean`, `createdAt: string`, `id: number`, `name: string`, `playerGroups: PlayerGroup[]` |
+| `Player` | `active: boolean`, `color: string \| null`, `createdAt: string`, `id: number`, `name: string`, `playerGroups: PlayerGroup[]` |
 | `PlayerGroup` | `createdAt: string`, `id: number`, `name: string` |
 | `PlayerGroupDetail` | extends `PlayerGroup` + `players: GamePlayer[]` |
 | `ScoreEntry` | `id: number`, `player: GamePlayer`, `score: number` |
 | `Session` | `id: number`, `createdAt: string`, `isActive: boolean`, `lastPlayedAt: string`, `playerGroup: PlayerGroup \| null`, `players: SessionPlayer[]` |
 | `SessionDetail` | `id`, `createdAt`, `currentDealer`, `inProgressGame: Game \| null`, `isActive`, `playerGroup: PlayerGroup \| null`, `players: GamePlayer[]`, `cumulativeScores: CumulativeScore[]`, `starEvents: StarEvent[]` |
 | `StarEvent` | `id: number`, `createdAt: string`, `player: GamePlayer` |
-| `SessionPlayer` | `id: number`, `name: string` |
+| `SessionPlayer` | `color: string \| null`, `id: number`, `name: string` |
 | `ContractDistributionEntry` | `contract: Contract`, `count: number`, `percentage: number` |
 | `EloHistoryEntry` | `date: string`, `gameId: number`, `ratingAfter: number`, `ratingChange: number` |
-| `EloRankingEntry` | `eloRating: number`, `gamesPlayed: number`, `playerId: number`, `playerName: string` |
+| `EloRankingEntry` | `eloRating: number`, `gamesPlayed: number`, `playerColor: string \| null`, `playerId: number`, `playerName: string` |
 | `GlobalStatistics` | `averageGameDuration: number \| null`, `contractDistribution: ContractDistributionEntry[]`, `eloRanking: EloRankingEntry[]`, `leaderboard: LeaderboardEntry[]`, `totalGames`, `totalPlayTime: number`, `totalSessions`, `totalStars` |
-| `LeaderboardEntry` | `gamesAsTaker`, `gamesPlayed`, `playerId`, `playerName`, `totalScore`, `winRate`, `wins` |
+| `LeaderboardEntry` | `gamesAsTaker`, `gamesPlayed`, `playerColor: string \| null`, `playerId`, `playerName`, `totalScore`, `winRate`, `wins` |
 | `PlayerContractEntry` | `contract: Contract`, `count`, `winRate`, `wins` |
 | `PlayerStatistics` | `averageGameDurationSeconds: number \| null`, `averageScore`, `bestGameScore`, `contractDistribution`, `eloHistory: EloHistoryEntry[]`, `eloRating: number`, `gamesAsDefender`, `gamesAsPartner`, `gamesAsTaker`, `gamesPlayed`, `player`, `playerGroups: { id: number; name: string }[]`, `recentScores`, `sessionsPlayed`, `starPenalties`, `totalPlayTimeSeconds: number`, `totalStars`, `winRateAsTaker`, `worstGameScore` |
 | `RecentScoreEntry` | `date: string`, `gameId: number`, `score: number`, `sessionId: number` |
@@ -205,20 +205,20 @@ createPlayer.mutate("Alice", {
 
 **Fichier** : `hooks/useUpdatePlayer.ts`
 
-Mutation pour modifier un joueur (nom et/ou statut actif). Envoie un PATCH avec `application/merge-patch+json`.
+Mutation pour modifier un joueur (nom, statut actif, couleur, groupes). Envoie un PATCH avec `application/merge-patch+json`.
 Invalide le cache `["players"]` en cas de succès.
 
 ```ts
 const updatePlayer = useUpdatePlayer();
 
-updatePlayer.mutate({ id: 1, name: "Alicia", active: false }, {
+updatePlayer.mutate({ id: 1, name: "Alicia", active: false, color: "#ef4444" }, {
   onSuccess: () => closeModal(),
 });
 ```
 
 | Retour | Type | Description |
 |--------|------|-------------|
-| `mutate` | `(input: { id: number, name?: string, active?: boolean }) => void` | Lance la modification |
+| `mutate` | `(input: { id: number, name?: string, active?: boolean, color?: string \| null, playerGroups?: string[] }) => void` | Lance la modification |
 | `isPending` | `boolean` | `true` pendant la requête |
 | `isError` | `boolean` | `true` si erreur (ex. doublon 422) |
 | `error` | `ApiError \| null` | Détails de l'erreur |
@@ -581,7 +581,7 @@ Page d'aide in-app reprenant le contenu du guide utilisateur (`docs/user-guide.m
 - Bouton FAB (+) pour ouvrir le formulaire d'ajout
 - Formulaire dans un `Modal` avec validation (doublon → message d'erreur)
 - Bouton crayon (✏️) sur chaque joueur pour ouvrir la modale de modification
-- Modale de modification : champ nom pré-rempli + toggle actif/inactif + bouton « Enregistrer »
+- Modale de modification : champ nom pré-rempli + sélecteur de couleur (Auto / 10 presets / color picker) + attribution de groupes + toggle actif/inactif + bouton « Enregistrer »
 - Joueurs inactifs : nom barré (`line-through`), badge « Inactif », avatar grisé (`opacity-50`)
 - États : chargement, liste vide, résultats
 
@@ -1193,12 +1193,14 @@ Affiche un cercle coloré avec les initiales du joueur.
 | Prop | Type | Défaut | Description |
 |------|------|--------|-------------|
 | `name` | `string` | *requis* | Nom du joueur (initiales = 2 premières lettres) |
-| `playerId` | `number?` | — | Prioritaire pour la couleur (`playerId % 10`) |
+| `playerId` | `number?` | — | Prioritaire pour la couleur palette (`playerId % 10`) |
+| `color` | `string \| null` | — | Couleur personnalisée (hex). Si fournie, remplace la couleur palette par un `backgroundColor` inline. |
 | `size` | `"sm" \| "md" \| "lg"` | `"md"` | 32px / 40px / 56px |
 | `className` | `string?` | — | Classes CSS supplémentaires |
 
 ```tsx
 <PlayerAvatar name="Alice" playerId={3} size="lg" />
+<PlayerAvatar name="Bob" playerId={2} color="#ef4444" />  {/* couleur personnalisée */}
 ```
 
 ### `ContractBadge`

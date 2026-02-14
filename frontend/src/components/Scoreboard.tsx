@@ -72,7 +72,7 @@ export default function Scoreboard({
             key={player.id}
           >
             <div className="relative">
-              <PlayerAvatar name={player.name} playerId={player.id} size="sm" />
+              <PlayerAvatar color={player.color} name={player.name} playerId={player.id} size="sm" />
               {currentDealerId === player.id &&
                 (onDealerChange ? (
                   <button

@@ -10,6 +10,7 @@ export interface EloHistoryEntry {
 export interface EloRankingEntry {
   eloRating: number;
   gamesPlayed: number;
+  playerColor: string | null;
   playerId: number;
   playerName: string;
 }
@@ -46,6 +47,7 @@ export interface Game {
 }
 
 export interface GamePlayer {
+  color: string | null;
   id: number;
   name: string;
 }
@@ -75,6 +77,7 @@ export interface PaginatedCollection<T> extends HydraCollection<T> {
 export interface LeaderboardEntry {
   gamesAsTaker: number;
   gamesPlayed: number;
+  playerColor: string | null;
   playerId: number;
   playerName: string;
   totalScore: number;
@@ -84,6 +87,7 @@ export interface LeaderboardEntry {
 
 export interface Player {
   active: boolean;
+  color: string | null;
   createdAt: string;
   id: number;
   name: string;
@@ -170,6 +174,7 @@ export interface StarEvent {
 }
 
 export interface SessionPlayer {
+  color: string | null;
   id: number;
   name: string;
 }
