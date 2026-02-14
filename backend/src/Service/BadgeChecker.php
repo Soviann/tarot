@@ -169,8 +169,8 @@ final readonly class BadgeChecker
         $currentPosition = 0;
 
         foreach ($entries as $entry) {
-            $pid = $entry['playerId'];
-            $pos = $entry['position'];
+            $pid = $entry->playerId;
+            $pos = $entry->position;
 
             if ($pos !== $currentPosition) {
                 // New game: check if player is last after previous game
@@ -188,7 +188,7 @@ final readonly class BadgeChecker
                 $currentPosition = $pos;
             }
 
-            $cumulative[$pid] = ($cumulative[$pid] ?? 0) + $entry['score'];
+            $cumulative[$pid] = ($cumulative[$pid] ?? 0) + $entry->score;
         }
 
         // After last game: check if player finished first
@@ -258,7 +258,7 @@ final readonly class BadgeChecker
             return false;
         }
 
-        return $scores[0]['playerId'] === $player->getId();
+        return $scores[0]->playerId === $player->getId();
     }
 
     /**
@@ -332,9 +332,9 @@ final readonly class BadgeChecker
         $current = 0;
 
         foreach ($games as $game) {
-            $isDefense = $game['takerId'] !== $playerId
-                && (null === $game['partnerId'] || $game['partnerId'] !== $playerId);
-            $defenseWin = $isDefense && $game['takerScore'] < 0;
+            $isDefense = $game->takerId !== $playerId
+                && (null === $game->partnerId || $game->partnerId !== $playerId);
+            $defenseWin = $isDefense && $game->takerScore < 0;
 
             if ($defenseWin) {
                 ++$current;

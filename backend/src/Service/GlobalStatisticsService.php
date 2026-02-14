@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 namespace App\Service;
 
+use App\Dto\ContractDistributionDto;
+use App\Dto\EloRankingEntryDto;
+use App\Dto\LeaderboardScoreDto;
 use App\Repository\EloHistoryRepository;
 use App\Repository\GameRepository;
 use App\Repository\ScoreEntryRepository;
@@ -60,30 +63,28 @@ class GlobalStatisticsService
         /** @var array<string, int> $winsMap */
         $winsMap = [];
         foreach ($winRows as $row) {
-            $winsMap[(int) $row['playerId'].'_'.$row['contract']->value] = (int) $row['wins'];
+            $winsMap[$row->playerId.'_'.$row->contract->value] = $row->wins;
         }
 
         /** @var array<int, array{color: string|null, contracts: list<array{contract: string, count: int, winRate: float, wins: int}>, id: int, name: string}> $grouped */
         $grouped = [];
         foreach ($countRows as $row) {
-            $playerId = (int) $row['playerId'];
-            $contract = $row['contract']->value;
-            $count = (int) $row['count'];
-            $wins = $winsMap[$playerId.'_'.$contract] ?? 0;
+            $contract = $row->contract->value;
+            $wins = $winsMap[$row->playerId.'_'.$contract] ?? 0;
 
-            if (!isset($grouped[$playerId])) {
-                $grouped[$playerId] = [
-                    'color' => $row['playerColor'],
+            if (!isset($grouped[$row->playerId])) {
+                $grouped[$row->playerId] = [
+                    'color' => $row->playerColor,
                     'contracts' => [],
-                    'id' => $playerId,
-                    'name' => $row['playerName'],
+                    'id' => $row->playerId,
+                    'name' => $row->playerName,
                 ];
             }
 
-            $grouped[$playerId]['contracts'][] = [
+            $grouped[$row->playerId]['contracts'][] = [
                 'contract' => $contract,
-                'count' => $count,
-                'winRate' => $count > 0 ? \round($wins / $count * 100, 1) : 0.0,
+                'count' => $row->count,
+                'winRate' => $row->count > 0 ? \round($wins / $row->count * 100, 1) : 0.0,
                 'wins' => $wins,
             ];
         }
@@ -106,10 +107,10 @@ class GlobalStatisticsService
         $rows = $this->gameRepository->getContractDistribution($playerGroupId);
 
         return \array_map(
-            static fn (array $row) => [
-                'contract' => $row['contract']->value,
-                'count' => (int) $row['count'],
-                'percentage' => \round((int) $row['count'] / $total * 100, 2),
+            static fn (ContractDistributionDto $row) => [
+                'contract' => $row->contract->value,
+                'count' => $row->count,
+                'percentage' => \round($row->count / $total * 100, 2),
             ],
             $rows,
         );
@@ -130,19 +131,18 @@ class GlobalStatisticsService
         /** @var array<int, array{history: list<array{date: string, gameId: int, ratingAfter: int}>, playerColor: string|null, playerId: int, playerName: string}> $grouped */
         $grouped = [];
         foreach ($rows as $row) {
-            $playerId = (int) $row['playerId'];
-            if (!isset($grouped[$playerId])) {
-                $grouped[$playerId] = [
+            if (!isset($grouped[$row->playerId])) {
+                $grouped[$row->playerId] = [
                     'history' => [],
-                    'playerColor' => $row['playerColor'],
-                    'playerId' => $playerId,
-                    'playerName' => $row['playerName'],
+                    'playerColor' => $row->playerColor,
+                    'playerId' => $row->playerId,
+                    'playerName' => $row->playerName,
                 ];
             }
-            $grouped[$playerId]['history'][] = [
-                'date' => $row['date']->format(\DateTimeInterface::ATOM),
-                'gameId' => (int) $row['gameId'],
-                'ratingAfter' => (int) $row['ratingAfter'],
+            $grouped[$row->playerId]['history'][] = [
+                'date' => $row->date->format(\DateTimeInterface::ATOM),
+                'gameId' => $row->gameId,
+                'ratingAfter' => $row->ratingAfter,
             ];
         }
 
@@ -162,12 +162,12 @@ class GlobalStatisticsService
         $rows = $this->eloHistoryRepository->getEloRanking($playerGroupId);
 
         return \array_map(
-            static fn (array $row) => [
-                'eloRating' => (int) $row['eloRating'],
-                'gamesPlayed' => (int) $row['gamesPlayed'],
-                'playerColor' => $row['playerColor'],
-                'playerId' => (int) $row['playerId'],
-                'playerName' => $row['playerName'],
+            static fn (EloRankingEntryDto $row) => [
+                'eloRating' => $row->eloRating,
+                'gamesPlayed' => $row->gamesPlayed,
+                'playerColor' => $row->playerColor,
+                'playerId' => $row->playerId,
+                'playerName' => $row->playerName,
             ],
             $rows,
         );
@@ -199,7 +199,7 @@ class GlobalStatisticsService
         /** @var array<int, int> $gamesPlayed */
         $gamesPlayed = [];
         foreach ($gamesPlayedRows as $row) {
-            $gamesPlayed[(int) $row['playerId']] = (int) $row['gamesPlayed'];
+            $gamesPlayed[$row->playerId] = $row->gamesPlayed;
         }
 
         $takerRows = $this->gameRepository->countTakerGames($playerGroupId);
@@ -207,7 +207,7 @@ class GlobalStatisticsService
         /** @var array<int, int> $gamesAsTaker */
         $gamesAsTaker = [];
         foreach ($takerRows as $row) {
-            $gamesAsTaker[(int) $row['playerId']] = (int) $row['gamesAsTaker'];
+            $gamesAsTaker[$row->playerId] = $row->count;
         }
 
         $winRows = $this->gameRepository->countTakerWins($playerGroupId);
@@ -215,21 +215,21 @@ class GlobalStatisticsService
         /** @var array<int, int> $wins */
         $wins = [];
         foreach ($winRows as $row) {
-            $wins[(int) $row['playerId']] = (int) $row['wins'];
+            $wins[$row->playerId] = $row->count;
         }
 
         return \array_map(
-            static fn (array $row) => [
-                'gamesAsTaker' => $gamesAsTaker[(int) $row['playerId']] ?? 0,
-                'gamesPlayed' => $gamesPlayed[(int) $row['playerId']] ?? 0,
-                'playerColor' => $row['playerColor'],
-                'playerId' => (int) $row['playerId'],
-                'playerName' => $row['playerName'],
-                'totalScore' => (int) $row['totalScore'],
-                'winRate' => ($gamesAsTaker[(int) $row['playerId']] ?? 0) > 0
-                    ? \round(($wins[(int) $row['playerId']] ?? 0) / $gamesAsTaker[(int) $row['playerId']] * 100, 1)
+            static fn (LeaderboardScoreDto $row) => [
+                'gamesAsTaker' => $gamesAsTaker[$row->playerId] ?? 0,
+                'gamesPlayed' => $gamesPlayed[$row->playerId] ?? 0,
+                'playerColor' => $row->playerColor,
+                'playerId' => $row->playerId,
+                'playerName' => $row->playerName,
+                'totalScore' => $row->totalScore,
+                'winRate' => ($gamesAsTaker[$row->playerId] ?? 0) > 0
+                    ? \round(($wins[$row->playerId] ?? 0) / $gamesAsTaker[$row->playerId] * 100, 1)
                     : 0.0,
-                'wins' => $wins[(int) $row['playerId']] ?? 0,
+                'wins' => $wins[$row->playerId] ?? 0,
             ],
             $scoreRows,
         );

@@ -9,6 +9,7 @@ Le format est basé sur [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/)
 ### Changed
 
 - **Requêtes BDD centralisées dans les repositories** : toutes les requêtes Doctrine (~73) ont été migrées des services, controllers, processors et validateurs vers des repositories dédiés par entité (GameRepository, ScoreEntryRepository, StarEventRepository, EloHistoryRepository, PlayerRepository, PlayerGroupRepository, PlayerBadgeRepository). Utilisation exclusive du QueryBuilder (plus de DQL brut). EloRevertHelper converti de classe statique en service injectable.
+- **DTOs typés pour les retours de repositories** : 22 DTOs créés dans `src/Dto/` pour remplacer les tableaux typés par PHPDoc. Utilisation de l'opérateur `NEW` de Doctrine pour le mapping automatique des résultats de requêtes.
 
 ### Added
 

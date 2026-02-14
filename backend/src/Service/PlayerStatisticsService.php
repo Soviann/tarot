@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 namespace App\Service;
 
+use App\Dto\ContractDistributionDto;
+use App\Dto\PlayerEloHistoryPointDto;
+use App\Dto\RecentScoreDto;
 use App\Entity\Player;
 use App\Entity\PlayerGroup;
 use App\Enum\BadgeType;
@@ -53,11 +56,11 @@ class PlayerStatisticsService
         $rows = $this->eloHistoryRepository->getPlayerHistory($player, $playerGroupId);
 
         return \array_map(
-            static fn (array $row) => [
-                'date' => $row['date']->format(\DateTimeInterface::ATOM),
-                'gameId' => (int) $row['gameId'],
-                'ratingAfter' => (int) $row['ratingAfter'],
-                'ratingChange' => (int) $row['ratingChange'],
+            static fn (PlayerEloHistoryPointDto $row) => [
+                'date' => $row->date->format(\DateTimeInterface::ATOM),
+                'gameId' => $row->gameId,
+                'ratingAfter' => $row->ratingAfter,
+                'ratingChange' => $row->ratingChange,
             ],
             $rows,
         );
@@ -83,11 +86,11 @@ class PlayerStatisticsService
         $bestScore = $this->scoreEntryRepository->getPlayerBestScore($player, $playerGroupId);
         if (null !== $bestScore) {
             $records[] = [
-                'contract' => $bestScore['contract']->value,
-                'date' => $bestScore['date']->format(\DateTimeInterface::ATOM),
-                'sessionId' => $bestScore['sessionId'],
+                'contract' => $bestScore->contract->value,
+                'date' => $bestScore->date->format(\DateTimeInterface::ATOM),
+                'sessionId' => $bestScore->sessionId,
                 'type' => 'best_score',
-                'value' => $bestScore['score'],
+                'value' => $bestScore->score,
             ];
         }
 
@@ -95,11 +98,11 @@ class PlayerStatisticsService
         $worstScore = $this->scoreEntryRepository->getPlayerWorstScore($player, $playerGroupId);
         if (null !== $worstScore) {
             $records[] = [
-                'contract' => $worstScore['contract']->value,
-                'date' => $worstScore['date']->format(\DateTimeInterface::ATOM),
-                'sessionId' => $worstScore['sessionId'],
+                'contract' => $worstScore->contract->value,
+                'date' => $worstScore->date->format(\DateTimeInterface::ATOM),
+                'sessionId' => $worstScore->sessionId,
                 'type' => 'worst_score',
-                'value' => $worstScore['score'],
+                'value' => $worstScore->score,
             ];
         }
 
@@ -113,11 +116,11 @@ class PlayerStatisticsService
             $maxStreakEndDate = null;
 
             foreach ($takerRows as $row) {
-                if ($row['score'] > 0) {
+                if ($row->score > 0) {
                     ++$currentStreak;
                     if ($currentStreak > $maxStreak) {
                         $maxStreak = $currentStreak;
-                        $maxStreakEndDate = $row['date'];
+                        $maxStreakEndDate = $row->date;
                     }
                 } else {
                     $currentStreak = 0;
@@ -139,11 +142,11 @@ class PlayerStatisticsService
             $maxDiffRow = null;
 
             foreach ($takerRows as $row) {
-                if (null === $row['points'] || null === $row['oudlers']) {
+                if (null === $row->points || null === $row->oudlers) {
                     continue;
                 }
-                $required = ScoreCalculator::REQUIRED_POINTS[$row['oudlers']] ?? 56;
-                $diff = \abs($row['points'] - $required);
+                $required = ScoreCalculator::REQUIRED_POINTS[$row->oudlers] ?? 56;
+                $diff = \abs($row->points - $required);
                 if ($diff > $maxDiff) {
                     $maxDiff = $diff;
                     $maxDiffRow = $row;
@@ -152,9 +155,9 @@ class PlayerStatisticsService
 
             if (null !== $maxDiffRow) {
                 $records[] = [
-                    'contract' => $maxDiffRow['contract']->value,
-                    'date' => $maxDiffRow['date']->format(\DateTimeInterface::ATOM),
-                    'sessionId' => $maxDiffRow['sessionId'],
+                    'contract' => $maxDiffRow->contract->value,
+                    'date' => $maxDiffRow->date->format(\DateTimeInterface::ATOM),
+                    'sessionId' => $maxDiffRow->sessionId,
                     'type' => 'biggest_diff',
                     'value' => $maxDiff,
                 ];
@@ -166,10 +169,10 @@ class PlayerStatisticsService
         if (null !== $bestSession) {
             $records[] = [
                 'contract' => null,
-                'date' => $bestSession['firstDate'],
-                'sessionId' => $bestSession['sessionId'],
+                'date' => $bestSession->firstDate->format(\DateTimeInterface::ATOM),
+                'sessionId' => $bestSession->sessionId,
                 'type' => 'best_session',
-                'value' => $bestSession['total'],
+                'value' => $bestSession->total,
             ];
         }
 
@@ -212,28 +215,28 @@ class PlayerStatisticsService
         /** @var array<string, int> $contractWins */
         $contractWins = [];
         foreach ($contractWinRows as $row) {
-            $contractWins[$row['contract']->value] = $row['wins'];
+            $contractWins[$row->contract->value] = $row->wins;
         }
 
         $contractDistribution = \array_map(
-            static fn (array $row) => [
-                'contract' => $row['contract']->value,
-                'count' => $row['count'],
-                'winRate' => $row['count'] > 0
-                    ? \round(($contractWins[$row['contract']->value] ?? 0) / $row['count'] * 100, 1)
+            static fn (ContractDistributionDto $row) => [
+                'contract' => $row->contract->value,
+                'count' => $row->count,
+                'winRate' => $row->count > 0
+                    ? \round(($contractWins[$row->contract->value] ?? 0) / $row->count * 100, 1)
                     : 0.0,
-                'wins' => $contractWins[$row['contract']->value] ?? 0,
+                'wins' => $contractWins[$row->contract->value] ?? 0,
             ],
             $contractRows,
         );
 
         $recentScores = $this->scoreEntryRepository->getPlayerRecentScores($player, $playerGroupId, 50);
         $formattedRecentScores = \array_map(
-            static fn (array $row) => [
-                'date' => $row['date']->format(\DateTimeInterface::ATOM),
-                'gameId' => (int) $row['gameId'],
-                'score' => (int) $row['score'],
-                'sessionId' => (int) $row['sessionId'],
+            static fn (RecentScoreDto $row) => [
+                'date' => $row->date->format(\DateTimeInterface::ATOM),
+                'gameId' => $row->gameId,
+                'score' => $row->score,
+                'sessionId' => $row->sessionId,
             ],
             $recentScores,
         );
@@ -295,7 +298,7 @@ class PlayerStatisticsService
 
         $awardedMap = [];
         foreach ($awarded as $row) {
-            $awardedMap[$row['badgeType']->value] = $row['unlockedAt']->format(\DateTimeInterface::ATOM);
+            $awardedMap[$row->badgeType->value] = $row->unlockedAt->format(\DateTimeInterface::ATOM);
         }
 
         $badges = [];

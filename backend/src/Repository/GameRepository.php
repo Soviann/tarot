@@ -4,6 +4,13 @@ declare(strict_types=1);
 
 namespace App\Repository;
 
+use App\Dto\ContractCountByPlayerDto;
+use App\Dto\ContractDistributionDto;
+use App\Dto\ContractWinsByPlayerDto;
+use App\Dto\ContractWinsDto;
+use App\Dto\PlayerCountDto;
+use App\Dto\PlayerWithCountDto;
+use App\Dto\TakerGameRecordDto;
 use App\Entity\Game;
 use App\Entity\Player;
 use App\Entity\Session;
@@ -73,44 +80,31 @@ final class GameRepository extends ServiceEntityRepository
         ]);
     }
 
-    /**
-     * @return array{contract: string, count: int}|null
-     */
-    public function findMostPlayedContractForSession(Session $session): ?array
+    public function findMostPlayedContractForSession(Session $session): ?ContractDistributionDto
     {
-        /** @var list<array{contract: Contract, count: int|string}> $results */
-        $results = $this->createQueryBuilder('g')
-            ->select('g.contract AS contract', 'COUNT(g.id) AS count')
+        $qb = $this->createQueryBuilder('g')
+            ->select('NEW App\Dto\ContractDistributionDto(g.contract, COUNT(g.id))')
             ->andWhere('g.session = :session')
             ->andWhere('g.status = :status')
             ->setParameter('session', $session)
             ->setParameter('status', GameStatus::Completed)
             ->groupBy('g.contract')
-            ->orderBy('count', 'DESC')
-            ->setMaxResults(1)
-            ->getQuery()
-            ->getResult();
+            ->orderBy('COUNT(g.id)', 'DESC')
+            ->setMaxResults(1);
 
-        if (empty($results)) {
-            return null;
-        }
+        /** @var list<ContractDistributionDto> $results */
+        $results = $qb->getQuery()->getResult();
 
-        return [
-            'contract' => $results[0]['contract']->value,
-            'count' => (int) $results[0]['count'],
-        ];
+        return $results[0] ?? null;
     }
 
     /**
      * @param list<Contract> $contracts
-     *
-     * @return array{count: int, playerColor: string|null, playerId: int, playerName: string}|null
      */
-    public function getHighContractTakerCountsForSession(Session $session, array $contracts): ?array
+    public function getHighContractTakerCountsForSession(Session $session, array $contracts): ?PlayerWithCountDto
     {
-        /** @var list<array{count: int|string, playerColor: string|null, playerId: int|string, playerName: string}> $results */
-        $results = $this->createQueryBuilder('g')
-            ->select('IDENTITY(g.taker) AS playerId', 'p.name AS playerName', 'p.color AS playerColor', 'COUNT(g.id) AS count')
+        $qb = $this->createQueryBuilder('g')
+            ->select('NEW App\Dto\PlayerWithCountDto(COUNT(g.id), p.color, IDENTITY(g.taker), p.name)')
             ->join('g.taker', 'p')
             ->andWhere('g.session = :session')
             ->andWhere('g.status = :status')
@@ -121,23 +115,13 @@ final class GameRepository extends ServiceEntityRepository
             ->groupBy('g.taker')
             ->addGroupBy('p.name')
             ->addGroupBy('p.color')
-            ->orderBy('count', 'DESC')
-            ->setMaxResults(1)
-            ->getQuery()
-            ->getResult();
+            ->orderBy('COUNT(g.id)', 'DESC')
+            ->setMaxResults(1);
 
-        if (empty($results)) {
-            return null;
-        }
+        /** @var list<PlayerWithCountDto> $results */
+        $results = $qb->getQuery()->getResult();
 
-        $row = $results[0];
-
-        return [
-            'count' => (int) $row['count'],
-            'playerColor' => $row['playerColor'],
-            'playerId' => (int) $row['playerId'],
-            'playerName' => $row['playerName'],
-        ];
+        return $results[0] ?? null;
     }
 
     public function getMaxCompletedAtForSession(Session $session): ?string
@@ -274,32 +258,30 @@ final class GameRepository extends ServiceEntityRepository
     }
 
     /**
-     * @return list<array{contract: Contract, count: int|string}>
+     * @return list<ContractDistributionDto>
      */
     public function getContractDistribution(?int $playerGroupId = null): array
     {
         $qb = $this->createQueryBuilder('g')
-            ->select('g.contract AS contract', 'COUNT(g.id) AS count')
+            ->select('NEW App\Dto\ContractDistributionDto(g.contract, COUNT(g.id))')
             ->andWhere('g.status = :status')
             ->setParameter('status', GameStatus::Completed)
             ->groupBy('g.contract')
-            ->orderBy('count', 'DESC');
+            ->orderBy('COUNT(g.id)', 'DESC');
 
         $this->applyGroupFilter($qb, $playerGroupId);
 
-        /** @var list<array{contract: Contract, count: int|string}> $result */
-        $result = $qb->getQuery()->getResult();
-
-        return $result;
+        /** @var list<ContractDistributionDto> */
+        return $qb->getQuery()->getResult();
     }
 
     /**
-     * @return list<array{contract: Contract, count: int|string, playerColor: string|null, playerId: int|string, playerName: string}>
+     * @return list<ContractCountByPlayerDto>
      */
     public function getContractCountByPlayer(?int $playerGroupId = null): array
     {
         $qb = $this->createQueryBuilder('g')
-            ->select('IDENTITY(g.taker) AS playerId', 'p.name AS playerName', 'p.color AS playerColor', 'g.contract AS contract', 'COUNT(g.id) AS count')
+            ->select('NEW App\Dto\ContractCountByPlayerDto(g.contract, COUNT(g.id), p.color, IDENTITY(g.taker), p.name)')
             ->join('g.taker', 'p')
             ->andWhere('g.status = :status')
             ->setParameter('status', GameStatus::Completed)
@@ -310,19 +292,17 @@ final class GameRepository extends ServiceEntityRepository
 
         $this->applyGroupFilter($qb, $playerGroupId);
 
-        /** @var list<array{contract: Contract, count: int|string, playerColor: string|null, playerId: int|string, playerName: string}> $result */
-        $result = $qb->getQuery()->getResult();
-
-        return $result;
+        /** @var list<ContractCountByPlayerDto> */
+        return $qb->getQuery()->getResult();
     }
 
     /**
-     * @return list<array{contract: Contract, playerId: int|string, wins: int|string}>
+     * @return list<ContractWinsByPlayerDto>
      */
     public function getContractWinsByPlayer(?int $playerGroupId = null): array
     {
         $qb = $this->createQueryBuilder('g')
-            ->select('IDENTITY(g.taker) AS playerId', 'g.contract AS contract', 'COUNT(g.id) AS wins')
+            ->select('NEW App\Dto\ContractWinsByPlayerDto(g.contract, IDENTITY(g.taker), COUNT(g.id))')
             ->join('App\Entity\ScoreEntry', 'se', 'WITH', 'se.game = g AND se.player = g.taker')
             ->andWhere('g.status = :status')
             ->andWhere('se.score > 0')
@@ -332,10 +312,8 @@ final class GameRepository extends ServiceEntityRepository
 
         $this->applyGroupFilter($qb, $playerGroupId);
 
-        /** @var list<array{contract: Contract, playerId: int|string, wins: int|string}> $result */
-        $result = $qb->getQuery()->getResult();
-
-        return $result;
+        /** @var list<ContractWinsByPlayerDto> */
+        return $qb->getQuery()->getResult();
     }
 
     public function countCompleted(?int $playerGroupId = null): int
@@ -383,31 +361,29 @@ final class GameRepository extends ServiceEntityRepository
     }
 
     /**
-     * @return list<array{gamesAsTaker: int|string, playerId: int|string}>
+     * @return list<PlayerCountDto>
      */
     public function countTakerGames(?int $playerGroupId = null): array
     {
         $qb = $this->createQueryBuilder('g')
-            ->select('IDENTITY(g.taker) AS playerId', 'COUNT(g.id) AS gamesAsTaker')
+            ->select('NEW App\Dto\PlayerCountDto(COUNT(g.id), IDENTITY(g.taker))')
             ->andWhere('g.status = :status')
             ->setParameter('status', GameStatus::Completed)
             ->groupBy('g.taker');
 
         $this->applyGroupFilter($qb, $playerGroupId);
 
-        /** @var list<array{gamesAsTaker: int|string, playerId: int|string}> $result */
-        $result = $qb->getQuery()->getResult();
-
-        return $result;
+        /** @var list<PlayerCountDto> */
+        return $qb->getQuery()->getResult();
     }
 
     /**
-     * @return list<array{playerId: int|string, wins: int|string}>
+     * @return list<PlayerCountDto>
      */
     public function countTakerWins(?int $playerGroupId = null): array
     {
         $qb = $this->createQueryBuilder('g')
-            ->select('IDENTITY(g.taker) AS playerId', 'COUNT(g.id) AS wins')
+            ->select('NEW App\Dto\PlayerCountDto(COUNT(g.id), IDENTITY(g.taker))')
             ->join('App\Entity\ScoreEntry', 'se', 'WITH', 'se.game = g AND se.player = g.taker')
             ->andWhere('g.status = :status')
             ->andWhere('se.score > 0')
@@ -416,10 +392,8 @@ final class GameRepository extends ServiceEntityRepository
 
         $this->applyGroupFilter($qb, $playerGroupId);
 
-        /** @var list<array{playerId: int|string, wins: int|string}> $result */
-        $result = $qb->getQuery()->getResult();
-
-        return $result;
+        /** @var list<PlayerCountDto> */
+        return $qb->getQuery()->getResult();
     }
 
     public function countPlayerGamesAsTaker(Player $player, ?int $playerGroupId = null): int
@@ -481,12 +455,12 @@ final class GameRepository extends ServiceEntityRepository
     }
 
     /**
-     * @return list<array{contract: Contract, count: int}>
+     * @return list<ContractDistributionDto>
      */
     public function getPlayerContractDistribution(Player $player, ?int $playerGroupId = null): array
     {
         $qb = $this->createQueryBuilder('g')
-            ->select('g.contract AS contract', 'COUNT(g.id) AS count')
+            ->select('NEW App\Dto\ContractDistributionDto(g.contract, COUNT(g.id))')
             ->andWhere('g.taker = :player')
             ->andWhere('g.status = :status')
             ->setParameter('player', $player)
@@ -495,22 +469,17 @@ final class GameRepository extends ServiceEntityRepository
 
         $this->applyGroupFilter($qb, $playerGroupId);
 
-        /** @var list<array{contract: Contract, count: int|string}> $results */
-        $results = $qb->getQuery()->getResult();
-
-        return \array_map(static fn (array $row) => [
-            'contract' => $row['contract'],
-            'count' => (int) $row['count'],
-        ], $results);
+        /** @var list<ContractDistributionDto> */
+        return $qb->getQuery()->getResult();
     }
 
     /**
-     * @return list<array{contract: Contract, wins: int}>
+     * @return list<ContractWinsDto>
      */
     public function getPlayerContractWins(Player $player, ?int $playerGroupId = null): array
     {
         $qb = $this->createQueryBuilder('g')
-            ->select('g.contract AS contract', 'COUNT(g.id) AS wins')
+            ->select('NEW App\Dto\ContractWinsDto(g.contract, COUNT(g.id))')
             ->join('App\Entity\ScoreEntry', 'se', 'WITH', 'se.game = g AND se.player = g.taker')
             ->andWhere('g.taker = :player')
             ->andWhere('g.status = :status')
@@ -521,22 +490,17 @@ final class GameRepository extends ServiceEntityRepository
 
         $this->applyGroupFilter($qb, $playerGroupId);
 
-        /** @var list<array{contract: Contract, wins: int|string}> $results */
-        $results = $qb->getQuery()->getResult();
-
-        return \array_map(static fn (array $row) => [
-            'contract' => $row['contract'],
-            'wins' => (int) $row['wins'],
-        ], $results);
+        /** @var list<ContractWinsDto> */
+        return $qb->getQuery()->getResult();
     }
 
     /**
-     * @return list<array{contract: Contract, date: \DateTimeImmutable, oudlers: int|null, points: float|null, score: int, sessionId: int}>
+     * @return list<TakerGameRecordDto>
      */
     public function getPlayerTakerGamesForRecords(Player $player, ?int $playerGroupId = null): array
     {
         $qb = $this->createQueryBuilder('g')
-            ->select('se.score', 'g.createdAt AS date', 'IDENTITY(g.session) AS sessionId', 'g.contract AS contract', 'g.points AS points', 'g.oudlers AS oudlers')
+            ->select('NEW App\Dto\TakerGameRecordDto(g.contract, g.createdAt, g.oudlers, g.points, se.score, IDENTITY(g.session))')
             ->join('App\Entity\ScoreEntry', 'se', 'WITH', 'se.game = g AND se.player = g.taker')
             ->andWhere('g.taker = :player')
             ->andWhere('g.status = :status')
@@ -546,17 +510,8 @@ final class GameRepository extends ServiceEntityRepository
 
         $this->applyGroupFilter($qb, $playerGroupId);
 
-        /** @var list<array{contract: Contract, date: \DateTimeImmutable, oudlers: int|null, points: float|null, score: int|string, sessionId: int|string}> $results */
-        $results = $qb->getQuery()->getResult();
-
-        return \array_map(static fn (array $row) => [
-            'contract' => $row['contract'],
-            'date' => $row['date'],
-            'oudlers' => $row['oudlers'],
-            'points' => $row['points'],
-            'score' => (int) $row['score'],
-            'sessionId' => (int) $row['sessionId'],
-        ], $results);
+        /** @var list<TakerGameRecordDto> */
+        return $qb->getQuery()->getResult();
     }
 
     /**

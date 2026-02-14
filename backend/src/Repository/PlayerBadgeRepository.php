@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Repository;
 
+use App\Dto\PlayerBadgeUnlockDto;
 use App\Entity\Player;
 use App\Entity\PlayerBadge;
 use App\Enum\BadgeType;
@@ -37,19 +38,17 @@ final class PlayerBadgeRepository extends ServiceEntityRepository
     }
 
     /**
-     * @return list<array{badgeType: BadgeType, unlockedAt: \DateTimeImmutable}>
+     * @return list<PlayerBadgeUnlockDto>
      */
     public function getPlayerBadgesWithUnlockDate(Player $player): array
     {
-        /** @var list<array{badgeType: BadgeType, unlockedAt: \DateTimeImmutable}> $result */
-        $result = $this->createQueryBuilder('pb')
-            ->select('pb.badgeType', 'pb.unlockedAt')
+        /** @var list<PlayerBadgeUnlockDto> */
+        return $this->createQueryBuilder('pb')
+            ->select('NEW App\Dto\PlayerBadgeUnlockDto(pb.badgeType, pb.unlockedAt)')
             ->andWhere('pb.player = :player')
             ->setParameter('player', $player)
             ->orderBy('pb.unlockedAt', 'ASC')
             ->getQuery()
             ->getResult();
-
-        return $result;
     }
 }

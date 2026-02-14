@@ -7,6 +7,7 @@ namespace App\State;
 use ApiPlatform\Doctrine\Orm\State\ItemProvider;
 use ApiPlatform\Metadata\Operation;
 use ApiPlatform\State\ProviderInterface;
+use App\Dto\CumulativeScoreDto;
 use App\Entity\Session;
 use App\Repository\GameRepository;
 use App\Repository\ScoreEntryRepository;
@@ -34,7 +35,14 @@ final readonly class SessionDetailProvider implements ProviderInterface
             return null;
         }
 
-        $session->setCumulativeScores($this->scoreEntryRepository->getCumulativeScoresForSession($session));
+        $session->setCumulativeScores(\array_map(
+            static fn (CumulativeScoreDto $dto) => [
+                'playerId' => $dto->playerId,
+                'playerName' => $dto->playerName,
+                'score' => $dto->score,
+            ],
+            $this->scoreEntryRepository->getCumulativeScoresForSession($session),
+        ));
         $session->setInProgressGame($this->gameRepository->findInProgressForSession($session));
 
         return $session;

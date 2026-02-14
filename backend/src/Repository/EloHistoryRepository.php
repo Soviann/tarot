@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 namespace App\Repository;
 
+use App\Dto\EloHistoryPointDto;
+use App\Dto\EloRankingEntryDto;
+use App\Dto\PlayerEloHistoryPointDto;
 use App\Entity\EloHistory;
 use App\Entity\Game;
 use App\Entity\Player;
@@ -29,62 +32,56 @@ final class EloHistoryRepository extends ServiceEntityRepository
     }
 
     /**
-     * @return list<array{date: \DateTimeImmutable, gameId: int|string, playerColor: string|null, playerId: int|string, playerName: string, ratingAfter: int|string}>
+     * @return list<EloHistoryPointDto>
      */
     public function getAllPlayersHistory(?int $playerGroupId = null): array
     {
         $qb = $this->createQueryBuilder('eh')
-            ->select('IDENTITY(eh.player) AS playerId', 'p.name AS playerName', 'p.color AS playerColor', 'eh.createdAt AS date', 'IDENTITY(eh.game) AS gameId', 'eh.ratingAfter AS ratingAfter')
+            ->select('NEW App\Dto\EloHistoryPointDto(eh.createdAt, IDENTITY(eh.game), p.color, IDENTITY(eh.player), p.name, eh.ratingAfter)')
             ->join('eh.player', 'p')
             ->orderBy('eh.id', 'ASC');
 
         $this->applyGroupFilter($qb, $playerGroupId);
 
-        /** @var list<array{date: \DateTimeImmutable, gameId: int|string, playerColor: string|null, playerId: int|string, playerName: string, ratingAfter: int|string}> $result */
-        $result = $qb->getQuery()->getResult();
-
-        return $result;
+        /** @var list<EloHistoryPointDto> */
+        return $qb->getQuery()->getResult();
     }
 
     /**
-     * @return list<array{eloRating: int|string, gamesPlayed: int|string, playerColor: string|null, playerId: int|string, playerName: string}>
+     * @return list<EloRankingEntryDto>
      */
     public function getEloRanking(?int $playerGroupId = null): array
     {
         $qb = $this->createQueryBuilder('eh')
-            ->select('IDENTITY(eh.player) AS playerId', 'p.name AS playerName', 'p.color AS playerColor', 'p.eloRating AS eloRating', 'COUNT(DISTINCT eh.game) AS gamesPlayed')
+            ->select('NEW App\Dto\EloRankingEntryDto(p.eloRating, COUNT(DISTINCT eh.game), p.color, IDENTITY(eh.player), p.name)')
             ->join('eh.player', 'p')
             ->groupBy('eh.player')
             ->addGroupBy('p.color')
             ->addGroupBy('p.name')
             ->addGroupBy('p.eloRating')
-            ->orderBy('eloRating', 'DESC');
+            ->orderBy('p.eloRating', 'DESC');
 
         $this->applyGroupFilter($qb, $playerGroupId);
 
-        /** @var list<array{eloRating: int|string, gamesPlayed: int|string, playerColor: string|null, playerId: int|string, playerName: string}> $result */
-        $result = $qb->getQuery()->getResult();
-
-        return $result;
+        /** @var list<EloRankingEntryDto> */
+        return $qb->getQuery()->getResult();
     }
 
     /**
-     * @return list<array{date: \DateTimeImmutable, gameId: int|string, ratingAfter: int|string, ratingChange: int|string}>
+     * @return list<PlayerEloHistoryPointDto>
      */
     public function getPlayerHistory(Player $player, ?int $playerGroupId = null): array
     {
         $qb = $this->createQueryBuilder('eh')
-            ->select('eh.createdAt AS date', 'IDENTITY(eh.game) AS gameId', 'eh.ratingAfter AS ratingAfter', 'eh.ratingChange AS ratingChange')
+            ->select('NEW App\Dto\PlayerEloHistoryPointDto(eh.createdAt, IDENTITY(eh.game), eh.ratingAfter, eh.ratingChange)')
             ->andWhere('eh.player = :player')
             ->setParameter('player', $player)
             ->orderBy('eh.id', 'ASC');
 
         $this->applyGroupFilter($qb, $playerGroupId);
 
-        /** @var list<array{date: \DateTimeImmutable, gameId: int|string, ratingAfter: int|string, ratingChange: int|string}> $result */
-        $result = $qb->getQuery()->getResult();
-
-        return $result;
+        /** @var list<PlayerEloHistoryPointDto> */
+        return $qb->getQuery()->getResult();
     }
 
     private function applyGroupFilter(\Doctrine\ORM\QueryBuilder $qb, ?int $playerGroupId): void
