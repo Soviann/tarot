@@ -2,7 +2,7 @@
 
 Application mobile (PWA) de suivi des scores pour le Tarot à 5 joueurs, conforme aux règles officielles de la FFT.
 
-> **Astuce** : ce guide est aussi accessible directement dans l'application via l'icône **?** en haut à droite de chaque écran (page `/aide`).
+> **Astuce** : ce guide est aussi accessible directement dans l'application via l'icône **?** sur la page d'accueil, à droite du titre « Sessions récentes » (page `/aide`).
 
 ## Table des matières
 
@@ -430,7 +430,7 @@ Quand une donne est perdue par l'attaque, un **mème de défaite** peut apparaî
 
 ## Thème sombre
 
-L'application supporte un **mode sombre**. Pour basculer entre les thèmes clair et sombre, appuyer sur l'icône **lune** (☽) en haut à droite de l'écran, à gauche de l'icône d'aide. En mode sombre, l'icône devient un **soleil** (☀).
+L'application supporte un **mode sombre**. Pour basculer entre les thèmes clair et sombre, appuyer sur l'icône **lune** (☽) en haut à droite de l'écran. En mode sombre, l'icône devient un **soleil** (☀).
 
 ### Détection automatique
 
