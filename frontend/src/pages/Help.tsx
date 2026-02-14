@@ -360,11 +360,15 @@ export default function Help() {
 
       <AccordionSection title="Thème sombre">
         <p>
-          L'application supporte un mode sombre. Utiliser le bouton de bascule
-          dans l'interface pour changer de thème.
+          L'application supporte un mode sombre. Appuyer sur l'icône{" "}
+          <strong>lune</strong> (☽) en haut à droite de l'écran, à gauche de
+          l'icône d'aide, pour basculer. En mode sombre, l'icône devient un{" "}
+          <strong>soleil</strong> (☀).
         </p>
         <p className="mt-2">
-          Le choix est mémorisé automatiquement et persiste entre les visites.
+          Au premier lancement, l'application suit la préférence système du
+          navigateur. Le choix est ensuite mémorisé automatiquement et persiste
+          entre les visites.
         </p>
       </AccordionSection>
 

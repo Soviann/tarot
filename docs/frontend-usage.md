@@ -34,14 +34,7 @@ Définis dans `frontend/src/index.css` via `@theme`. Utilisables directement com
 
 Le mode sombre est géré via la classe `.dark` sur `<html>`. Les tokens de surface, texte et score sont automatiquement redéfinis.
 
-```tsx
-import { useTheme } from "./hooks/useTheme";
-
-function ThemeToggle() {
-  const { isDark, toggle } = useTheme();
-  return <button onClick={toggle}>{isDark ? "☀️" : "🌙"}</button>;
-}
-```
+Le toggle est intégré dans le `Layout.tsx` (header, icône Sun/Moon de `lucide-react`). Il appelle `useTheme().toggle()`.
 
 L'application doit être wrappée dans `<ThemeProvider>` (déjà fait dans `App.tsx`).
 
