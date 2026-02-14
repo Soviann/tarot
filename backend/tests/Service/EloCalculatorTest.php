@@ -10,7 +10,7 @@ use App\Entity\ScoreEntry;
 use App\Entity\Session;
 use App\Enum\Contract;
 use App\Enum\GameStatus;
-use App\Service\EloCalculator;
+use App\Service\Scoring\EloCalculator;
 use PHPUnit\Framework\TestCase;
 
 class EloCalculatorTest extends TestCase

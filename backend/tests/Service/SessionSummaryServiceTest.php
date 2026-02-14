@@ -10,7 +10,7 @@ use App\Entity\Session;
 use App\Entity\StarEvent;
 use App\Enum\Contract;
 use App\Enum\GameStatus;
-use App\Service\ScoreCalculator;
+use App\Service\Scoring\ScoreCalculator;
 use App\Service\SessionSummaryService;
 use App\Tests\Api\ApiTestCase;
 

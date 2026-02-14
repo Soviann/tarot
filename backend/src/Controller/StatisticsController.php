@@ -6,7 +6,8 @@ namespace App\Controller;
 
 use App\Entity\Player;
 use App\Service\BadgeChecker;
-use App\Service\StatisticsService;
+use App\Service\GlobalStatisticsService;
+use App\Service\PlayerStatisticsService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -18,7 +19,8 @@ class StatisticsController
     public function __construct(
         private readonly BadgeChecker $badgeChecker,
         private readonly EntityManagerInterface $em,
-        private readonly StatisticsService $statisticsService,
+        private readonly GlobalStatisticsService $globalStatisticsService,
+        private readonly PlayerStatisticsService $playerStatisticsService,
     ) {
     }
 
@@ -30,16 +32,16 @@ class StatisticsController
             : null;
 
         return new JsonResponse([
-            'averageGameDuration' => $this->statisticsService->getAverageGameDurationSeconds($playerGroupId),
-            'contractDistribution' => $this->statisticsService->getContractDistribution($playerGroupId),
-            'contractSuccessRateByPlayer' => $this->statisticsService->getContractSuccessRateByPlayer($playerGroupId),
-            'eloEvolution' => $this->statisticsService->getAllPlayersEloHistory($playerGroupId),
-            'eloRanking' => $this->statisticsService->getEloRanking($playerGroupId),
-            'leaderboard' => $this->statisticsService->getLeaderboard($playerGroupId),
-            'totalGames' => $this->statisticsService->getTotalGames($playerGroupId),
-            'totalPlayTime' => $this->statisticsService->getTotalPlayTimeSeconds($playerGroupId),
-            'totalSessions' => $this->statisticsService->getTotalSessions($playerGroupId),
-            'totalStars' => $this->statisticsService->getTotalStars($playerGroupId),
+            'averageGameDuration' => $this->globalStatisticsService->getAverageGameDurationSeconds($playerGroupId),
+            'contractDistribution' => $this->globalStatisticsService->getContractDistribution($playerGroupId),
+            'contractSuccessRateByPlayer' => $this->globalStatisticsService->getContractSuccessRateByPlayer($playerGroupId),
+            'eloEvolution' => $this->globalStatisticsService->getAllPlayersEloHistory($playerGroupId),
+            'eloRanking' => $this->globalStatisticsService->getEloRanking($playerGroupId),
+            'leaderboard' => $this->globalStatisticsService->getLeaderboard($playerGroupId),
+            'totalGames' => $this->globalStatisticsService->getTotalGames($playerGroupId),
+            'totalPlayTime' => $this->globalStatisticsService->getTotalPlayTimeSeconds($playerGroupId),
+            'totalSessions' => $this->globalStatisticsService->getTotalSessions($playerGroupId),
+            'totalStars' => $this->globalStatisticsService->getTotalStars($playerGroupId),
         ]);
     }
 
@@ -57,6 +59,6 @@ class StatisticsController
             ? (int) $request->query->get('playerGroup')
             : null;
 
-        return new JsonResponse($this->statisticsService->getPlayerStats($player, $playerGroupId));
+        return new JsonResponse($this->playerStatisticsService->getPlayerStats($player, $playerGroupId));
     }
 }

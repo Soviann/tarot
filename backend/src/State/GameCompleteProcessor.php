@@ -12,8 +12,8 @@ use App\Entity\Game;
 use App\Enum\BadgeType;
 use App\Enum\GameStatus;
 use App\Service\BadgeChecker;
-use App\Service\EloCalculator;
-use App\Service\ScoreCalculator;
+use App\Service\Scoring\EloCalculator;
+use App\Service\Scoring\ScoreCalculator;
 use Doctrine\ORM\EntityManagerInterface;
 
 /**
