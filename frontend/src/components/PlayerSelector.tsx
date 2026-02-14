@@ -159,7 +159,7 @@ export default function PlayerSelector({
             onClick={() => removePlayer(player.id)}
             type="button"
           >
-            <PlayerAvatar name={player.name} playerId={player.id} size="sm" />
+            <PlayerAvatar color={player.color} name={player.name} playerId={player.id} size="sm" />
             <span>{player.name}</span>
           </button>
         ))}
@@ -247,6 +247,7 @@ export default function PlayerSelector({
                         role="option"
                       >
                         <PlayerAvatar
+                          color={player.color}
                           name={player.name}
                           playerId={player.id}
                           size="sm"

@@ -134,6 +134,7 @@ export default function Players() {
             >
               <PlayerAvatar
                 className={player.active ? "" : "opacity-50"}
+                color={player.color}
                 name={player.name}
                 playerId={player.id}
               />

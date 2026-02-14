@@ -175,7 +175,7 @@ export default function GroupDetail() {
                 className="flex items-center gap-3 rounded-lg bg-surface-secondary p-3"
                 key={player.id}
               >
-                <PlayerAvatar name={player.name} playerId={player.id} />
+                <PlayerAvatar color={player.color} name={player.name} playerId={player.id} />
                 <p className="min-w-0 flex-1 truncate font-medium text-text-primary">
                   {player.name}
                 </p>
