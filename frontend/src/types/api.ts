@@ -120,6 +120,14 @@ export interface PlayerGroupDetail extends PlayerGroup {
   players: GamePlayer[];
 }
 
+export interface PersonalRecord {
+  contract: string | null;
+  date: string;
+  sessionId: number | null;
+  type: string;
+  value: number;
+}
+
 export interface PlayerContractEntry {
   contract: Contract;
   count: number;
@@ -141,6 +149,7 @@ export interface PlayerStatistics {
   player: GamePlayer;
   playerGroups: { id: number; name: string }[];
   recentScores: RecentScoreEntry[];
+  records: PersonalRecord[];
   sessionsPlayed: number;
   starPenalties: number;
   totalPlayTimeSeconds: number;
