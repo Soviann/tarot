@@ -1,5 +1,6 @@
+import { CircleHelp } from "lucide-react";
 import { useCallback, useMemo, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import PlayerSelector from "../components/PlayerSelector";
 import SessionList from "../components/SessionList";
 import { useCreateSession } from "../hooks/useCreateSession";
@@ -41,9 +42,18 @@ export default function Home() {
   return (
     <div className="flex flex-col gap-6 overflow-x-hidden p-4 lg:p-8">
       <section>
-        <h2 className="mb-4 text-center text-2xl font-bold text-text-primary">
-          Sessions récentes
-        </h2>
+        <div className="mb-4 flex items-center justify-between">
+          <h2 className="text-2xl font-bold text-text-primary">
+            Sessions récentes
+          </h2>
+          <Link
+            aria-label="Aide"
+            className="rounded-lg p-1.5 text-text-secondary hover:bg-surface-tertiary"
+            to="/aide"
+          >
+            <CircleHelp className="size-5 lg:size-6" />
+          </Link>
+        </div>
         <SessionList />
       </section>
 

@@ -1,5 +1,5 @@
-import { CircleHelp, Moon, Sun } from "lucide-react";
-import { Link, Outlet } from "react-router-dom";
+import { Moon, Sun } from "lucide-react";
+import { Outlet } from "react-router-dom";
 import { useTheme } from "../hooks/useTheme";
 import BottomNav from "./BottomNav";
 
@@ -21,13 +21,6 @@ export default function Layout() {
             <Moon className="size-5 lg:size-6" />
           )}
         </button>
-        <Link
-          aria-label="Aide"
-          className="rounded-lg p-1.5 text-text-secondary hover:bg-surface-tertiary"
-          to="/aide"
-        >
-          <CircleHelp className="size-5 lg:size-6" />
-        </Link>
       </header>
       <main className="animate-fade-in lg:mx-auto lg:max-w-4xl">
         <Outlet />
