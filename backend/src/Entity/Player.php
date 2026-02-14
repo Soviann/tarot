@@ -23,7 +23,7 @@ use Symfony\Component\Validator\Constraints as Assert;
         new Patch(),
         new Post(),
     ],
-    normalizationContext: ['groups' => ['player:read']],
+    normalizationContext: ['groups' => ['player:read'], 'skip_null_values' => false],
     denormalizationContext: ['groups' => ['player:write']],
 )]
 #[ORM\Entity]
@@ -39,6 +39,11 @@ class Player
     #[Groups(['player:read', 'player:write'])]
     #[ORM\Column(options: ['default' => true])]
     private bool $active = true;
+
+    #[Assert\Regex('/^#[0-9a-fA-F]{6}$/')]
+    #[Groups(['game:read', 'player-group:detail', 'player:read', 'player:write', 'score-entry:read', 'session:detail', 'session:read'])]
+    #[ORM\Column(length: 7, nullable: true)]
+    private ?string $color = null;
 
     #[Groups(['player:read'])]
     #[ORM\Column(type: 'datetime_immutable')]
@@ -73,6 +78,11 @@ class Player
         }
 
         return $this;
+    }
+
+    public function getColor(): ?string
+    {
+        return $this->color;
     }
 
     public function getCreatedAt(): \DateTimeImmutable
@@ -120,6 +130,13 @@ class Player
     public function setActive(bool $active): static
     {
         $this->active = $active;
+
+        return $this;
+    }
+
+    public function setColor(?string $color): static
+    {
+        $this->color = $color;
 
         return $this;
     }

@@ -298,6 +298,64 @@ class StatisticsApiTest extends ApiTestCase
         $this->assertSame(3, $data['gamesPlayed']);
     }
 
+    public function testStatisticsIncludePlayerColor(): void
+    {
+        // Set Alice's color
+        $alice = $this->players['Alice'];
+        $alice->setColor('#ef4444');
+        $this->em->flush();
+
+        $this->client->disableReboot();
+
+        // Create and complete a game via API to trigger ELO
+        $response = $this->client->request('POST', '/api/sessions/'.$this->session->getId().'/games', [
+            'headers' => ['Content-Type' => 'application/ld+json'],
+            'json' => [
+                'contract' => 'petite',
+                'taker' => $this->getIri($alice),
+            ],
+        ]);
+        $this->assertResponseStatusCodeSame(201);
+        $gameIri = $response->toArray()['@id'];
+
+        $this->client->request('PATCH', $gameIri, [
+            'headers' => ['Content-Type' => 'application/merge-patch+json'],
+            'json' => [
+                'oudlers' => 2,
+                'partner' => $this->getIri($this->players['Bob']),
+                'points' => 45,
+                'status' => 'completed',
+            ],
+        ]);
+        $this->assertResponseIsSuccessful();
+
+        $response = $this->client->request('GET', '/api/statistics');
+        $this->assertResponseIsSuccessful();
+        $data = $response->toArray();
+
+        // Check leaderboard includes playerColor
+        $aliceEntry = null;
+        foreach ($data['leaderboard'] as $entry) {
+            if ('Alice' === $entry['playerName']) {
+                $aliceEntry = $entry;
+                break;
+            }
+        }
+        $this->assertNotNull($aliceEntry);
+        $this->assertSame('#ef4444', $aliceEntry['playerColor']);
+
+        // Check eloRanking includes playerColor
+        $aliceElo = null;
+        foreach ($data['eloRanking'] as $entry) {
+            if ('Alice' === $entry['playerName']) {
+                $aliceElo = $entry;
+                break;
+            }
+        }
+        $this->assertNotNull($aliceElo);
+        $this->assertSame('#ef4444', $aliceElo['playerColor']);
+    }
+
     public function testGlobalStatisticsWithNonExistentGroup(): void
     {
         $response = $this->client->request('GET', '/api/statistics?playerGroup=99999');

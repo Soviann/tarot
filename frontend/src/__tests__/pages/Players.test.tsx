@@ -351,4 +351,55 @@ describe("Players page", () => {
 
     expect(toggle).toHaveAttribute("aria-checked", "false");
   });
+
+  // --- Color picker tests ---
+
+  it("shows color picker in edit modal", async () => {
+    setupMocks();
+    renderWithProviders(<Players />);
+
+    const editButtons = screen.getAllByRole("button", { name: /Modifier/i });
+    await userEvent.click(editButtons[0]);
+
+    expect(screen.getByText("Couleur")).toBeInTheDocument();
+    expect(screen.getByLabelText("Couleur personnalisée")).toBeInTheDocument();
+  });
+
+  it("selects a preset color and submits", async () => {
+    const { updateMutate } = setupMocks();
+    renderWithProviders(<Players />);
+
+    const editButtons = screen.getAllByRole("button", { name: /Modifier/i });
+    await userEvent.click(editButtons[0]);
+
+    const swatch = screen.getByRole("radio", { name: "#ef4444" });
+    await userEvent.click(swatch);
+    await userEvent.click(screen.getByRole("button", { name: "Enregistrer" }));
+
+    expect(updateMutate).toHaveBeenCalledWith(
+      expect.objectContaining({ color: "#ef4444", id: 1 }),
+      expect.anything(),
+    );
+  });
+
+  it("resets color to auto", async () => {
+    const playersWithColor = [
+      { active: true, color: "#ef4444", createdAt: "2025-01-15T10:00:00+00:00", id: 1, name: "Alice", playerGroups: [] },
+    ];
+    const { updateMutate } = setupMocks({
+      usePlayers: { data: playersWithColor, players: playersWithColor },
+    });
+    renderWithProviders(<Players />);
+
+    const editButtons = screen.getAllByRole("button", { name: /Modifier/i });
+    await userEvent.click(editButtons[0]);
+
+    await userEvent.click(screen.getByRole("button", { name: /Auto/i }));
+    await userEvent.click(screen.getByRole("button", { name: "Enregistrer" }));
+
+    expect(updateMutate).toHaveBeenCalledWith(
+      expect.objectContaining({ color: null, id: 1 }),
+      expect.anything(),
+    );
+  });
 });

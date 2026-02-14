@@ -84,7 +84,7 @@ export default function NewGameModal({ createGame, currentDealerName, lastGameCo
                 onClick={() => setSelectedTakerId(player.id)}
                 type="button"
               >
-                <PlayerAvatar name={player.name} playerId={player.id} size="lg" />
+                <PlayerAvatar color={player.color} name={player.name} playerId={player.id} size="lg" />
               </button>
             ))}
           </div>

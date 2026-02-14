@@ -27,7 +27,7 @@ export default function Leaderboard({ entries, onPlayerClick }: LeaderboardProps
           <span className="w-6 text-center text-sm font-bold text-text-muted">
             {index + 1}
           </span>
-          <PlayerAvatar name={entry.playerName} playerId={entry.playerId} size="sm" />
+          <PlayerAvatar color={entry.playerColor} name={entry.playerName} playerId={entry.playerId} size="sm" />
           <div className="flex-1 min-w-0">
             <span className="block truncate text-sm font-medium text-text-primary">
               {entry.playerName}

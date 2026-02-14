@@ -8,6 +8,11 @@ import { useUpdatePlayer } from "../hooks/useUpdatePlayer";
 import { ApiError } from "../services/api";
 import type { Player } from "../types/api";
 
+const PRESET_COLORS = [
+  "#ef4444", "#f97316", "#eab308", "#22c55e", "#14b8a6",
+  "#3b82f6", "#6366f1", "#a855f7", "#ec4899", "#78716c",
+] as const;
+
 export default function Players() {
   const [search, setSearch] = useState("");
   const [modalOpen, setModalOpen] = useState(false);
@@ -15,6 +20,7 @@ export default function Players() {
   const [editingPlayer, setEditingPlayer] = useState<Player | null>(null);
   const [editName, setEditName] = useState("");
   const [editActive, setEditActive] = useState(true);
+  const [editColor, setEditColor] = useState<string | null>(null);
   const [editGroupIds, setEditGroupIds] = useState<number[]>([]);
 
   const { isPending, players } = usePlayers(search);
@@ -49,6 +55,7 @@ export default function Players() {
       updatePlayer.reset();
       setEditingPlayer(player);
       setEditActive(player.active);
+      setEditColor(player.color);
       setEditGroupIds(player.playerGroups.map((g) => g.id));
       setEditName(player.name);
     },
@@ -68,6 +75,7 @@ export default function Players() {
       updatePlayer.mutate(
         {
           active: editActive,
+          color: editColor,
           id: editingPlayer.id,
           name: trimmed,
           playerGroups: editGroupIds.map((id) => `/api/player-groups/${id}`),
@@ -75,7 +83,7 @@ export default function Players() {
         { onSuccess: () => closeEditModal() },
       );
     },
-    [closeEditModal, editActive, editGroupIds, editName, editingPlayer, updatePlayer],
+    [closeEditModal, editActive, editColor, editGroupIds, editName, editingPlayer, updatePlayer],
   );
 
   const toggleGroup = useCallback(
@@ -134,6 +142,7 @@ export default function Players() {
             >
               <PlayerAvatar
                 className={player.active ? "" : "opacity-50"}
+                color={player.color}
                 name={player.name}
                 playerId={player.id}
               />
@@ -236,6 +245,47 @@ export default function Players() {
                 Erreur lors de la modification.
               </p>
             )}
+          </div>
+          <div>
+            <p className="mb-2 text-sm font-medium text-text-secondary">
+              Couleur
+            </p>
+            <div className="flex flex-wrap items-center gap-2">
+              <button
+                className={`rounded-full px-2 py-1 text-xs font-medium transition-colors ${
+                  editColor === null
+                    ? "bg-accent-500 text-white"
+                    : "bg-surface-secondary text-text-secondary hover:bg-surface-tertiary"
+                }`}
+                onClick={() => setEditColor(null)}
+                type="button"
+              >
+                Auto
+              </button>
+              {PRESET_COLORS.map((c) => (
+                <button
+                  aria-checked={editColor === c}
+                  aria-label={c}
+                  className={`size-7 rounded-full transition-shadow ${
+                    editColor === c ? "ring-2 ring-accent-500 ring-offset-2" : ""
+                  }`}
+                  key={c}
+                  onClick={() => setEditColor(c)}
+                  role="radio"
+                  style={{ backgroundColor: c }}
+                  type="button"
+                />
+              ))}
+              <label className="relative">
+                <span className="sr-only">Couleur personnalisée</span>
+                <input
+                  className="size-7 cursor-pointer rounded-full border-0 bg-transparent p-0"
+                  onChange={(e) => setEditColor(e.target.value)}
+                  type="color"
+                  value={editColor ?? "#000000"}
+                />
+              </label>
+            </div>
           </div>
           {groups.length > 0 && (
             <div>

@@ -80,4 +80,23 @@ describe("PlayerAvatar", () => {
     const avatar = screen.getByRole("img");
     expect(avatar.className).toMatch(/size-14/);
   });
+
+  it("uses custom color via inline style when provided", () => {
+    renderWithProviders(<PlayerAvatar color="#ef4444" name="Alice" />);
+
+    const avatar = screen.getByRole("img", { name: "Alice" });
+    expect(avatar.style.backgroundColor).toBe("rgb(239, 68, 68)");
+    // Should NOT have a bg-avatar-* class
+    expect(avatar.className).not.toMatch(/bg-avatar-/);
+  });
+
+  it("falls back to palette color when color is null", () => {
+    renderWithProviders(
+      <PlayerAvatar color={null} name="Alice" playerId={3} />,
+    );
+
+    const avatar = screen.getByRole("img", { name: "Alice" });
+    expect(avatar.className).toMatch(/bg-avatar-/);
+    expect(avatar.style.backgroundColor).toBe("");
+  });
 });

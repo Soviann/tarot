@@ -30,7 +30,7 @@ export default function InProgressBanner({ game, onCancel, onComplete }: InProgr
   return (
     <div className="rounded-xl bg-accent-500/10 p-3">
       <div className="flex items-center gap-3">
-        <PlayerAvatar name={game.taker.name} playerId={game.taker.id} size="md" />
+        <PlayerAvatar color={game.taker.color} name={game.taker.name} playerId={game.taker.id} size="md" />
         <div className="flex min-w-0 flex-1 flex-col gap-1">
           <span className="text-sm font-medium text-text-primary">
             {game.taker.name}
