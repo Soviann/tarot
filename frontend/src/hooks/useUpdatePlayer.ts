@@ -4,6 +4,7 @@ import type { Player } from "../types/api";
 
 interface UpdatePlayerVariables {
   active?: boolean;
+  color?: string | null;
   id: number;
   name?: string;
   playerGroups?: string[];
