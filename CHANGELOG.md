@@ -8,6 +8,8 @@ Le format est basé sur [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/)
 
 ### Added
 
+- **Records personnels** : meilleur/pire score, série de victoires consécutives, meilleure session, plus grand écart de points. Chaque record indique la valeur, la date, le contrat et un lien vers la session. Affiché sur la page de statistiques par joueur en remplacement des simples meilleur/pire scores.
+
 - **Taux de réussite par contrat et par joueur** : tableau croisé joueurs × contrats sur la page Statistiques, montrant le pourcentage de victoire et le nombre de donnes pour chaque joueur en tant que preneur. Cellules colorées pour une lecture rapide. Nouveau endpoint `contractSuccessRateByPlayer` dans l'API statistiques globales, composant `ContractSuccessRateTable`.
 
 - **Graphique d'évolution ELO globale** : sur la page Statistiques, un graphique multi-lignes montre l'évolution du rating ELO de tous les joueurs au fil des donnes. Chips cliquables pour filtrer par joueur, couleur personnalisée, ligne de référence à 1500. Nouveau endpoint `eloEvolution` dans l'API statistiques globales, composant `GlobalEloEvolutionChart`.

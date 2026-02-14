@@ -3,8 +3,9 @@ import { Link, useNavigate, useParams, useSearchParams } from "react-router-dom"
 import ContractDistributionChart from "../components/ContractDistributionChart";
 import EloEvolutionChart from "../components/EloEvolutionChart";
 import GroupFilter from "../components/GroupFilter";
+import PersonalRecords from "../components/PersonalRecords";
 import ScoreTrendChart from "../components/ScoreTrendChart";
-import { PlayerAvatar, ScoreDisplay } from "../components/ui";
+import { PlayerAvatar } from "../components/ui";
 import { usePlayerStats } from "../hooks/usePlayerStats";
 import { formatDuration } from "../utils/formatDuration";
 
@@ -124,20 +125,7 @@ export default function PlayerStats() {
         </section>
       )}
 
-      <div className="flex gap-3">
-        <div className="flex-1 rounded-xl bg-surface-elevated p-3 text-center">
-          <span className="block text-sm font-semibold text-text-primary">
-            Meilleur
-          </span>
-          <ScoreDisplay animated={false} className="text-lg" value={stats.bestGameScore} />
-        </div>
-        <div className="flex-1 rounded-xl bg-surface-elevated p-3 text-center">
-          <span className="block text-sm font-semibold text-text-primary">
-            Pire
-          </span>
-          <ScoreDisplay animated={false} className="text-lg" value={stats.worstGameScore} />
-        </div>
-      </div>
+      <PersonalRecords records={stats.records} />
 
       {rolesTotal > 0 && (
         <section>

@@ -14,7 +14,7 @@ use App\Enum\Side;
 
 class ScoreCalculator
 {
-    private const array REQUIRED_POINTS = [0 => 56, 1 => 51, 2 => 41, 3 => 36];
+    public const array REQUIRED_POINTS = [0 => 56, 1 => 51, 2 => 41, 3 => 36];
 
     /**
      * Calcule les scores de chaque joueur pour une donne donnée.

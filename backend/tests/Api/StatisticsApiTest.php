@@ -475,6 +475,61 @@ class StatisticsApiTest extends ApiTestCase
         $this->assertSame([], $data['contractSuccessRateByPlayer']);
     }
 
+    public function testPlayerStatisticsIncludesRecords(): void
+    {
+        $alice = $this->players['Alice'];
+        $response = $this->client->request('GET', '/api/statistics/players/'.$alice->getId());
+        $this->assertResponseIsSuccessful();
+        $data = $response->toArray();
+
+        $this->assertArrayHasKey('records', $data);
+        $this->assertIsArray($data['records']);
+
+        $records = [];
+        foreach ($data['records'] as $r) {
+            $records[$r['type']] = $r;
+        }
+
+        // Best score: 58 from game1 (petite, session1)
+        $this->assertArrayHasKey('best_score', $records);
+        $this->assertSame(58, $records['best_score']['value']);
+        $this->assertSame('petite', $records['best_score']['contract']);
+        $this->assertSame($this->session->getId(), $records['best_score']['sessionId']);
+        $this->assertArrayHasKey('date', $records['best_score']);
+
+        // Worst score: -82 from game3 (petite)
+        $this->assertArrayHasKey('worst_score', $records);
+        $this->assertSame(-82, $records['worst_score']['value']);
+        $this->assertSame('petite', $records['worst_score']['contract']);
+
+        // Win streak as taker: 1 (game1 won, game3 lost — not consecutive)
+        $this->assertArrayHasKey('win_streak', $records);
+        $this->assertSame(1, $records['win_streak']['value']);
+
+        // Best session total: 58 + (-68) + (-82) = -92
+        $this->assertArrayHasKey('best_session', $records);
+        $this->assertSame(-92, $records['best_session']['value']);
+        $this->assertSame($this->session->getId(), $records['best_session']['sessionId']);
+
+        // Biggest diff as taker: |40 - 56| = 16 (game3, 0 oudlers)
+        $this->assertArrayHasKey('biggest_diff', $records);
+        $this->assertEqualsWithDelta(16.0, $records['biggest_diff']['value'], 0.01);
+        $this->assertSame('petite', $records['biggest_diff']['contract']);
+    }
+
+    public function testPlayerRecordsEmptyWhenNoGames(): void
+    {
+        $this->em->createQuery('DELETE FROM App\Entity\ScoreEntry')->execute();
+        $this->em->createQuery('DELETE FROM App\Entity\Game')->execute();
+
+        $alice = $this->players['Alice'];
+        $response = $this->client->request('GET', '/api/statistics/players/'.$alice->getId());
+        $this->assertResponseIsSuccessful();
+        $data = $response->toArray();
+
+        $this->assertSame([], $data['records']);
+    }
+
     public function testGlobalStatisticsWithNonExistentGroup(): void
     {
         $response = $this->client->request('GET', '/api/statistics?playerGroup=99999');
