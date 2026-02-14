@@ -324,4 +324,16 @@ describe("Home page", () => {
 
     expect(screen.getByText("Sessions récentes")).toBeInTheDocument();
   });
+
+  it("renders a help icon link aligned with 'Sessions récentes' heading", () => {
+    setupMocks();
+    renderWithProviders(<Home />);
+
+    const helpLink = screen.getByRole("link", { name: /aide/i });
+    expect(helpLink).toHaveAttribute("href", "/aide");
+
+    // Help link should be inside the same container as the sessions heading
+    const sessionsHeading = screen.getByText("Sessions récentes");
+    expect(sessionsHeading.closest("div")).toContainElement(helpLink);
+  });
 });

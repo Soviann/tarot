@@ -561,7 +561,7 @@ Page d'aide in-app reprenant le contenu du guide utilisateur (`docs/user-guide.m
 - 12 sections en accordéon dépliable (`AccordionSection`, composant local)
 - Lien vers le dépôt GitHub en bas de page
 - Bouton retour vers l'accueil
-- Accessible via l'icône `CircleHelp` dans le header du `Layout`
+- Accessible via l'icône `CircleHelp` sur la page d'accueil (`Home.tsx`), à droite du titre « Sessions récentes »
 
 **Hooks utilisés** : aucun (contenu statique)
 
