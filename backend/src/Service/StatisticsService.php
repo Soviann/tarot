@@ -681,8 +681,8 @@ class StatisticsService
         $durationStats = $this->getPlayerDurationStats($player, $playerGroupId);
 
         return [
-            'badges' => $this->getPlayerBadges($player),
             'averageGameDurationSeconds' => $durationStats['averageGameDurationSeconds'],
+            'badges' => $this->getPlayerBadges($player),
             'averageScore' => null !== $scoreAgg['averageScore'] ? \round((float) $scoreAgg['averageScore'], 1) : 0.0,
             'bestGameScore' => (int) ($scoreAgg['bestGameScore'] ?? 0),
             'contractDistribution' => $contractDistribution,

@@ -14,10 +14,10 @@ use App\Enum\GameStatus;
 use App\Enum\Side;
 use Doctrine\ORM\EntityManagerInterface;
 
-final class BadgeChecker
+final readonly class BadgeChecker
 {
     public function __construct(
-        private readonly EntityManagerInterface $em,
+        private EntityManagerInterface $em,
     ) {
     }
 
@@ -30,11 +30,11 @@ final class BadgeChecker
     {
         $result = [];
         foreach ($session->getPlayers() as $player) {
-            $newBadges = $this->checkAndAwardForPlayer($player);
-            if (!empty($newBadges)) {
+            $awarded = $this->checkAndAwardForPlayer($player, flush: false);
+            if (!empty($awarded)) {
                 /** @var int $playerId */
                 $playerId = $player->getId();
-                $result[$playerId] = $newBadges;
+                $result[$playerId] = $awarded;
             }
         }
 
@@ -50,7 +50,7 @@ final class BadgeChecker
      *
      * @return list<BadgeType>
      */
-    public function checkAndAwardForPlayer(Player $player): array
+    public function checkAndAwardForPlayer(Player $player, bool $flush = true): array
     {
         $existingTypes = $this->getExistingBadgeTypes($player);
         $newBadges = [];
@@ -70,7 +70,7 @@ final class BadgeChecker
             }
         }
 
-        if (!empty($newBadges)) {
+        if ($flush && !empty($newBadges)) {
             $this->em->flush();
         }
 

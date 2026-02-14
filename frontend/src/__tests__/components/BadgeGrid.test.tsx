@@ -48,10 +48,11 @@ describe("BadgeGrid", () => {
     expect(screen.getByText("15/06/2025")).toBeInTheDocument();
   });
 
-  it("does not show date for locked badges", () => {
+  it("shows description instead of date for locked badges", () => {
     render(<BadgeGrid badges={[lockedBadge]} />);
 
     expect(screen.getByText("Légende")).toBeInTheDocument();
+    expect(screen.getByText("Gagner 100 parties")).toBeInTheDocument();
     expect(screen.queryByText(/\d{2}\/\d{2}\/\d{4}/)).not.toBeInTheDocument();
   });
 

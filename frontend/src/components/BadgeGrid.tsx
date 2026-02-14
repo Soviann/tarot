@@ -26,10 +26,12 @@ export default function BadgeGrid({ badges }: BadgeGridProps) {
           >
             <span className="text-2xl">{badge.emoji}</span>
             <span className="text-xs font-medium leading-tight text-text-primary">{badge.label}</span>
-            {badge.unlockedAt && (
+            {badge.unlockedAt ? (
               <span className="text-[10px] text-text-muted">
                 {new Date(badge.unlockedAt).toLocaleDateString("fr-FR")}
               </span>
+            ) : (
+              <span className="text-[10px] leading-tight text-text-muted">{badge.description}</span>
             )}
           </div>
         ))}

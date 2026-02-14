@@ -145,8 +145,8 @@ export interface PlayerContractEntry {
 }
 
 export interface PlayerStatistics {
-  badges: Badge[];
   averageGameDurationSeconds: number | null;
+  badges: Badge[];
   averageScore: number;
   bestGameScore: number;
   contractDistribution: PlayerContractEntry[];
