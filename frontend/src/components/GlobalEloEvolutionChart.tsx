@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import {
   Line,
   LineChart,
@@ -40,6 +40,7 @@ export function buildChartData(
   }
 
   // Build per-player lookup: gameId → ratingAfter
+  // Uses playerName as key (unique per backend validation)
   const playerLookups = data.map((player) => {
     const lookup = new Map<number, number>();
     for (const entry of player.history) {
@@ -64,9 +65,22 @@ export default function GlobalEloEvolutionChart({
 }: GlobalEloEvolutionChartProps) {
   const [hiddenPlayers, setHiddenPlayers] = useState<Set<number>>(new Set());
 
+  // Pre-compute color map: playerId → color (custom or avatar fallback)
+  const playerColorMap = useMemo(
+    () =>
+      new Map(
+        data.map((p, i) => [
+          p.playerId,
+          p.playerColor ?? avatarColors[i % avatarColors.length],
+        ]),
+      ),
+    [data],
+  );
+
+  const chartData = useMemo(() => buildChartData(data), [data]);
+
   if (data.length === 0) return null;
 
-  const chartData = buildChartData(data);
   const visiblePlayers = data.filter((p) => !hiddenPlayers.has(p.playerId));
 
   const togglePlayer = (playerId: number) => {
@@ -84,9 +98,8 @@ export default function GlobalEloEvolutionChart({
   return (
     <div>
       <div className="mb-3 flex flex-wrap gap-2">
-        {data.map((player, index) => {
-          const color =
-            player.playerColor ?? avatarColors[index % avatarColors.length];
+        {data.map((player) => {
+          const color = playerColorMap.get(player.playerId)!;
           const isHidden = hiddenPlayers.has(player.playerId);
           return (
             <button
@@ -118,7 +131,7 @@ export default function GlobalEloEvolutionChart({
               tick={{ fill: "var(--color-text-muted)", fontSize: 11 }}
             />
             <YAxis
-              domain={["auto", "auto"]}
+              domain={["dataMin - 50", "dataMax + 50"]}
               tick={{ fill: "var(--color-text-muted)", fontSize: 11 }}
               width={50}
             />
@@ -132,17 +145,18 @@ export default function GlobalEloEvolutionChart({
               labelFormatter={(label) => `Donne ${label}`}
             />
             <ReferenceLine
+              label={{
+                fill: "var(--color-text-muted)",
+                fontSize: 10,
+                position: "right",
+                value: "1500",
+              }}
               stroke="var(--color-text-muted)"
               strokeDasharray="3 3"
               y={1500}
             />
             {visiblePlayers.map((player) => {
-              const color =
-                player.playerColor ??
-                avatarColors[
-                  data.findIndex((p) => p.playerId === player.playerId) %
-                    avatarColors.length
-                ];
+              const color = playerColorMap.get(player.playerId)!;
               return (
                 <Line
                   connectNulls
