@@ -1532,7 +1532,7 @@ Chaque item est soit un **bouton** (avec `onClick`), soit un **lien** (avec `hre
 
 **Fichier** : `components/ui/Modal.tsx`
 
-Dialogue modal en portail avec focus trap et fermeture Escape/backdrop. Plein écran sur mobile, centré sur desktop.
+Dialogue modal en portail avec focus trap et fermeture Escape/backdrop. Plein écran sur mobile, centré sur desktop. Animation slide-up à l'ouverture et slide-down à la fermeture (200 ms ease-out), avec fondu du backdrop.
 
 | Prop | Type | Description |
 |------|------|-------------|
