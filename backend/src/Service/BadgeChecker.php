@@ -31,12 +31,16 @@ final class BadgeChecker
         $result = [];
         foreach ($session->getPlayers() as $player) {
             $newBadges = $this->checkAndAwardForPlayer($player);
-            /** @var int $playerId */
-            $playerId = $player->getId();
-            $result[$playerId] = $newBadges;
+            if (!empty($newBadges)) {
+                /** @var int $playerId */
+                $playerId = $player->getId();
+                $result[$playerId] = $newBadges;
+            }
         }
 
-        $this->em->flush();
+        if (!empty($result)) {
+            $this->em->flush();
+        }
 
         return $result;
     }
@@ -64,6 +68,10 @@ final class BadgeChecker
 
                 $newBadges[] = $badgeType;
             }
+        }
+
+        if (!empty($newBadges)) {
+            $this->em->flush();
         }
 
         return $newBadges;
