@@ -59,6 +59,8 @@ L'application est une **Progressive Web App** (PWA). Elle s'utilise dans un navi
 
 Accessible via l'onglet **Joueurs** dans la barre de navigation basse.
 
+Chaque joueur affiche sous son nom sa **dernière activité** en format relatif (« Aujourd'hui », « Hier », « Il y a 3 jours »…). Si le joueur n'a encore participé à aucune donne, la date de création est affichée à la place.
+
 ### Ajouter un joueur
 
 1. Appuyer sur le bouton **+** (en bas à droite)

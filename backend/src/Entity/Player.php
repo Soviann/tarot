@@ -53,6 +53,10 @@ class Player
     #[ORM\Column(options: ['default' => 1500])]
     private int $eloRating = 1500;
 
+    #[Groups(['player:read'])]
+    #[ORM\Column(type: 'datetime_immutable', nullable: true)]
+    private ?\DateTimeImmutable $lastActivityAt = null;
+
     #[Assert\NotBlank]
     #[Groups(['game:read', 'player-group:detail', 'player:read', 'player:write', 'score-entry:read', 'session:detail', 'session:read'])]
     #[ORM\Column(length: 50, unique: true)]
@@ -100,6 +104,11 @@ class Player
         return $this->id;
     }
 
+    public function getLastActivityAt(): ?\DateTimeImmutable
+    {
+        return $this->lastActivityAt;
+    }
+
     public function getName(): string
     {
         return $this->name;
@@ -144,6 +153,13 @@ class Player
     public function setEloRating(int $eloRating): static
     {
         $this->eloRating = $eloRating;
+
+        return $this;
+    }
+
+    public function setLastActivityAt(?\DateTimeImmutable $lastActivityAt): static
+    {
+        $this->lastActivityAt = $lastActivityAt;
 
         return $this;
     }

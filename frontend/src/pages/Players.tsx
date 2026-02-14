@@ -7,6 +7,7 @@ import { usePlayers } from "../hooks/usePlayers";
 import { useUpdatePlayer } from "../hooks/useUpdatePlayer";
 import { useToast } from "../hooks/useToast";
 import { ApiError } from "../services/api";
+import { formatRelativeDate } from "../services/formatRelativeDate";
 import type { Player } from "../types/api";
 
 const PRESET_COLORS = [
@@ -173,7 +174,9 @@ export default function Players() {
                   )}
                 </div>
                 <p className="text-xs text-text-muted">
-                  {new Date(player.createdAt).toLocaleDateString("fr-FR")}
+                  {player.lastActivityAt
+                    ? formatRelativeDate(player.lastActivityAt)
+                    : new Date(player.createdAt).toLocaleDateString("fr-FR")}
                 </p>
               </div>
               <button

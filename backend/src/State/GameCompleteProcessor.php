@@ -50,8 +50,13 @@ final readonly class GameCompleteProcessor implements ProcessorInterface
             $this->computeEloRatings($data);
 
             if (!$wasAlreadyCompleted) {
-                $data->setCompletedAt(new \DateTimeImmutable());
+                $now = new \DateTimeImmutable();
+                $data->setCompletedAt($now);
                 $data->getSession()->advanceDealer();
+
+                foreach ($data->getSession()->getPlayers() as $player) {
+                    $player->setLastActivityAt($now);
+                }
             }
         }
 
