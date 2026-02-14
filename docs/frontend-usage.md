@@ -1005,7 +1005,7 @@ Modal de changement de joueurs depuis une session en cours. Réutilise `PlayerSe
 
 **Fichier** : `components/GroupFilter.tsx`
 
-Sélecteur de groupe partagé pour filtrer les statistiques. Retourne `null` si aucun groupe n'existe.
+Sélecteur de groupe partagé pour filtrer les statistiques. Utilise le composant `Select` (variant `compact`). Retourne `null` si aucun groupe n'existe.
 
 | Prop | Type | Description |
 |------|------|-------------|
@@ -1356,7 +1356,7 @@ Sélectionne un mème de défaite en fonction du contexte de la donne. Même pro
 Tous les composants sont exportés depuis `components/ui/index.ts` :
 
 ```tsx
-import { ContractBadge, FAB, Modal, OverflowMenu, PlayerAvatar, ScoreDisplay, SearchInput, Stepper, UndoFAB } from "./components/ui";
+import { ContractBadge, FAB, Modal, OverflowMenu, PlayerAvatar, ScoreDisplay, SearchInput, Select, Stepper, UndoFAB } from "./components/ui";
 ```
 
 ### `PlayerAvatar`
@@ -1558,6 +1558,40 @@ Champ de recherche avec debounce intégré et bouton d'effacement. Supporte la n
   onKeyDown={handleKeyDown}
   onSearch={handleSearch}
   placeholder="Rechercher…"
+/>
+```
+
+### `Select`
+
+**Fichier** : `components/ui/Select.tsx`
+
+Menu déroulant personnalisé remplaçant le `<select>` natif. Affiche un bouton déclencheur avec chevron rotatif, et un panneau déroulant stylisé avec coche sur l'option sélectionnée. Supporte la navigation clavier (flèches, Entrée, Échap) et la fermeture au clic extérieur.
+
+| Prop | Type | Défaut | Description |
+|------|------|--------|-------------|
+| `options` | `SelectOption<T>[]` | *requis* | Options disponibles (`{ label, value }`) |
+| `value` | `T` | *requis* | Valeur sélectionnée |
+| `onChange` | `(value: T) => void` | *requis* | Callback de changement |
+| `variant` | `"default" \| "compact"` | `"default"` | `default` = pleine largeur (sélecteur de section), `compact` = inline (filtre dans un header) |
+| `id` | `string?` | — | ID HTML du bouton |
+
+```tsx
+{/* Sélecteur de section (pleine largeur) */}
+<Select
+  options={[
+    { label: "Classement ELO", value: "elo-ranking" },
+    { label: "Répartition des contrats", value: "contracts" },
+  ]}
+  value={selectedSection}
+  onChange={setSelectedSection}
+/>
+
+{/* Filtre compact (inline) */}
+<Select
+  options={groupOptions}
+  value={selectedGroup}
+  onChange={setSelectedGroup}
+  variant="compact"
 />
 ```
 
