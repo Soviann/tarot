@@ -1,9 +1,7 @@
 import { ArrowLeft, Download, Share2 } from "lucide-react";
 import { useCallback, useRef, useState } from "react";
 import { Link, useParams } from "react-router-dom";
-import PlayerAvatar from "../components/ui/PlayerAvatar";
-import ScoreDisplay from "../components/ui/ScoreDisplay";
-import Spinner from "../components/ui/Spinner";
+import { PlayerAvatar, ScoreDisplay, Spinner } from "../components/ui";
 import { useSessionSummary } from "../hooks/useSessionSummary";
 import type {
   SessionAward,

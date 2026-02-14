@@ -1578,7 +1578,9 @@ Indicateur de chargement animé (cercle tournant accent-500). Accessible avec `r
 
 | Prop | Type | Défaut | Description |
 |------|------|--------|-------------|
-| `size` | `"sm" \| "md"` | `"md"` | `md` = 32px, padding `py-8` (pleine page). `sm` = 20px, padding `py-4` (inline). |
+| `size` | `"xs" \| "sm" \| "md"` | `"md"` | `md` = 32px, padding `py-8`. `sm` = 20px, padding `py-4`. `xs` = 16px (bouton inline). |
+| `inline` | `boolean` | `false` | Si `true`, rend uniquement le SVG sans wrapper ni `role="status"`. |
+| `className` | `string` | `"text-accent-500"` | Classe CSS pour la couleur du SVG. |
 
 ```tsx
 {/* Chargement pleine page */}
@@ -1586,6 +1588,9 @@ Indicateur de chargement animé (cercle tournant accent-500). Accessible avec `r
 
 {/* Chargement inline (liste, sélecteur) */}
 <Spinner size="sm" />
+
+{/* Dans un bouton (SVG seul, couleur héritée) */}
+<Spinner className="text-text-secondary" inline size="xs" />
 ```
 
 ### `Stepper`

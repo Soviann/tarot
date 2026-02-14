@@ -1,6 +1,7 @@
+import { Layers } from "lucide-react";
 import type { Game } from "../types/api";
 import { formatDuration } from "../utils/formatDuration";
-import { ContractBadge, PlayerAvatar, ScoreDisplay } from "./ui";
+import { ContractBadge, EmptyState, PlayerAvatar, ScoreDisplay, Spinner } from "./ui";
 
 interface GameListProps {
   games: Game[];
@@ -21,9 +22,10 @@ export default function GameList({
 }: GameListProps) {
   if (games.length === 0) {
     return (
-      <p className="py-8 text-center text-sm text-text-muted">
-        Aucune donne jouée
-      </p>
+      <EmptyState
+        icon={<Layers size={40} />}
+        message="Aucune donne jouée"
+      />
     );
   }
 
@@ -108,10 +110,7 @@ export default function GameList({
         >
           {isFetchingNextPage ? (
             <span className="inline-flex items-center gap-2">
-              <svg className="size-4 animate-spin text-text-secondary" fill="none" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                <path className="opacity-75" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" fill="currentColor" />
-              </svg>
+              <Spinner className="text-text-secondary" inline size="xs" />
               Chargement…
             </span>
           ) : "Voir plus"}
