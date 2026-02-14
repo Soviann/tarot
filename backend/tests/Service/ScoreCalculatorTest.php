@@ -12,7 +12,7 @@ use App\Enum\Chelem;
 use App\Enum\Contract;
 use App\Enum\Poignee;
 use App\Enum\Side;
-use App\Service\ScoreCalculator;
+use App\Service\Scoring\ScoreCalculator;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 

@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Service;
+namespace App\Service\Scoring;
 
 use App\Entity\Game;
 use App\Entity\Player;

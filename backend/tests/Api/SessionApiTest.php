@@ -8,7 +8,7 @@ use App\Entity\Game;
 use App\Entity\ScoreEntry;
 use App\Enum\Contract;
 use App\Enum\GameStatus;
-use App\Service\ScoreCalculator;
+use App\Service\Scoring\ScoreCalculator;
 
 class SessionApiTest extends ApiTestCase
 {

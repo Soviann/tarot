@@ -277,7 +277,7 @@ class GameApiTest extends ApiTestCase
         $game->setTaker($players[0]);
         $this->em->persist($game);
         // Ajouter les scores initiaux
-        $calculator = new \App\Service\ScoreCalculator();
+        $calculator = new \App\Service\Scoring\ScoreCalculator();
         foreach ($calculator->compute($game) as $entry) {
             $this->em->persist($entry);
             $game->addScoreEntry($entry);
@@ -399,7 +399,7 @@ class GameApiTest extends ApiTestCase
         $game1->setStatus(GameStatus::Completed);
         $game1->setTaker($players[0]);
         $this->em->persist($game1);
-        $calculator = new \App\Service\ScoreCalculator();
+        $calculator = new \App\Service\Scoring\ScoreCalculator();
         foreach ($calculator->compute($game1) as $entry) {
             $this->em->persist($entry);
             $game1->addScoreEntry($entry);
