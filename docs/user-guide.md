@@ -165,6 +165,17 @@ Depuis l'écran de session, il est possible de **changer un ou plusieurs joueurs
 
 > **Note** : le bouton est **désactivé** tant qu'une donne est en cours. Terminez ou supprimez la donne avant de modifier les joueurs.
 
+### Partager une session (QR code)
+
+Pour permettre aux autres joueurs de suivre les scores sur leur propre téléphone :
+
+1. Appuyer sur le bouton **QR code** (icône grille) à droite du titre « Session #X »
+2. Une modale affiche un **QR code** encodant l'URL de la session
+3. Les autres joueurs scannent le QR code avec leur appareil photo pour ouvrir la session en **mode consultation**
+4. Appuyer sur **« Plein écran »** pour agrandir le QR code (facilite le scan à distance ou depuis une TV)
+
+> **Note** : la session ouverte via QR code est en **lecture seule** — seul l'organisateur saisit les donnes.
+
 ### Actions
 
 - **Bouton + (FAB)** : démarrer une nouvelle donne (désactivé si une donne est en cours)
