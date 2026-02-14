@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Validator;
 
 use App\Entity\Game;
-use Doctrine\ORM\EntityManagerInterface;
+use App\Repository\GameRepository;
 use Symfony\Component\Validator\Constraint;
 use Symfony\Component\Validator\ConstraintValidator;
 use Symfony\Component\Validator\Exception\UnexpectedValueException;
@@ -13,7 +13,7 @@ use Symfony\Component\Validator\Exception\UnexpectedValueException;
 class OnlyLastGameEditableValidator extends ConstraintValidator
 {
     public function __construct(
-        private readonly EntityManagerInterface $em,
+        private readonly GameRepository $gameRepository,
     ) {
     }
 
@@ -27,11 +27,7 @@ class OnlyLastGameEditableValidator extends ConstraintValidator
             throw new UnexpectedValueException($constraint, OnlyLastGameEditable::class);
         }
 
-        $maxPosition = (int) $this->em->createQuery(
-            'SELECT MAX(g.position) FROM App\Entity\Game g WHERE g.session = :sessionId'
-        )
-            ->setParameter('sessionId', $value->getSession()->getId())
-            ->getSingleScalarResult();
+        $maxPosition = $this->gameRepository->getMaxPositionForSession($value->getSession());
 
         if ($value->getPosition() < $maxPosition) {
             $this->context->buildViolation($constraint->message)

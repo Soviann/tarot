@@ -194,6 +194,7 @@ Two living docs in `docs/` must be maintained:
 
 ## Code Conventions
 
+- **Backend DB queries**: All database queries MUST live in dedicated entity repositories (`src/Repository/`). Use QueryBuilder exclusively (no raw DQL strings). Services/controllers/processors inject repositories, never `EntityManagerInterface` for queries.
 - **Backend enums**: PHP backed enums for all fixed value sets
 - **Backend quality**: PHPStan (level max) auto-enforced by PostToolUse hook; PHP CS Fixer (`@Symfony` + `@Symfony:risky`) run on all modified PHP files before each commit
 - **API responses**: use API Platform serialization groups, not custom DTOs unless needed

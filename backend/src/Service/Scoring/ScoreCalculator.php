@@ -12,8 +12,26 @@ use App\Enum\Contract;
 use App\Enum\Poignee;
 use App\Enum\Side;
 
+/**
+ * Calcule le score de chaque joueur pour une donne de Tarot.
+ *
+ * Règles officielles appliquées :
+ * 1. Score de base = (|points réalisés − points requis| + 25) × multiplicateur du contrat.
+ *    Négatif si l'attaque perd.
+ * 2. Bonus poignée : toujours attribué au camp gagnant (20 / 30 / 40 selon simple/double/triple).
+ * 3. Bonus petit au bout : 10 × multiplicateur, signé selon le camp qui l'a réalisé et le résultat.
+ * 4. Bonus chelem : fixe (+400 annoncé réussi, +200 non-annoncé réussi, −200 annoncé raté).
+ *
+ * Distribution (5 joueurs) :
+ * - Preneur seul (pas d'appel au roi) : ×4
+ * - Preneur avec partenaire : preneur ×2, partenaire ×1
+ * - Défenseurs : −1 × score total chacun
+ *
+ * @see REQUIRED_POINTS pour la table oudlers → points requis
+ */
 class ScoreCalculator
 {
+    /** Nombre de points requis selon le nombre d'oudlers (0 à 3). */
     public const array REQUIRED_POINTS = [0 => 56, 1 => 51, 2 => 41, 3 => 36];
 
     /**

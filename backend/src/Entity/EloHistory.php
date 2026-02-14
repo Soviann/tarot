@@ -4,9 +4,10 @@ declare(strict_types=1);
 
 namespace App\Entity;
 
+use App\Repository\EloHistoryRepository;
 use Doctrine\ORM\Mapping as ORM;
 
-#[ORM\Entity]
+#[ORM\Entity(repositoryClass: EloHistoryRepository::class)]
 class EloHistory
 {
     #[ORM\Column(type: 'datetime_immutable')]

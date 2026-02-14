@@ -5,9 +5,10 @@ declare(strict_types=1);
 namespace App\Entity;
 
 use App\Enum\BadgeType;
+use App\Repository\PlayerBadgeRepository;
 use Doctrine\ORM\Mapping as ORM;
 
-#[ORM\Entity]
+#[ORM\Entity(repositoryClass: PlayerBadgeRepository::class)]
 #[ORM\UniqueConstraint(columns: ['player_id', 'badge_type'])]
 class PlayerBadge
 {

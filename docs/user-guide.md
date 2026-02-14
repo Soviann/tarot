@@ -410,6 +410,21 @@ Le système d'étoiles permet de **pénaliser** un joueur en dehors du jeu de ca
 
 Le système ELO fournit un **classement dynamique** qui tient compte du niveau des adversaires, contrairement au score total.
 
+### Qu’est-ce que l’ELO ?
+
+L’**ELO** est un système de **rating** (note) qui vise à estimer le **niveau relatif** d’un joueur à partir de ses résultats.
+
+- Chaque joueur a une valeur numérique (ex : **1500** au départ).
+- Après une partie, la note **monte** si le résultat est meilleur que prévu, et **baisse** si le résultat est moins bon que prévu.
+- Le “prévu” dépend de l’écart de niveau :  
+  battre plus fort que soi fait gagner **plus**, perdre contre plus faible fait perdre **plus**.
+
+Dans un système ELO classique, on calcule d’abord un **score attendu** (une probabilité de gagner) selon l’écart de rating, puis on applique une correction :
+`nouveauElo = ancienElo + K × (résultatRéel − résultatAttendu)`  
+où **K** règle la vitesse à laquelle le rating évolue (plus K est grand, plus ça bouge).
+
+> Dans cette application, l’ELO est adapté au Tarot à 5 : on compare chaque joueur à la **moyenne ELO du camp adverse**, et le preneur a un impact plus fort que le partenaire, lui-même plus que les défenseurs.
+
 ### Fonctionnement
 
 - Chaque joueur démarre à **1500 ELO**

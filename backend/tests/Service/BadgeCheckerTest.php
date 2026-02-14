@@ -14,6 +14,11 @@ use App\Enum\Chelem;
 use App\Enum\Contract;
 use App\Enum\GameStatus;
 use App\Enum\Side;
+use App\Repository\GameRepository;
+use App\Repository\PlayerBadgeRepository;
+use App\Repository\ScoreEntryRepository;
+use App\Repository\SessionRepository;
+use App\Repository\StarEventRepository;
 use App\Service\BadgeChecker;
 use App\Tests\Api\ApiTestCase;
 
@@ -24,7 +29,30 @@ class BadgeCheckerTest extends ApiTestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->checker = new BadgeChecker($this->em);
+
+        $gameRepository = $this->em->getRepository(Game::class);
+        \assert($gameRepository instanceof GameRepository);
+
+        $playerBadgeRepository = self::getContainer()->get(PlayerBadgeRepository::class);
+        \assert($playerBadgeRepository instanceof PlayerBadgeRepository);
+
+        $scoreEntryRepository = $this->em->getRepository(ScoreEntry::class);
+        \assert($scoreEntryRepository instanceof ScoreEntryRepository);
+
+        $sessionRepository = $this->em->getRepository(Session::class);
+        \assert($sessionRepository instanceof SessionRepository);
+
+        $starEventRepository = $this->em->getRepository(StarEvent::class);
+        \assert($starEventRepository instanceof StarEventRepository);
+
+        $this->checker = new BadgeChecker(
+            $this->em,
+            $gameRepository,
+            $playerBadgeRepository,
+            $scoreEntryRepository,
+            $sessionRepository,
+            $starEventRepository,
+        );
     }
 
     public function testFirstGameBadge(): void
