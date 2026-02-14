@@ -8,6 +8,8 @@ Le format est basé sur [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/)
 
 ### Added
 
+- **Badges et succès** : système de gamification avec 15 badges débloqués automatiquement selon l'activité des joueurs (Première donne, Centurion, Kamikaze, Sans filet, Noctambule, etc.). Les badges se débloquent à la complétion d'une donne, à l'ajout d'une étoile, ou de manière rétroactive lors de la consultation des statistiques. Une modale dédiée s'affiche pour annoncer les nouveaux badges débloqués. Section grille dans les statistiques par joueur avec compteur (X/15), badges débloqués en premier avec date, badges verrouillés grisés.
+
 - **Résumé de session** : écran récapitulatif visuel avec classement (podium + tableau), faits marquants (MVP, lanterne rouge, meilleure/pire donne, contrat favori, durée, nombre de donnes, étoiles) et titres humoristiques (Le Boucher, L'Éternel Défenseur, Le Flambeur). Accessible via le bouton graphique sur l'écran de session. Design optimisé pour le screenshot avec partage en image (Web Share API ou téléchargement).
 
 - **Clôture de session** : bouton « Terminer la session » (icône cadenas) verrouillant la session pour empêcher la création de nouvelles donnes. La session peut être réouverte à tout moment. Le récap s'affiche automatiquement à la clôture.

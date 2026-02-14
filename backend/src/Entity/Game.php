@@ -135,6 +135,10 @@ class Game
     #[ORM\JoinColumn(nullable: false)]
     private Player $taker;
 
+    /** @var array<int, list<array{description: string, emoji: string, label: string, type: string}>>|null */
+    #[Groups(['game:read'])]
+    private ?array $newBadges = null;
+
     public function __construct()
     {
         $this->createdAt = new \DateTimeImmutable();
@@ -195,6 +199,24 @@ class Game
     public function setDealer(?Player $dealer): static
     {
         $this->dealer = $dealer;
+
+        return $this;
+    }
+
+    /**
+     * @return array<int, list<array{description: string, emoji: string, label: string, type: string}>>|null
+     */
+    public function getNewBadges(): ?array
+    {
+        return $this->newBadges;
+    }
+
+    /**
+     * @param array<int, list<array{description: string, emoji: string, label: string, type: string}>>|null $newBadges
+     */
+    public function setNewBadges(?array $newBadges): static
+    {
+        $this->newBadges = $newBadges;
 
         return $this;
     }

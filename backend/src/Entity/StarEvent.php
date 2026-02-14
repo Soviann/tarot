@@ -44,6 +44,10 @@ class StarEvent
     #[ORM\ManyToOne(targetEntity: Player::class)]
     private Player $player;
 
+    /** @var array<int, list<array{description: string, emoji: string, label: string, type: string}>>|null */
+    #[Groups(['star-event:read'])]
+    private ?array $newBadges = null;
+
     #[ORM\JoinColumn(nullable: false)]
     #[ORM\ManyToOne(targetEntity: Session::class, inversedBy: 'starEvents')]
     private Session $session;
@@ -61,6 +65,24 @@ class StarEvent
     public function getId(): ?int
     {
         return $this->id;
+    }
+
+    /**
+     * @return array<int, list<array{description: string, emoji: string, label: string, type: string}>>|null
+     */
+    public function getNewBadges(): ?array
+    {
+        return $this->newBadges;
+    }
+
+    /**
+     * @param array<int, list<array{description: string, emoji: string, label: string, type: string}>>|null $newBadges
+     */
+    public function setNewBadges(?array $newBadges): static
+    {
+        $this->newBadges = $newBadges;
+
+        return $this;
     }
 
     public function getPlayer(): Player

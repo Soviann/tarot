@@ -9,7 +9,9 @@ use ApiPlatform\Metadata\Operation;
 use ApiPlatform\State\ProcessorInterface;
 use App\Entity\EloHistory;
 use App\Entity\Game;
+use App\Enum\BadgeType;
 use App\Enum\GameStatus;
+use App\Service\BadgeChecker;
 use App\Service\EloCalculator;
 use App\Service\ScoreCalculator;
 use Doctrine\ORM\EntityManagerInterface;
@@ -22,6 +24,7 @@ use Doctrine\ORM\EntityManagerInterface;
 final readonly class GameCompleteProcessor implements ProcessorInterface
 {
     public function __construct(
+        private BadgeChecker $badgeChecker,
         private EloCalculator $eloCalculator,
         private EntityManagerInterface $em,
         private PersistProcessor $persistProcessor,
@@ -34,6 +37,8 @@ final readonly class GameCompleteProcessor implements ProcessorInterface
      */
     public function process(mixed $data, Operation $operation, array $uriVariables = [], array $context = []): Game
     {
+        $wasAlreadyCompleted = false;
+
         if (GameStatus::Completed === $data->getStatus()) {
             $wasAlreadyCompleted = !$data->getScoreEntries()->isEmpty();
 
@@ -50,7 +55,21 @@ final readonly class GameCompleteProcessor implements ProcessorInterface
             }
         }
 
-        return $this->persistProcessor->process($data, $operation, $uriVariables, $context);
+        /** @var Game $game */
+        $game = $this->persistProcessor->process($data, $operation, $uriVariables, $context);
+
+        if (GameStatus::Completed === $data->getStatus() && !$wasAlreadyCompleted) {
+            $newBadges = $this->badgeChecker->checkAndAward($data->getSession());
+            if (!empty($newBadges)) {
+                $formatted = [];
+                foreach ($newBadges as $playerId => $badges) {
+                    $formatted[$playerId] = \array_map(static fn (BadgeType $b) => $b->toArray(), $badges);
+                }
+                $game->setNewBadges($formatted);
+            }
+        }
+
+        return $game;
     }
 
     private function computeEloRatings(Game $game): void

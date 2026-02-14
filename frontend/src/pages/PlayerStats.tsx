@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Link, useNavigate, useParams, useSearchParams } from "react-router-dom";
+import BadgeGrid from "../components/BadgeGrid";
 import ContractDistributionChart from "../components/ContractDistributionChart";
 import EloEvolutionChart from "../components/EloEvolutionChart";
 import GroupFilter from "../components/GroupFilter";
@@ -126,6 +127,8 @@ export default function PlayerStats() {
       )}
 
       <PersonalRecords records={stats.records} />
+
+      <BadgeGrid badges={stats.badges} />
 
       {rolesTotal > 0 && (
         <section>
