@@ -298,6 +298,36 @@ class SessionApiTest extends ApiTestCase
         $this->assertArrayNotHasKey('inProgressGame', $data);
     }
 
+    public function testCloseSession(): void
+    {
+        $session = $this->createSessionWithPlayers('Alice', 'Bob', 'Charlie', 'Diana', 'Eve');
+
+        $response = $this->client->request('PATCH', $this->getIri($session), [
+            'headers' => ['Content-Type' => 'application/merge-patch+json'],
+            'json' => ['isActive' => false],
+        ]);
+
+        $this->assertResponseIsSuccessful();
+        $data = $response->toArray();
+        $this->assertFalse($data['isActive']);
+    }
+
+    public function testReopenSession(): void
+    {
+        $session = $this->createSessionWithPlayers('Alice', 'Bob', 'Charlie', 'Diana', 'Eve');
+        $session->setIsActive(false);
+        $this->em->flush();
+
+        $response = $this->client->request('PATCH', $this->getIri($session), [
+            'headers' => ['Content-Type' => 'application/merge-patch+json'],
+            'json' => ['isActive' => true],
+        ]);
+
+        $this->assertResponseIsSuccessful();
+        $data = $response->toArray();
+        $this->assertTrue($data['isActive']);
+    }
+
     /**
      * @return string[]
      */
