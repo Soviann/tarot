@@ -3,6 +3,7 @@ import { useCallback, useRef, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import PlayerAvatar from "../components/ui/PlayerAvatar";
 import ScoreDisplay from "../components/ui/ScoreDisplay";
+import Spinner from "../components/ui/Spinner";
 import { useSessionSummary } from "../hooks/useSessionSummary";
 import type {
   SessionAward,
@@ -345,7 +346,7 @@ export default function SessionSummary() {
 
   if (isPending) {
     return (
-      <div className="p-4 text-center text-text-muted">Chargement…</div>
+      <div className="p-4"><Spinner /></div>
     );
   }
 

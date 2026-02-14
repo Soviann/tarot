@@ -433,7 +433,7 @@ describe("SessionPage", () => {
     });
     renderWithProviders(<SessionPage />);
 
-    expect(screen.getByText("Chargement…")).toBeInTheDocument();
+    expect(screen.getByRole("status")).toBeInTheDocument();
   });
 
   it("shows not found when session is null after loading", () => {

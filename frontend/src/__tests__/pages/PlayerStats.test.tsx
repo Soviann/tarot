@@ -68,7 +68,7 @@ describe("PlayerStats page", () => {
 
     renderWithProviders(<PlayerStats />);
 
-    expect(screen.getByText("Chargement…")).toBeInTheDocument();
+    expect(screen.getByRole("status")).toBeInTheDocument();
   });
 
   it("shows not found when stats is null", () => {

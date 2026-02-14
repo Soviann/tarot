@@ -6,7 +6,7 @@ import EloRanking from "../components/EloRanking";
 import GlobalEloEvolutionChart from "../components/GlobalEloEvolutionChart";
 import GroupFilter from "../components/GroupFilter";
 import Leaderboard from "../components/Leaderboard";
-import { Select } from "../components/ui";
+import { Select, Spinner } from "../components/ui";
 import { useGlobalStats } from "../hooks/useGlobalStats";
 import { formatDuration } from "../utils/formatDuration";
 
@@ -27,7 +27,7 @@ export default function Stats() {
 
   if (isPending) {
     return (
-      <div className="p-4 text-center text-text-muted">Chargement…</div>
+      <div className="p-4"><Spinner /></div>
     );
   }
 
