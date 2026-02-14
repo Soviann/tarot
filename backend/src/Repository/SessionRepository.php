@@ -101,4 +101,17 @@ final class SessionRepository extends ServiceEntityRepository
             ->getQuery()
             ->getSingleScalarResult();
     }
+
+    public function countAll(?int $playerGroupId = null): int
+    {
+        $qb = $this->createQueryBuilder('s')
+            ->select('COUNT(s.id)');
+
+        if (null !== $playerGroupId) {
+            $qb->andWhere('s.playerGroup = :group')
+               ->setParameter('group', $playerGroupId);
+        }
+
+        return (int) $qb->getQuery()->getSingleScalarResult();
+    }
 }

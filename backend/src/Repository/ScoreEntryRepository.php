@@ -334,4 +334,52 @@ final class ScoreEntryRepository extends ServiceEntityRepository
             'takerScore' => (int) $row['takerScore'],
         ], $results);
     }
+
+    /**
+     * @return list<array{playerColor: string|null, playerId: int|string, playerName: string, totalScore: int|string}>
+     */
+    public function getLeaderboardScores(?int $playerGroupId = null): array
+    {
+        $qb = $this->createQueryBuilder('se')
+            ->select('IDENTITY(se.player) AS playerId', 'p.name AS playerName', 'p.color AS playerColor', 'SUM(se.score) AS totalScore')
+            ->join('se.player', 'p')
+            ->leftJoin('se.game', 'g')
+            ->groupBy('se.player')
+            ->addGroupBy('p.color')
+            ->addGroupBy('p.name')
+            ->orderBy('totalScore', 'DESC');
+
+        if (null !== $playerGroupId) {
+            $qb->leftJoin('App\Entity\Session', 's_grp', 'WITH', 'se.session = s_grp')
+               ->andWhere('(g IS NOT NULL AND g.status = :status AND s_grp.playerGroup = :group) OR (se.game IS NULL AND s_grp.playerGroup = :group)')
+               ->setParameter('status', GameStatus::Completed)
+               ->setParameter('group', $playerGroupId);
+        } else {
+            $qb->andWhere('(g IS NOT NULL AND g.status = :status) OR se.game IS NULL')
+               ->setParameter('status', GameStatus::Completed);
+        }
+
+        return $qb->getQuery()->getResult();
+    }
+
+    /**
+     * @return list<array{gamesPlayed: int|string, playerId: int|string}>
+     */
+    public function countGamesPlayedByPlayer(?int $playerGroupId = null): array
+    {
+        $qb = $this->createQueryBuilder('se')
+            ->select('IDENTITY(se.player) AS playerId', 'COUNT(DISTINCT se.game) AS gamesPlayed')
+            ->join('se.game', 'g')
+            ->andWhere('g.status = :status')
+            ->setParameter('status', GameStatus::Completed)
+            ->groupBy('se.player');
+
+        if (null !== $playerGroupId) {
+            $qb->join('g.session', 's_grp')
+               ->andWhere('s_grp.playerGroup = :group')
+               ->setParameter('group', $playerGroupId);
+        }
+
+        return $qb->getQuery()->getResult();
+    }
 }
