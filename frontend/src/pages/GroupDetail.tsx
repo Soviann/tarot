@@ -169,7 +169,7 @@ export default function GroupDetail() {
             Membres ({group.players.length})
           </h2>
           <button
-            className="flex items-center gap-1 rounded-lg px-2 py-1 text-sm font-medium text-accent-500 transition-colors hover:bg-surface-secondary"
+            className="flex items-center gap-1 rounded-lg px-2 py-1 text-sm font-medium text-accent-500 transition-colors hover:bg-surface-secondary dark:text-accent-300"
             onClick={openAddModal}
             type="button"
           >

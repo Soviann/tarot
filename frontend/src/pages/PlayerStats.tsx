@@ -117,7 +117,7 @@ export default function PlayerStats() {
               <Link
                 key={g.id}
                 to={`/groups/${g.id}`}
-                className="rounded-full bg-surface-elevated px-3 py-1 text-sm font-medium text-accent-500 hover:bg-surface-tertiary"
+                className="rounded-full bg-surface-elevated px-3 py-1 text-sm font-medium text-accent-500 hover:bg-surface-tertiary dark:text-accent-300"
               >
                 {g.name}
               </Link>

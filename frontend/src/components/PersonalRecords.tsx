@@ -76,7 +76,7 @@ export default function PersonalRecords({ records }: Props) {
                 </span>
                 {record.sessionId && (
                   <Link
-                    className="text-xs text-accent-500 hover:underline"
+                    className="text-xs text-accent-500 hover:underline dark:text-accent-300"
                     to={`/sessions/${record.sessionId}`}
                   >
                     Voir

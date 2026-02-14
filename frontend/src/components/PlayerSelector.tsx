@@ -266,7 +266,7 @@ export default function PlayerSelector({
           {/* Bouton créer joueur */}
           <button
             aria-label="Ajouter un joueur"
-            className="flex items-center gap-2 rounded-lg border border-dashed border-surface-border p-2 text-sm text-text-muted transition-colors hover:border-accent-400 hover:text-accent-500"
+            className="flex items-center gap-2 rounded-lg border border-dashed border-surface-border p-2 text-sm text-text-muted transition-colors hover:border-accent-400 hover:text-accent-500 dark:hover:text-accent-300"
             onClick={openModal}
             type="button"
           >

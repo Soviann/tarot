@@ -25,7 +25,7 @@ export default function ChangeGroupModal({
           aria-label="Aucun groupe"
           className={`rounded-lg px-4 py-3 text-left text-sm font-medium transition-colors ${
             currentGroupId === null
-              ? "bg-accent-500/10 text-accent-500 ring-2 ring-accent-500"
+              ? "bg-accent-500/10 text-accent-500 ring-2 ring-accent-500 dark:text-accent-300 dark:ring-accent-300"
               : "bg-surface-secondary text-text-primary hover:bg-surface-tertiary"
           }`}
           disabled={isPending}
@@ -39,7 +39,7 @@ export default function ChangeGroupModal({
             aria-label={group.name}
             className={`rounded-lg px-4 py-3 text-left text-sm font-medium transition-colors ${
               currentGroupId === group.id
-                ? "bg-accent-500/10 text-accent-500 ring-2 ring-accent-500"
+                ? "bg-accent-500/10 text-accent-500 ring-2 ring-accent-500 dark:text-accent-300 dark:ring-accent-300"
                 : "bg-surface-secondary text-text-primary hover:bg-surface-tertiary"
             }`}
             disabled={isPending}

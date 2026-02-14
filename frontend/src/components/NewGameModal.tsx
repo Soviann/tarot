@@ -58,7 +58,7 @@ export default function NewGameModal({ createGame, currentDealerName, lastGameCo
         {lastGameConfig && (
           <div className="flex justify-center">
             <button
-              className="inline-flex items-center gap-1.5 rounded-lg border border-accent-500 px-3 py-1.5 text-xs font-medium text-accent-500 transition-colors hover:bg-accent-500/10"
+              className="inline-flex items-center gap-1.5 rounded-lg border border-accent-500 px-3 py-1.5 text-xs font-medium text-accent-500 transition-colors hover:bg-accent-500/10 dark:border-accent-300 dark:text-accent-300"
               onClick={() => {
                 setSelectedContract(lastGameConfig.contract);
                 setSelectedTakerId(lastGameConfig.takerId);
