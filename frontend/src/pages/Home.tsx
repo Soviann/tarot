@@ -58,10 +58,10 @@ export default function Home() {
       </section>
 
       <section>
-        <h2 className="mb-1 text-center text-2xl font-bold text-text-primary">
+        <h2 className="mb-1 text-2xl font-bold text-text-primary">
           Nouvelle session
         </h2>
-        <p className="mb-4 text-center text-sm text-text-muted">
+        <p className="mb-4 text-sm text-text-muted">
           {motivationalMessage}
         </p>
 
