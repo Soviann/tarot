@@ -7,6 +7,7 @@ namespace App\State;
 use ApiPlatform\Doctrine\Common\State\PersistProcessor;
 use ApiPlatform\Metadata\Operation;
 use ApiPlatform\State\ProcessorInterface;
+use App\Dto\NewBadgesDto;
 use App\Entity\EloHistory;
 use App\Entity\Game;
 use App\Enum\BadgeType;
@@ -66,11 +67,7 @@ final readonly class GameCompleteProcessor implements ProcessorInterface
         if (GameStatus::Completed === $data->getStatus() && !$wasAlreadyCompleted) {
             $newBadges = $this->badgeChecker->checkAndAward($data->getSession());
             if (!empty($newBadges)) {
-                $formatted = [];
-                foreach ($newBadges as $playerId => $badges) {
-                    $formatted[$playerId] = \array_map(static fn (BadgeType $b) => $b->toArray(), $badges);
-                }
-                $game->setNewBadges($formatted);
+                $game->setNewBadges(NewBadgesDto::fromAwardedBadges($newBadges));
             }
         }
 

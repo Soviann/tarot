@@ -7,6 +7,7 @@ namespace App\State;
 use ApiPlatform\Doctrine\Common\State\PersistProcessor;
 use ApiPlatform\Metadata\Operation;
 use ApiPlatform\State\ProcessorInterface;
+use App\Dto\NewBadgesDto;
 use App\Entity\ScoreEntry;
 use App\Entity\Session;
 use App\Entity\StarEvent;
@@ -81,11 +82,7 @@ final readonly class StarEventCreateProcessor implements ProcessorInterface
         // Vérifier les badges (ex : StarCollector)
         $newBadges = $this->badgeChecker->checkAndAward($session);
         if (!empty($newBadges)) {
-            $formatted = [];
-            foreach ($newBadges as $playerId => $badges) {
-                $formatted[$playerId] = \array_map(static fn (BadgeType $b) => $b->toArray(), $badges);
-            }
-            $starEvent->setNewBadges($formatted);
+            $starEvent->setNewBadges(NewBadgesDto::fromAwardedBadges($newBadges));
         }
 
         return $starEvent;

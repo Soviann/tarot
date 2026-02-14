@@ -11,6 +11,7 @@ use ApiPlatform\Metadata\GetCollection;
 use ApiPlatform\Metadata\Link;
 use ApiPlatform\Metadata\Patch;
 use ApiPlatform\Metadata\Post;
+use App\Dto\NewBadgesDto;
 use App\Enum\Chelem;
 use App\Enum\Contract;
 use App\Enum\GameStatus;
@@ -136,9 +137,8 @@ class Game
     #[ORM\JoinColumn(nullable: false)]
     private Player $taker;
 
-    /** @var array<int, list<array{description: string, emoji: string, label: string, type: string}>>|null */
     #[Groups(['game:read'])]
-    private ?array $newBadges = null;
+    private ?NewBadgesDto $newBadges = null;
 
     public function __construct()
     {
@@ -204,18 +204,12 @@ class Game
         return $this;
     }
 
-    /**
-     * @return array<int, list<array{description: string, emoji: string, label: string, type: string}>>|null
-     */
-    public function getNewBadges(): ?array
+    public function getNewBadges(): ?NewBadgesDto
     {
         return $this->newBadges;
     }
 
-    /**
-     * @param array<int, list<array{description: string, emoji: string, label: string, type: string}>>|null $newBadges
-     */
-    public function setNewBadges(?array $newBadges): static
+    public function setNewBadges(?NewBadgesDto $newBadges): static
     {
         $this->newBadges = $newBadges;
 

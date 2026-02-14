@@ -8,6 +8,7 @@ use ApiPlatform\Metadata\ApiResource;
 use ApiPlatform\Metadata\GetCollection;
 use ApiPlatform\Metadata\Link;
 use ApiPlatform\Metadata\Post;
+use App\Dto\NewBadgesDto;
 use App\State\StarEventCreateProcessor;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Serializer\Attribute\Groups;
@@ -44,9 +45,8 @@ class StarEvent
     #[ORM\ManyToOne(targetEntity: Player::class)]
     private Player $player;
 
-    /** @var array<int, list<array{description: string, emoji: string, label: string, type: string}>>|null */
     #[Groups(['star-event:read'])]
-    private ?array $newBadges = null;
+    private ?NewBadgesDto $newBadges = null;
 
     #[ORM\JoinColumn(nullable: false)]
     #[ORM\ManyToOne(targetEntity: Session::class, inversedBy: 'starEvents')]
@@ -67,18 +67,12 @@ class StarEvent
         return $this->id;
     }
 
-    /**
-     * @return array<int, list<array{description: string, emoji: string, label: string, type: string}>>|null
-     */
-    public function getNewBadges(): ?array
+    public function getNewBadges(): ?NewBadgesDto
     {
         return $this->newBadges;
     }
 
-    /**
-     * @param array<int, list<array{description: string, emoji: string, label: string, type: string}>>|null $newBadges
-     */
-    public function setNewBadges(?array $newBadges): static
+    public function setNewBadges(?NewBadgesDto $newBadges): static
     {
         $this->newBadges = $newBadges;
 
