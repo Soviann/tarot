@@ -12,6 +12,7 @@ doctrine:
         auto_generate_proxy_classes: true
         dql:
             datetime_functions:
+                HOUR: DoctrineExtensions\Query\Mysql\Hour
                 TIMESTAMPDIFF: DoctrineExtensions\Query\Mysql\TimestampDiff
         enable_lazy_ghost_objects: true
         report_fields_where_declared: true
