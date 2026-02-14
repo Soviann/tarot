@@ -1,48 +1,88 @@
 # yaml-language-server: $schema=../../vendor/symfony/dependency-injection/Loader/schema/services.schema.json
+
 doctrine:
     dbal:
+        # Chaîne de connexion principale (driver/utilisateur/mot de passe/hôte/port/nom_de_bdd, etc.).
+        # `resolve:` garantit que les variables d'env imbriquées (ex. "${VAR}") sont développées.
         url: '%env(resolve:DATABASE_URL)%'
 
-        # IMPORTANT: You MUST configure your server version,
-        # either here or in the DATABASE_URL env var (see .env file)
+        # IMPORTANT :
+        # Vous DEVEZ configurer la version de votre serveur DB, ici ou dans DATABASE_URL.
+        # Cela aide Doctrine à choisir le bon dialecte SQL et évite de subtiles différences de plateforme.
+        # Exemple : PostgreSQL 16 -> '16', MySQL 8.0 -> '8.0'
         #server_version: '16'
 
+        # Collecte les traces de pile (stack traces) des requêtes DB dans le profiler Symfony (dev/debug uniquement).
         profiling_collect_backtrace: '%kernel.debug%'
+
+        # Encapsule les transactions imbriquées dans des savepoints (plus sûr quand des libs ouvrent leurs propres transactions).
         use_savepoints: true
+
     orm:
+        # En dev, autorise la génération automatique des classes proxy.
+        # En prod, c'est généralement désactivé pour les performances (voir when@prod ci-dessous).
         auto_generate_proxy_classes: true
+
         dql:
+            # Enregistre des fonctions SQL personnalisées utilisables en DQL (ex. SELECT HOUR(e.createdAt)).
+            # NOTE : ces classes de fonctions sont orientées MySQL ; si vous utilisez PostgreSQL,
+            # vérifiez qu'elles se comportent comme attendu ou fournissez des équivalents PostgreSQL.
             datetime_functions:
                 HOUR: DoctrineExtensions\Query\Mysql\Hour
                 TIMESTAMPDIFF: DoctrineExtensions\Query\Mysql\TimestampDiff
+
+        # Utilise les "lazy ghost objects" Symfony/Doctrine pour un lazy-loading plus efficace (Doctrine ORM 3+).
         enable_lazy_ghost_objects: true
+
+        # Améliore la justesse des métadonnées et facilite le diagnostic des problèmes de mapping.
         report_fields_where_declared: true
+
+        # Valide les fichiers de mapping XML au démarrage (sans effet si vous n'utilisez pas de mapping XML).
         validate_xml_mapping: true
+
+        # Mappe les noms de champs d'entité vers des noms de colonnes en snake_case, en gardant les parties numériques lisibles.
         naming_strategy: doctrine.orm.naming_strategy.underscore_number_aware
+
+        # Préfère les colonnes IDENTITY pour PostgreSQL (c.-à-d. "generated as identity").
         identity_generation_preferences:
             Doctrine\DBAL\Platforms\PostgreSQLPlatform: identity
+
+        # Mappe automatiquement tous les bundles/namespaces configurés.
         auto_mapping: true
+
         mappings:
             App:
+                # Les entités utilisent les attributs PHP 8 (#[ORM\Entity], etc.)
                 type: attribute
                 is_bundle: false
+
+                # Répertoire que Doctrine doit scanner pour trouver les entités.
                 dir: '%kernel.project_dir%/src/Entity'
                 prefix: 'App\Entity'
                 alias: App
+
         controller_resolver:
+            # Si vous comptez sur l'auto-mapping des paramètres "entity" dans les contrôleurs, cela le pilote.
+            # Conservé désactivé ici pour plus d'explicite/prévisibilité.
             auto_mapping: false
 
 when@test:
     doctrine:
         dbal:
-            # "TEST_TOKEN" is typically set by ParaTest
+            # In tests, isolate DBs by appending a suffix. This allows parallel test runs.
+            # "TEST_TOKEN" is typically set by ParaTest.
             dbname_suffix: '_test%env(default::TEST_TOKEN)%'
 
 when@prod:
     doctrine:
         orm:
+            # In prod, proxies should be pre-generated during build/deploy, not at runtime.
             auto_generate_proxy_classes: false
+
+            # Store proxies in the build directory (often writable in container builds).
             proxy_dir: '%kernel.build_dir%/doctrine/orm/Proxies'
+
+            # Use Symfony cache pools for Doctrine query/result caches (faster + shared).
             query_cache_driver:
                 type: pool
                 pool: doctrine.system_cache_pool
@@ -53,7 +93,10 @@ when@prod:
     framework:
         cache:
             pools:
+                # Cache for query results (data returned by queries).
                 doctrine.result_cache_pool:
                     adapter: cache.app
+
+                # Cache for Doctrine internals/metadata (safe to keep in system cache).
                 doctrine.system_cache_pool:
                     adapter: cache.system

@@ -1,13 +1,26 @@
 # yaml-language-server: $schema=../../vendor/symfony/dependency-injection/Loader/schema/services.schema.json
+
 api_platform:
+    # Paramètres par défaut appliqués à toutes les ressources/endpoints API Platform.
     defaults:
         cache_headers:
+            # En-têtes qui influencent la représentation renvoyée.
+            # Objectif : éviter qu’un cache partage une réponse entre formats/utilisateurs différents.
             vary: ['Content-Type', 'Authorization', 'Accept']
         extra_properties:
+            # Active des erreurs conformes à RFC 7807 (application/problem+json) côté API Platform.
             rfc_7807_compliant_errors: true
+            # "PUT standard" : un PUT remplace la ressource (plutôt qu’un merge partiel).
+            # Utile pour un comportement REST plus prévisible.
             standard_put: true
+        # API "stateless" : pas de session Symfony (auth typiquement par token).
         stateless: true
+
+    # Formats d’entrée/sortie exposés par l’API.
     formats:
+        # JSON-LD (Hydra) : format principal pour la doc/clients JSON-LD.
         jsonld: ['application/ld+json']
+
+    # Métadonnées affichées dans la documentation (OpenAPI / Swagger UI).
     title: 'Tarot API'
     version: '1.0.0'

@@ -1,11 +1,37 @@
+# Configuration CORS (Cross-Origin Resource Sharing) via NelmioCorsBundle.
+# Objectif : autoriser (de façon contrôlée) un front web hébergé sur un autre domaine
+# à appeler l’API Symfony.
+
 # yaml-language-server: $schema=../../vendor/symfony/dependency-injection/Loader/schema/services.schema.json
+
 nelmio_cors:
+    # Paramètres par défaut appliqués à toutes les routes ciblées par `paths` (ci-dessous),
+    # sauf surcharge éventuelle.
     defaults:
+        # En-têtes HTTP que le navigateur est autorisé à envoyer.
+        # - Content-Type : nécessaire pour JSON / formulaires
+        # - Authorization : nécessaire pour les appels avec Bearer/JWT, etc.
         allow_headers: ['Content-Type', 'Authorization']
+
+        # Méthodes HTTP autorisées pour les requêtes cross-origin.
+        # Inclut les méthodes “simples” et celles souvent utilisées en API REST.
         allow_methods: ['DELETE', 'GET', 'PATCH', 'POST', 'PUT']
+
+        # Origines autorisées (le(s) domaine(s) du front).
+        # Ici on lit la valeur depuis une variable d’environnement pour éviter de la “hardcoder”.
+        # Exemple attendu côté env : https://app.example.tld (ou une regex si origin_regex=true).
         allow_origin:
             - '%env(CORS_ALLOW_ORIGIN)%'
+
+        # Durée (en secondes) pendant laquelle le navigateur peut mettre en cache
+        # la réponse “preflight” (OPTIONS). 3600 = 1 heure.
         max_age: 3600
+
+        # Interprète `allow_origin` comme une expression régulière.
+        # Utile pour autoriser plusieurs sous-domaines (ex: ^https://.*\.example\.tld$).
         origin_regex: true
+
     paths:
+        # Applique cette configuration CORS uniquement aux routes dont le chemin
+        # commence par /api/ (toutes les endpoints API Platform / API maison).
         '^/api/': ~
