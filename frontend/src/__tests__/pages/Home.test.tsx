@@ -336,4 +336,36 @@ describe("Home page", () => {
     const sessionsHeading = screen.getByText("Sessions récentes");
     expect(sessionsHeading.closest("div")).toContainElement(helpLink);
   });
+
+  it("renders a theme toggle button", () => {
+    setupMocks();
+    renderWithProviders(<Home />);
+
+    expect(screen.getByRole("button", { name: /thème/i })).toBeInTheDocument();
+  });
+
+  it("toggles dark mode when clicking the theme button", async () => {
+    setupMocks();
+    localStorage.clear();
+    document.documentElement.classList.remove("dark");
+    renderWithProviders(<Home />);
+
+    const toggle = screen.getByRole("button", { name: /thème/i });
+    await userEvent.click(toggle);
+
+    expect(document.documentElement.classList.contains("dark")).toBe(true);
+  });
+
+  it("toggles back to light mode on second click", async () => {
+    setupMocks();
+    localStorage.clear();
+    document.documentElement.classList.remove("dark");
+    renderWithProviders(<Home />);
+
+    const toggle = screen.getByRole("button", { name: /thème/i });
+    await userEvent.click(toggle);
+    await userEvent.click(toggle);
+
+    expect(document.documentElement.classList.contains("dark")).toBe(false);
+  });
 });
