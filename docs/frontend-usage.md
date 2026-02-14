@@ -68,10 +68,11 @@ import type { HydraCollection, Player } from "./types/api";
 | `StarEvent` | `id: number`, `createdAt: string`, `player: GamePlayer` |
 | `SessionPlayer` | `color: string \| null`, `id: number`, `name: string` |
 | `ContractDistributionEntry` | `contract: Contract`, `count: number`, `percentage: number` |
+| `ContractSuccessRatePlayer` | `color: string \| null`, `contracts: PlayerContractEntry[]`, `id: number`, `name: string` |
 | `EloHistoryEntry` | `date: string`, `gameId: number`, `ratingAfter: number`, `ratingChange: number` |
 | `EloRankingEntry` | `eloRating: number`, `gamesPlayed: number`, `playerColor: string \| null`, `playerId: number`, `playerName: string` |
 | `EloEvolutionPlayer` | `history: { date: string; gameId: number; ratingAfter: number }[]`, `playerColor: string \| null`, `playerId: number`, `playerName: string` |
-| `GlobalStatistics` | `averageGameDuration: number \| null`, `contractDistribution: ContractDistributionEntry[]`, `eloEvolution: EloEvolutionPlayer[]`, `eloRanking: EloRankingEntry[]`, `leaderboard: LeaderboardEntry[]`, `totalGames`, `totalPlayTime: number`, `totalSessions`, `totalStars` |
+| `GlobalStatistics` | `averageGameDuration: number \| null`, `contractDistribution: ContractDistributionEntry[]`, `contractSuccessRateByPlayer: ContractSuccessRatePlayer[]`, `eloEvolution: EloEvolutionPlayer[]`, `eloRanking: EloRankingEntry[]`, `leaderboard: LeaderboardEntry[]`, `totalGames`, `totalPlayTime: number`, `totalSessions`, `totalStars` |
 | `LeaderboardEntry` | `gamesAsTaker`, `gamesPlayed`, `playerColor: string \| null`, `playerId`, `playerName`, `totalScore`, `winRate`, `wins` |
 | `PlayerContractEntry` | `contract: Contract`, `count`, `winRate`, `wins` |
 | `PlayerStatistics` | `averageGameDurationSeconds: number \| null`, `averageScore`, `bestGameScore`, `contractDistribution`, `eloHistory: EloHistoryEntry[]`, `eloRating: number`, `gamesAsDefender`, `gamesAsPartner`, `gamesAsTaker`, `gamesPlayed`, `player`, `playerGroups: { id: number; name: string }[]`, `recentScores`, `sessionsPlayed`, `starPenalties`, `totalPlayTimeSeconds: number`, `totalStars`, `winRateAsTaker`, `worstGameScore` |
@@ -629,6 +630,7 @@ Page d'aide in-app reprenant le contenu du guide utilisateur (`docs/user-guide.m
 - Classement ELO (`EloRanking`) trié par rating décroissant (masqué si aucune donnée)
 - Évolution ELO (`GlobalEloEvolutionChart`) — graphique multi-lignes avec filtrage par joueur via chips (masqué si aucune donnée)
 - Répartition des contrats (`ContractDistributionChart`) en barres horizontales
+- Taux de réussite par contrat (`ContractSuccessRateTable`) — tableau croisé joueurs × contrats (masqué si aucune donnée)
 - Navigation vers le détail d'un joueur au clic (propage le filtre groupe via `?group=`)
 - États : chargement, erreur
 
@@ -982,6 +984,16 @@ Graphique à barres horizontales (Recharts) affichant la répartition des contra
 | Prop | Type | Description |
 |------|------|-------------|
 | `data` | `ContractDistributionEntry[]` | *requis* — données de répartition |
+
+### `ContractSuccessRateTable`
+
+**Fichier** : `components/ContractSuccessRateTable.tsx`
+
+Tableau croisé joueurs × contrats. Affiche le taux de réussite (%) et le nombre de donnes pour chaque joueur en tant que preneur, par type de contrat. Cellules colorées selon le taux (vert ≥ 70%, orange 30-49%, rouge < 30%).
+
+| Prop | Type | Description |
+|------|------|-------------|
+| `data` | `ContractSuccessRatePlayer[]` | *requis* — données par joueur |
 
 ### `ScoreTrendChart`
 

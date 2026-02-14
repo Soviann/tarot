@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import ContractDistributionChart from "../components/ContractDistributionChart";
+import ContractSuccessRateTable from "../components/ContractSuccessRateTable";
 import EloRanking from "../components/EloRanking";
 import GlobalEloEvolutionChart from "../components/GlobalEloEvolutionChart";
 import GroupFilter from "../components/GroupFilter";
@@ -111,6 +112,15 @@ export default function Stats() {
         </h2>
         <ContractDistributionChart data={stats.contractDistribution} />
       </section>
+
+      {stats.contractSuccessRateByPlayer.length > 0 && (
+        <section>
+          <h2 className="mb-2 text-sm font-semibold text-text-secondary">
+            Taux de réussite par contrat
+          </h2>
+          <ContractSuccessRateTable data={stats.contractSuccessRateByPlayer} />
+        </section>
+      )}
     </div>
   );
 }

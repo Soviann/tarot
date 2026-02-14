@@ -22,6 +22,13 @@ export interface EloRankingEntry {
   playerName: string;
 }
 
+export interface ContractSuccessRatePlayer {
+  color: string | null;
+  contracts: PlayerContractEntry[];
+  id: number;
+  name: string;
+}
+
 export interface ContractDistributionEntry {
   contract: Contract;
   count: number;
@@ -62,6 +69,7 @@ export interface GamePlayer {
 export interface GlobalStatistics {
   averageGameDuration: number | null;
   contractDistribution: ContractDistributionEntry[];
+  contractSuccessRateByPlayer: ContractSuccessRatePlayer[];
   eloEvolution: EloEvolutionPlayer[];
   eloRanking: EloRankingEntry[];
   leaderboard: LeaderboardEntry[];
