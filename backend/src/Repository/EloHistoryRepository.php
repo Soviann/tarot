@@ -6,6 +6,7 @@ namespace App\Repository;
 
 use App\Entity\EloHistory;
 use App\Entity\Game;
+use App\Entity\Player;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 
@@ -58,6 +59,23 @@ final class EloHistoryRepository extends ServiceEntityRepository
 
         $this->applyGroupFilter($qb, $playerGroupId);
 
+        return $qb->getQuery()->getResult();
+    }
+
+    /**
+     * @return list<array{date: \DateTimeImmutable, gameId: int, ratingAfter: int, ratingChange: int}>
+     */
+    public function getPlayerHistory(Player $player, ?int $playerGroupId = null): array
+    {
+        $qb = $this->createQueryBuilder('eh')
+            ->select('eh.createdAt AS date', 'IDENTITY(eh.game) AS gameId', 'eh.ratingAfter AS ratingAfter', 'eh.ratingChange AS ratingChange')
+            ->andWhere('eh.player = :player')
+            ->setParameter('player', $player)
+            ->orderBy('eh.id', 'ASC');
+
+        $this->applyGroupFilter($qb, $playerGroupId);
+
+        /** @var list<array{date: \DateTimeImmutable, gameId: int|string, ratingAfter: int|string, ratingChange: int|string}> */
         return $qb->getQuery()->getResult();
     }
 

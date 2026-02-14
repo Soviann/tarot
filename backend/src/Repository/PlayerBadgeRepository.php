@@ -35,4 +35,19 @@ final class PlayerBadgeRepository extends ServiceEntityRepository
 
         return array_map(static fn (array $row): BadgeType => $row['badgeType'], $results);
     }
+
+    /**
+     * @return list<array{badgeType: BadgeType, unlockedAt: \DateTimeImmutable}>
+     */
+    public function getPlayerBadgesWithUnlockDate(Player $player): array
+    {
+        /** @var list<array{badgeType: BadgeType, unlockedAt: \DateTimeImmutable}> */
+        return $this->createQueryBuilder('pb')
+            ->select('pb.badgeType', 'pb.unlockedAt')
+            ->andWhere('pb.player = :player')
+            ->setParameter('player', $player)
+            ->orderBy('pb.unlockedAt', 'ASC')
+            ->getQuery()
+            ->getResult();
+    }
 }

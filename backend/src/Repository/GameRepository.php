@@ -405,6 +405,167 @@ final class GameRepository extends ServiceEntityRepository
         return $qb->getQuery()->getResult();
     }
 
+    public function countPlayerGamesAsTaker(Player $player, ?int $playerGroupId = null): int
+    {
+        $qb = $this->createQueryBuilder('g')
+            ->select('COUNT(g.id)')
+            ->andWhere('g.taker = :player')
+            ->andWhere('g.status = :status')
+            ->setParameter('player', $player)
+            ->setParameter('status', GameStatus::Completed);
+
+        $this->applyGroupFilter($qb, $playerGroupId);
+
+        return (int) $qb->getQuery()->getSingleScalarResult();
+    }
+
+    public function countPlayerGamesAsPartner(Player $player, ?int $playerGroupId = null): int
+    {
+        $qb = $this->createQueryBuilder('g')
+            ->select('COUNT(g.id)')
+            ->andWhere('g.partner = :player')
+            ->andWhere('g.status = :status')
+            ->setParameter('player', $player)
+            ->setParameter('status', GameStatus::Completed);
+
+        $this->applyGroupFilter($qb, $playerGroupId);
+
+        return (int) $qb->getQuery()->getSingleScalarResult();
+    }
+
+    public function countPlayerWinsAsTaker(Player $player, ?int $playerGroupId = null): int
+    {
+        $qb = $this->createQueryBuilder('g')
+            ->select('COUNT(g.id)')
+            ->join('App\Entity\ScoreEntry', 'se', 'WITH', 'se.game = g AND se.player = g.taker')
+            ->andWhere('g.taker = :player')
+            ->andWhere('g.status = :status')
+            ->andWhere('se.score > 0')
+            ->setParameter('player', $player)
+            ->setParameter('status', GameStatus::Completed);
+
+        $this->applyGroupFilter($qb, $playerGroupId);
+
+        return (int) $qb->getQuery()->getSingleScalarResult();
+    }
+
+    public function countPlayerDistinctSessions(Player $player, ?int $playerGroupId = null): int
+    {
+        $qb = $this->createQueryBuilder('g')
+            ->select('COUNT(DISTINCT g.session)')
+            ->join('App\Entity\ScoreEntry', 'se', 'WITH', 'se.game = g AND se.player = :player')
+            ->andWhere('g.status = :status')
+            ->setParameter('player', $player)
+            ->setParameter('status', GameStatus::Completed);
+
+        $this->applyGroupFilter($qb, $playerGroupId);
+
+        return (int) $qb->getQuery()->getSingleScalarResult();
+    }
+
+    /**
+     * @return list<array{contract: Contract, count: int}>
+     */
+    public function getPlayerContractDistribution(Player $player, ?int $playerGroupId = null): array
+    {
+        $qb = $this->createQueryBuilder('g')
+            ->select('g.contract AS contract', 'COUNT(g.id) AS count')
+            ->andWhere('g.taker = :player')
+            ->andWhere('g.status = :status')
+            ->setParameter('player', $player)
+            ->setParameter('status', GameStatus::Completed)
+            ->groupBy('g.contract');
+
+        $this->applyGroupFilter($qb, $playerGroupId);
+
+        /** @var list<array{contract: Contract, count: int|string}> $results */
+        $results = $qb->getQuery()->getResult();
+
+        return array_map(static fn (array $row) => [
+            'contract' => $row['contract'],
+            'count' => (int) $row['count'],
+        ], $results);
+    }
+
+    /**
+     * @return list<array{contract: Contract, wins: int}>
+     */
+    public function getPlayerContractWins(Player $player, ?int $playerGroupId = null): array
+    {
+        $qb = $this->createQueryBuilder('g')
+            ->select('g.contract AS contract', 'COUNT(g.id) AS wins')
+            ->join('App\Entity\ScoreEntry', 'se', 'WITH', 'se.game = g AND se.player = g.taker')
+            ->andWhere('g.taker = :player')
+            ->andWhere('g.status = :status')
+            ->andWhere('se.score > 0')
+            ->setParameter('player', $player)
+            ->setParameter('status', GameStatus::Completed)
+            ->groupBy('g.contract');
+
+        $this->applyGroupFilter($qb, $playerGroupId);
+
+        /** @var list<array{contract: Contract, wins: int|string}> $results */
+        $results = $qb->getQuery()->getResult();
+
+        return array_map(static fn (array $row) => [
+            'contract' => $row['contract'],
+            'wins' => (int) $row['wins'],
+        ], $results);
+    }
+
+    /**
+     * @return list<array{contract: Contract, date: \DateTimeImmutable, oudlers: int|null, points: float|null, score: int, sessionId: int}>
+     */
+    public function getPlayerTakerGamesForRecords(Player $player, ?int $playerGroupId = null): array
+    {
+        $qb = $this->createQueryBuilder('g')
+            ->select('se.score', 'g.createdAt AS date', 'IDENTITY(g.session) AS sessionId', 'g.contract AS contract', 'g.points AS points', 'g.oudlers AS oudlers')
+            ->join('App\Entity\ScoreEntry', 'se', 'WITH', 'se.game = g AND se.player = g.taker')
+            ->andWhere('g.taker = :player')
+            ->andWhere('g.status = :status')
+            ->setParameter('player', $player)
+            ->setParameter('status', GameStatus::Completed)
+            ->orderBy('g.createdAt', 'ASC');
+
+        $this->applyGroupFilter($qb, $playerGroupId);
+
+        /** @var list<array{contract: Contract, date: \DateTimeImmutable, oudlers: int|null, points: float|null, score: int|string, sessionId: int|string}> $results */
+        $results = $qb->getQuery()->getResult();
+
+        return array_map(static fn (array $row) => [
+            'contract' => $row['contract'],
+            'date' => $row['date'],
+            'oudlers' => $row['oudlers'],
+            'points' => $row['points'],
+            'score' => (int) $row['score'],
+            'sessionId' => (int) $row['sessionId'],
+        ], $results);
+    }
+
+    /**
+     * @return array{averageGameDurationSeconds: int|null, totalPlayTimeSeconds: int}
+     */
+    public function getPlayerDurationStats(Player $player, ?int $playerGroupId = null): array
+    {
+        $qb = $this->createQueryBuilder('g')
+            ->select('AVG(TIMESTAMPDIFF(SECOND, g.createdAt, g.completedAt)) AS avg', 'SUM(TIMESTAMPDIFF(SECOND, g.createdAt, g.completedAt)) AS total')
+            ->join('App\Entity\ScoreEntry', 'se', 'WITH', 'se.game = g AND se.player = :player')
+            ->andWhere('g.status = :status')
+            ->andWhere('g.completedAt IS NOT NULL')
+            ->setParameter('player', $player)
+            ->setParameter('status', GameStatus::Completed);
+
+        $this->applyGroupFilter($qb, $playerGroupId);
+
+        /** @var array{avg: string|null, total: string|null} $result */
+        $result = $qb->getQuery()->getSingleResult();
+
+        return [
+            'averageGameDurationSeconds' => null !== $result['avg'] ? (int) \round((float) $result['avg']) : null,
+            'totalPlayTimeSeconds' => (int) ($result['total'] ?? 0),
+        ];
+    }
+
     private function applyGroupFilter(\Doctrine\ORM\QueryBuilder $qb, ?int $playerGroupId, string $gameAlias = 'g'): void
     {
         if (null !== $playerGroupId) {

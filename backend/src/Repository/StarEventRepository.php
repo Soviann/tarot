@@ -52,6 +52,22 @@ final class StarEventRepository extends ServiceEntityRepository
             ->getSingleScalarResult();
     }
 
+    public function countByPlayerFiltered(Player $player, ?int $playerGroupId = null): int
+    {
+        $qb = $this->createQueryBuilder('se')
+            ->select('COUNT(se.id)')
+            ->andWhere('se.player = :player')
+            ->setParameter('player', $player);
+
+        if (null !== $playerGroupId) {
+            $qb->join('App\Entity\Session', 's_grp', 'WITH', 'se.session = s_grp')
+               ->andWhere('s_grp.playerGroup = :group')
+               ->setParameter('group', $playerGroupId);
+        }
+
+        return (int) $qb->getQuery()->getSingleScalarResult();
+    }
+
     public function countAll(?int $playerGroupId = null): int
     {
         $qb = $this->createQueryBuilder('se')

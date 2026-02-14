@@ -7,11 +7,12 @@ namespace App\Service;
 use App\Entity\Player;
 use App\Entity\PlayerGroup;
 use App\Enum\BadgeType;
-use App\Enum\Contract;
-use App\Enum\GameStatus;
+use App\Repository\EloHistoryRepository;
+use App\Repository\GameRepository;
+use App\Repository\PlayerBadgeRepository;
+use App\Repository\ScoreEntryRepository;
+use App\Repository\StarEventRepository;
 use App\Service\Scoring\ScoreCalculator;
-use Doctrine\ORM\AbstractQuery;
-use Doctrine\ORM\EntityManagerInterface;
 
 /**
  * Statistiques individuelles d'un joueur.
@@ -31,7 +32,11 @@ use Doctrine\ORM\EntityManagerInterface;
 class PlayerStatisticsService
 {
     public function __construct(
-        private readonly EntityManagerInterface $em,
+        private readonly EloHistoryRepository $eloHistoryRepository,
+        private readonly GameRepository $gameRepository,
+        private readonly PlayerBadgeRepository $playerBadgeRepository,
+        private readonly ScoreEntryRepository $scoreEntryRepository,
+        private readonly StarEventRepository $starEventRepository,
     ) {
     }
 
@@ -45,21 +50,7 @@ class PlayerStatisticsService
      */
     public function getPlayerEloHistory(Player $player, ?int $playerGroupId = null): array
     {
-        $groupJoin = null !== $playerGroupId ? ' JOIN eh.game g_grp JOIN g_grp.session s_grp' : '';
-        $groupWhere = null !== $playerGroupId ? ' AND s_grp.playerGroup = :group' : '';
-
-        $query = $this->em->createQuery(
-            'SELECT eh.createdAt AS date, IDENTITY(eh.game) AS gameId, eh.ratingAfter AS ratingAfter, eh.ratingChange AS ratingChange
-             FROM App\Entity\EloHistory eh'.$groupJoin.'
-             WHERE eh.player = :player'.$groupWhere.'
-             ORDER BY eh.id ASC'
-        )
-            ->setParameter('player', $player);
-
-        $this->setGroupParameter($query, $playerGroupId);
-
-        /** @var list<array{date: \DateTimeImmutable, gameId: int|string, ratingAfter: int|string, ratingChange: int|string}> $rows */
-        $rows = $query->getResult();
+        $rows = $this->eloHistoryRepository->getPlayerHistory($player, $playerGroupId);
 
         return \array_map(
             static fn (array $row) => [
@@ -86,83 +77,34 @@ class PlayerStatisticsService
      */
     public function getPlayerRecords(Player $player, ?int $playerGroupId = null): array
     {
-        $groupJoinGame = null !== $playerGroupId ? ' JOIN g.session s_grp' : '';
-        $groupWhereGame = null !== $playerGroupId ? ' AND s_grp.playerGroup = :group' : '';
-
         $records = [];
 
         // 1. Best score (any role)
-        $bestQuery = $this->em->createQuery(
-            'SELECT se.score, g.createdAt AS date, IDENTITY(g.session) AS sessionId, g.contract AS contract
-             FROM App\Entity\ScoreEntry se
-             JOIN se.game g'.$groupJoinGame.'
-             WHERE se.player = :player AND g.status = :status'.$groupWhereGame.'
-             ORDER BY se.score DESC'
-        )
-            ->setParameter('player', $player)
-            ->setParameter('status', GameStatus::Completed)
-            ->setMaxResults(1);
-
-        $this->setGroupParameter($bestQuery, $playerGroupId);
-
-        /** @var list<array{contract: Contract, date: \DateTimeImmutable, score: int|string, sessionId: int|string}> $bestRows */
-        $bestRows = $bestQuery->getResult();
-
-        if (!empty($bestRows)) {
-            $row = $bestRows[0];
+        $bestScore = $this->scoreEntryRepository->getPlayerBestScore($player, $playerGroupId);
+        if (null !== $bestScore) {
             $records[] = [
-                'contract' => $row['contract']->value,
-                'date' => $row['date']->format(\DateTimeInterface::ATOM),
-                'sessionId' => (int) $row['sessionId'],
+                'contract' => $bestScore['contract']->value,
+                'date' => $bestScore['date']->format(\DateTimeInterface::ATOM),
+                'sessionId' => $bestScore['sessionId'],
                 'type' => 'best_score',
-                'value' => (int) $row['score'],
+                'value' => $bestScore['score'],
             ];
         }
 
         // 2. Worst score (any role)
-        $worstQuery = $this->em->createQuery(
-            'SELECT se.score, g.createdAt AS date, IDENTITY(g.session) AS sessionId, g.contract AS contract
-             FROM App\Entity\ScoreEntry se
-             JOIN se.game g'.$groupJoinGame.'
-             WHERE se.player = :player AND g.status = :status'.$groupWhereGame.'
-             ORDER BY se.score ASC'
-        )
-            ->setParameter('player', $player)
-            ->setParameter('status', GameStatus::Completed)
-            ->setMaxResults(1);
-
-        $this->setGroupParameter($worstQuery, $playerGroupId);
-
-        /** @var list<array{contract: Contract, date: \DateTimeImmutable, score: int|string, sessionId: int|string}> $worstRows */
-        $worstRows = $worstQuery->getResult();
-
-        if (!empty($worstRows)) {
-            $row = $worstRows[0];
+        $worstScore = $this->scoreEntryRepository->getPlayerWorstScore($player, $playerGroupId);
+        if (null !== $worstScore) {
             $records[] = [
-                'contract' => $row['contract']->value,
-                'date' => $row['date']->format(\DateTimeInterface::ATOM),
-                'sessionId' => (int) $row['sessionId'],
+                'contract' => $worstScore['contract']->value,
+                'date' => $worstScore['date']->format(\DateTimeInterface::ATOM),
+                'sessionId' => $worstScore['sessionId'],
                 'type' => 'worst_score',
-                'value' => (int) $row['score'],
+                'value' => $worstScore['score'],
             ];
         }
 
-        // 3. Win streak + Biggest diff (as taker) — single query
-        $takerQuery = $this->em->createQuery(
-            'SELECT se.score, g.createdAt AS date, IDENTITY(g.session) AS sessionId,
-                    g.contract AS contract, g.points AS points, g.oudlers AS oudlers
-             FROM App\Entity\Game g
-             JOIN App\Entity\ScoreEntry se WITH se.game = g AND se.player = g.taker'.$groupJoinGame.'
-             WHERE g.taker = :player AND g.status = :status'.$groupWhereGame.'
-             ORDER BY g.createdAt ASC'
-        )
-            ->setParameter('player', $player)
-            ->setParameter('status', GameStatus::Completed);
-
-        $this->setGroupParameter($takerQuery, $playerGroupId);
-
-        /** @var list<array{contract: Contract, date: \DateTimeImmutable, oudlers: int|null, points: float|null, score: int|string, sessionId: int|string}> $takerRows */
-        $takerRows = $takerQuery->getResult();
+        // 3. Win streak + Biggest diff (as taker)
+        $takerRows = $this->gameRepository->getPlayerTakerGamesForRecords($player, $playerGroupId);
 
         if (!empty($takerRows)) {
             // Win streak
@@ -171,7 +113,7 @@ class PlayerStatisticsService
             $maxStreakEndDate = null;
 
             foreach ($takerRows as $row) {
-                if ((int) $row['score'] > 0) {
+                if ($row['score'] > 0) {
                     ++$currentStreak;
                     if ($currentStreak > $maxStreak) {
                         $maxStreak = $currentStreak;
@@ -200,8 +142,8 @@ class PlayerStatisticsService
                 if (null === $row['points'] || null === $row['oudlers']) {
                     continue;
                 }
-                $required = ScoreCalculator::REQUIRED_POINTS[(int) $row['oudlers']] ?? 56;
-                $diff = \abs((float) $row['points'] - $required);
+                $required = ScoreCalculator::REQUIRED_POINTS[$row['oudlers']] ?? 56;
+                $diff = \abs($row['points'] - $required);
                 if ($diff > $maxDiff) {
                     $maxDiff = $diff;
                     $maxDiffRow = $row;
@@ -212,7 +154,7 @@ class PlayerStatisticsService
                 $records[] = [
                     'contract' => $maxDiffRow['contract']->value,
                     'date' => $maxDiffRow['date']->format(\DateTimeInterface::ATOM),
-                    'sessionId' => (int) $maxDiffRow['sessionId'],
+                    'sessionId' => $maxDiffRow['sessionId'],
                     'type' => 'biggest_diff',
                     'value' => $maxDiff,
                 ];
@@ -220,31 +162,14 @@ class PlayerStatisticsService
         }
 
         // 4. Best session total
-        $sessionQuery = $this->em->createQuery(
-            'SELECT IDENTITY(g.session) AS sessionId, SUM(se.score) AS total, MIN(g.createdAt) AS firstDate
-             FROM App\Entity\ScoreEntry se
-             JOIN se.game g'.$groupJoinGame.'
-             WHERE se.player = :player AND g.status = :status'.$groupWhereGame.'
-             GROUP BY g.session
-             ORDER BY total DESC'
-        )
-            ->setParameter('player', $player)
-            ->setParameter('status', GameStatus::Completed)
-            ->setMaxResults(1);
-
-        $this->setGroupParameter($sessionQuery, $playerGroupId);
-
-        /** @var list<array{firstDate: string, sessionId: int|string, total: int|string}> $sessionRows */
-        $sessionRows = $sessionQuery->getResult();
-
-        if (!empty($sessionRows)) {
-            $row = $sessionRows[0];
+        $bestSession = $this->scoreEntryRepository->getPlayerBestSessionTotal($player, $playerGroupId);
+        if (null !== $bestSession) {
             $records[] = [
                 'contract' => null,
-                'date' => (new \DateTimeImmutable($row['firstDate']))->format(\DateTimeInterface::ATOM),
-                'sessionId' => (int) $row['sessionId'],
+                'date' => $bestSession['firstDate'],
+                'sessionId' => $bestSession['sessionId'],
                 'type' => 'best_session',
-                'value' => (int) $row['total'],
+                'value' => $bestSession['total'],
             ];
         }
 
@@ -254,7 +179,7 @@ class PlayerStatisticsService
     /**
      * Agrège toutes les statistiques d'un joueur en un seul tableau.
      *
-     * Exécute de nombreuses requêtes DQL pour collecter :
+     * Exécute de nombreuses requêtes pour collecter :
      * - Scores agrégés (moyenne, min, max, total)
      * - Nombre de donnes par rôle (preneur, partenaire, défenseur)
      * - Taux de victoire en tant que preneur
@@ -271,137 +196,38 @@ class PlayerStatisticsService
     {
         $playerId = $player->getId();
 
-        $groupJoinGame = null !== $playerGroupId ? ' JOIN g.session s_grp' : '';
-        $groupWhereGame = null !== $playerGroupId ? ' AND s_grp.playerGroup = :group' : '';
+        $scoreAgg = $this->scoreEntryRepository->getPlayerScoreAggregates($player, $playerGroupId);
+        $gamesPlayed = $scoreAgg['gamesPlayed'];
 
-        $scoreAggQuery = $this->em->createQuery(
-            'SELECT COUNT(se.id) AS gamesPlayed, SUM(se.score) AS totalScore,
-                    AVG(se.score) AS averageScore, MAX(se.score) AS bestGameScore, MIN(se.score) AS worstGameScore
-             FROM App\Entity\ScoreEntry se
-             JOIN se.game g'.$groupJoinGame.'
-             WHERE se.player = :player AND g.status = :status'.$groupWhereGame
-        )
-            ->setParameter('player', $player)
-            ->setParameter('status', GameStatus::Completed);
-
-        $this->setGroupParameter($scoreAggQuery, $playerGroupId);
-
-        /** @var array{averageScore: float|string|null, bestGameScore: int|string|null, gamesPlayed: int|string, totalScore: int|string|null, worstGameScore: int|string|null} $scoreAgg */
-        $scoreAgg = $scoreAggQuery->getSingleResult();
-
-        $gamesPlayed = (int) $scoreAgg['gamesPlayed'];
-
-        $gamesAsTakerQuery = $this->em->createQuery(
-            'SELECT COUNT(g.id)
-             FROM App\Entity\Game g'.$groupJoinGame.'
-             WHERE g.taker = :player AND g.status = :status'.$groupWhereGame
-        )
-            ->setParameter('player', $player)
-            ->setParameter('status', GameStatus::Completed);
-
-        $this->setGroupParameter($gamesAsTakerQuery, $playerGroupId);
-        $gamesAsTaker = (int) $gamesAsTakerQuery->getSingleScalarResult();
-
-        $gamesAsPartnerQuery = $this->em->createQuery(
-            'SELECT COUNT(g.id)
-             FROM App\Entity\Game g'.$groupJoinGame.'
-             WHERE g.partner = :player AND g.status = :status'.$groupWhereGame
-        )
-            ->setParameter('player', $player)
-            ->setParameter('status', GameStatus::Completed);
-
-        $this->setGroupParameter($gamesAsPartnerQuery, $playerGroupId);
-        $gamesAsPartner = (int) $gamesAsPartnerQuery->getSingleScalarResult();
-
+        $gamesAsTaker = $this->gameRepository->countPlayerGamesAsTaker($player, $playerGroupId);
+        $gamesAsPartner = $this->gameRepository->countPlayerGamesAsPartner($player, $playerGroupId);
         $gamesAsDefender = $gamesPlayed - $gamesAsTaker - $gamesAsPartner;
 
-        $winsAsTakerQuery = $this->em->createQuery(
-            'SELECT COUNT(g.id)
-             FROM App\Entity\Game g
-             JOIN App\Entity\ScoreEntry se WITH se.game = g AND se.player = g.taker'.$groupJoinGame.'
-             WHERE g.taker = :player AND g.status = :status AND se.score > 0'.$groupWhereGame
-        )
-            ->setParameter('player', $player)
-            ->setParameter('status', GameStatus::Completed);
+        $winsAsTaker = $this->gameRepository->countPlayerWinsAsTaker($player, $playerGroupId);
+        $sessionsPlayed = $this->gameRepository->countPlayerDistinctSessions($player, $playerGroupId);
 
-        $this->setGroupParameter($winsAsTakerQuery, $playerGroupId);
-        $winsAsTaker = (int) $winsAsTakerQuery->getSingleScalarResult();
-
-        $sessionsQuery = $this->em->createQuery(
-            'SELECT COUNT(DISTINCT g.session)
-             FROM App\Entity\Game g
-             JOIN App\Entity\ScoreEntry se WITH se.game = g AND se.player = :player'.$groupJoinGame.'
-             WHERE g.status = :status'.$groupWhereGame
-        )
-            ->setParameter('player', $player)
-            ->setParameter('status', GameStatus::Completed);
-
-        $this->setGroupParameter($sessionsQuery, $playerGroupId);
-        $sessionsPlayed = (int) $sessionsQuery->getSingleScalarResult();
-
-        $contractQuery = $this->em->createQuery(
-            'SELECT g.contract AS contract, COUNT(g.id) AS count
-             FROM App\Entity\Game g'.$groupJoinGame.'
-             WHERE g.taker = :player AND g.status = :status'.$groupWhereGame.'
-             GROUP BY g.contract'
-        )
-            ->setParameter('player', $player)
-            ->setParameter('status', GameStatus::Completed);
-
-        $this->setGroupParameter($contractQuery, $playerGroupId);
-
-        /** @var list<array{contract: Contract, count: int|string}> $contractRows */
-        $contractRows = $contractQuery->getResult();
-
-        $contractWinQuery = $this->em->createQuery(
-            'SELECT g.contract AS contract, COUNT(g.id) AS wins
-             FROM App\Entity\Game g
-             JOIN App\Entity\ScoreEntry se WITH se.game = g AND se.player = g.taker'.$groupJoinGame.'
-             WHERE g.taker = :player AND g.status = :status AND se.score > 0'.$groupWhereGame.'
-             GROUP BY g.contract'
-        )
-            ->setParameter('player', $player)
-            ->setParameter('status', GameStatus::Completed);
-
-        $this->setGroupParameter($contractWinQuery, $playerGroupId);
-
-        /** @var list<array{contract: Contract, wins: int|string}> $contractWinRows */
-        $contractWinRows = $contractWinQuery->getResult();
+        $contractRows = $this->gameRepository->getPlayerContractDistribution($player, $playerGroupId);
+        $contractWinRows = $this->gameRepository->getPlayerContractWins($player, $playerGroupId);
 
         /** @var array<string, int> $contractWins */
         $contractWins = [];
         foreach ($contractWinRows as $row) {
-            $contractWins[$row['contract']->value] = (int) $row['wins'];
+            $contractWins[$row['contract']->value] = $row['wins'];
         }
 
         $contractDistribution = \array_map(
             static fn (array $row) => [
                 'contract' => $row['contract']->value,
-                'count' => (int) $row['count'],
-                'winRate' => (int) $row['count'] > 0
-                    ? \round(($contractWins[$row['contract']->value] ?? 0) / (int) $row['count'] * 100, 1)
+                'count' => $row['count'],
+                'winRate' => $row['count'] > 0
+                    ? \round(($contractWins[$row['contract']->value] ?? 0) / $row['count'] * 100, 1)
                     : 0.0,
                 'wins' => $contractWins[$row['contract']->value] ?? 0,
             ],
             $contractRows,
         );
 
-        $recentScoresQuery = $this->em->createQuery(
-            'SELECT se.score AS score, g.id AS gameId, g.createdAt AS date, IDENTITY(g.session) AS sessionId
-             FROM App\Entity\ScoreEntry se
-             JOIN se.game g'.$groupJoinGame.'
-             WHERE se.player = :player AND g.status = :status'.$groupWhereGame.'
-             ORDER BY g.createdAt DESC'
-        )
-            ->setParameter('player', $player)
-            ->setParameter('status', GameStatus::Completed)
-            ->setMaxResults(50);
-
-        $this->setGroupParameter($recentScoresQuery, $playerGroupId);
-
-        /** @var list<array{date: \DateTimeImmutable, gameId: int|string, score: int|string, sessionId: int|string}> $recentScores */
-        $recentScores = $recentScoresQuery->getResult();
-
+        $recentScores = $this->scoreEntryRepository->getPlayerRecentScores($player, $playerGroupId, 50);
         $formattedRecentScores = \array_map(
             static fn (array $row) => [
                 'date' => $row['date']->format(\DateTimeInterface::ATOM),
@@ -412,27 +238,16 @@ class PlayerStatisticsService
             $recentScores,
         );
 
-        $groupJoinStar = null !== $playerGroupId ? ' JOIN App\Entity\Session s_grp WITH se.session = s_grp' : '';
-        $groupWhereStar = null !== $playerGroupId ? ' AND s_grp.playerGroup = :group' : '';
-
-        $starsQuery = $this->em->createQuery(
-            'SELECT COUNT(se.id) FROM App\Entity\StarEvent se'.$groupJoinStar.'
-             WHERE se.player = :player'.$groupWhereStar
-        )
-            ->setParameter('player', $player);
-
-        $this->setGroupParameter($starsQuery, $playerGroupId);
-        $totalStars = (int) $starsQuery->getSingleScalarResult();
-
+        $totalStars = $this->starEventRepository->countByPlayerFiltered($player, $playerGroupId);
         $starPenalties = (int) \floor($totalStars / 3);
 
         $durationStats = $this->getPlayerDurationStats($player, $playerGroupId);
 
         return [
             'averageGameDurationSeconds' => $durationStats['averageGameDurationSeconds'],
+            'averageScore' => \round($scoreAgg['averageScore'], 1),
             'badges' => $this->getPlayerBadges($player),
-            'averageScore' => null !== $scoreAgg['averageScore'] ? \round((float) $scoreAgg['averageScore'], 1) : 0.0,
-            'bestGameScore' => (int) ($scoreAgg['bestGameScore'] ?? 0),
+            'bestGameScore' => $scoreAgg['bestGameScore'],
             'contractDistribution' => $contractDistribution,
             'eloHistory' => $this->getPlayerEloHistory($player, $playerGroupId),
             'eloRating' => $player->getEloRating(),
@@ -452,7 +267,7 @@ class PlayerStatisticsService
             'totalPlayTimeSeconds' => $durationStats['totalPlayTimeSeconds'],
             'totalStars' => $totalStars,
             'winRateAsTaker' => $gamesAsTaker > 0 ? \round($winsAsTaker / $gamesAsTaker * 100, 1) : 0.0,
-            'worstGameScore' => (int) ($scoreAgg['worstGameScore'] ?? 0),
+            'worstGameScore' => $scoreAgg['worstGameScore'],
         ];
     }
 
@@ -463,28 +278,7 @@ class PlayerStatisticsService
      */
     public function getPlayerDurationStats(Player $player, ?int $playerGroupId = null): array
     {
-        $groupJoin = null !== $playerGroupId ? ' JOIN g.session s_grp' : '';
-        $groupWhere = null !== $playerGroupId ? ' AND s_grp.playerGroup = :group' : '';
-
-        $query = $this->em->createQuery(
-            'SELECT AVG(TIMESTAMPDIFF(SECOND, g.createdAt, g.completedAt)) AS avg,
-                    SUM(TIMESTAMPDIFF(SECOND, g.createdAt, g.completedAt)) AS total
-             FROM App\Entity\Game g
-             JOIN App\Entity\ScoreEntry se WITH se.game = g AND se.player = :player'.$groupJoin.'
-             WHERE g.status = :status AND g.completedAt IS NOT NULL'.$groupWhere
-        )
-            ->setParameter('player', $player)
-            ->setParameter('status', GameStatus::Completed);
-
-        $this->setGroupParameter($query, $playerGroupId);
-
-        /** @var array{avg: string|null, total: string|null} $row */
-        $row = $query->getSingleResult();
-
-        return [
-            'averageGameDurationSeconds' => null !== $row['avg'] ? (int) \round((float) $row['avg']) : null,
-            'totalPlayTimeSeconds' => (int) ($row['total'] ?? 0),
-        ];
+        return $this->gameRepository->getPlayerDurationStats($player, $playerGroupId);
     }
 
     /**
@@ -497,13 +291,7 @@ class PlayerStatisticsService
      */
     private function getPlayerBadges(Player $player): array
     {
-        /** @var list<array{badgeType: BadgeType, unlockedAt: \DateTimeImmutable}> $awarded */
-        $awarded = $this->em->createQuery(
-            'SELECT pb.badgeType, pb.unlockedAt FROM App\Entity\PlayerBadge pb
-             WHERE pb.player = :player ORDER BY pb.unlockedAt ASC'
-        )
-            ->setParameter('player', $player)
-            ->getResult();
+        $awarded = $this->playerBadgeRepository->getPlayerBadgesWithUnlockDate($player);
 
         $awardedMap = [];
         foreach ($awarded as $row) {
@@ -519,17 +307,5 @@ class PlayerStatisticsService
         }
 
         return $badges;
-    }
-
-    /**
-     * Ajoute le paramètre :group à une requête DQL si un filtre de groupe est actif.
-     *
-     * @param AbstractQuery<mixed, mixed> $query
-     */
-    private function setGroupParameter(AbstractQuery $query, ?int $playerGroupId): void
-    {
-        if (null !== $playerGroupId) {
-            $query->setParameter('group', $playerGroupId);
-        }
     }
 }

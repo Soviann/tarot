@@ -309,6 +309,165 @@ final class ScoreEntryRepository extends ServiceEntityRepository
     }
 
     /**
+     * @return array{averageScore: float, bestGameScore: int, gamesPlayed: int, totalScore: int, worstGameScore: int}
+     */
+    public function getPlayerScoreAggregates(Player $player, ?int $playerGroupId = null): array
+    {
+        $qb = $this->createQueryBuilder('se')
+            ->select('COUNT(se.id) AS gamesPlayed', 'SUM(se.score) AS totalScore', 'AVG(se.score) AS averageScore', 'MAX(se.score) AS bestGameScore', 'MIN(se.score) AS worstGameScore')
+            ->join('se.game', 'g')
+            ->andWhere('se.player = :player')
+            ->andWhere('g.status = :status')
+            ->setParameter('player', $player)
+            ->setParameter('status', GameStatus::Completed);
+
+        $this->applyGroupFilter($qb, $playerGroupId);
+
+        /** @var array{averageScore: float|string|null, bestGameScore: int|string|null, gamesPlayed: int|string, totalScore: int|string|null, worstGameScore: int|string|null} $result */
+        $result = $qb->getQuery()->getSingleResult();
+
+        return [
+            'averageScore' => null !== $result['averageScore'] ? (float) $result['averageScore'] : 0.0,
+            'bestGameScore' => (int) ($result['bestGameScore'] ?? 0),
+            'gamesPlayed' => (int) $result['gamesPlayed'],
+            'totalScore' => (int) ($result['totalScore'] ?? 0),
+            'worstGameScore' => (int) ($result['worstGameScore'] ?? 0),
+        ];
+    }
+
+    /**
+     * @return list<array{date: \DateTimeImmutable, gameId: int, score: int, sessionId: int}>
+     */
+    public function getPlayerRecentScores(Player $player, ?int $playerGroupId = null, int $limit = 50): array
+    {
+        $qb = $this->createQueryBuilder('se')
+            ->select('se.score AS score', 'g.id AS gameId', 'g.createdAt AS date', 'IDENTITY(g.session) AS sessionId')
+            ->join('se.game', 'g')
+            ->andWhere('se.player = :player')
+            ->andWhere('g.status = :status')
+            ->setParameter('player', $player)
+            ->setParameter('status', GameStatus::Completed)
+            ->orderBy('g.createdAt', 'DESC')
+            ->setMaxResults($limit);
+
+        $this->applyGroupFilter($qb, $playerGroupId);
+
+        /** @var list<array{date: \DateTimeImmutable, gameId: int|string, score: int|string, sessionId: int|string}> */
+        return $qb->getQuery()->getResult();
+    }
+
+    /**
+     * @return array{contract: \App\Enum\Contract, date: \DateTimeImmutable, score: int, sessionId: int}|null
+     */
+    public function getPlayerBestScore(Player $player, ?int $playerGroupId = null): ?array
+    {
+        $qb = $this->createQueryBuilder('se')
+            ->select('se.score', 'g.createdAt AS date', 'IDENTITY(g.session) AS sessionId', 'g.contract AS contract')
+            ->join('se.game', 'g')
+            ->andWhere('se.player = :player')
+            ->andWhere('g.status = :status')
+            ->setParameter('player', $player)
+            ->setParameter('status', GameStatus::Completed)
+            ->orderBy('se.score', 'DESC')
+            ->setMaxResults(1);
+
+        $this->applyGroupFilter($qb, $playerGroupId);
+
+        /** @var list<array{contract: \App\Enum\Contract, date: \DateTimeImmutable, score: int|string, sessionId: int|string}> $results */
+        $results = $qb->getQuery()->getResult();
+
+        if (empty($results)) {
+            return null;
+        }
+
+        $row = $results[0];
+
+        return [
+            'contract' => $row['contract'],
+            'date' => $row['date'],
+            'score' => (int) $row['score'],
+            'sessionId' => (int) $row['sessionId'],
+        ];
+    }
+
+    /**
+     * @return array{contract: \App\Enum\Contract, date: \DateTimeImmutable, score: int, sessionId: int}|null
+     */
+    public function getPlayerWorstScore(Player $player, ?int $playerGroupId = null): ?array
+    {
+        $qb = $this->createQueryBuilder('se')
+            ->select('se.score', 'g.createdAt AS date', 'IDENTITY(g.session) AS sessionId', 'g.contract AS contract')
+            ->join('se.game', 'g')
+            ->andWhere('se.player = :player')
+            ->andWhere('g.status = :status')
+            ->setParameter('player', $player)
+            ->setParameter('status', GameStatus::Completed)
+            ->orderBy('se.score', 'ASC')
+            ->setMaxResults(1);
+
+        $this->applyGroupFilter($qb, $playerGroupId);
+
+        /** @var list<array{contract: \App\Enum\Contract, date: \DateTimeImmutable, score: int|string, sessionId: int|string}> $results */
+        $results = $qb->getQuery()->getResult();
+
+        if (empty($results)) {
+            return null;
+        }
+
+        $row = $results[0];
+
+        return [
+            'contract' => $row['contract'],
+            'date' => $row['date'],
+            'score' => (int) $row['score'],
+            'sessionId' => (int) $row['sessionId'],
+        ];
+    }
+
+    /**
+     * @return array{firstDate: string, sessionId: int, total: int}|null
+     */
+    public function getPlayerBestSessionTotal(Player $player, ?int $playerGroupId = null): ?array
+    {
+        $qb = $this->createQueryBuilder('se')
+            ->select('IDENTITY(g.session) AS sessionId', 'SUM(se.score) AS total', 'MIN(g.createdAt) AS firstDate')
+            ->join('se.game', 'g')
+            ->andWhere('se.player = :player')
+            ->andWhere('g.status = :status')
+            ->setParameter('player', $player)
+            ->setParameter('status', GameStatus::Completed)
+            ->groupBy('g.session')
+            ->orderBy('total', 'DESC')
+            ->setMaxResults(1);
+
+        $this->applyGroupFilter($qb, $playerGroupId);
+
+        /** @var list<array{firstDate: string|\DateTimeImmutable, sessionId: int|string, total: int|string}> $results */
+        $results = $qb->getQuery()->getResult();
+
+        if (empty($results)) {
+            return null;
+        }
+
+        $row = $results[0];
+
+        return [
+            'firstDate' => $row['firstDate'] instanceof \DateTimeImmutable ? $row['firstDate']->format(\DateTimeInterface::ATOM) : $row['firstDate'],
+            'sessionId' => (int) $row['sessionId'],
+            'total' => (int) $row['total'],
+        ];
+    }
+
+    private function applyGroupFilter(\Doctrine\ORM\QueryBuilder $qb, ?int $playerGroupId, string $gameAlias = 'g'): void
+    {
+        if (null !== $playerGroupId) {
+            $qb->join($gameAlias.'.session', 's_grp')
+               ->andWhere('s_grp.playerGroup = :group')
+               ->setParameter('group', $playerGroupId);
+        }
+    }
+
+    /**
      * @return list<array{gameId: int, partnerId: int|null, takerId: int, takerScore: int}>
      */
     public function getGamesWithTakerScoreForPlayer(Player $player): array
