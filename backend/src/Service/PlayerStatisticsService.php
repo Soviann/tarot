@@ -13,6 +13,21 @@ use App\Service\Scoring\ScoreCalculator;
 use Doctrine\ORM\AbstractQuery;
 use Doctrine\ORM\EntityManagerInterface;
 
+/**
+ * Statistiques individuelles d'un joueur.
+ *
+ * Alimente la page « Statistiques joueur » (route GET /api/statistics/players/{id}).
+ * Accepte un $playerGroupId optionnel pour filtrer sur un groupe donné.
+ *
+ * La méthode principale getPlayerStats() agrège en un seul appel :
+ * - Scores (moyenne, meilleur, pire, total par rôle)
+ * - Répartition des contrats et taux de réussite
+ * - Historique ELO et classement
+ * - Records personnels (meilleur score, pire score, plus longue série de victoires, plus gros écart)
+ * - Étoiles, pénalités, badges débloqués
+ * - 50 derniers scores (pour le graphique de tendance)
+ * - Durée moyenne et totale de jeu
+ */
 class PlayerStatisticsService
 {
     public function __construct(
@@ -21,6 +36,11 @@ class PlayerStatisticsService
     }
 
     /**
+     * Historique ELO d'un joueur, trié chronologiquement.
+     *
+     * Chaque entrée correspond à une donne et inclut la variation (ratingChange)
+     * en plus de la valeur absolue (ratingAfter).
+     *
      * @return list<array{date: string, gameId: int, ratingAfter: int, ratingChange: int}>
      */
     public function getPlayerEloHistory(Player $player, ?int $playerGroupId = null): array
@@ -53,6 +73,15 @@ class PlayerStatisticsService
     }
 
     /**
+     * Records personnels d'un joueur.
+     *
+     * Types de records calculés :
+     * - best_score    : meilleur score individuel (tous rôles)
+     * - worst_score   : pire score individuel (tous rôles)
+     * - win_streak    : plus longue série de victoires consécutives en tant que preneur
+     * - biggest_diff  : plus grand écart entre points réalisés et points requis (en tant que preneur)
+     * - best_session  : meilleur score cumulé sur une session
+     *
      * @return list<array{contract: string|null, date: string, sessionId: int|null, type: string, value: int|float}>
      */
     public function getPlayerRecords(Player $player, ?int $playerGroupId = null): array
@@ -223,6 +252,19 @@ class PlayerStatisticsService
     }
 
     /**
+     * Agrège toutes les statistiques d'un joueur en un seul tableau.
+     *
+     * Exécute de nombreuses requêtes DQL pour collecter :
+     * - Scores agrégés (moyenne, min, max, total)
+     * - Nombre de donnes par rôle (preneur, partenaire, défenseur)
+     * - Taux de victoire en tant que preneur
+     * - Répartition des contrats avec taux de réussite
+     * - 50 derniers scores (graphique de tendance)
+     * - Étoiles et pénalités associées (1 pénalité pour 3 étoiles)
+     * - Badges (débloqués et verrouillés)
+     * - Historique ELO et records personnels
+     * - Durée moyenne et totale de jeu
+     *
      * @return array{badges: list<array{description: string, emoji: string, label: string, type: string, unlockedAt: string|null}>, averageGameDurationSeconds: int|null, averageScore: float, bestGameScore: int, contractDistribution: list<array{contract: string, count: int, winRate: float, wins: int}>, eloHistory: list<array{date: string, gameId: int, ratingAfter: int, ratingChange: int}>, eloRating: int, gamesAsDefender: int, gamesAsPartner: int, gamesAsTaker: int, gamesPlayed: int, player: array{id: int|null, name: string}, playerGroups: list<array{id: int|null, name: string}>, recentScores: list<array{date: string, gameId: int, score: int, sessionId: int}>, records: list<array{contract: string|null, date: string, sessionId: int|null, type: string, value: int|float}>, sessionsPlayed: int, starPenalties: int, totalPlayTimeSeconds: int, totalStars: int, winRateAsTaker: float, worstGameScore: int}
      */
     public function getPlayerStats(Player $player, ?int $playerGroupId = null): array
@@ -415,6 +457,8 @@ class PlayerStatisticsService
     }
 
     /**
+     * Durée moyenne et totale de jeu d'un joueur (basé sur les donnes auxquelles il a participé).
+     *
      * @return array{averageGameDurationSeconds: int|null, totalPlayTimeSeconds: int}
      */
     public function getPlayerDurationStats(Player $player, ?int $playerGroupId = null): array
@@ -444,6 +488,11 @@ class PlayerStatisticsService
     }
 
     /**
+     * Liste tous les badges (débloqués et verrouillés) pour un joueur.
+     *
+     * Itère sur tous les BadgeType possibles et enrichit chacun avec la date
+     * de déverrouillage (null si pas encore obtenu).
+     *
      * @return list<array{description: string, emoji: string, label: string, type: string, unlockedAt: string|null}>
      */
     private function getPlayerBadges(Player $player): array
@@ -473,6 +522,8 @@ class PlayerStatisticsService
     }
 
     /**
+     * Ajoute le paramètre :group à une requête DQL si un filtre de groupe est actif.
+     *
      * @param AbstractQuery<mixed, mixed> $query
      */
     private function setGroupParameter(AbstractQuery $query, ?int $playerGroupId): void

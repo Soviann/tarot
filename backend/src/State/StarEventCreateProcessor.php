@@ -11,7 +11,6 @@ use App\Dto\NewBadgesDto;
 use App\Entity\ScoreEntry;
 use App\Entity\Session;
 use App\Entity\StarEvent;
-use App\Enum\BadgeType;
 use App\Service\BadgeChecker;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpKernel\Exception\UnprocessableEntityHttpException;

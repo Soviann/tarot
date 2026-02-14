@@ -6,6 +6,17 @@ namespace App\Dto;
 
 use App\Enum\BadgeType;
 
+/**
+ * Encapsule les badges nouvellement débloqués après une action (donne complétée ou étoile).
+ *
+ * Sérialisé en JSON sous la forme : { "playerId": [ {badge}, ... ], ... }
+ * Porté comme propriété transiente (non persistée) sur Game et StarEvent,
+ * et inclus dans la réponse API grâce au groupe de sérialisation.
+ *
+ * Construction : NewBadgesDto::fromAwardedBadges() prend le retour de BadgeChecker::checkAndAward().
+ *
+ * @see BadgeChecker::checkAndAward()
+ */
 final readonly class NewBadgesDto implements \JsonSerializable
 {
     /**

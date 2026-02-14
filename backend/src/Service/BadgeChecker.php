@@ -14,6 +14,18 @@ use App\Enum\GameStatus;
 use App\Enum\Side;
 use Doctrine\ORM\EntityManagerInterface;
 
+/**
+ * Vérifie et attribue les badges (succès / achievements) aux joueurs.
+ *
+ * Appelé automatiquement après chaque donne complétée (via GameCompleteProcessor)
+ * pour vérifier si de nouveaux badges ont été débloqués par les joueurs de la session.
+ *
+ * Chaque badge est défini dans l'enum BadgeType et sa condition est évaluée
+ * par une méthode privée check*() dédiée. Un badge déjà obtenu n'est jamais
+ * réévalué (filtrage via getExistingBadgeTypes).
+ *
+ * @see BadgeType pour la liste complète des badges et leurs descriptions
+ */
 final readonly class BadgeChecker
 {
     public function __construct(

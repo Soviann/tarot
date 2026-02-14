@@ -4,6 +4,15 @@ declare(strict_types=1);
 
 namespace App\Dto;
 
+/**
+ * Représentation sérialisable d'un badge (achievement).
+ *
+ * DTO immuable construit à partir de BadgeType::toArray().
+ * Utilisé dans NewBadgesDto pour transmettre les badges nouvellement débloqués
+ * au frontend via la réponse JSON des processors Game et StarEvent.
+ *
+ * @see \App\Enum\BadgeType::toArray()
+ */
 final readonly class BadgeDto implements \JsonSerializable
 {
     public function __construct(

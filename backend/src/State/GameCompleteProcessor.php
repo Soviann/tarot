@@ -10,7 +10,6 @@ use ApiPlatform\State\ProcessorInterface;
 use App\Dto\NewBadgesDto;
 use App\Entity\EloHistory;
 use App\Entity\Game;
-use App\Enum\BadgeType;
 use App\Enum\GameStatus;
 use App\Service\BadgeChecker;
 use App\Service\Scoring\EloCalculator;
