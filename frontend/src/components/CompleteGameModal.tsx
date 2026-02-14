@@ -164,7 +164,7 @@ export default function CompleteGameModal({ game, onBadgesUnlocked, onClose, onG
           <div className="flex flex-wrap justify-center gap-2">
             <button
               className={`rounded-xl px-3 py-2 text-sm font-medium transition-all ${
-                selfCall ? "ring-2 ring-accent-500 bg-accent-500/10 text-accent-500" : "bg-surface-secondary text-text-secondary"
+                selfCall ? "ring-2 ring-accent-500 bg-accent-500/10 text-accent-500 dark:text-accent-300 dark:ring-accent-300" : "bg-surface-secondary text-text-secondary"
               }`}
               onClick={handleSelfCall}
               type="button"
