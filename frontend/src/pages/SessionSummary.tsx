@@ -54,11 +54,10 @@ function Podium({ ranking }: { ranking: SessionRankingEntry[] }) {
           </span>
           <ScoreDisplay animated={false} value={second.score} />
           <div
-            className="mt-2 w-full rounded-t-lg"
+            className="mt-2 w-full rounded-t-lg opacity-30 dark:opacity-50"
             style={{
               backgroundColor: medalColors.silver,
               height: "4rem",
-              opacity: 0.3,
             }}
           />
         </div>
@@ -78,11 +77,10 @@ function Podium({ ranking }: { ranking: SessionRankingEntry[] }) {
         </span>
         <ScoreDisplay animated={false} className="text-lg" value={first.score} />
         <div
-          className="mt-2 w-full rounded-t-lg"
+          className="mt-2 w-full rounded-t-lg opacity-30 dark:opacity-50"
           style={{
             backgroundColor: medalColors.gold,
             height: "6rem",
-            opacity: 0.3,
           }}
         />
       </div>
@@ -102,11 +100,10 @@ function Podium({ ranking }: { ranking: SessionRankingEntry[] }) {
           </span>
           <ScoreDisplay animated={false} value={third.score} />
           <div
-            className="mt-2 w-full rounded-t-lg"
+            className="mt-2 w-full rounded-t-lg opacity-30 dark:opacity-50"
             style={{
               backgroundColor: medalColors.bronze,
               height: "3rem",
-              opacity: 0.3,
             }}
           />
         </div>

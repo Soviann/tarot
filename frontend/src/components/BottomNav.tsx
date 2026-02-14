@@ -20,7 +20,7 @@ export default function BottomNav() {
             className={({ isActive }) =>
               `flex flex-col items-center px-4 py-2 text-xs transition-colors ${
                 isActive
-                  ? "font-semibold text-accent-500"
+                  ? "font-semibold text-accent-500 dark:text-accent-300"
                   : "text-text-secondary"
               }`
             }

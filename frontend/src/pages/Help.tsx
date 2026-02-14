@@ -467,7 +467,7 @@ export default function Help() {
 
       {/* Lien GitHub */}
       <a
-        className="flex items-center justify-center gap-2 rounded-xl bg-surface-primary px-4 py-3 text-sm font-medium text-accent-500 hover:bg-surface-tertiary"
+        className="flex items-center justify-center gap-2 rounded-xl bg-surface-primary px-4 py-3 text-sm font-medium text-accent-500 hover:bg-surface-tertiary dark:text-accent-300"
         href="https://github.com/Soviann/tarot"
         rel="noopener noreferrer"
         target="_blank"

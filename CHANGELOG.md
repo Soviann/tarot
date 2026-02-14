@@ -6,6 +6,10 @@ Le format est basé sur [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/)
 
 ## [Unreleased]
 
+### Fixed
+
+- **Dark mode — contraste** : les textes secondaires et discrets (`text-muted`, `text-secondary`) sont désormais plus lisibles en mode sombre (conformité WCAG AA 4.5:1). Les socles du podium (récap de session) sont plus vibrants en dark mode. Les liens accent (page d'aide) utilisent un bleu clair visible sur fond sombre.
+
 ### Added
 
 - **Légende du graphique d'évolution des scores** : le graphique de la page session affiche désormais des chips filtrables permettant d'identifier et de masquer/afficher chaque joueur. Les couleurs des courbes correspondent aux couleurs d'avatar personnalisées des joueurs (ou à la couleur par défaut).
