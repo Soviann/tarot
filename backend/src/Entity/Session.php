@@ -56,7 +56,7 @@ class Session
     #[ORM\OneToMany(targetEntity: Game::class, mappedBy: 'session')]
     private Collection $games;
 
-    #[Groups(['session:read'])]
+    #[Groups(['session:read', 'session:patch'])]
     #[ORM\Column]
     private bool $isActive = true;
 
@@ -202,7 +202,7 @@ class Session
         return $this;
     }
 
-    public function isActive(): bool
+    public function getIsActive(): bool
     {
         return $this->isActive;
     }

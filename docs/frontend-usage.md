@@ -64,9 +64,13 @@ import type { HydraCollection, Player } from "./types/api";
 | `PlayerGroupDetail` | extends `PlayerGroup` + `players: GamePlayer[]` |
 | `ScoreEntry` | `id: number`, `player: GamePlayer`, `score: number` |
 | `Session` | `id: number`, `createdAt: string`, `isActive: boolean`, `lastPlayedAt: string`, `playerGroup: PlayerGroup \| null`, `players: SessionPlayer[]` |
+| `SessionAward` | `description: string`, `playerColor: string \| null`, `playerId: number`, `playerName: string`, `title: string` |
 | `SessionDetail` | `id`, `createdAt`, `currentDealer`, `inProgressGame: Game \| null`, `isActive`, `playerGroup: PlayerGroup \| null`, `players: GamePlayer[]`, `cumulativeScores: CumulativeScore[]`, `starEvents: StarEvent[]` |
-| `StarEvent` | `id: number`, `createdAt: string`, `player: GamePlayer` |
+| `SessionHighlights` | `bestGame`, `duration: number`, `lastPlace`, `mostPlayedContract`, `mvp`, `totalGames: number`, `totalStars: number`, `worstGame` |
 | `SessionPlayer` | `color: string \| null`, `id: number`, `name: string` |
+| `SessionRankingEntry` | `playerColor: string \| null`, `playerId: number`, `playerName: string`, `position: number`, `score: number` |
+| `SessionSummary` | `awards: SessionAward[]`, `highlights: SessionHighlights`, `ranking: SessionRankingEntry[]`, `scoreSpread: number` |
+| `StarEvent` | `id: number`, `createdAt: string`, `player: GamePlayer` |
 | `ContractDistributionEntry` | `contract: Contract`, `count: number`, `percentage: number` |
 | `ContractSuccessRatePlayer` | `color: string \| null`, `contracts: PlayerContractEntry[]`, `id: number`, `name: string` |
 | `EloHistoryEntry` | `date: string`, `gameId: number`, `ratingAfter: number`, `ratingChange: number` |
@@ -419,6 +423,41 @@ const allGames = data?.pages.flatMap(p => p.member) ?? [];
 
 **Query key** : `["session", sessionId, "games"]` — invalidé automatiquement par prefix matching quand `["session", sessionId]` est invalidé par les mutations existantes.
 
+### `useCloseGroupSessions`
+
+**Fichier** : `hooks/useCloseGroupSessions.ts`
+
+Mutation pour clôturer toutes les sessions ouvertes d'un groupe de joueurs. Invalide le cache `["sessions"]`.
+
+```ts
+const closeGroupSessions = useCloseGroupSessions();
+
+closeGroupSessions.mutate(groupId);
+```
+
+| Retour | Type | Description |
+|--------|------|-------------|
+| `mutate` | `(groupId: number) => void` | Lance la clôture en masse |
+| `isPending` | `boolean` | `true` pendant la requête |
+
+### `useCloseSession`
+
+**Fichier** : `hooks/useCloseSession.ts`
+
+Mutation pour clôturer ou réouvrir une session (PATCH `isActive`). Invalide les caches `["session", id]` et `["sessions"]`.
+
+```ts
+const closeSession = useCloseSession(sessionId);
+
+closeSession.mutate(false); // clôturer
+closeSession.mutate(true);  // réouvrir
+```
+
+| Retour | Type | Description |
+|--------|------|-------------|
+| `mutate` | `(isActive: boolean) => void` | Lance la modification |
+| `isPending` | `boolean` | `true` pendant la requête |
+
 ### `useSession`
 
 **Fichier** : `hooks/useSession.ts`
@@ -451,6 +490,22 @@ const { isPending, sessions } = useSessions();
 | `sessions` | `Session[]` | Liste des sessions (vide pendant le chargement) |
 | `isPending` | `boolean` | `true` pendant le chargement initial |
 | `isSuccess` | `boolean` | `true` quand les données sont disponibles |
+| …autres | — | Tous les champs de `UseQueryResult` |
+
+### `useSessionSummary`
+
+**Fichier** : `hooks/useSessionSummary.ts`
+
+Récupère le récapitulatif d'une session (classement, faits marquants, titres humoristiques) via l'endpoint `GET /api/sessions/{id}/summary`.
+
+```ts
+const { data, isPending } = useSessionSummary(sessionId);
+```
+
+| Retour | Type | Description |
+|--------|------|-------------|
+| `data` | `SessionSummary \| undefined` | Récapitulatif complet (ranking, highlights, awards) |
+| `isPending` | `boolean` | `true` pendant le chargement |
 | …autres | — | Tous les champs de `UseQueryResult` |
 
 ### `usePlayerGroups`
@@ -676,10 +731,14 @@ Page d'aide in-app reprenant le contenu du guide utilisateur (`docs/user-guide.m
 - Bouton FAB (+) pour démarrer une nouvelle donne (désactivé si donne en cours)
 - Bouton de partage QR code dans le header (ouvre `ShareQrCodeModal`)
 - Bouton de changement de joueurs (icône ⇄) dans le header (désactivé si donne en cours)
+- Bouton récap (icône graphique) pour accéder au récapitulatif (`/sessions/:id/summary`)
+- Bouton cadenas pour clôturer la session (navigue vers le récap après clôture)
+- Bandeau « Session terminée » (ambre) avec bouton « Réouvrir » quand `isActive === false`
+- FAB masqué quand la session est clôturée
 - Bouton retour vers l'accueil
 - États : chargement, session introuvable
 
-**Hooks utilisés** : `useSession`, `useSessionGames`, `useAddStar`, `useCreateGame`, `useCreateSession` (via SwapPlayersModal), `useCompleteGame`, `useDeleteGame`, `useUpdateDealer`, `useNavigate`
+**Hooks utilisés** : `useSession`, `useSessionGames`, `useAddStar`, `useCloseSession`, `useCreateGame`, `useCreateSession` (via SwapPlayersModal), `useCompleteGame`, `useDeleteGame`, `useUpdateDealer`, `useNavigate`
 
 **Modales** :
 - `ShareQrCodeModal` : affichage d'un QR code encodant l'URL de la session avec mode plein écran
@@ -689,6 +748,24 @@ Page d'aide in-app reprenant le contenu du guide utilisateur (`docs/user-guide.m
 - `CompleteGameModal` : complétion ou modification d'une donne (étape 2)
 - `AddStarModal` : confirmation avant attribution d'étoile à un joueur
 - `DeleteGameModal` : confirmation de suppression de la dernière donne
+
+### Récapitulatif de session (`SessionSummary`)
+
+**Fichier** : `pages/SessionSummary.tsx`
+
+Écran récapitulatif visuel d'une session, optimisé pour le screenshot et le partage.
+
+**Route** : `/sessions/:id/summary`
+
+**Fonctionnalités** :
+- Podium des 3 premiers (médailles or/argent/bronze, avatars colorés)
+- Classement complet des 5 joueurs avec scores colorés
+- Grille de faits marquants (MVP, Lanterne rouge, Meilleure/Pire donne, Contrat favori, Durée, Donnes, Étoiles)
+- Titres humoristiques (Le Boucher, L'Éternel Défenseur, Le Flambeur) — visibles à partir de 3 donnes
+- Partage en image via `html-to-image` + Web Share API (fallback : téléchargement PNG)
+- Lien retour vers la session
+
+**Hooks utilisés** : `useSessionSummary`
 
 ---
 

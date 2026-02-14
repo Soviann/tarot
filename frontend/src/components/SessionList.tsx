@@ -64,9 +64,13 @@ export default function SessionList() {
                   <p className="text-xs text-text-muted">
                     {formatRelativeDate(session.lastPlayedAt)}
                   </p>
-                  {session.isActive && (
-                    <span className="rounded-full bg-green-100 px-2 py-0.5 text-xs font-medium text-green-700">
+                  {session.isActive ? (
+                    <span className="rounded-full bg-green-100 px-2 py-0.5 text-xs font-medium text-green-700 dark:bg-green-900 dark:text-green-300">
                       En cours
+                    </span>
+                  ) : (
+                    <span className="rounded-full bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-600 dark:bg-gray-800 dark:text-gray-400">
+                      Terminée
                     </span>
                   )}
                 </div>

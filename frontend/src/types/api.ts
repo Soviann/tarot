@@ -180,6 +180,14 @@ export interface Session {
   players: SessionPlayer[];
 }
 
+export interface SessionAward {
+  description: string;
+  playerColor: string | null;
+  playerId: number;
+  playerName: string;
+  title: string;
+}
+
 export interface SessionDetail {
   createdAt: string;
   cumulativeScores: CumulativeScore[];
@@ -192,14 +200,40 @@ export interface SessionDetail {
   starEvents: StarEvent[];
 }
 
-export interface StarEvent {
-  createdAt: string;
-  id: number;
-  player: GamePlayer;
+export interface SessionHighlights {
+  bestGame: { contract: string; gameId: number; playerName: string; score: number } | null;
+  duration: number;
+  lastPlace: { playerId: number; playerName: string; score: number } | null;
+  mostPlayedContract: { contract: string; count: number } | null;
+  mvp: { playerId: number; playerName: string; score: number } | null;
+  totalGames: number;
+  totalStars: number;
+  worstGame: { contract: string; gameId: number; playerName: string; score: number } | null;
 }
 
 export interface SessionPlayer {
   color: string | null;
   id: number;
   name: string;
+}
+
+export interface SessionRankingEntry {
+  playerColor: string | null;
+  playerId: number;
+  playerName: string;
+  position: number;
+  score: number;
+}
+
+export interface SessionSummary {
+  awards: SessionAward[];
+  highlights: SessionHighlights;
+  ranking: SessionRankingEntry[];
+  scoreSpread: number;
+}
+
+export interface StarEvent {
+  createdAt: string;
+  id: number;
+  player: GamePlayer;
 }

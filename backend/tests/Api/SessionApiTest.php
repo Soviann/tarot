@@ -298,6 +298,110 @@ class SessionApiTest extends ApiTestCase
         $this->assertArrayNotHasKey('inProgressGame', $data);
     }
 
+    public function testCloseSession(): void
+    {
+        $session = $this->createSessionWithPlayers('Alice', 'Bob', 'Charlie', 'Diana', 'Eve');
+
+        $response = $this->client->request('PATCH', $this->getIri($session), [
+            'headers' => ['Content-Type' => 'application/merge-patch+json'],
+            'json' => ['isActive' => false],
+        ]);
+
+        $this->assertResponseIsSuccessful();
+        $data = $response->toArray();
+        $this->assertFalse($data['isActive']);
+    }
+
+    public function testReopenSession(): void
+    {
+        $session = $this->createSessionWithPlayers('Alice', 'Bob', 'Charlie', 'Diana', 'Eve');
+        $session->setIsActive(false);
+        $this->em->flush();
+
+        $response = $this->client->request('PATCH', $this->getIri($session), [
+            'headers' => ['Content-Type' => 'application/merge-patch+json'],
+            'json' => ['isActive' => true],
+        ]);
+
+        $this->assertResponseIsSuccessful();
+        $data = $response->toArray();
+        $this->assertTrue($data['isActive']);
+    }
+
+    public function testGetSessionSummary(): void
+    {
+        $session = $this->createSessionWithPlayers('Alice', 'Bob', 'Charlie', 'Diana', 'Eve');
+        $players = $session->getPlayers()->toArray();
+
+        $game = new Game();
+        $game->setContract(Contract::Petite);
+        $game->setOudlers(2);
+        $game->setPartner($players[1]);
+        $game->setPoints(45);
+        $game->setPosition(1);
+        $game->setSession($session);
+        $game->setStatus(GameStatus::Completed);
+        $game->setTaker($players[0]);
+        $this->em->persist($game);
+        $calculator = new ScoreCalculator();
+        foreach ($calculator->compute($game) as $entry) {
+            $this->em->persist($entry);
+            $game->addScoreEntry($entry);
+        }
+        $this->em->flush();
+
+        $response = $this->client->request('GET', '/api/sessions/'.$session->getId().'/summary');
+
+        $this->assertResponseIsSuccessful();
+        $data = $response->toArray();
+        $this->assertArrayHasKey('ranking', $data);
+        $this->assertArrayHasKey('highlights', $data);
+        $this->assertArrayHasKey('awards', $data);
+        $this->assertArrayHasKey('scoreSpread', $data);
+        $this->assertCount(5, $data['ranking']);
+    }
+
+    public function testGetSessionSummary404(): void
+    {
+        $this->client->request('GET', '/api/sessions/999/summary');
+        $this->assertResponseStatusCodeSame(404);
+    }
+
+    public function testCloseAllGroupSessions(): void
+    {
+        $session1 = $this->createSessionWithPlayers('Alice', 'Bob', 'Charlie', 'Diana', 'Eve');
+        $session2 = $this->createSessionWithPlayers('Frank', 'Grace', 'Heidi', 'Ivan', 'Judy');
+        $group = $this->createPlayerGroup('Test Group');
+        $session1->setPlayerGroup($group);
+        $session2->setPlayerGroup($group);
+        $this->em->flush();
+
+        $this->client->request('POST', '/api/player-groups/'.$group->getId().'/close-sessions');
+
+        $this->assertResponseIsSuccessful();
+
+        $this->em->clear();
+        $s1 = $this->em->find(\App\Entity\Session::class, $session1->getId());
+        $s2 = $this->em->find(\App\Entity\Session::class, $session2->getId());
+        $this->assertFalse($s1->getIsActive());
+        $this->assertFalse($s2->getIsActive());
+    }
+
+    public function testCloseAllGroupSessionsIgnoresAlreadyClosed(): void
+    {
+        $session = $this->createSessionWithPlayers('Alice', 'Bob', 'Charlie', 'Diana', 'Eve');
+        $session->setIsActive(false);
+        $group = $this->createPlayerGroup('Test Group');
+        $session->setPlayerGroup($group);
+        $this->em->flush();
+
+        $response = $this->client->request('POST', '/api/player-groups/'.$group->getId().'/close-sessions');
+
+        $this->assertResponseIsSuccessful();
+        $data = $response->toArray();
+        $this->assertSame(0, $data['closedCount']);
+    }
+
     /**
      * @return string[]
      */

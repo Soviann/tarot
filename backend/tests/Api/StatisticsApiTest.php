@@ -268,7 +268,7 @@ class StatisticsApiTest extends ApiTestCase
 
     public function testGlobalStatisticsFilteredByGroup(): void
     {
-        $group = $this->createPlayerGroup('Mardi soir', ...array_values($this->players));
+        $group = $this->createPlayerGroup('Mardi soir', ...\array_values($this->players));
         $this->session->setPlayerGroup($group);
         $this->em->flush();
 
@@ -287,7 +287,7 @@ class StatisticsApiTest extends ApiTestCase
 
     public function testPlayerStatisticsFilteredByGroup(): void
     {
-        $group = $this->createPlayerGroup('Mardi soir', ...array_values($this->players));
+        $group = $this->createPlayerGroup('Mardi soir', ...\array_values($this->players));
         $this->session->setPlayerGroup($group);
         $this->em->flush();
 

@@ -11,6 +11,7 @@ Application mobile (PWA) de suivi des scores pour le Tarot à 5 joueurs, conform
 - [Gestion des joueurs](#gestion-des-joueurs)
 - [Démarrer une session](#démarrer-une-session)
 - [Écran de session](#écran-de-session)
+- [Terminer une session et récapitulatif](#terminer-une-session-et-récapitulatif)
 - [Saisir une donne](#saisir-une-donne)
 - [Groupes de joueurs](#groupes-de-joueurs)
 - [Consulter les statistiques](#consulter-les-statistiques)
@@ -214,6 +215,53 @@ Le **sélecteur de groupe** en haut de l'écran de session permet de changer man
 ### Statistiques par groupe
 
 Sur les pages **Statistiques** et **Statistiques par joueur**, un filtre permet de voir les classements et scores uniquement pour les sessions d'un groupe donné. Le filtre n'apparaît que si au moins un groupe existe.
+
+---
+
+## Terminer une session et récapitulatif
+
+### Clôturer une session
+
+Pour marquer une session comme terminée (plus de nouvelles donnes possibles) :
+
+1. Sur l'écran de session, appuyer sur le bouton **cadenas** (🔒) dans la barre du titre
+2. La session passe en mode « terminée » et le **récapitulatif** s'affiche automatiquement
+3. Un bandeau ambre « Session terminée » apparaît sur l'écran de session avec un bouton **Réouvrir** si besoin
+
+> **Réouverture** : la clôture n'est pas irréversible. Le bouton « Réouvrir » dans le bandeau permet de reprendre la session.
+
+### Récapitulatif de session
+
+Le récapitulatif est accessible **à tout moment** via le bouton **graphique** (📊) dans la barre du titre de l'écran de session, que la session soit ouverte ou clôturée.
+
+Il affiche :
+
+- **Podium** : les 3 premiers joueurs avec médailles (🥇🥈🥉) et scores
+- **Classement complet** : les 5 joueurs triés par score décroissant
+- **Faits marquants** :
+  - 🏆 MVP (meilleur score)
+  - 😢 Lanterne rouge (pire score)
+  - 🎯 Meilleure donne (plus gros gain du preneur)
+  - 💀 Pire donne (plus grosse perte du preneur)
+  - 📊 Contrat le plus joué
+  - ⏱️ Durée totale
+  - 🃏 Nombre de donnes
+  - ⭐ Étoiles distribuées
+- **Titres humoristiques** (à partir de 3 donnes) :
+  - « Le Boucher » : a infligé le plus de points aux défenseurs
+  - « L'Éternel Défenseur » : a le moins pris
+  - « Le Flambeur » : a tenté le plus de Garde Sans/Contre
+
+### Partager le récapitulatif
+
+Sur l'écran récapitulatif, le bouton **« Partager »** génère une image du récap :
+
+- Sur mobile : ouvre le menu de partage natif (WhatsApp, iMessage, etc.)
+- Sur les autres appareils : télécharge directement l'image PNG
+
+### Clôturer toutes les sessions d'un groupe
+
+Depuis la page d'un **groupe de joueurs** (menu Groupes → sélectionner un groupe), le bouton **« Clôturer les sessions »** ferme en un clic toutes les sessions ouvertes du groupe.
 
 ---
 

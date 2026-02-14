@@ -38,6 +38,10 @@ final readonly class GameCreateProcessor implements ProcessorInterface
             throw new UnprocessableEntityHttpException('Session introuvable.');
         }
 
+        if (!$session->getIsActive()) {
+            throw new UnprocessableEntityHttpException('La session est clôturée. Aucune nouvelle donne ne peut être créée.');
+        }
+
         // Vérifier qu'aucune donne n'est en cours
         $inProgress = $this->em->createQuery(
             'SELECT COUNT(g.id) FROM App\Entity\Game g WHERE g.session = :sessionId AND g.status = :status'

@@ -10,6 +10,7 @@ import Home from "./pages/Home";
 import Players from "./pages/Players";
 import PlayerStats from "./pages/PlayerStats";
 import SessionPage from "./pages/SessionPage";
+import SessionSummary from "./pages/SessionSummary";
 import Stats from "./pages/Stats";
 
 const ReactQueryDevtools = import.meta.env.DEV
@@ -34,6 +35,7 @@ export default function App() {
               <Route path="/groups" element={<Groups />} />
               <Route path="/groups/:id" element={<GroupDetail />} />
               <Route path="/players" element={<Players />} />
+              <Route path="/sessions/:id/summary" element={<SessionSummary />} />
               <Route path="/sessions/:id" element={<SessionPage />} />
               <Route path="/stats" element={<Stats />} />
               <Route path="/stats/player/:id" element={<PlayerStats />} />
