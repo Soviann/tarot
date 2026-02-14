@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { Link, useNavigate, useParams, useSearchParams } from "react-router-dom";
 import BadgeGrid from "../components/BadgeGrid";
 import ContractDistributionChart from "../components/ContractDistributionChart";
@@ -10,13 +10,24 @@ import { PlayerAvatar } from "../components/ui";
 import { usePlayerStats } from "../hooks/usePlayerStats";
 import { formatDuration } from "../utils/formatDuration";
 
+type PlayerStatsSection = "badges" | "contracts" | "elo" | "records" | "roles" | "scores";
+
+const ALL_SECTIONS: { label: string; value: PlayerStatsSection }[] = [
+  { label: "Records personnels", value: "records" },
+  { label: "Badges", value: "badges" },
+  { label: "Répartition des rôles", value: "roles" },
+  { label: "Contrats", value: "contracts" },
+  { label: "Évolution des scores", value: "scores" },
+  { label: "Évolution ELO", value: "elo" },
+];
+
 export default function PlayerStats() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const initialGroupId = searchParams.get("group") ? Number(searchParams.get("group")) : null;
   const [selectedGroupId, setSelectedGroupId] = useState<number | null>(initialGroupId);
-  const [selectedSection, setSelectedSection] = useState("records");
+  const [selectedSection, setSelectedSection] = useState<PlayerStatsSection>("records");
   const playerId = Number(id);
   const { isPending, stats } = usePlayerStats(playerId, selectedGroupId);
 
@@ -44,6 +55,18 @@ export default function PlayerStats() {
       ? Math.round((d.count / stats.gamesAsTaker) * 1000) / 10
       : 0,
   }));
+
+  const availableSections = useMemo(() => {
+    const hasData: Record<PlayerStatsSection, boolean> = {
+      badges: true,
+      contracts: stats.contractDistribution.length > 0,
+      elo: stats.eloHistory.length > 0,
+      records: true,
+      roles: rolesTotal > 0,
+      scores: stats.recentScores.length > 0,
+    };
+    return ALL_SECTIONS.filter((s) => hasData[s.value]);
+  }, [rolesTotal, stats.contractDistribution.length, stats.eloHistory.length, stats.recentScores.length]);
 
   return (
     <div className="flex flex-col gap-6 p-4 lg:p-8">
@@ -132,15 +155,12 @@ export default function PlayerStats() {
         <select
           className="w-full rounded-xl bg-surface-elevated px-4 py-3 text-sm font-semibold text-text-primary"
           id="stats-section"
-          onChange={(e) => setSelectedSection(e.target.value)}
+          onChange={(e) => setSelectedSection(e.target.value as PlayerStatsSection)}
           value={selectedSection}
         >
-          <option value="records">Records personnels</option>
-          <option value="badges">Badges</option>
-          <option value="roles">Répartition des rôles</option>
-          <option value="contracts">Contrats</option>
-          <option value="scores">Évolution des scores</option>
-          <option value="elo">Évolution ELO</option>
+          {availableSections.map((s) => (
+            <option key={s.value} value={s.value}>{s.label}</option>
+          ))}
         </select>
       </div>
 
@@ -152,7 +172,7 @@ export default function PlayerStats() {
         <BadgeGrid badges={stats.badges} />
       )}
 
-      {selectedSection === "roles" && rolesTotal > 0 && (
+      {selectedSection === "roles" && (
         <section>
           <h2 className="mb-2 text-sm font-semibold text-text-secondary">
             Répartition des rôles
@@ -188,7 +208,7 @@ export default function PlayerStats() {
         </section>
       )}
 
-      {selectedSection === "contracts" && stats.contractDistribution.length > 0 && (
+      {selectedSection === "contracts" && (
         <section>
           <h2 className="mb-2 text-sm font-semibold text-text-secondary">
             Contrats (preneur)
@@ -197,7 +217,7 @@ export default function PlayerStats() {
         </section>
       )}
 
-      {selectedSection === "scores" && stats.recentScores.length > 0 && (
+      {selectedSection === "scores" && (
         <section>
           <h2 className="mb-2 text-sm font-semibold text-text-secondary">
             Évolution des scores récents
@@ -206,7 +226,7 @@ export default function PlayerStats() {
         </section>
       )}
 
-      {selectedSection === "elo" && stats.eloHistory.length > 0 && (
+      {selectedSection === "elo" && (
         <section>
           <h2 className="mb-2 text-sm font-semibold text-text-secondary">
             Évolution ELO

@@ -105,10 +105,15 @@ describe("Stats page", () => {
     expect(screen.getAllByText("Bob").length).toBeGreaterThanOrEqual(1);
   });
 
-  it("renders a section selector dropdown with all options", () => {
+  it("renders a section selector dropdown with available options", () => {
+    const fullStats = {
+      ...mockStats,
+      contractSuccessRateByPlayer: [{ playerName: "Alice", playerId: 1, contracts: [] }],
+      eloEvolution: [{ playerId: 1, playerName: "Alice", playerColor: null, history: [{ date: "2026-02-07", gameId: 1, ratingAfter: 1520 }] }],
+    };
     vi.mocked(useGlobalStatsModule.useGlobalStats).mockReturnValue({
       isPending: false,
-      stats: mockStats,
+      stats: fullStats,
     } as ReturnType<typeof useGlobalStatsModule.useGlobalStats>);
 
     renderWithProviders(<Stats />);
@@ -125,6 +130,22 @@ describe("Stats page", () => {
     ]);
   });
 
+  it("filters out empty sections from the dropdown", () => {
+    vi.mocked(useGlobalStatsModule.useGlobalStats).mockReturnValue({
+      isPending: false,
+      stats: mockStats, // eloEvolution=[], contractSuccessRateByPlayer=[]
+    } as ReturnType<typeof useGlobalStatsModule.useGlobalStats>);
+
+    renderWithProviders(<Stats />);
+
+    const selector = screen.getByRole("combobox", { name: "Section" });
+    const options = within(selector).getAllByRole("option");
+    expect(options.map((o) => o.textContent)).toEqual([
+      "Classement ELO",
+      "Répartition des contrats",
+    ]);
+  });
+
   it("shows ELO ranking by default and hides other sections", () => {
     vi.mocked(useGlobalStatsModule.useGlobalStats).mockReturnValue({
       isPending: false,
@@ -138,7 +159,6 @@ describe("Stats page", () => {
     expect(screen.getByText("1480")).toBeInTheDocument();
 
     // Other sections hidden
-    expect(screen.queryByRole("heading", { name: "Évolution ELO" })).not.toBeInTheDocument();
     expect(screen.queryByRole("heading", { name: "Répartition des contrats" })).not.toBeInTheDocument();
   });
 
