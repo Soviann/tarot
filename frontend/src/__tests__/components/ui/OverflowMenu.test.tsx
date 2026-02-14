@@ -68,4 +68,12 @@ describe("OverflowMenu", () => {
     const link = screen.getByRole("link", { name: /Link Item/ });
     expect(link).toHaveAttribute("href", "/some-page");
   });
+
+  it("closes menu on Escape key", () => {
+    renderWithProviders(<OverflowMenu items={items} label="Actions" />);
+    fireEvent.click(screen.getByRole("button", { name: "Actions" }));
+    expect(screen.getByText("Action A")).toBeInTheDocument();
+    fireEvent.keyDown(document, { key: "Escape" });
+    expect(screen.queryByText("Action A")).not.toBeInTheDocument();
+  });
 });

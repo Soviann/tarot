@@ -2,6 +2,7 @@ import { screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import SessionPage from "../../pages/SessionPage";
 import * as useAddStarModule from "../../hooks/useAddStar";
+import * as useCloseSessionModule from "../../hooks/useCloseSession";
 import * as useCompleteGameModule from "../../hooks/useCompleteGame";
 import * as useCreateGameModule from "../../hooks/useCreateGame";
 import * as useCreatePlayerModule from "../../hooks/useCreatePlayer";
@@ -11,11 +12,13 @@ import * as usePlayerGroupsModule from "../../hooks/usePlayerGroups";
 import * as usePlayersModule from "../../hooks/usePlayers";
 import * as useSessionModule from "../../hooks/useSession";
 import * as useSessionGamesModule from "../../hooks/useSessionGames";
+import * as useUpdateDealerModule from "../../hooks/useUpdateDealer";
 import * as useUpdateSessionGroupModule from "../../hooks/useUpdateSessionGroup";
 import { renderWithProviders } from "../test-utils";
 import type { Game, SessionDetail } from "../../types/api";
 
 vi.mock("../../hooks/useAddStar");
+vi.mock("../../hooks/useCloseSession");
 vi.mock("../../hooks/useCompleteGame");
 vi.mock("../../hooks/useCreateGame");
 vi.mock("../../hooks/useCreatePlayer");
@@ -25,6 +28,7 @@ vi.mock("../../hooks/usePlayerGroups");
 vi.mock("../../hooks/usePlayers");
 vi.mock("../../hooks/useSession");
 vi.mock("../../hooks/useSessionGames");
+vi.mock("../../hooks/useUpdateDealer");
 vi.mock("../../hooks/useUpdateSessionGroup");
 
 const mockNavigate = vi.fn();
@@ -116,6 +120,7 @@ function setupMocks(overrides?: {
   useSession?: Partial<ReturnType<typeof useSessionModule.useSession>>;
   useSessionGames?: Partial<ReturnType<typeof useSessionGamesModule.useSessionGames>>;
 }) {
+  const closeSessionMutate = vi.fn();
   const createGameMutate = vi.fn();
 
   vi.mocked(useAddStarModule.useAddStar).mockReturnValue({
@@ -136,6 +141,25 @@ function setupMocks(overrides?: {
     submittedAt: 0,
     variables: undefined,
   } as unknown as ReturnType<typeof useAddStarModule.useAddStar>);
+
+  vi.mocked(useCloseSessionModule.useCloseSession).mockReturnValue({
+    context: undefined,
+    data: undefined,
+    error: null,
+    failureCount: 0,
+    failureReason: null,
+    isError: false,
+    isIdle: true,
+    isPaused: false,
+    isPending: false,
+    isSuccess: false,
+    mutate: closeSessionMutate,
+    mutateAsync: vi.fn(),
+    reset: vi.fn(),
+    status: "idle",
+    submittedAt: 0,
+    variables: undefined,
+  } as unknown as ReturnType<typeof useCloseSessionModule.useCloseSession>);
 
   vi.mocked(useSessionModule.useSession).mockReturnValue({
     data: mockSession,
@@ -375,7 +399,26 @@ function setupMocks(overrides?: {
     variables: undefined,
   } as unknown as ReturnType<typeof useUpdateSessionGroupModule.useUpdateSessionGroup>);
 
-  return { createGameMutate };
+  vi.mocked(useUpdateDealerModule.useUpdateDealer).mockReturnValue({
+    context: undefined,
+    data: undefined,
+    error: null,
+    failureCount: 0,
+    failureReason: null,
+    isError: false,
+    isIdle: true,
+    isPaused: false,
+    isPending: false,
+    isSuccess: false,
+    mutate: vi.fn(),
+    mutateAsync: vi.fn(),
+    reset: vi.fn(),
+    status: "idle",
+    submittedAt: 0,
+    variables: undefined,
+  } as unknown as ReturnType<typeof useUpdateDealerModule.useUpdateDealer>);
+
+  return { closeSessionMutate, createGameMutate };
 }
 
 describe("SessionPage", () => {
@@ -584,5 +627,69 @@ describe("SessionPage", () => {
     await userEvent.click(screen.getByText("Partager (QR)"));
 
     expect(screen.getByText("Partager la session")).toBeInTheDocument();
+  });
+
+  it("shows close session confirmation modal from overflow menu", async () => {
+    setupMocks();
+    renderWithProviders(<SessionPage />);
+
+    await userEvent.click(screen.getByRole("button", { name: "Actions de session" }));
+    await userEvent.click(screen.getByText("Terminer la session"));
+
+    expect(screen.getByText("Terminer la session", { selector: "h2" })).toBeInTheDocument();
+    expect(screen.getByText(/Voulez-vous terminer cette session/)).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Terminer" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Annuler" })).toBeInTheDocument();
+  });
+
+  it("calls closeSession.mutate when confirming close", async () => {
+    const { closeSessionMutate } = setupMocks();
+    renderWithProviders(<SessionPage />);
+
+    await userEvent.click(screen.getByRole("button", { name: "Actions de session" }));
+    await userEvent.click(screen.getByText("Terminer la session"));
+    await userEvent.click(screen.getByRole("button", { name: "Terminer" }));
+
+    expect(closeSessionMutate).toHaveBeenCalledWith(false, expect.any(Object));
+  });
+
+  it("cancels close session modal without calling mutate", async () => {
+    const { closeSessionMutate } = setupMocks();
+    renderWithProviders(<SessionPage />);
+
+    await userEvent.click(screen.getByRole("button", { name: "Actions de session" }));
+    await userEvent.click(screen.getByText("Terminer la session"));
+    await userEvent.click(screen.getByRole("button", { name: "Annuler" }));
+
+    expect(closeSessionMutate).not.toHaveBeenCalled();
+    expect(screen.queryByText(/Voulez-vous terminer/)).not.toBeInTheDocument();
+  });
+
+  it("shows Réouvrir la session for inactive sessions", async () => {
+    const mockInactiveSession: SessionDetail = { ...mockSession, isActive: false };
+    setupMocks({
+      useSession: { data: mockInactiveSession, session: mockInactiveSession },
+    });
+    renderWithProviders(<SessionPage />);
+
+    expect(screen.getByText("Session terminée")).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Nouvelle donne" })).not.toBeInTheDocument();
+
+    await userEvent.click(screen.getByRole("button", { name: "Actions de session" }));
+    expect(screen.getByText("Réouvrir la session")).toBeInTheDocument();
+    expect(screen.queryByText("Terminer la session")).not.toBeInTheDocument();
+  });
+
+  it("calls closeSession.mutate(true) when reopening session", async () => {
+    const mockInactiveSession: SessionDetail = { ...mockSession, isActive: false };
+    const { closeSessionMutate } = setupMocks({
+      useSession: { data: mockInactiveSession, session: mockInactiveSession },
+    });
+    renderWithProviders(<SessionPage />);
+
+    await userEvent.click(screen.getByRole("button", { name: "Actions de session" }));
+    await userEvent.click(screen.getByText("Réouvrir la session"));
+
+    expect(closeSessionMutate).toHaveBeenCalledWith(true);
   });
 });

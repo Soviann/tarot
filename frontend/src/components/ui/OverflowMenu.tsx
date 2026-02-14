@@ -3,13 +3,21 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import type { ReactNode } from "react";
 import { Link } from "react-router-dom";
 
-export interface OverflowMenuItem {
-  disabled?: boolean;
-  href?: string;
+interface OverflowMenuItemBase {
   icon: ReactNode;
   label: string;
-  onClick?: () => void;
 }
+
+interface OverflowMenuButtonItem extends OverflowMenuItemBase {
+  disabled?: boolean;
+  onClick: () => void;
+}
+
+interface OverflowMenuLinkItem extends OverflowMenuItemBase {
+  href: string;
+}
+
+export type OverflowMenuItem = OverflowMenuButtonItem | OverflowMenuLinkItem;
 
 interface OverflowMenuProps {
   items: OverflowMenuItem[];
@@ -31,8 +39,16 @@ export default function OverflowMenu({ items, label }: OverflowMenuProps) {
       }
     };
 
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") close();
+    };
+
+    document.addEventListener("keydown", handleKeyDown);
     document.addEventListener("mousedown", handleMouseDown);
-    return () => document.removeEventListener("mousedown", handleMouseDown);
+    return () => {
+      document.removeEventListener("keydown", handleKeyDown);
+      document.removeEventListener("mousedown", handleMouseDown);
+    };
   }, [close, open]);
 
   return (
@@ -56,7 +72,7 @@ export default function OverflowMenu({ items, label }: OverflowMenuProps) {
               </>
             );
 
-            if (item.href) {
+            if ("href" in item) {
               return (
                 <Link
                   className="flex items-center gap-3 px-4 py-2.5 text-sm text-text-primary hover:bg-surface-secondary"
@@ -75,7 +91,7 @@ export default function OverflowMenu({ items, label }: OverflowMenuProps) {
                 disabled={item.disabled}
                 key={item.label}
                 onClick={() => {
-                  item.onClick?.();
+                  item.onClick();
                   close();
                 }}
                 type="button"

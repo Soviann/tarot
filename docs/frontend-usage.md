@@ -730,23 +730,22 @@ Page d'aide in-app reprenant le contenu du guide utilisateur (`docs/user-guide.m
 - Bandeau « donne en cours » (`InProgressBanner`) si `session.inProgressGame` est non nul
 - Historique des donnes terminées (`GameList`) paginé côté serveur (10 par page, bouton « Voir plus »)
 - Bouton FAB (+) pour démarrer une nouvelle donne (désactivé si donne en cours)
-- Bouton de partage QR code dans le header (ouvre `ShareQrCodeModal`)
-- Bouton de changement de joueurs (icône ⇄) dans le header (désactivé si donne en cours)
-- Bouton récap (icône graphique) pour accéder au récapitulatif (`/sessions/:id/summary`)
-- Bouton cadenas pour clôturer la session (navigue vers le récap après clôture)
-- Bandeau « Session terminée » (ambre) avec bouton « Réouvrir » quand `isActive === false`
+- Menu overflow (`OverflowMenu`) regroupant : récap, partage QR, changement de joueurs, changement de groupe, clôture/réouverture de session
+- Bandeau « Session terminée » (ambre) quand `isActive === false`
 - FAB masqué quand la session est clôturée
 - Bouton retour vers l'accueil
 - États : chargement, session introuvable
 
-**Hooks utilisés** : `useSession`, `useSessionGames`, `useAddStar`, `useCloseSession`, `useCreateGame`, `useCreateSession` (via SwapPlayersModal), `useCompleteGame`, `useDeleteGame`, `useUpdateDealer`, `useNavigate`
+**Hooks utilisés** : `useSession`, `useSessionGames`, `useAddStar`, `useCloseSession`, `useCreateGame`, `useCreateSession` (via SwapPlayersModal), `useCompleteGame`, `useDeleteGame`, `usePlayerGroups`, `useUpdateDealer`, `useUpdateSessionGroup`, `useNavigate`
 
 **Modales** :
 - `AddStarModal` : confirmation avant attribution d'étoile à un joueur
 - `BadgeUnlockedModal` : annonce des badges débloqués (après complétion de donne ou ajout d'étoile)
 - `ChangeDealerModal` : sélection manuelle du donneur parmi les 5 joueurs
+- `ChangeGroupModal` : sélection du groupe pour la session (visible uniquement si des groupes existent)
 - `CompleteGameModal` : complétion ou modification d'une donne (étape 2)
 - `DeleteGameModal` : confirmation de suppression de la dernière donne
+- Modale de confirmation de clôture de session (inline `<Modal>`)
 - `NewGameModal` : sélection preneur + contrat (étape 1)
 - `ShareQrCodeModal` : affichage d'un QR code encodant l'URL de la session avec mode plein écran
 - `SwapPlayersModal` : changement de joueurs avec navigation vers la session résultante
@@ -1472,15 +1471,19 @@ Menu déroulant déclenché par un bouton « … » (icône `EllipsisVertical`).
 | `items` | `OverflowMenuItem[]` | *requis* — liste des items du menu |
 | `label` | `string` | *requis* — aria-label du bouton déclencheur |
 
-**`OverflowMenuItem`** :
+**`OverflowMenuItem`** (union discriminée) :
 
-| Champ | Type | Description |
-|-------|------|-------------|
-| `icon` | `ReactNode` | *requis* — icône affichée à gauche |
-| `label` | `string` | *requis* — texte de l'item |
-| `onClick` | `() => void` | Action au clic (pour les items bouton) |
-| `href` | `string` | Lien interne (pour les items navigation, utilise `<Link>`) |
-| `disabled` | `boolean` | Désactive l'item (opacity réduite, clic ignoré) |
+Chaque item est soit un **bouton** (avec `onClick`), soit un **lien** (avec `href`) :
+
+| Champ | Type | Variante | Description |
+|-------|------|----------|-------------|
+| `icon` | `ReactNode` | les deux | *requis* — icône affichée à gauche |
+| `label` | `string` | les deux | *requis* — texte de l'item |
+| `onClick` | `() => void` | bouton | *requis* — action au clic |
+| `disabled` | `boolean` | bouton | Désactive l'item (opacity réduite, clic ignoré) |
+| `href` | `string` | lien | *requis* — navigation interne (utilise `<Link>`) |
+
+**Comportement** : le menu se ferme au clic en dehors, après sélection d'un item, ou à l'appui sur Échap.
 
 ```tsx
 <OverflowMenu

@@ -220,7 +220,7 @@ Quand tous les joueurs d'une session appartiennent à un **seul et même groupe*
 
 ### Association manuelle
 
-Le **sélecteur de groupe** en haut de l'écran de session permet de changer manuellement le groupe associé. Si des joueurs de la session ne sont pas encore membres du groupe sélectionné, ils sont **automatiquement ajoutés** au groupe.
+Depuis le menu **⋮** de l'écran de session, l'option **Changer le groupe** ouvre une modale permettant de changer le groupe associé. Si des joueurs de la session ne sont pas encore membres du groupe sélectionné, ils sont **automatiquement ajoutés** au groupe.
 
 ### Statistiques par groupe
 
@@ -234,11 +234,12 @@ Sur les pages **Statistiques** et **Statistiques par joueur**, un filtre permet 
 
 Pour marquer une session comme terminée (plus de nouvelles donnes possibles) :
 
-1. Sur l'écran de session, appuyer sur le bouton **cadenas** (🔒) dans la barre du titre
-2. La session passe en mode « terminée » et le **récapitulatif** s'affiche automatiquement
-3. Un bandeau ambre « Session terminée » apparaît sur l'écran de session avec un bouton **Réouvrir** si besoin
+1. Depuis le menu **⋮**, appuyer sur **Terminer la session**
+2. Confirmer dans la modale de confirmation
+3. La session passe en mode « terminée » et le **récapitulatif** s'affiche automatiquement
+4. Un bandeau ambre « Session terminée » apparaît sur l'écran de session
 
-> **Réouverture** : la clôture n'est pas irréversible. Le bouton « Réouvrir » dans le bandeau permet de reprendre la session.
+> **Réouverture** : la clôture n'est pas irréversible. Depuis le menu **⋮**, l'option **Réouvrir la session** permet de reprendre la session.
 
 ### Récapitulatif de session
 
