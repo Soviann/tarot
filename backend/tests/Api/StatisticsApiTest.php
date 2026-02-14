@@ -93,6 +93,7 @@ class StatisticsApiTest extends ApiTestCase
         $this->assertSame(0, $data['totalSessions']);
         $this->assertSame([], $data['leaderboard']);
         $this->assertSame([], $data['contractDistribution']);
+        $this->assertSame([], $data['contractSuccessRateByPlayer']);
         $this->assertNull($data['averageGameDuration']);
         $this->assertSame(0, $data['totalPlayTime']);
     }
@@ -267,7 +268,7 @@ class StatisticsApiTest extends ApiTestCase
 
     public function testGlobalStatisticsFilteredByGroup(): void
     {
-        $group = $this->createPlayerGroup('Mardi soir', ...\array_values($this->players));
+        $group = $this->createPlayerGroup('Mardi soir', ...array_values($this->players));
         $this->session->setPlayerGroup($group);
         $this->em->flush();
 
@@ -286,7 +287,7 @@ class StatisticsApiTest extends ApiTestCase
 
     public function testPlayerStatisticsFilteredByGroup(): void
     {
-        $group = $this->createPlayerGroup('Mardi soir', ...\array_values($this->players));
+        $group = $this->createPlayerGroup('Mardi soir', ...array_values($this->players));
         $this->session->setPlayerGroup($group);
         $this->em->flush();
 
@@ -414,6 +415,64 @@ class StatisticsApiTest extends ApiTestCase
 
         $this->assertArrayHasKey('eloEvolution', $data);
         $this->assertSame([], $data['eloEvolution']);
+    }
+
+    public function testGlobalStatisticsIncludesContractSuccessRateByPlayer(): void
+    {
+        $response = $this->client->request('GET', '/api/statistics');
+
+        $this->assertResponseIsSuccessful();
+        $data = $response->toArray();
+
+        $this->assertArrayHasKey('contractSuccessRateByPlayer', $data);
+        $this->assertIsArray($data['contractSuccessRateByPlayer']);
+
+        // Seed data: Alice taker 2× petite (1 win, 1 loss), Charlie taker 1× garde (1 win)
+        $this->assertCount(2, $data['contractSuccessRateByPlayer']);
+
+        $byName = [];
+        foreach ($data['contractSuccessRateByPlayer'] as $entry) {
+            $this->assertArrayHasKey('color', $entry);
+            $this->assertArrayHasKey('contracts', $entry);
+            $this->assertArrayHasKey('id', $entry);
+            $this->assertArrayHasKey('name', $entry);
+            $byName[$entry['name']] = $entry;
+        }
+
+        // Alice: petite → 2 games, 1 win, 50% win rate
+        $this->assertArrayHasKey('Alice', $byName);
+        $aliceContracts = [];
+        foreach ($byName['Alice']['contracts'] as $c) {
+            $aliceContracts[$c['contract']] = $c;
+        }
+        $this->assertArrayHasKey('petite', $aliceContracts);
+        $this->assertSame(2, $aliceContracts['petite']['count']);
+        $this->assertSame(1, $aliceContracts['petite']['wins']);
+        $this->assertEqualsWithDelta(50.0, $aliceContracts['petite']['winRate'], 0.1);
+
+        // Charlie: garde → 1 game, 1 win, 100% win rate
+        $this->assertArrayHasKey('Charlie', $byName);
+        $charlieContracts = [];
+        foreach ($byName['Charlie']['contracts'] as $c) {
+            $charlieContracts[$c['contract']] = $c;
+        }
+        $this->assertArrayHasKey('garde', $charlieContracts);
+        $this->assertSame(1, $charlieContracts['garde']['count']);
+        $this->assertSame(1, $charlieContracts['garde']['wins']);
+        $this->assertEqualsWithDelta(100.0, $charlieContracts['garde']['winRate'], 0.1);
+    }
+
+    public function testContractSuccessRateByPlayerEmptyWhenNoGames(): void
+    {
+        $this->em->createQuery('DELETE FROM App\Entity\ScoreEntry')->execute();
+        $this->em->createQuery('DELETE FROM App\Entity\Game')->execute();
+
+        $response = $this->client->request('GET', '/api/statistics');
+
+        $this->assertResponseIsSuccessful();
+        $data = $response->toArray();
+
+        $this->assertSame([], $data['contractSuccessRateByPlayer']);
     }
 
     public function testGlobalStatisticsWithNonExistentGroup(): void
