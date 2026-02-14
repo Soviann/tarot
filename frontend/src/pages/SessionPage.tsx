@@ -1,7 +1,7 @@
 import { useQueryClient } from "@tanstack/react-query";
-import { ArrowLeftRight, QrCode } from "lucide-react";
+import { ArrowLeftRight, BarChart3, Lock, QrCode } from "lucide-react";
 import { useCallback, useMemo, useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { Link, useNavigate, useParams } from "react-router-dom";
 import AddStarModal from "../components/AddStarModal";
 import ChangeDealerModal from "../components/ChangeDealerModal";
 import CompleteGameModal from "../components/CompleteGameModal";
@@ -17,6 +17,7 @@ import ShareQrCodeModal from "../components/ShareQrCodeModal";
 import SwapPlayersModal from "../components/SwapPlayersModal";
 import { FAB, UndoFAB } from "../components/ui";
 import { useAddStar } from "../hooks/useAddStar";
+import { useCloseSession } from "../hooks/useCloseSession";
 import { useCreateGame } from "../hooks/useCreateGame";
 import { useSession } from "../hooks/useSession";
 import { useSessionGames } from "../hooks/useSessionGames";
@@ -37,6 +38,7 @@ export default function SessionPage() {
     isFetchingNextPage,
   } = useSessionGames(sessionId);
   const addStar = useAddStar(sessionId);
+  const closeSession = useCloseSession(sessionId);
   const createGame = useCreateGame(sessionId);
   const updateDealer = useUpdateDealer(sessionId);
 
@@ -135,14 +137,36 @@ export default function SessionPage() {
           currentGroupId={session.playerGroup?.id ?? null}
           sessionId={sessionId}
         />
+        <Link
+          aria-label="Voir le récap"
+          className="ml-auto rounded-lg p-1 text-text-secondary lg:p-2"
+          to={`/sessions/${sessionId}/summary`}
+        >
+          <BarChart3 size={20} />
+        </Link>
         <button
           aria-label="Partager"
-          className="ml-auto rounded-lg p-1 text-text-secondary lg:p-2"
+          className="rounded-lg p-1 text-text-secondary lg:p-2"
           onClick={() => setShareModalOpen(true)}
           type="button"
         >
           <QrCode size={20} />
         </button>
+        {session.isActive && (
+          <button
+            aria-label="Terminer la session"
+            className="rounded-lg p-1 text-text-secondary lg:p-2"
+            disabled={closeSession.isPending}
+            onClick={() => {
+              closeSession.mutate(false, {
+                onSuccess: () => navigate(`/sessions/${sessionId}/summary`),
+              });
+            }}
+            type="button"
+          >
+            <Lock size={20} />
+          </button>
+        )}
         <button
           aria-label="Modifier les joueurs"
           className="rounded-lg p-1 text-text-secondary disabled:opacity-40 lg:p-2"
@@ -153,6 +177,23 @@ export default function SessionPage() {
           <ArrowLeftRight size={20} />
         </button>
       </div>
+
+      {!session.isActive && (
+        <div className="flex items-center justify-between rounded-lg bg-amber-50 p-3 text-amber-800 dark:bg-amber-900/30 dark:text-amber-200">
+          <div className="flex items-center gap-2">
+            <Lock size={16} />
+            <span className="text-sm font-medium">Session terminée</span>
+          </div>
+          <button
+            className="rounded-md bg-amber-100 px-3 py-1 text-xs font-medium text-amber-800 hover:bg-amber-200 dark:bg-amber-800 dark:text-amber-200 dark:hover:bg-amber-700"
+            disabled={closeSession.isPending}
+            onClick={() => closeSession.mutate(true)}
+            type="button"
+          >
+            Réouvrir
+          </button>
+        </div>
+      )}
 
       <Scoreboard
         addStarPending={addStar.isPending}
@@ -202,26 +243,28 @@ export default function SessionPage() {
         />
       </div>
 
-      <FAB
-        aria-label="Nouvelle donne"
-        disabled={!!inProgressGame || createGame.isPending}
-        icon={
-          <svg
-            className="size-6"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth={2}
-            viewBox="0 0 24 24"
-          >
-            <path
-              d="M12 4v16m8-8H4"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
-          </svg>
-        }
-        onClick={() => setNewGameModalOpen(true)}
-      />
+      {session.isActive && (
+        <FAB
+          aria-label="Nouvelle donne"
+          disabled={!!inProgressGame || createGame.isPending}
+          icon={
+            <svg
+              className="size-6"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth={2}
+              viewBox="0 0 24 24"
+            >
+              <path
+                d="M12 4v16m8-8H4"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
+          }
+          onClick={() => setNewGameModalOpen(true)}
+        />
+      )}
 
       {undoGameId !== null && (
         <UndoFAB
