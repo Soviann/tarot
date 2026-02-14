@@ -1,9 +1,10 @@
-import { CircleHelp } from "lucide-react";
+import { CircleHelp, Moon, Sun } from "lucide-react";
 import { useCallback, useMemo, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import PlayerSelector from "../components/PlayerSelector";
 import SessionList from "../components/SessionList";
 import { useCreateSession } from "../hooks/useCreateSession";
+import { useTheme } from "../hooks/useTheme";
 import type { Session } from "../types/api";
 
 const REQUIRED_PLAYERS = 5;
@@ -21,6 +22,7 @@ export default function Home() {
   const [selectedPlayerIds, setSelectedPlayerIds] = useState<number[]>([]);
   const createSession = useCreateSession();
   const navigate = useNavigate();
+  const { isDark, toggle } = useTheme();
 
   const motivationalMessage = useMemo(
     () => MOTIVATIONAL_MESSAGES[Math.floor(Math.random() * MOTIVATIONAL_MESSAGES.length)],
@@ -46,13 +48,27 @@ export default function Home() {
           <h2 className="text-2xl font-bold text-text-primary">
             Sessions récentes
           </h2>
-          <Link
-            aria-label="Aide"
-            className="rounded-lg p-1.5 text-text-secondary hover:bg-surface-tertiary"
-            to="/aide"
-          >
-            <CircleHelp className="size-5 lg:size-6" />
-          </Link>
+          <div className="flex gap-1">
+            <button
+              aria-label="Changer de thème"
+              className="rounded-lg p-1.5 text-text-secondary hover:bg-surface-tertiary"
+              onClick={toggle}
+              type="button"
+            >
+              {isDark ? (
+                <Sun className="size-5 lg:size-6" />
+              ) : (
+                <Moon className="size-5 lg:size-6" />
+              )}
+            </button>
+            <Link
+              aria-label="Aide"
+              className="rounded-lg p-1.5 text-text-secondary hover:bg-surface-tertiary"
+              to="/aide"
+            >
+              <CircleHelp className="size-5 lg:size-6" />
+            </Link>
+          </div>
         </div>
         <SessionList />
       </section>
