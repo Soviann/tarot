@@ -9,9 +9,19 @@ import Leaderboard from "../components/Leaderboard";
 import { useGlobalStats } from "../hooks/useGlobalStats";
 import { formatDuration } from "../utils/formatDuration";
 
+type GlobalStatsSection = "contracts" | "elo-evolution" | "elo-ranking" | "success-rate";
+
+const ALL_SECTIONS: { label: string; value: GlobalStatsSection }[] = [
+  { label: "Classement ELO", value: "elo-ranking" },
+  { label: "Évolution ELO", value: "elo-evolution" },
+  { label: "Répartition des contrats", value: "contracts" },
+  { label: "Taux de réussite par contrat", value: "success-rate" },
+];
+
 export default function Stats() {
   const navigate = useNavigate();
   const [groupId, setGroupId] = useState<number | null>(null);
+  const [selectedSection, setSelectedSection] = useState<GlobalStatsSection>("elo-ranking");
   const { isPending, stats } = useGlobalStats(groupId);
 
   if (isPending) {
@@ -27,6 +37,16 @@ export default function Stats() {
       </div>
     );
   }
+
+  const availableSections = (() => {
+    const hasData: Record<GlobalStatsSection, boolean> = {
+      "contracts": true,
+      "elo-evolution": stats.eloEvolution.length > 0,
+      "elo-ranking": stats.eloRanking.length > 0,
+      "success-rate": stats.contractSuccessRateByPlayer.length > 0,
+    };
+    return ALL_SECTIONS.filter((s) => hasData[s.value]);
+  })();
 
   return (
     <div className="flex flex-col gap-6 p-4 lg:p-8">
@@ -85,7 +105,21 @@ export default function Stats() {
         />
       </section>
 
-      {stats.eloRanking.length > 0 && (
+      <div>
+        <label className="sr-only" htmlFor="stats-section">Section</label>
+        <select
+          className="w-full rounded-xl bg-surface-elevated px-4 py-3 text-sm font-semibold text-text-primary"
+          id="stats-section"
+          onChange={(e) => setSelectedSection(e.target.value as GlobalStatsSection)}
+          value={selectedSection}
+        >
+          {availableSections.map((s) => (
+            <option key={s.value} value={s.value}>{s.label}</option>
+          ))}
+        </select>
+      </div>
+
+      {selectedSection === "elo-ranking" && (
         <section>
           <h2 className="mb-2 text-sm font-semibold text-text-secondary">
             Classement ELO
@@ -97,7 +131,7 @@ export default function Stats() {
         </section>
       )}
 
-      {stats.eloEvolution.length > 0 && (
+      {selectedSection === "elo-evolution" && (
         <section>
           <h2 className="mb-2 text-sm font-semibold text-text-secondary">
             Évolution ELO
@@ -106,14 +140,16 @@ export default function Stats() {
         </section>
       )}
 
-      <section>
-        <h2 className="mb-2 text-sm font-semibold text-text-secondary">
-          Répartition des contrats
-        </h2>
-        <ContractDistributionChart data={stats.contractDistribution} />
-      </section>
+      {selectedSection === "contracts" && (
+        <section>
+          <h2 className="mb-2 text-sm font-semibold text-text-secondary">
+            Répartition des contrats
+          </h2>
+          <ContractDistributionChart data={stats.contractDistribution} />
+        </section>
+      )}
 
-      {stats.contractSuccessRateByPlayer.length > 0 && (
+      {selectedSection === "success-rate" && (
         <section>
           <h2 className="mb-2 text-sm font-semibold text-text-secondary">
             Taux de réussite par contrat

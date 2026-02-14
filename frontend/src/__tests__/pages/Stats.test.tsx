@@ -1,4 +1,4 @@
-import { screen } from "@testing-library/react";
+import { screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import * as useGlobalStatsModule from "../../hooks/useGlobalStats";
 import Stats from "../../pages/Stats";
@@ -105,7 +105,48 @@ describe("Stats page", () => {
     expect(screen.getAllByText("Bob").length).toBeGreaterThanOrEqual(1);
   });
 
-  it("renders ELO ranking section", () => {
+  it("renders a section selector dropdown with available options", () => {
+    const fullStats = {
+      ...mockStats,
+      contractSuccessRateByPlayer: [{ playerName: "Alice", playerId: 1, contracts: [] }],
+      eloEvolution: [{ playerId: 1, playerName: "Alice", playerColor: null, history: [{ date: "2026-02-07", gameId: 1, ratingAfter: 1520 }] }],
+    };
+    vi.mocked(useGlobalStatsModule.useGlobalStats).mockReturnValue({
+      isPending: false,
+      stats: fullStats,
+    } as ReturnType<typeof useGlobalStatsModule.useGlobalStats>);
+
+    renderWithProviders(<Stats />);
+
+    const selector = screen.getByRole("combobox", { name: "Section" });
+    expect(selector).toBeInTheDocument();
+
+    const options = within(selector).getAllByRole("option");
+    expect(options.map((o) => o.textContent)).toEqual([
+      "Classement ELO",
+      "Évolution ELO",
+      "Répartition des contrats",
+      "Taux de réussite par contrat",
+    ]);
+  });
+
+  it("filters out empty sections from the dropdown", () => {
+    vi.mocked(useGlobalStatsModule.useGlobalStats).mockReturnValue({
+      isPending: false,
+      stats: mockStats, // eloEvolution=[], contractSuccessRateByPlayer=[]
+    } as ReturnType<typeof useGlobalStatsModule.useGlobalStats>);
+
+    renderWithProviders(<Stats />);
+
+    const selector = screen.getByRole("combobox", { name: "Section" });
+    const options = within(selector).getAllByRole("option");
+    expect(options.map((o) => o.textContent)).toEqual([
+      "Classement ELO",
+      "Répartition des contrats",
+    ]);
+  });
+
+  it("shows ELO ranking by default and hides other sections", () => {
     vi.mocked(useGlobalStatsModule.useGlobalStats).mockReturnValue({
       isPending: false,
       stats: mockStats,
@@ -113,9 +154,51 @@ describe("Stats page", () => {
 
     renderWithProviders(<Stats />);
 
-    expect(screen.getByText("Classement ELO")).toBeInTheDocument();
+    // ELO ranking visible by default
     expect(screen.getByText("1520")).toBeInTheDocument();
     expect(screen.getByText("1480")).toBeInTheDocument();
+
+    // Other sections hidden
+    expect(screen.queryByRole("heading", { name: "Répartition des contrats" })).not.toBeInTheDocument();
+  });
+
+  it("switches visible section when dropdown changes", async () => {
+    const user = userEvent.setup();
+    vi.mocked(useGlobalStatsModule.useGlobalStats).mockReturnValue({
+      isPending: false,
+      stats: mockStats,
+    } as ReturnType<typeof useGlobalStatsModule.useGlobalStats>);
+
+    renderWithProviders(<Stats />);
+
+    const selector = screen.getByRole("combobox", { name: "Section" });
+    await user.selectOptions(selector, "contracts");
+
+    // Contracts section visible
+    expect(screen.getByRole("heading", { name: "Répartition des contrats" })).toBeInTheDocument();
+
+    // ELO ranking hidden
+    expect(screen.queryByText("1520")).not.toBeInTheDocument();
+  });
+
+  it("keeps metrics and leaderboard visible when switching sections", async () => {
+    const user = userEvent.setup();
+    vi.mocked(useGlobalStatsModule.useGlobalStats).mockReturnValue({
+      isPending: false,
+      stats: mockStats,
+    } as ReturnType<typeof useGlobalStatsModule.useGlobalStats>);
+
+    renderWithProviders(<Stats />);
+
+    const selector = screen.getByRole("combobox", { name: "Section" });
+    await user.selectOptions(selector, "contracts");
+
+    // Metrics still visible
+    expect(screen.getByText("Donnes")).toBeInTheDocument();
+    expect(screen.getByText("Sessions")).toBeInTheDocument();
+
+    // Leaderboard still visible
+    expect(screen.getAllByText("Alice").length).toBeGreaterThanOrEqual(1);
   });
 
   it("renders duration stats when available", () => {
