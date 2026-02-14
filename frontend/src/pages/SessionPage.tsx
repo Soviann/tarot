@@ -26,6 +26,7 @@ import { useSession } from "../hooks/useSession";
 import { useSessionGames } from "../hooks/useSessionGames";
 import { useUpdateDealer } from "../hooks/useUpdateDealer";
 import { useUpdateSessionGroup } from "../hooks/useUpdateSessionGroup";
+import { useToast } from "../hooks/useToast";
 import { apiFetch } from "../services/api";
 import type { GameContext, MemeConfig } from "../services/memeSelector";
 import { selectDefeatMeme, selectVictoryMeme } from "../services/memeSelector";
@@ -48,6 +49,7 @@ export default function SessionPage() {
   const { groups } = usePlayerGroups();
   const updateDealer = useUpdateDealer(sessionId);
   const updateGroup = useUpdateSessionGroup(sessionId);
+  const { toast } = useToast();
 
   const inProgressGame = session?.inProgressGame ?? null;
 
@@ -93,7 +95,7 @@ export default function SessionPage() {
         onClick: () => setCloseConfirmOpen(true),
       });
     } else {
-      items.push({ icon: <LockOpen size={18} />, label: "Réouvrir la session", onClick: () => closeSession.mutate(true) });
+      items.push({ icon: <LockOpen size={18} />, label: "Réouvrir la session", onClick: () => closeSession.mutate(true, { onSuccess: () => toast("Session rouverte") }) });
     }
     return items;
   }, [closeSession, groups.length, inProgressGame, session?.isActive, sessionId]);
@@ -319,6 +321,7 @@ export default function SessionPage() {
           if (starPlayerId !== null) {
             addStar.mutate(starPlayerId, {
               onSuccess: (data) => {
+                toast("Étoile ajoutée");
                 setStarModalOpen(false);
                 if (data.newBadges && Object.keys(data.newBadges).length > 0) {
                   setBadgeModalBadges(data.newBadges);
@@ -338,7 +341,10 @@ export default function SessionPage() {
           onClose={() => setChangeDealerModalOpen(false)}
           onConfirm={(playerId) => {
             updateDealer.mutate(playerId, {
-              onSuccess: () => setChangeDealerModalOpen(false),
+              onSuccess: () => {
+                toast("Donneur modifié");
+                setChangeDealerModalOpen(false);
+              },
             });
           }}
           open={changeDealerModalOpen}
@@ -353,7 +359,10 @@ export default function SessionPage() {
         onClose={() => setChangeGroupModalOpen(false)}
         onConfirm={(groupId) => {
           updateGroup.mutate(groupId, {
-            onSuccess: () => setChangeGroupModalOpen(false),
+            onSuccess: () => {
+              toast("Groupe modifié");
+              setChangeGroupModalOpen(false);
+            },
           });
         }}
         open={changeGroupModalOpen}
@@ -377,6 +386,7 @@ export default function SessionPage() {
             onClick={() => {
               closeSession.mutate(false, {
                 onSuccess: () => {
+                  toast("Session terminée");
                   setCloseConfirmOpen(false);
                   navigate(`/sessions/${sessionId}/summary`);
                 },

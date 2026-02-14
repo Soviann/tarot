@@ -6,6 +6,7 @@ import { FAB, Modal } from "../components/ui";
 import { useCreatePlayerGroup } from "../hooks/useCreatePlayerGroup";
 import { useDeletePlayerGroup } from "../hooks/useDeletePlayerGroup";
 import { usePlayerGroups } from "../hooks/usePlayerGroups";
+import { useToast } from "../hooks/useToast";
 import { ApiError } from "../services/api";
 import type { PlayerGroup } from "../types/api";
 
@@ -14,6 +15,7 @@ export default function Groups() {
   const { groups, isPending } = usePlayerGroups();
   const createGroup = useCreatePlayerGroup();
   const deleteGroup = useDeletePlayerGroup();
+  const { toast } = useToast();
 
   const [modalOpen, setModalOpen] = useState(false);
   const [newName, setNewName] = useState("");
@@ -41,7 +43,12 @@ export default function Groups() {
           name: trimmed,
           players: selectedPlayerIds.map((id) => `/api/players/${id}`),
         },
-        { onSuccess: () => closeModal() },
+        {
+          onSuccess: () => {
+            toast("Groupe créé");
+            closeModal();
+          },
+        },
       );
     },
     [closeModal, createGroup, newName, selectedPlayerIds],
@@ -50,7 +57,10 @@ export default function Groups() {
   const handleDelete = useCallback(() => {
     if (!deletingGroup) return;
     deleteGroup.mutate(deletingGroup.id, {
-      onSuccess: () => setDeletingGroup(null),
+      onSuccess: () => {
+        toast("Groupe supprimé");
+        setDeletingGroup(null);
+      },
     });
   }, [deleteGroup, deletingGroup]);
 

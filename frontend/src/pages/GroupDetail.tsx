@@ -7,6 +7,7 @@ import { useCloseGroupSessions } from "../hooks/useCloseGroupSessions";
 import { useDeletePlayerGroup } from "../hooks/useDeletePlayerGroup";
 import { usePlayerGroup } from "../hooks/usePlayerGroup";
 import { useUpdatePlayerGroup } from "../hooks/useUpdatePlayerGroup";
+import { useToast } from "../hooks/useToast";
 import { ApiError } from "../services/api";
 
 export default function GroupDetail() {
@@ -17,6 +18,7 @@ export default function GroupDetail() {
   const closeGroupSessions = useCloseGroupSessions();
   const updateGroup = useUpdatePlayerGroup();
   const deleteGroup = useDeletePlayerGroup();
+  const { toast } = useToast();
 
   const [editingName, setEditingName] = useState(false);
   const [editName, setEditName] = useState("");
@@ -38,7 +40,12 @@ export default function GroupDetail() {
       if (!trimmed) return;
       updateGroup.mutate(
         { id: groupId, name: trimmed },
-        { onSuccess: () => setEditingName(false) },
+        {
+          onSuccess: () => {
+            toast("Groupe renommé");
+            setEditingName(false);
+          },
+        },
       );
     },
     [editName, groupId, updateGroup],
@@ -56,7 +63,12 @@ export default function GroupDetail() {
         id: groupId,
         players: selectedPlayerIds.map((pid) => `/api/players/${pid}`),
       },
-      { onSuccess: () => setAddModalOpen(false) },
+      {
+        onSuccess: () => {
+          toast("Membres mis à jour");
+          setAddModalOpen(false);
+        },
+      },
     );
   }, [groupId, selectedPlayerIds, updateGroup]);
 
@@ -66,14 +78,19 @@ export default function GroupDetail() {
       const remaining = group.players
         .filter((p) => p.id !== playerId)
         .map((p) => `/api/players/${p.id}`);
-      updateGroup.mutate({ id: groupId, players: remaining });
+      updateGroup.mutate({ id: groupId, players: remaining }, {
+        onSuccess: () => toast("Joueur retiré"),
+      });
     },
     [group, groupId, updateGroup],
   );
 
   const handleDelete = useCallback(() => {
     deleteGroup.mutate(groupId, {
-      onSuccess: () => navigate("/groups"),
+      onSuccess: () => {
+        toast("Groupe supprimé");
+        navigate("/groups");
+      },
     });
   }, [deleteGroup, groupId, navigate]);
 
@@ -154,7 +171,9 @@ export default function GroupDetail() {
         disabled={closeGroupSessions.isPending}
         onClick={() => {
           if (window.confirm("Voulez-vous clôturer toutes les sessions ouvertes de ce groupe ?")) {
-            closeGroupSessions.mutate(groupId);
+            closeGroupSessions.mutate(groupId, {
+              onSuccess: () => toast("Sessions terminées"),
+            });
           }
         }}
         type="button"

@@ -5,6 +5,7 @@ import { useCreatePlayer } from "../hooks/useCreatePlayer";
 import { usePlayerGroups } from "../hooks/usePlayerGroups";
 import { usePlayers } from "../hooks/usePlayers";
 import { useUpdatePlayer } from "../hooks/useUpdatePlayer";
+import { useToast } from "../hooks/useToast";
 import { ApiError } from "../services/api";
 import type { Player } from "../types/api";
 
@@ -27,6 +28,7 @@ export default function Players() {
   const { groups } = usePlayerGroups();
   const createPlayer = useCreatePlayer();
   const updatePlayer = useUpdatePlayer();
+  const { toast } = useToast();
 
   const openModal = useCallback(() => {
     createPlayer.reset();
@@ -44,7 +46,10 @@ export default function Players() {
       const trimmed = newName.trim();
       if (!trimmed) return;
       createPlayer.mutate(trimmed, {
-        onSuccess: () => closeModal(),
+        onSuccess: () => {
+          toast("Joueur créé");
+          closeModal();
+        },
       });
     },
     [closeModal, createPlayer, newName],
@@ -80,7 +85,12 @@ export default function Players() {
           name: trimmed,
           playerGroups: editGroupIds.map((id) => `/api/player-groups/${id}`),
         },
-        { onSuccess: () => closeEditModal() },
+        {
+          onSuccess: () => {
+            toast("Joueur modifié");
+            closeEditModal();
+          },
+        },
       );
     },
     [closeEditModal, editActive, editColor, editGroupIds, editName, editingPlayer, updatePlayer],

@@ -2,6 +2,7 @@ import { Play, Plus } from "lucide-react";
 import { type FormEvent, type KeyboardEvent, useCallback, useMemo, useState } from "react";
 import { useCreatePlayer } from "../hooks/useCreatePlayer";
 import { usePlayers } from "../hooks/usePlayers";
+import { useToast } from "../hooks/useToast";
 import { ApiError } from "../services/api";
 import { Modal, PlayerAvatar, SearchInput } from "./ui";
 
@@ -31,6 +32,7 @@ export default function PlayerSelector({
   const { players: allPlayers } = usePlayers();
   const { isPending, players: searchedPlayers } = usePlayers(search);
   const createPlayer = useCreatePlayer();
+  const { toast } = useToast();
 
   const players = searchedPlayers.filter((p) => p.active);
 
@@ -130,6 +132,7 @@ export default function PlayerSelector({
       if (!trimmed) return;
       createPlayer.mutate(trimmed, {
         onSuccess: (player) => {
+          toast("Joueur créé");
           closeModal();
           if (!isFull) {
             onSelectionChange([...selectedPlayerIds, player.id]);
