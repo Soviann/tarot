@@ -115,6 +115,7 @@ export interface Player {
   color: string | null;
   createdAt: string;
   id: number;
+  lastActivityAt: string | null;
   name: string;
   playerGroups: PlayerGroup[];
 }

@@ -6,6 +6,10 @@ Le format est basé sur [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/)
 
 ## [Unreleased]
 
+### Changed
+
+- **Joueurs — dernière activité** : la page Joueurs affiche désormais la date de dernière activité en format relatif (« Aujourd'hui », « Hier », « Il y a 3 jours ») au lieu de la date de création. Les joueurs sans activité conservent l'affichage de la date de création.
+
 ### Added
 
 - **Animation des modales** : les modales s'ouvrent avec un slide-up depuis le bas (200 ms ease-out) et se ferment avec un slide-down. Le backdrop apparaît et disparaît en fondu (200 ms). Améliore la fluidité de l'interface.

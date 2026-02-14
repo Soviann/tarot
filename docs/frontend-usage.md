@@ -59,7 +59,7 @@ import type { HydraCollection, Player } from "./types/api";
 | `GamePlayer` | `color: string \| null`, `id: number`, `name: string` |
 | `HydraCollection<T>` | `member: T[]`, `totalItems: number` |
 | `PaginatedCollection<T>` | extends `HydraCollection<T>` + `hydra:view?: { hydra:next?: string }` |
-| `Player` | `active: boolean`, `color: string \| null`, `createdAt: string`, `id: number`, `name: string`, `playerGroups: PlayerGroup[]` |
+| `Player` | `active: boolean`, `color: string \| null`, `createdAt: string`, `id: number`, `lastActivityAt: string \| null`, `name: string`, `playerGroups: PlayerGroup[]` |
 | `PlayerGroup` | `createdAt: string`, `id: number`, `name: string` |
 | `PlayerGroupDetail` | extends `PlayerGroup` + `players: GamePlayer[]` |
 | `ScoreEntry` | `id: number`, `player: GamePlayer`, `score: number` |
