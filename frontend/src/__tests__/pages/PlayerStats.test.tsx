@@ -20,6 +20,7 @@ vi.mock("../../hooks/usePlayerStats");
 
 const mockStats = {
   averageGameDurationSeconds: 480,
+  badges: [],
   averageScore: 8.6,
   bestGameScore: 240,
   contractDistribution: [

@@ -3,13 +3,14 @@ import { useEffect, useMemo, useState } from "react";
 import { useCompleteGame } from "../hooks/useCompleteGame";
 import type { GameContext } from "../services/memeSelector";
 import { calculateScore, REQUIRED_POINTS } from "../services/scoreCalculator";
-import type { Game, GamePlayer } from "../types/api";
+import type { Badge, Game, GamePlayer } from "../types/api";
 import { Chelem, GameStatus, Poignee, Side } from "../types/enums";
 import type { Chelem as ChelemType, Poignee as PoigneeType, Side as SideType } from "../types/enums";
 import { ContractBadge, Modal, PlayerAvatar, ScoreDisplay, Stepper } from "./ui";
 
 interface CompleteGameModalProps {
   game: Game;
+  onBadgesUnlocked?: (newBadges: Record<string, Badge[]>) => void;
   onClose: () => void;
   onGameCompleted?: (ctx: GameContext) => void;
   onGameSaved?: (gameId: number) => void;
@@ -38,7 +39,7 @@ const chelemOptions: { label: string; value: ChelemType }[] = [
   { label: "Non annoncé gagné", value: Chelem.NotAnnouncedWon },
 ];
 
-export default function CompleteGameModal({ game, onClose, onGameCompleted, onGameSaved, open, players, sessionId }: CompleteGameModalProps) {
+export default function CompleteGameModal({ game, onBadgesUnlocked, onClose, onGameCompleted, onGameSaved, open, players, sessionId }: CompleteGameModalProps) {
   const completeGame = useCompleteGame(game.id, sessionId);
   const isEditMode = game.status === GameStatus.Completed;
 
@@ -122,7 +123,7 @@ export default function CompleteGameModal({ game, onClose, onGameCompleted, onGa
         status: GameStatus.Completed,
       },
       {
-        onSuccess: () => {
+        onSuccess: (data) => {
           if (!isEditMode && scoreResult) {
             onGameCompleted?.({
               attackWins: scoreResult.attackWins,
@@ -133,6 +134,9 @@ export default function CompleteGameModal({ game, onClose, onGameCompleted, onGa
               petitAuBout,
             });
             onGameSaved?.(game.id);
+          }
+          if (data.newBadges && Object.keys(data.newBadges).length > 0) {
+            onBadgesUnlocked?.(data.newBadges);
           }
           onClose();
         },

@@ -3,6 +3,7 @@ import { ArrowLeftRight, BarChart3, Lock, QrCode } from "lucide-react";
 import { useCallback, useMemo, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import AddStarModal from "../components/AddStarModal";
+import BadgeUnlockedModal from "../components/BadgeUnlockedModal";
 import ChangeDealerModal from "../components/ChangeDealerModal";
 import CompleteGameModal from "../components/CompleteGameModal";
 import DeleteGameModal from "../components/DeleteGameModal";
@@ -25,6 +26,7 @@ import { useUpdateDealer } from "../hooks/useUpdateDealer";
 import { apiFetch } from "../services/api";
 import type { GameContext, MemeConfig } from "../services/memeSelector";
 import { selectDefeatMeme, selectVictoryMeme } from "../services/memeSelector";
+import type { Badge } from "../types/api";
 
 export default function SessionPage() {
   const { id } = useParams<{ id: string }>();
@@ -55,6 +57,7 @@ export default function SessionPage() {
 
   const queryClient = useQueryClient();
   const [activeMeme, setActiveMeme] = useState<MemeConfig | null>(null);
+  const [badgeModalBadges, setBadgeModalBadges] = useState<Record<string, Badge[]> | null>(null);
   const [memeLabel, setMemeLabel] = useState<string | undefined>(undefined);
   const [changeDealerModalOpen, setChangeDealerModalOpen] = useState(false);
   const [completeModalOpen, setCompleteModalOpen] = useState(false);
@@ -290,6 +293,7 @@ export default function SessionPage() {
       {inProgressGame && (
         <CompleteGameModal
           game={inProgressGame}
+          onBadgesUnlocked={(badges) => setBadgeModalBadges(badges)}
           onClose={() => setCompleteModalOpen(false)}
           onGameCompleted={handleGameCompleted}
           onGameSaved={handleGameSaved}
@@ -339,7 +343,12 @@ export default function SessionPage() {
         onConfirm={() => {
           if (starPlayerId !== null) {
             addStar.mutate(starPlayerId, {
-              onSuccess: () => setStarModalOpen(false),
+              onSuccess: (data) => {
+                setStarModalOpen(false);
+                if (data.newBadges && Object.keys(data.newBadges).length > 0) {
+                  setBadgeModalBadges(data.newBadges);
+                }
+              },
             });
           }
         }}
@@ -367,6 +376,15 @@ export default function SessionPage() {
         open={shareModalOpen}
         sessionId={sessionId}
       />
+
+      {badgeModalBadges && (
+        <BadgeUnlockedModal
+          newBadges={badgeModalBadges}
+          onClose={() => setBadgeModalBadges(null)}
+          open={badgeModalBadges !== null}
+          players={session.players}
+        />
+      )}
 
       <MemeOverlay ariaLabel={memeLabel} meme={activeMeme} onDismiss={() => { setActiveMeme(null); setMemeLabel(undefined); }} />
     </div>
