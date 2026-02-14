@@ -70,7 +70,8 @@ import type { HydraCollection, Player } from "./types/api";
 | `ContractDistributionEntry` | `contract: Contract`, `count: number`, `percentage: number` |
 | `EloHistoryEntry` | `date: string`, `gameId: number`, `ratingAfter: number`, `ratingChange: number` |
 | `EloRankingEntry` | `eloRating: number`, `gamesPlayed: number`, `playerColor: string \| null`, `playerId: number`, `playerName: string` |
-| `GlobalStatistics` | `averageGameDuration: number \| null`, `contractDistribution: ContractDistributionEntry[]`, `eloRanking: EloRankingEntry[]`, `leaderboard: LeaderboardEntry[]`, `totalGames`, `totalPlayTime: number`, `totalSessions`, `totalStars` |
+| `EloEvolutionPlayer` | `history: { date: string; gameId: number; ratingAfter: number }[]`, `playerColor: string \| null`, `playerId: number`, `playerName: string` |
+| `GlobalStatistics` | `averageGameDuration: number \| null`, `contractDistribution: ContractDistributionEntry[]`, `eloEvolution: EloEvolutionPlayer[]`, `eloRanking: EloRankingEntry[]`, `leaderboard: LeaderboardEntry[]`, `totalGames`, `totalPlayTime: number`, `totalSessions`, `totalStars` |
 | `LeaderboardEntry` | `gamesAsTaker`, `gamesPlayed`, `playerColor: string \| null`, `playerId`, `playerName`, `totalScore`, `winRate`, `wins` |
 | `PlayerContractEntry` | `contract: Contract`, `count`, `winRate`, `wins` |
 | `PlayerStatistics` | `averageGameDurationSeconds: number \| null`, `averageScore`, `bestGameScore`, `contractDistribution`, `eloHistory: EloHistoryEntry[]`, `eloRating: number`, `gamesAsDefender`, `gamesAsPartner`, `gamesAsTaker`, `gamesPlayed`, `player`, `playerGroups: { id: number; name: string }[]`, `recentScores`, `sessionsPlayed`, `starPenalties`, `totalPlayTimeSeconds: number`, `totalStars`, `winRateAsTaker`, `worstGameScore` |
@@ -626,6 +627,7 @@ Page d'aide in-app reprenant le contenu du guide utilisateur (`docs/user-guide.m
 - Métriques clés : total de donnes, de sessions, durée moyenne par donne et temps de jeu total (si disponible)
 - Classement (`Leaderboard`) trié par score total décroissant
 - Classement ELO (`EloRanking`) trié par rating décroissant (masqué si aucune donnée)
+- Évolution ELO (`GlobalEloEvolutionChart`) — graphique multi-lignes avec filtrage par joueur via chips (masqué si aucune donnée)
 - Répartition des contrats (`ContractDistributionChart`) en barres horizontales
 - Navigation vers le détail d'un joueur au clic (propage le filtre groupe via `?group=`)
 - États : chargement, erreur
@@ -1011,6 +1013,24 @@ Graphique linéaire (Recharts) affichant l'évolution du rating ELO d'un joueur 
 | Prop | Type | Description |
 |------|------|-------------|
 | `data` | `EloHistoryEntry[]` | *requis* — historique ELO (ordre chronologique depuis l'API) |
+
+### `GlobalEloEvolutionChart`
+
+**Fichier** : `components/GlobalEloEvolutionChart.tsx`
+
+Graphique linéaire multi-joueurs (Recharts) affichant l'évolution du rating ELO de tous les joueurs avec ligne de référence y=1500, filtrage par joueur via chips cliquables et `connectNulls` pour les joueurs absents de certaines donnes.
+
+| Prop | Type | Description |
+|------|------|-------------|
+| `data` | `EloEvolutionPlayer[]` | *requis* — données d'évolution par joueur (depuis l'API globale) |
+
+**Fonctionnalités** :
+- Chips colorées pour chaque joueur — clic pour masquer/afficher la ligne
+- Couleur personnalisée du joueur (si définie), sinon fallback sur la palette avatar
+- Tooltip montrant les ratings de tous les joueurs visibles
+- Ligne de référence à y=1500
+
+**Fonction utilitaire exportée** : `buildChartData(data)` — transforme les données par joueur en format plat pour Recharts (une entrée par donne, clé par nom de joueur, `null` pour les joueurs absents).
 
 ### `ScoreEvolutionChart`
 

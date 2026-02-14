@@ -8,6 +8,8 @@ Le format est basé sur [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/)
 
 ### Added
 
+- **Graphique d'évolution ELO globale** : sur la page Statistiques, un graphique multi-lignes montre l'évolution du rating ELO de tous les joueurs au fil des donnes. Chips cliquables pour filtrer par joueur, couleur personnalisée, ligne de référence à 1500. Nouveau endpoint `eloEvolution` dans l'API statistiques globales, composant `GlobalEloEvolutionChart`.
+
 - **Toggle thème sombre** : bouton lune/soleil dans le header (à gauche de l'aide) pour basculer entre les modes clair et sombre. Détection automatique de la préférence système au premier lancement, persistance du choix en localStorage.
 
 - **Couleur d'avatar personnalisée** : choix d'une couleur pour l'avatar d'un joueur (palette de 10 couleurs prédéfinies + sélecteur libre), avec option « Auto » pour revenir à la couleur déterministe par défaut. La couleur choisie est utilisée partout où l'avatar apparaît (sessions, classements, statistiques, historique des donnes). Champ `color` ajouté à l'entité `Player` et propagé dans les endpoints statistiques (`playerColor`).

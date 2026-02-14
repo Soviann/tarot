@@ -56,6 +56,49 @@ class StatisticsService
     }
 
     /**
+     * @return list<array{history: list<array{date: string, gameId: int, ratingAfter: int}>, playerColor: string|null, playerId: int, playerName: string}>
+     */
+    public function getAllPlayersEloHistory(?int $playerGroupId = null): array
+    {
+        $groupJoin = null !== $playerGroupId ? ' JOIN eh.game g_grp JOIN g_grp.session s_grp' : '';
+        $groupWhere = null !== $playerGroupId ? ' WHERE s_grp.playerGroup = :group' : '';
+
+        $query = $this->em->createQuery(
+            'SELECT IDENTITY(eh.player) AS playerId, p.name AS playerName, p.color AS playerColor,
+                    eh.createdAt AS date, IDENTITY(eh.game) AS gameId, eh.ratingAfter AS ratingAfter
+             FROM App\Entity\EloHistory eh
+             JOIN eh.player p'.$groupJoin.$groupWhere.'
+             ORDER BY eh.id ASC'
+        );
+
+        $this->setGroupParameter($query, $playerGroupId);
+
+        /** @var list<array{date: \DateTimeImmutable, gameId: int|string, playerColor: string|null, playerId: int|string, playerName: string, ratingAfter: int|string}> $rows */
+        $rows = $query->getResult();
+
+        /** @var array<int, array{history: list<array{date: string, gameId: int, ratingAfter: int}>, playerColor: string|null, playerId: int, playerName: string}> $grouped */
+        $grouped = [];
+        foreach ($rows as $row) {
+            $playerId = (int) $row['playerId'];
+            if (!isset($grouped[$playerId])) {
+                $grouped[$playerId] = [
+                    'history' => [],
+                    'playerColor' => $row['playerColor'],
+                    'playerId' => $playerId,
+                    'playerName' => $row['playerName'],
+                ];
+            }
+            $grouped[$playerId]['history'][] = [
+                'date' => $row['date']->format(\DateTimeInterface::ATOM),
+                'gameId' => (int) $row['gameId'],
+                'ratingAfter' => (int) $row['ratingAfter'],
+            ];
+        }
+
+        return \array_values($grouped);
+    }
+
+    /**
      * @return list<array{eloRating: int, gamesPlayed: int, playerColor: string|null, playerId: int, playerName: string}>
      */
     public function getEloRanking(?int $playerGroupId = null): array

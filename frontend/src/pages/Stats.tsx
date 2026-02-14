@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import ContractDistributionChart from "../components/ContractDistributionChart";
 import EloRanking from "../components/EloRanking";
+import GlobalEloEvolutionChart from "../components/GlobalEloEvolutionChart";
 import GroupFilter from "../components/GroupFilter";
 import Leaderboard from "../components/Leaderboard";
 import { useGlobalStats } from "../hooks/useGlobalStats";
@@ -92,6 +93,15 @@ export default function Stats() {
             entries={stats.eloRanking}
             onPlayerClick={(id) => navigate(`/stats/player/${id}${groupId ? `?group=${groupId}` : ""}`)}
           />
+        </section>
+      )}
+
+      {stats.eloEvolution.length > 0 && (
+        <section>
+          <h2 className="mb-2 text-sm font-semibold text-text-secondary">
+            Évolution ELO
+          </h2>
+          <GlobalEloEvolutionChart data={stats.eloEvolution} />
         </section>
       )}
 
