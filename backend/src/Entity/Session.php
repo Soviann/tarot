@@ -9,6 +9,7 @@ use ApiPlatform\Metadata\Get;
 use ApiPlatform\Metadata\GetCollection;
 use ApiPlatform\Metadata\Patch;
 use ApiPlatform\Metadata\Post;
+use App\Repository\SessionRepository;
 use App\State\SessionCollectionProvider;
 use App\State\SessionCreateProcessor;
 use App\State\SessionDetailProvider;
@@ -39,7 +40,7 @@ use Symfony\Component\Validator\Constraints as Assert;
     denormalizationContext: ['groups' => ['session:write']],
 )]
 #[DealerBelongsToSession]
-#[ORM\Entity]
+#[ORM\Entity(repositoryClass: SessionRepository::class)]
 class Session
 {
     #[Groups(['session:read'])]
