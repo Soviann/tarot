@@ -10,6 +10,9 @@ use App\Entity\Session;
 use App\Entity\StarEvent;
 use App\Enum\Contract;
 use App\Enum\GameStatus;
+use App\Repository\GameRepository;
+use App\Repository\ScoreEntryRepository;
+use App\Repository\StarEventRepository;
 use App\Service\Scoring\ScoreCalculator;
 use App\Service\SessionSummaryService;
 use App\Tests\Api\ApiTestCase;
@@ -21,7 +24,19 @@ class SessionSummaryServiceTest extends ApiTestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->service = new SessionSummaryService($this->em);
+
+        /** @var GameRepository $gameRepository */
+        $gameRepository = $this->em->getRepository(Game::class);
+        /** @var ScoreEntryRepository $scoreEntryRepository */
+        $scoreEntryRepository = $this->em->getRepository(\App\Entity\ScoreEntry::class);
+        /** @var StarEventRepository $starEventRepository */
+        $starEventRepository = $this->em->getRepository(StarEvent::class);
+
+        $this->service = new SessionSummaryService(
+            $gameRepository,
+            $scoreEntryRepository,
+            $starEventRepository
+        );
     }
 
     public function testSummaryWithNoGamesReturnsEmpty(): void

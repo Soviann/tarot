@@ -20,6 +20,16 @@ final class StarEventRepository extends ServiceEntityRepository
         parent::__construct($registry, StarEvent::class);
     }
 
+    public function countBySession(Session $session): int
+    {
+        return (int) $this->createQueryBuilder('se')
+            ->select('COUNT(se.id)')
+            ->andWhere('se.session = :session')
+            ->setParameter('session', $session)
+            ->getQuery()
+            ->getSingleScalarResult();
+    }
+
     public function countBySessionAndPlayer(Session $session, Player $player): int
     {
         return (int) $this->createQueryBuilder('se')
