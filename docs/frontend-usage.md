@@ -55,7 +55,7 @@ import type { HydraCollection, Player } from "./types/api";
 | Type | Champs |
 |------|--------|
 | `CumulativeScore` | `playerId: number`, `playerName: string`, `score: number` |
-| `Game` | `id`, `chelem`, `completedAt`, `contract`, `createdAt`, `dealer`, `oudlers`, `partner`, `petitAuBout`, `poignee`, `poigneeOwner`, `points`, `position`, `scoreEntries`, `status`, `taker` |
+| `Game` | `id`, `chelem`, `completedAt`, `contract`, `createdAt`, `dealer`, `newBadges?: Record<string, Badge[]> \| null`, `oudlers`, `partner`, `petitAuBout`, `poignee`, `poigneeOwner`, `points`, `position`, `scoreEntries`, `status`, `taker` |
 | `GamePlayer` | `color: string \| null`, `id: number`, `name: string` |
 | `HydraCollection<T>` | `member: T[]`, `totalItems: number` |
 | `PaginatedCollection<T>` | extends `HydraCollection<T>` + `hydra:view?: { hydra:next?: string }` |
@@ -70,7 +70,8 @@ import type { HydraCollection, Player } from "./types/api";
 | `SessionPlayer` | `color: string \| null`, `id: number`, `name: string` |
 | `SessionRankingEntry` | `playerColor: string \| null`, `playerId: number`, `playerName: string`, `position: number`, `score: number` |
 | `SessionSummary` | `awards: SessionAward[]`, `highlights: SessionHighlights`, `ranking: SessionRankingEntry[]`, `scoreSpread: number` |
-| `StarEvent` | `id: number`, `createdAt: string`, `player: GamePlayer` |
+| `Badge` | `description: string`, `emoji: string`, `label: string`, `type: string`, `unlockedAt: string \| null` |
+| `StarEvent` | `id: number`, `createdAt: string`, `newBadges?: Record<string, Badge[]> \| null`, `player: GamePlayer` |
 | `ContractDistributionEntry` | `contract: Contract`, `count: number`, `percentage: number` |
 | `ContractSuccessRatePlayer` | `color: string \| null`, `contracts: PlayerContractEntry[]`, `id: number`, `name: string` |
 | `EloHistoryEntry` | `date: string`, `gameId: number`, `ratingAfter: number`, `ratingChange: number` |
@@ -80,7 +81,7 @@ import type { HydraCollection, Player } from "./types/api";
 | `LeaderboardEntry` | `gamesAsTaker`, `gamesPlayed`, `playerColor: string \| null`, `playerId`, `playerName`, `totalScore`, `winRate`, `wins` |
 | `PlayerContractEntry` | `contract: Contract`, `count`, `winRate`, `wins` |
 | `PersonalRecord` | `contract: string \| null`, `date: string`, `sessionId: number \| null`, `type: string`, `value: number` |
-| `PlayerStatistics` | `averageGameDurationSeconds: number \| null`, `averageScore`, `bestGameScore`, `contractDistribution`, `eloHistory: EloHistoryEntry[]`, `eloRating: number`, `gamesAsDefender`, `gamesAsPartner`, `gamesAsTaker`, `gamesPlayed`, `player`, `playerGroups: { id: number; name: string }[]`, `records: PersonalRecord[]`, `recentScores`, `sessionsPlayed`, `starPenalties`, `totalPlayTimeSeconds: number`, `totalStars`, `winRateAsTaker`, `worstGameScore` |
+| `PlayerStatistics` | `badges: Badge[]`, `averageGameDurationSeconds: number \| null`, `averageScore`, `bestGameScore`, `contractDistribution`, `eloHistory: EloHistoryEntry[]`, `eloRating: number`, `gamesAsDefender`, `gamesAsPartner`, `gamesAsTaker`, `gamesPlayed`, `player`, `playerGroups: { id: number; name: string }[]`, `records: PersonalRecord[]`, `recentScores`, `sessionsPlayed`, `starPenalties`, `totalPlayTimeSeconds: number`, `totalStars`, `winRateAsTaker`, `worstGameScore` |
 | `RecentScoreEntry` | `date: string`, `gameId: number`, `score: number`, `sessionId: number` |
 
 ### `ApiError`
@@ -741,13 +742,14 @@ Page d'aide in-app reprenant le contenu du guide utilisateur (`docs/user-guide.m
 **Hooks utilisés** : `useSession`, `useSessionGames`, `useAddStar`, `useCloseSession`, `useCreateGame`, `useCreateSession` (via SwapPlayersModal), `useCompleteGame`, `useDeleteGame`, `useUpdateDealer`, `useNavigate`
 
 **Modales** :
-- `ShareQrCodeModal` : affichage d'un QR code encodant l'URL de la session avec mode plein écran
-- `ChangeDealerModal` : sélection manuelle du donneur parmi les 5 joueurs
-- `SwapPlayersModal` : changement de joueurs avec navigation vers la session résultante
-- `NewGameModal` : sélection preneur + contrat (étape 1)
-- `CompleteGameModal` : complétion ou modification d'une donne (étape 2)
 - `AddStarModal` : confirmation avant attribution d'étoile à un joueur
+- `BadgeUnlockedModal` : annonce des badges débloqués (après complétion de donne ou ajout d'étoile)
+- `ChangeDealerModal` : sélection manuelle du donneur parmi les 5 joueurs
+- `CompleteGameModal` : complétion ou modification d'une donne (étape 2)
 - `DeleteGameModal` : confirmation de suppression de la dernière donne
+- `NewGameModal` : sélection preneur + contrat (étape 1)
+- `ShareQrCodeModal` : affichage d'un QR code encodant l'URL de la session avec mode plein écran
+- `SwapPlayersModal` : changement de joueurs avec navigation vers la session résultante
 
 ### Récapitulatif de session (`SessionSummary`)
 
@@ -770,6 +772,41 @@ Page d'aide in-app reprenant le contenu du guide utilisateur (`docs/user-guide.m
 ---
 
 ## Composants métier
+
+### `BadgeGrid`
+
+**Fichier** : `components/BadgeGrid.tsx`
+
+Grille affichant les 15 badges d'un joueur (débloqués en premier avec date, verrouillés grisés ensuite). Titre avec compteur (X/Y).
+
+| Prop | Type | Description |
+|------|------|-------------|
+| `badges` | `Badge[]` | *requis* — liste des 15 badges (avec `unlockedAt` null ou date) |
+
+**Fonctionnalités** :
+- Header « Badges (X/Y) » avec compteur débloqués/total
+- Grille 3 colonnes mobile, 5 colonnes TV (`grid-cols-3 lg:grid-cols-5`)
+- Badges débloqués : fond élevé, emoji + nom + date au format `fr-FR`
+- Badges verrouillés : fond secondaire, `opacity-40`
+
+### `BadgeUnlockedModal`
+
+**Fichier** : `components/BadgeUnlockedModal.tsx`
+
+Modale annonçant les badges nouvellement débloqués, groupés par joueur.
+
+| Prop | Type | Description |
+|------|------|-------------|
+| `newBadges` | `Record<string, Badge[]>` | *requis* — nouveaux badges par ID joueur |
+| `onClose` | `() => void` | *requis* — fermeture |
+| `open` | `boolean` | *requis* — afficher ou masquer |
+| `players` | `GamePlayer[]` | *requis* — joueurs de la session (pour résoudre noms/avatars) |
+
+**Fonctionnalités** :
+- Titre « Nouveau(x) badge(s) débloqué(s) ! »
+- Pour chaque joueur : avatar + nom, puis liste des badges (emoji + nom + description)
+- Bouton « Fermer »
+- Retourne `null` si aucun badge dans `newBadges`
 
 ### `PlayerSelector`
 
@@ -1029,11 +1066,12 @@ Modal de complétion (étape 2) ou modification d'une donne. Titre dynamique sel
 
 | Prop | Type | Description |
 |------|------|-------------|
-| `open` | `boolean` | *requis* — afficher ou masquer |
+| `game` | `Game` | *requis* — donne à compléter/modifier |
+| `onBadgesUnlocked` | `(newBadges: Record<string, Badge[]>) => void` | *optionnel* — callback appelé quand des badges sont débloqués par la complétion |
 | `onClose` | `() => void` | *requis* — fermeture |
 | `onGameCompleted` | `(ctx: GameContext) => void` | *optionnel* — callback pour déclencher un mème après une complétion réussie (pas en édition) |
 | `onGameSaved` | `(gameId: number) => void` | *optionnel* — callback appelé après la complétion réussie d'une nouvelle donne (pas en édition), avec l'ID de la donne sauvegardée. Utilisé par SessionPage pour afficher le bouton UndoFAB. |
-| `game` | `Game` | *requis* — donne à compléter/modifier |
+| `open` | `boolean` | *requis* — afficher ou masquer |
 | `players` | `GamePlayer[]` | *requis* — les 5 joueurs de la session |
 | `sessionId` | `number` | *requis* — ID de la session |
 
