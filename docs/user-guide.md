@@ -276,6 +276,7 @@ L'écran principal des statistiques affiche :
 - **Métriques** : nombre total de donnes, de sessions jouées, **durée moyenne par donne** et **temps de jeu total** (si des donnes avec suivi de durée existent)
 - **Classement** : tous les joueurs triés par score total décroissant, avec nombre de donnes jouées et taux de victoire en tant que preneur
 - **Répartition des contrats** : graphique à barres horizontales montrant combien de donnes ont été jouées par type de contrat (Petite, Garde, etc.)
+- **Taux de réussite par contrat** : tableau croisé joueurs × contrats montrant le pourcentage de victoire et le nombre de donnes pour chaque joueur en tant que preneur, par type de contrat. Les cellules sont colorées (vert = bon taux, rouge = faible taux) pour une lecture rapide.
 
 Appuyer sur un joueur dans le classement pour voir ses statistiques détaillées.
 

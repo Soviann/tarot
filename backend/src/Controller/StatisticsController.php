@@ -30,6 +30,7 @@ class StatisticsController
         return new JsonResponse([
             'averageGameDuration' => $this->statisticsService->getAverageGameDurationSeconds($playerGroupId),
             'contractDistribution' => $this->statisticsService->getContractDistribution($playerGroupId),
+            'contractSuccessRateByPlayer' => $this->statisticsService->getContractSuccessRateByPlayer($playerGroupId),
             'eloEvolution' => $this->statisticsService->getAllPlayersEloHistory($playerGroupId),
             'eloRanking' => $this->statisticsService->getEloRanking($playerGroupId),
             'leaderboard' => $this->statisticsService->getLeaderboard($playerGroupId),

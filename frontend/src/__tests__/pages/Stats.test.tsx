@@ -18,6 +18,7 @@ const mockStats = {
     { contract: "petite" as const, count: 5, percentage: 50.0 },
     { contract: "garde" as const, count: 5, percentage: 50.0 },
   ],
+  contractSuccessRateByPlayer: [],
   eloEvolution: [] as { history: { date: string; gameId: number; ratingAfter: number }[]; playerColor: string | null; playerId: number; playerName: string }[],
   eloRanking: [
     { eloRating: 1520, gamesPlayed: 5, playerId: 1, playerName: "Alice" },
