@@ -8,9 +8,9 @@ use ApiPlatform\Doctrine\Common\State\PersistProcessor;
 use ApiPlatform\Metadata\Operation;
 use ApiPlatform\State\ProcessorInterface;
 use App\Entity\Game;
-use App\Entity\Session;
 use App\Enum\GameStatus;
-use Doctrine\ORM\EntityManagerInterface;
+use App\Repository\GameRepository;
+use App\Repository\SessionRepository;
 use Symfony\Component\HttpKernel\Exception\UnprocessableEntityHttpException;
 
 /**
@@ -21,8 +21,9 @@ use Symfony\Component\HttpKernel\Exception\UnprocessableEntityHttpException;
 final readonly class GameCreateProcessor implements ProcessorInterface
 {
     public function __construct(
-        private EntityManagerInterface $em,
+        private GameRepository $gameRepository,
         private PersistProcessor $persistProcessor,
+        private SessionRepository $sessionRepository,
     ) {
     }
 
@@ -31,8 +32,7 @@ final readonly class GameCreateProcessor implements ProcessorInterface
      */
     public function process(mixed $data, Operation $operation, array $uriVariables = [], array $context = []): Game
     {
-        /** @var Session $session */
-        $session = $this->em->getRepository(Session::class)->find($uriVariables['sessionId']);
+        $session = $this->sessionRepository->find($uriVariables['sessionId']);
 
         if (null === $session) { // @phpstan-ignore identical.alwaysFalse
             throw new UnprocessableEntityHttpException('Session introuvable.');
@@ -43,26 +43,17 @@ final readonly class GameCreateProcessor implements ProcessorInterface
         }
 
         // Vérifier qu'aucune donne n'est en cours
-        $inProgress = $this->em->createQuery(
-            'SELECT COUNT(g.id) FROM App\Entity\Game g WHERE g.session = :sessionId AND g.status = :status'
-        )
-            ->setParameter('sessionId', $session->getId())
-            ->setParameter('status', GameStatus::InProgress)
-            ->getSingleScalarResult();
+        $inProgress = $this->gameRepository->countBySessionAndStatus($session, GameStatus::InProgress);
 
         if ($inProgress > 0) {
             throw new UnprocessableEntityHttpException('Une donne est déjà en cours pour cette session.');
         }
 
         // Position auto-incrémentée
-        $maxPosition = $this->em->createQuery(
-            'SELECT MAX(g.position) FROM App\Entity\Game g WHERE g.session = :sessionId'
-        )
-            ->setParameter('sessionId', $session->getId())
-            ->getSingleScalarResult();
+        $maxPosition = $this->gameRepository->getMaxPositionForSession($session);
 
         $data->setDealer($session->getCurrentDealer());
-        $data->setPosition(((int) $maxPosition) + 1);
+        $data->setPosition($maxPosition + 1);
         $data->setSession($session);
         $data->setStatus(GameStatus::InProgress);
 

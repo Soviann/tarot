@@ -17,4 +17,21 @@ final class PlayerGroupRepository extends ServiceEntityRepository
     {
         parent::__construct($registry, PlayerGroup::class);
     }
+
+    /**
+     * @param int[] $playerIds
+     * @return list<PlayerGroup>
+     */
+    public function findMatchingExactPlayers(array $playerIds, int $count): array
+    {
+        return $this->createQueryBuilder('pg')
+            ->join('pg.players', 'p')
+            ->andWhere('p.id IN (:playerIds)')
+            ->setParameter('playerIds', $playerIds)
+            ->groupBy('pg.id')
+            ->having('COUNT(DISTINCT p.id) = :count')
+            ->setParameter('count', $count)
+            ->getQuery()
+            ->getResult();
+    }
 }

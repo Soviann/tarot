@@ -42,4 +42,45 @@ final class SessionRepository extends ServiceEntityRepository
 
         return (int) $affected;
     }
+
+    /**
+     * @param int[] $playerIds
+     */
+    public function findActiveWithExactPlayers(array $playerIds, int $count): ?Session
+    {
+        /** @var Session[] $candidates */
+        $candidates = $this->createQueryBuilder('s')
+            ->join('s.players', 'p')
+            ->andWhere('s.isActive = true')
+            ->andWhere('p.id IN (:playerIds)')
+            ->setParameter('playerIds', $playerIds)
+            ->groupBy('s.id')
+            ->having('COUNT(DISTINCT p.id) = :count')
+            ->setParameter('count', $count)
+            ->getQuery()
+            ->getResult();
+
+        foreach ($candidates as $session) {
+            if ($session->getPlayers()->count() === $count) {
+                return $session;
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * @return Session[]
+     */
+    public function findRecentWithLastActivity(int $maxResults = 5): array
+    {
+        return $this->createQueryBuilder('s')
+            ->addSelect('COALESCE(MAX(g.createdAt), s.createdAt) AS HIDDEN lastActivity')
+            ->leftJoin('s.games', 'g')
+            ->groupBy('s')
+            ->orderBy('lastActivity', 'DESC')
+            ->setMaxResults($maxResults)
+            ->getQuery()
+            ->getResult();
+    }
 }

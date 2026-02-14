@@ -4,11 +4,10 @@ declare(strict_types=1);
 
 namespace App\Controller;
 
-use App\Entity\Player;
+use App\Repository\PlayerRepository;
 use App\Service\BadgeChecker;
 use App\Service\GlobalStatisticsService;
 use App\Service\PlayerStatisticsService;
-use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
@@ -17,7 +16,7 @@ use Symfony\Component\Routing\Attribute\Route;
 readonly class StatisticsController
 {
     public function __construct(
-        private EntityManagerInterface $em,
+        private PlayerRepository $playerRepository,
     ) {
     }
 
@@ -45,7 +44,7 @@ readonly class StatisticsController
     #[Route('/api/statistics/players/{id}', methods: ['GET'])]
     public function player(int $id, Request $request, BadgeChecker $badgeChecker, PlayerStatisticsService $playerStatisticsService): JsonResponse
     {
-        $player = $this->em->find(Player::class, $id);
+        $player = $this->playerRepository->find($id);
         if (null === $player) {
             throw new NotFoundHttpException('Joueur introuvable.');
         }

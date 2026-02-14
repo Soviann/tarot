@@ -26,6 +26,7 @@ final readonly class GameCompleteProcessor implements ProcessorInterface
     public function __construct(
         private BadgeChecker $badgeChecker,
         private EloCalculator $eloCalculator,
+        private EloRevertHelper $eloRevertHelper,
         private EntityManagerInterface $em,
         private PersistProcessor $persistProcessor,
         private ScoreCalculator $scoreCalculator,
@@ -43,7 +44,7 @@ final readonly class GameCompleteProcessor implements ProcessorInterface
             $wasAlreadyCompleted = !$data->getScoreEntries()->isEmpty();
 
             if ($wasAlreadyCompleted) {
-                EloRevertHelper::revert($data, $this->em);
+                $this->eloRevertHelper->revert($data);
             }
 
             $this->computeScores($data);
