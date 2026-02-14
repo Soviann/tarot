@@ -343,10 +343,13 @@ Accessible via l'onglet **Stats** dans la barre de navigation.
 
 L'écran principal des statistiques affiche :
 
-- **Métriques** : nombre total de donnes, de sessions jouées, **durée moyenne par donne** et **temps de jeu total** (si des donnes avec suivi de durée existent)
-- **Classement** : tous les joueurs triés par score total décroissant, avec nombre de donnes jouées et taux de victoire en tant que preneur
-- **Répartition des contrats** : graphique à barres horizontales montrant combien de donnes ont été jouées par type de contrat (Petite, Garde, etc.)
-- **Taux de réussite par contrat** : tableau croisé joueurs × contrats montrant le pourcentage de victoire et le nombre de donnes pour chaque joueur en tant que preneur, par type de contrat. Les cellules sont colorées (vert = bon taux, rouge = faible taux) pour une lecture rapide.
+- **Métriques** (toujours visibles) : nombre total de donnes, de sessions jouées, **durée moyenne par donne** et **temps de jeu total** (si des donnes avec suivi de durée existent)
+- **Classement** (toujours visible) : tous les joueurs triés par score total décroissant, avec nombre de donnes jouées et taux de victoire en tant que preneur
+- **Menu déroulant de section** : un sélecteur permet de choisir la section affichée parmi :
+  - **Classement ELO** (par défaut) : joueurs triés par rating décroissant
+  - **Évolution ELO** : graphique multi-lignes avec filtrage par joueur
+  - **Répartition des contrats** : graphique à barres horizontales par type de contrat
+  - **Taux de réussite par contrat** : tableau croisé joueurs × contrats avec code couleur
 
 Appuyer sur un joueur dans le classement pour voir ses statistiques détaillées.
 
@@ -354,11 +357,15 @@ Appuyer sur un joueur dans le classement pour voir ses statistiques détaillées
 
 L'écran de détail d'un joueur affiche :
 
-- **Métriques clés** : donnes jouées, taux de victoire (en tant que preneur), score moyen, sessions jouées, **durée moyenne par donne** et **temps de jeu total** (si disponible)
-- **Records personnels** : meilleur score, pire score, série de victoires consécutives (en tant que preneur), meilleure session (total de points dans une session) et plus grand écart (différence entre points réalisés et points requis). Chaque record indique la date, le contrat (si applicable) et un lien vers la session concernée.
-- **Répartition des rôles** : barre visuelle montrant combien de fois le joueur a été preneur, partenaire ou défenseur
-- **Contrats pris** : graphique à barres des contrats joués en tant que preneur
-- **Évolution des scores** : graphique linéaire des 50 derniers scores
+- **Métriques clés** (toujours visibles) : donnes jouées, taux de victoire (en tant que preneur), score moyen, sessions jouées, **durée moyenne par donne** et **temps de jeu total** (si disponible)
+- **Groupes** (toujours visibles) : badges cliquables vers la page du groupe
+- **Menu déroulant de section** : un sélecteur permet de choisir la section affichée parmi :
+  - **Records personnels** (par défaut) : meilleur score, pire score, série de victoires consécutives (en tant que preneur), meilleure session (total de points dans une session) et plus grand écart (différence entre points réalisés et points requis). Chaque record indique la date, le contrat (si applicable) et un lien vers la session concernée.
+  - **Badges** : grille des badges débloqués et verrouillés
+  - **Répartition des rôles** : barre visuelle montrant combien de fois le joueur a été preneur, partenaire ou défenseur
+  - **Contrats** : graphique à barres des contrats joués en tant que preneur
+  - **Évolution des scores** : graphique linéaire des 50 derniers scores
+  - **Évolution ELO** : courbe ELO au fil des donnes
 
 ### Évolution des scores en session
 
