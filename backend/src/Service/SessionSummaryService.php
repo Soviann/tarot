@@ -28,9 +28,9 @@ use App\Repository\StarEventRepository;
 final readonly class SessionSummaryService
 {
     public function __construct(
-        private readonly GameRepository $gameRepository,
-        private readonly ScoreEntryRepository $scoreEntryRepository,
-        private readonly StarEventRepository $starEventRepository,
+        private GameRepository $gameRepository,
+        private ScoreEntryRepository $scoreEntryRepository,
+        private StarEventRepository $starEventRepository,
     ) {
     }
 

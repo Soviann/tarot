@@ -35,11 +35,11 @@ use App\Service\Scoring\ScoreCalculator;
 final readonly class PlayerStatisticsService
 {
     public function __construct(
-        private readonly EloHistoryRepository $eloHistoryRepository,
-        private readonly GameRepository $gameRepository,
-        private readonly PlayerBadgeRepository $playerBadgeRepository,
-        private readonly ScoreEntryRepository $scoreEntryRepository,
-        private readonly StarEventRepository $starEventRepository,
+        private EloHistoryRepository $eloHistoryRepository,
+        private GameRepository $gameRepository,
+        private PlayerBadgeRepository $playerBadgeRepository,
+        private ScoreEntryRepository $scoreEntryRepository,
+        private StarEventRepository $starEventRepository,
     ) {
     }
 
