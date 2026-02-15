@@ -128,15 +128,9 @@ gh pr merge N --squash                       # 6. Squash merge (branch auto-dele
 
 **Board columns** (Status field): `Backlog` → `Todo` → `In Progress` → `Done`
 
-### Project workflows (all enabled)
+Project IDs and column option IDs: see MEMORY.md.
 
-GitHub Project workflows automate some board transitions:
-- **Auto-add to project**: new issues/PRs are added to the board automatically
-- **Item added to project**: sets initial status on add
-- **Pull request merged** / **Item closed**: moves to `Done`
-- **Auto-close issue**: closes issue when linked PR merges
-
-**Manual step required**: move the issue to `In Progress` when you start working on it.
+**Manual step required**: move the issue to `In Progress` when starting work (`gh project item-edit`). Other transitions (Done, auto-close) are automatic.
 
 ### Rules
 
@@ -145,40 +139,7 @@ GitHub Project workflows automate some board transitions:
 3. **New ideas** without immediate implementation → `Backlog` (set manually only for new issues that need triaging).
 4. **Close issues** via PR with `fixes #N` in PR body (auto-closes on merge).
 5. **Labels**: use existing (`enhancement`, `bug`, etc.). Don't create new ones without asking.
-6. **Token optimization** (see dedicated section below).
 
-### Token optimization
-
-- **Prefer `gh` CLI** over MCP tools for simple queries (less verbose output)
-- **Max `perPage: 5`** unless more results are explicitly needed
-- **No exploratory chains**: one targeted call, not list → read → read
-- **One manual board move**: move issue to `In Progress` when starting work; all other transitions are automatic
-- `fixes #N` in the PR body auto-closes the issue on merge — never close manually
-
-### Quick reference
-
-```bash
-# Issues
-gh issue create --repo Soviann/tarot --title "..." --body "..." --label "..."
-
-# Branches
-git checkout -b <type>/<N>-<desc> main
-git push -u origin <type>/<N>-<desc>
-
-# Pull Requests
-gh pr create --title "<type>(scope): desc" --body "fixes #N"
-gh pr merge <PR_NUMBER> --squash              # Branch auto-deleted by GitHub
-
-# Tags & Releases
-git tag -a vX.Y.Z -m "vX.Y.Z"
-git push origin vX.Y.Z
-gh release create vX.Y.Z --generate-notes
-
-# Project board — move to In Progress manually, other transitions are automatic
-# gh project item-edit --project-id PVT_kwHOANG8LM4BOble --id <ITEM_ID> \
-#   --field-id PVTSSF_lAHOANG8LM4BOblezg9IsCA --single-select-option-id <OPTION_ID>
-# Column option IDs: Backlog=858f7025  Todo=f75ad846  InProgress=47fc9ee4  Done=98236657
-```
 
 ## Changelog
 
