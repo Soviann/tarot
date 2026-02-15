@@ -27,9 +27,14 @@ class EloCalculatorTest extends TestCase
         $this->calculator = new EloCalculator();
 
         $this->players = [];
+        $id = 1;
         foreach (['Alice', 'Bob', 'Charlie', 'Diana', 'Eve'] as $name) {
             $player = new Player();
             $player->setName($name);
+
+            $ref = new \ReflectionProperty(Player::class, 'id');
+            $ref->setValue($player, $id++);
+
             $this->players[$name] = $player;
         }
 
@@ -103,7 +108,7 @@ class EloCalculatorTest extends TestCase
         );
 
         $ratings = $this->buildRatings(1500);
-        $ratings[$this->players['Alice']->getName()] = 1800;
+        $ratings[$this->players['Alice']->getId()] = 1800;
 
         $result = $this->calculator->compute($game, $ratings);
         $indexed = $this->indexByPlayerName($result);
@@ -125,7 +130,7 @@ class EloCalculatorTest extends TestCase
         );
 
         $ratings = $this->buildRatings(1500);
-        $ratings[$this->players['Alice']->getName()] = 1200;
+        $ratings[$this->players['Alice']->getId()] = 1200;
 
         $result = $this->calculator->compute($game, $ratings);
         $indexed = $this->indexByPlayerName($result);
@@ -175,11 +180,11 @@ class EloCalculatorTest extends TestCase
         );
 
         $ratings = [
-            'Alice' => 1600,
-            'Bob' => 1450,
-            'Charlie' => 1550,
-            'Diana' => 1400,
-            'Eve' => 1500,
+            $this->players['Alice']->getId() => 1600,
+            $this->players['Bob']->getId() => 1450,
+            $this->players['Charlie']->getId() => 1550,
+            $this->players['Diana']->getId() => 1400,
+            $this->players['Eve']->getId() => 1500,
         ];
 
         $result = $this->calculator->compute($game, $ratings);
@@ -215,13 +220,13 @@ class EloCalculatorTest extends TestCase
     }
 
     /**
-     * @return array<string, int>
+     * @return array<int, int>
      */
     private function buildRatings(int $rating): array
     {
         $ratings = [];
-        foreach ($this->players as $name => $player) {
-            $ratings[$name] = $rating;
+        foreach ($this->players as $player) {
+            $ratings[$player->getId()] = $rating;
         }
 
         return $ratings;
@@ -258,9 +263,9 @@ class EloCalculatorTest extends TestCase
     }
 
     /**
-     * @param list<array{playerId: int|null, playerName: string, ratingAfter: int, ratingBefore: int, ratingChange: int}> $result
+     * @param list<array{playerId: int, playerName: string, ratingAfter: int, ratingBefore: int, ratingChange: int}> $result
      *
-     * @return array<string, array{playerId: int|null, playerName: string, ratingAfter: int, ratingBefore: int, ratingChange: int}>
+     * @return array<string, array{playerId: int, playerName: string, ratingAfter: int, ratingBefore: int, ratingChange: int}>
      */
     private function indexByPlayerName(array $result): array
     {
