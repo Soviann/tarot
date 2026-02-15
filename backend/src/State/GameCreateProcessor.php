@@ -49,6 +49,12 @@ final readonly class GameCreateProcessor implements ProcessorInterface
             throw new UnprocessableEntityHttpException('Une donne est déjà en cours pour cette session.');
         }
 
+        // Vérifier que le preneur appartient à la session
+        $taker = $data->getTaker();
+        if (!$session->getPlayers()->contains($taker)) {
+            throw new UnprocessableEntityHttpException(\sprintf('Le joueur "%s" n\'appartient pas à la session.', $taker->getName()));
+        }
+
         // Position auto-incrémentée
         $maxPosition = $this->gameRepository->getMaxPositionForSession($session);
 
