@@ -59,7 +59,7 @@ final class PlayerBadgeRepository extends ServiceEntityRepository
         $map = \array_fill_keys($playerIds, []);
 
         foreach ($results as $row) {
-            $map[$row['playerId']][] = $row['badgeType'];
+            $map[(int) $row['playerId']][] = $row['badgeType'];
         }
 
         return $map;

@@ -61,8 +61,7 @@ final readonly class BadgeChecker
         $existingBadges = $this->playerBadgeRepository->getExistingBadgeTypesForPlayers($playerIds);
         $contexts = $this->buildContexts($playerIds);
 
-        // Pre-fetch session data for Comeback and LastPlace checks
-        // Collect all unique session IDs across all players
+        // Collect all unique session IDs across all players and pre-fetch session data
         $allSessionIds = [];
         foreach ($contexts as $ctx) {
             foreach ($ctx->distinctSessionIds as $sid) {
@@ -72,13 +71,7 @@ final readonly class BadgeChecker
         /** @var list<int> $allSessionIdList */
         $allSessionIdList = \array_keys($allSessionIds);
 
-        // Fetch session entries and score sums once per session (shared across players)
-        $sessionEntries = [];
-        $sessionScoreSums = [];
-        foreach ($allSessionIdList as $sessionId) {
-            $sessionEntries[$sessionId] = $this->scoreEntryRepository->getEntriesForSessionByPosition($sessionId);
-            $sessionScoreSums[$sessionId] = $this->scoreEntryRepository->getScoreSumsByPlayerForSession($sessionId);
-        }
+        [$sessionEntries, $sessionScoreSums] = $this->fetchSessionData($allSessionIdList);
 
         $result = [];
         foreach ($players as $player) {
@@ -126,13 +119,7 @@ final readonly class BadgeChecker
         $contexts = $this->buildContexts([$playerId]);
         $context = $contexts[$playerId];
 
-        // Pre-fetch session data for this player
-        $sessionEntries = [];
-        $sessionScoreSums = [];
-        foreach ($context->distinctSessionIds as $sessionId) {
-            $sessionEntries[$sessionId] = $this->scoreEntryRepository->getEntriesForSessionByPosition($sessionId);
-            $sessionScoreSums[$sessionId] = $this->scoreEntryRepository->getScoreSumsByPlayerForSession($sessionId);
-        }
+        [$sessionEntries, $sessionScoreSums] = $this->fetchSessionData($context->distinctSessionIds);
 
         $newBadges = [];
         foreach (BadgeType::cases() as $badgeType) {
@@ -198,6 +185,25 @@ final readonly class BadgeChecker
         }
 
         return $contexts;
+    }
+
+    /**
+     * Fetch session entries and score sums for Comeback/LastPlace checks.
+     *
+     * @param list<int> $sessionIds
+     *
+     * @return array{array<int, list<ScoreEntryPositionDto>>, array<int, list<PlayerScoreSumDto>>}
+     */
+    private function fetchSessionData(array $sessionIds): array
+    {
+        $sessionEntries = [];
+        $sessionScoreSums = [];
+        foreach ($sessionIds as $sessionId) {
+            $sessionEntries[$sessionId] = $this->scoreEntryRepository->getEntriesForSessionByPosition($sessionId);
+            $sessionScoreSums[$sessionId] = $this->scoreEntryRepository->getScoreSumsByPlayerForSession($sessionId);
+        }
+
+        return [$sessionEntries, $sessionScoreSums];
     }
 
     /**

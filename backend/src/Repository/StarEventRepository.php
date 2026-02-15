@@ -63,7 +63,7 @@ final class StarEventRepository extends ServiceEntityRepository
             return [];
         }
 
-        /** @var list<array{cnt: string, playerId: int}> $rows */
+        /** @var list<array{cnt: string, playerId: int|string}> $rows */
         $rows = $this->createQueryBuilder('se')
             ->select('IDENTITY(se.player) AS playerId, COUNT(se.id) AS cnt')
             ->andWhere('se.player IN (:playerIds)')
