@@ -510,6 +510,22 @@ class ScoreCalculatorTest extends TestCase
     }
 
     // ---------------------------------------------------------------
+    // Garde-fou : oudlers invalide
+    // ---------------------------------------------------------------
+
+    public function testThrowsOnInvalidOudlersCount(): void
+    {
+        $game = $this->createGame(
+            contract: Contract::Petite,
+            oudlers: 5,
+            points: 45,
+        );
+
+        $this->expectException(\InvalidArgumentException::class);
+        $this->calculator->compute($game);
+    }
+
+    // ---------------------------------------------------------------
     // Helpers
     // ---------------------------------------------------------------
 

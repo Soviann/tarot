@@ -159,6 +159,6 @@ class ScoreCalculator
 
     private function getRequiredPoints(int $oudlers): int
     {
-        return self::REQUIRED_POINTS[$oudlers];
+        return self::REQUIRED_POINTS[$oudlers] ?? throw new \InvalidArgumentException(\sprintf('Nombre d\'oudlers invalide : %d', $oudlers));
     }
 }
