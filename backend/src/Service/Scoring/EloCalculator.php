@@ -19,7 +19,7 @@ use App\Entity\Game;
  * Notes :
  * - Le résultat est symétrique : la somme des variations n'est pas strictement garantie à 0 à cause
  *   des arrondis (round) et des K différents par rôle.
- * - Le tableau $ratings doit contenir une entrée pour chaque joueur de la session, indexée par nom.
+ * - Le tableau $ratings doit contenir une entrée pour chaque joueur de la session, indexée par ID.
  */
 final readonly class EloCalculator
 {
@@ -42,11 +42,11 @@ final readonly class EloCalculator
      * - On se base sur l'entrée de score du preneur : si son score est strictement > 0,
      *   l'attaque est considérée gagnante, sinon perdante.
      *
-     * @param Game              $game    donne à évaluer (joueurs, preneur, partenaire, scores)
-     * @param array<string,int> $ratings ELO actuel de chaque joueur indexé par nom (doit couvrir tous les joueurs de la session)
+     * @param Game           $game    donne à évaluer (joueurs, preneur, partenaire, scores)
+     * @param array<int,int> $ratings ELO actuel de chaque joueur indexé par ID (doit couvrir tous les joueurs de la session)
      *
      * @return list<array{
-     *   playerId: int|null,
+     *   playerId: int,
      *   playerName: string,
      *   ratingAfter: int,
      *   ratingBefore: int,
@@ -72,30 +72,41 @@ final readonly class EloCalculator
 
         $players = $game->getSession()->getPlayers()->toArray();
 
-        // Construire les camps sous forme de listes de noms (les ratings sont indexés par nom).
-        $attackerNames = [$taker->getName()];
+        $takerId = $taker->getId();
+        \assert(null !== $takerId);
+        $partnerId = null;
         if (!$selfCall) {
-            $attackerNames[] = $partner->getName();
+            $partnerId = $partner->getId();
+            \assert(null !== $partnerId);
         }
 
-        $defenderNames = [];
+        // Construire les camps sous forme de listes d'IDs (les ratings sont indexés par ID).
+        $attackerIds = [$takerId];
+        if (null !== $partnerId) {
+            $attackerIds[] = $partnerId;
+        }
+
+        $defenderIds = [];
         foreach ($players as $player) {
-            if (!\in_array($player->getName(), $attackerNames, true)) {
-                $defenderNames[] = $player->getName();
+            $playerId = $player->getId();
+            \assert(null !== $playerId);
+            if (!\in_array($playerId, $attackerIds, true)) {
+                $defenderIds[] = $playerId;
             }
         }
 
         // ELO "d'équipe" : moyenne de chaque camp.
-        $avgAttackElo = $this->average($ratings, $attackerNames);
-        $avgDefenseElo = $this->average($ratings, $defenderNames);
+        $avgAttackElo = $this->average($ratings, $attackerIds);
+        $avgDefenseElo = $this->average($ratings, $defenderIds);
 
         $result = [];
         foreach ($players as $player) {
-            $name = $player->getName();
-            $ratingBefore = $ratings[$name];
+            $id = $player->getId();
+            \assert(null !== $id);
+            $ratingBefore = $ratings[$id];
 
-            $isTaker = $name === $taker->getName();
-            $isPartner = !$selfCall && $name === $partner->getName();
+            $isTaker = $id === $takerId;
+            $isPartner = null !== $partnerId && $id === $partnerId;
 
             if ($isTaker || $isPartner) {
                 // Attaquant (preneur/partenaire) comparé à la moyenne de la défense.
@@ -113,8 +124,8 @@ final readonly class EloCalculator
             $change = (int) \round($k * ($actual - $expected));
 
             $result[] = [
-                'playerId' => $player->getId(),
-                'playerName' => $name,
+                'playerId' => $id,
+                'playerName' => $player->getName(),
                 'ratingAfter' => $ratingBefore + $change,
                 'ratingBefore' => $ratingBefore,
                 'ratingChange' => $change,
@@ -127,17 +138,17 @@ final readonly class EloCalculator
     /**
      * Calcule une moyenne ELO sur une liste de joueurs.
      *
-     * @param array<string,int> $ratings ratings indexés par nom
-     * @param list<string>      $names   noms à inclure dans la moyenne (doivent exister dans $ratings)
+     * @param array<int,int> $ratings ratings indexés par ID
+     * @param list<int>      $ids     IDs à inclure dans la moyenne (doivent exister dans $ratings)
      */
-    private function average(array $ratings, array $names): float
+    private function average(array $ratings, array $ids): float
     {
         $sum = 0;
-        foreach ($names as $name) {
-            $sum += $ratings[$name];
+        foreach ($ids as $id) {
+            $sum += $ratings[$id];
         }
 
-        return $sum / \count($names);
+        return $sum / \count($ids);
     }
 
     /**
