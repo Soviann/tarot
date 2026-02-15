@@ -57,7 +57,7 @@ class PlayerApiTest extends ApiTestCase
     {
         $this->client->request('POST', '/api/players', [
             'headers' => ['Content-Type' => 'application/ld+json'],
-            'json' => ['name' => str_repeat('A', 51)],
+            'json' => ['name' => \str_repeat('A', 51)],
         ]);
 
         $this->assertResponseStatusCodeSame(422);
@@ -201,6 +201,37 @@ class PlayerApiTest extends ApiTestCase
         $data = $response->toArray();
         $member = $data['member'][0];
         $this->assertArrayHasKey('lastActivityAt', $member);
+    }
+
+    public function testPaginationMaxItemsPerPageIsCapped(): void
+    {
+        // Créer 55 joueurs pour dépasser la limite
+        for ($i = 1; $i <= 55; ++$i) {
+            $this->createPlayer("Player $i");
+        }
+
+        // Demander 100 items par page — le max doit plafonner à 50
+        $response = $this->client->request('GET', '/api/players?itemsPerPage=100');
+
+        $this->assertResponseIsSuccessful();
+        $data = $response->toArray();
+        $this->assertSame(55, $data['totalItems']);
+        $this->assertCount(50, $data['member']);
+    }
+
+    public function testPaginationClientItemsPerPageBelowMax(): void
+    {
+        for ($i = 1; $i <= 15; ++$i) {
+            $this->createPlayer("Player $i");
+        }
+
+        // Demander 10 items par page — le client contrôle la pagination
+        $response = $this->client->request('GET', '/api/players?itemsPerPage=10');
+
+        $this->assertResponseIsSuccessful();
+        $data = $response->toArray();
+        $this->assertSame(15, $data['totalItems']);
+        $this->assertCount(10, $data['member']);
     }
 
     public function testLastActivityAtUpdatedOnGameCompletion(): void
