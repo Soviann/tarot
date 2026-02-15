@@ -488,7 +488,7 @@ final class GameRepository extends ServiceEntityRepository
 
         $this->applyGroupFilter($qb, $playerGroupId);
 
-        /* @var list<ContractDistributionDto> */
+        /** @var list<ContractDistributionDto> */
         return $qb->getQuery()->getResult();
     }
 
@@ -509,7 +509,7 @@ final class GameRepository extends ServiceEntityRepository
 
         $this->applyGroupFilter($qb, $playerGroupId);
 
-        /* @var list<ContractCountByPlayerDto> */
+        /** @var list<ContractCountByPlayerDto> */
         return $qb->getQuery()->getResult();
     }
 
@@ -529,7 +529,7 @@ final class GameRepository extends ServiceEntityRepository
 
         $this->applyGroupFilter($qb, $playerGroupId);
 
-        /* @var list<ContractWinsByPlayerDto> */
+        /** @var list<ContractWinsByPlayerDto> */
         return $qb->getQuery()->getResult();
     }
 
@@ -590,7 +590,7 @@ final class GameRepository extends ServiceEntityRepository
 
         $this->applyGroupFilter($qb, $playerGroupId);
 
-        /* @var list<PlayerCountDto> */
+        /** @var list<PlayerCountDto> */
         return $qb->getQuery()->getResult();
     }
 
@@ -609,7 +609,7 @@ final class GameRepository extends ServiceEntityRepository
 
         $this->applyGroupFilter($qb, $playerGroupId);
 
-        /* @var list<PlayerCountDto> */
+        /** @var list<PlayerCountDto> */
         return $qb->getQuery()->getResult();
     }
 
@@ -686,7 +686,7 @@ final class GameRepository extends ServiceEntityRepository
 
         $this->applyGroupFilter($qb, $playerGroupId);
 
-        /* @var list<ContractDistributionDto> */
+        /** @var list<ContractDistributionDto> */
         return $qb->getQuery()->getResult();
     }
 
@@ -707,7 +707,7 @@ final class GameRepository extends ServiceEntityRepository
 
         $this->applyGroupFilter($qb, $playerGroupId);
 
-        /* @var list<ContractWinsDto> */
+        /** @var list<ContractWinsDto> */
         return $qb->getQuery()->getResult();
     }
 
@@ -727,7 +727,7 @@ final class GameRepository extends ServiceEntityRepository
 
         $this->applyGroupFilter($qb, $playerGroupId);
 
-        /* @var list<TakerGameRecordDto> */
+        /** @var list<TakerGameRecordDto> */
         return $qb->getQuery()->getResult();
     }
 

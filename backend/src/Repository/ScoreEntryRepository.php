@@ -89,7 +89,7 @@ final class ScoreEntryRepository extends ServiceEntityRepository
             ->addGroupBy('p.name')
             ->orderBy('p.name', 'ASC');
 
-        /* @var list<CumulativeScoreDto> */
+        /** @var list<CumulativeScoreDto> */
         return $qb->getQuery()->getResult();
     }
 
@@ -357,7 +357,7 @@ final class ScoreEntryRepository extends ServiceEntityRepository
      */
     public function getEntriesForSessionByPosition(int $sessionId): array
     {
-        /* @var list<ScoreEntryPositionDto> */
+        /** @var list<ScoreEntryPositionDto> */
         return $this->createQueryBuilder('se')
             ->select('NEW App\Dto\ScoreEntryPositionDto(IDENTITY(se.player), g.position, se.score)')
             ->join('se.game', 'g')
@@ -375,7 +375,7 @@ final class ScoreEntryRepository extends ServiceEntityRepository
      */
     public function getScoreSumsByPlayerForSession(int $sessionId): array
     {
-        /* @var list<PlayerScoreSumDto> */
+        /** @var list<PlayerScoreSumDto> */
         return $this->createQueryBuilder('se')
             ->select('NEW App\Dto\PlayerScoreSumDto(IDENTITY(se.player), SUM(se.score))')
             ->join('se.game', 'g')
@@ -433,7 +433,7 @@ final class ScoreEntryRepository extends ServiceEntityRepository
 
         $this->applyGroupFilter($qb, $playerGroupId);
 
-        /* @var list<RecentScoreDto> */
+        /** @var list<RecentScoreDto> */
         return $qb->getQuery()->getResult();
     }
 
@@ -503,7 +503,7 @@ final class ScoreEntryRepository extends ServiceEntityRepository
      */
     public function getGamesWithTakerScoreForPlayer(Player $player): array
     {
-        /* @var list<GameTakerScoreDto> */
+        /** @var list<GameTakerScoreDto> */
         return $this->createQueryBuilder('se')
             ->select('NEW App\Dto\GameTakerScoreDto(g.id, IDENTITY(g.partner), IDENTITY(g.taker), se2.score)')
             ->join('se.game', 'g')
@@ -587,7 +587,7 @@ final class ScoreEntryRepository extends ServiceEntityRepository
                ->setParameter('status', GameStatus::Completed);
         }
 
-        /* @var list<LeaderboardScoreDto> */
+        /** @var list<LeaderboardScoreDto> */
         return $qb->getQuery()->getResult();
     }
 
@@ -609,7 +609,7 @@ final class ScoreEntryRepository extends ServiceEntityRepository
                ->setParameter('group', $playerGroupId);
         }
 
-        /* @var list<GamesPlayedCountDto> */
+        /** @var list<GamesPlayedCountDto> */
         return $qb->getQuery()->getResult();
     }
 }
