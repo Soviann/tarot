@@ -25,7 +25,7 @@ use App\Repository\StarEventRepository;
  *     • L'Éternel Défenseur — joueur ayant le moins pris
  *     • Le Flambeur      — joueur ayant tenté le plus de Garde Sans / Garde Contre
  */
-class SessionSummaryService
+final readonly class SessionSummaryService
 {
     public function __construct(
         private readonly GameRepository $gameRepository,

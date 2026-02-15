@@ -29,7 +29,7 @@ use App\Repository\StarEventRepository;
  * - getAverageGameDurationSeconds() / getTotalPlayTimeSeconds() — métriques de durée
  * - getTotalGames() / getTotalSessions() / getTotalStars() — compteurs globaux
  */
-class GlobalStatisticsService
+final readonly class GlobalStatisticsService
 {
     public function __construct(
         private readonly EloHistoryRepository $eloHistoryRepository,

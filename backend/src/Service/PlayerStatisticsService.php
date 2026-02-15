@@ -32,7 +32,7 @@ use App\Service\Scoring\ScoreCalculator;
  * - 50 derniers scores (pour le graphique de tendance)
  * - Durée moyenne et totale de jeu
  */
-class PlayerStatisticsService
+final readonly class PlayerStatisticsService
 {
     public function __construct(
         private readonly EloHistoryRepository $eloHistoryRepository,
