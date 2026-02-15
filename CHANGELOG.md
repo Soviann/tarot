@@ -8,6 +8,7 @@ Le format est basé sur [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/)
 
 ### Fixed
 
+- **Session PHP désactivée en production** : la session PHP (`PHPSESSID`) est désormais désactivée en environnement de production, conformément à l'architecture stateless de l'API.
 - **Validation de longueur des noms** : ajout de contraintes `Assert\Length` sur `Player::$name` (max 50) et `PlayerGroup::$name` (max 100) pour retourner une erreur 422 au lieu d'une exception Doctrine 500 lorsque le nom dépasse la taille de la colonne en base.
 - **Validation des oudlers et points** : les champs `oudlers` (0–3) et `points` (0–91) sont désormais validés par des contraintes `Range`. Un garde-fou dans `ScoreCalculator` empêche aussi les valeurs hors bornes de provoquer une `UndefinedArrayKeyException`.
 - **Validation du preneur à la création de donne** : le preneur est désormais vérifié comme appartenant à la session, à la fois dans le processeur de création (POST) et dans le validateur de complétion (PATCH). Auparavant, seul le partenaire était validé.
