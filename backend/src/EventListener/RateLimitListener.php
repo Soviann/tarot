@@ -45,7 +45,7 @@ final readonly class RateLimitListener
                 ['detail' => 'Too many requests.', 'status' => 429, 'title' => 'Rate limit exceeded', 'type' => 'https://tools.ietf.org/html/rfc6585#section-4'],
                 429,
                 [
-                    'Retry-After' => $limit->getRetryAfter()->getTimestamp() - \time(),
+                    'Retry-After' => \max(1, $limit->getRetryAfter()->getTimestamp() - \time()),
                     'X-RateLimit-Limit' => $limit->getLimit(),
                     'X-RateLimit-Remaining' => $limit->getRemainingTokens(),
                 ],

@@ -18,6 +18,15 @@ class RateLimitingTest extends ApiTestCase
         // The next request should be rate limited
         $this->client->request('GET', '/api/players');
         $this->assertResponseStatusCodeSame(429);
+        $this->assertResponseHeaderSame('X-RateLimit-Remaining', '0');
+        $this->assertJsonContains([
+            'detail' => 'Too many requests.',
+            'status' => 429,
+            'title' => 'Rate limit exceeded',
+        ]);
+
+        // Retry-After header must be present
+        $this->assertResponseHasHeader('Retry-After');
     }
 
     public function testRateLimitHeadersArePresent(): void
