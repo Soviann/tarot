@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 namespace App\Service;
 
+use App\Dto\GameTakerScoreDto;
+use App\Dto\PlayerScoreSumDto;
+use App\Dto\ScoreEntryPositionDto;
 use App\Entity\Player;
 use App\Entity\PlayerBadge;
 use App\Entity\Session;
@@ -28,6 +31,9 @@ use Doctrine\ORM\EntityManagerInterface;
  * par une méthode privée check*() dédiée. Un badge déjà obtenu n'est jamais
  * réévalué (filtrage via getExistingBadgeTypes).
  *
+ * Les données nécessaires aux vérifications sont pré-chargées en batch via
+ * buildContexts() pour éviter les requêtes N+1.
+ *
  * @see BadgeType pour la liste complète des badges et leurs descriptions
  */
 final readonly class BadgeChecker
@@ -49,17 +55,59 @@ final readonly class BadgeChecker
      */
     public function checkAndAward(Session $session): array
     {
+        $players = $session->getPlayers()->toArray();
+        /** @var list<int> $playerIds */
+        $playerIds = \array_map(static fn (Player $p): int => (int) $p->getId(), $players);
+
+        $existingBadges = $this->playerBadgeRepository->getExistingBadgeTypesForPlayers($playerIds);
+        $contexts = $this->buildContexts($playerIds);
+
+        // Pre-fetch session data for Comeback and LastPlace checks
+        // Collect all unique session IDs across all players
+        $allSessionIds = [];
+        foreach ($contexts as $ctx) {
+            foreach ($ctx->distinctSessionIds as $sid) {
+                $allSessionIds[$sid] = true;
+            }
+        }
+        /** @var list<int> $allSessionIdList */
+        $allSessionIdList = \array_keys($allSessionIds);
+
+        // Fetch session entries and score sums once per session (shared across players)
+        $sessionEntries = [];
+        $sessionScoreSums = [];
+        foreach ($allSessionIdList as $sessionId) {
+            $sessionEntries[$sessionId] = $this->scoreEntryRepository->getEntriesForSessionByPosition($sessionId);
+            $sessionScoreSums[$sessionId] = $this->scoreEntryRepository->getScoreSumsByPlayerForSession($sessionId);
+        }
+
         $result = [];
-        foreach ($session->getPlayers() as $player) {
-            $awarded = $this->checkAndAwardForPlayer($player, flush: false);
-            if (!empty($awarded)) {
-                /** @var int $playerId */
-                $playerId = $player->getId();
-                $result[$playerId] = $awarded;
+        foreach ($players as $player) {
+            /** @var int $playerId */
+            $playerId = $player->getId();
+            $existing = $existingBadges[$playerId] ?? [];
+            $context = $contexts[$playerId];
+            $newBadges = [];
+
+            foreach (BadgeType::cases() as $badgeType) {
+                if (\in_array($badgeType, $existing, true)) {
+                    continue;
+                }
+                if ($this->checkCondition($badgeType, $player, $context, $sessionEntries, $sessionScoreSums)) {
+                    $badge = new PlayerBadge();
+                    $badge->setBadgeType($badgeType);
+                    $badge->setPlayer($player);
+                    $this->em->persist($badge);
+                    $newBadges[] = $badgeType;
+                }
+            }
+
+            if ([] !== $newBadges) {
+                $result[$playerId] = $newBadges;
             }
         }
 
-        if (!empty($result)) {
+        if ([] !== $result) {
             $this->em->flush();
         }
 
@@ -73,80 +121,143 @@ final readonly class BadgeChecker
      */
     public function checkAndAwardForPlayer(Player $player, bool $flush = true): array
     {
+        /** @var int $playerId */
+        $playerId = $player->getId();
         $existingTypes = $this->playerBadgeRepository->getExistingBadgeTypesForPlayer($player);
-        $newBadges = [];
+        $contexts = $this->buildContexts([$playerId]);
+        $context = $contexts[$playerId];
 
+        // Pre-fetch session data for this player
+        $sessionEntries = [];
+        $sessionScoreSums = [];
+        foreach ($context->distinctSessionIds as $sessionId) {
+            $sessionEntries[$sessionId] = $this->scoreEntryRepository->getEntriesForSessionByPosition($sessionId);
+            $sessionScoreSums[$sessionId] = $this->scoreEntryRepository->getScoreSumsByPlayerForSession($sessionId);
+        }
+
+        $newBadges = [];
         foreach (BadgeType::cases() as $badgeType) {
             if (\in_array($badgeType, $existingTypes, true)) {
                 continue;
             }
-
-            if ($this->checkCondition($badgeType, $player)) {
+            if ($this->checkCondition($badgeType, $player, $context, $sessionEntries, $sessionScoreSums)) {
                 $badge = new PlayerBadge();
                 $badge->setBadgeType($badgeType);
                 $badge->setPlayer($player);
                 $this->em->persist($badge);
-
                 $newBadges[] = $badgeType;
             }
         }
 
-        if ($flush && !empty($newBadges)) {
+        if ($flush && [] !== $newBadges) {
             $this->em->flush();
         }
 
         return $newBadges;
     }
 
-    private function checkCondition(BadgeType $badgeType, Player $player): bool
+    /**
+     * Build a BadgeCheckContext for each player by batch-fetching all required data.
+     *
+     * @param list<int> $playerIds
+     *
+     * @return array<int, BadgeCheckContext>
+     */
+    private function buildContexts(array $playerIds): array
     {
+        $chelemCounts = $this->gameRepository->countByTakerAndChelemForPlayers($playerIds, Chelem::AnnouncedWon);
+        $completedCounts = $this->scoreEntryRepository->countCompletedGameEntriesForPlayers($playerIds);
+        $coPlayerCounts = $this->sessionRepository->countDistinctCoPlayersForPlayers($playerIds);
+        $distinctSessionCounts = $this->scoreEntryRepository->countDistinctCompletedSessionsForPlayers($playerIds);
+        $distinctSessionIds = $this->scoreEntryRepository->getDistinctCompletedSessionIdsForPlayers($playerIds);
+        $gardeContreCounts = $this->gameRepository->countByTakerAndContractForPlayers($playerIds, Contract::GardeContre);
+        $gamesWithTakerScore = $this->scoreEntryRepository->getGamesWithTakerScoreForPlayers($playerIds);
+        $marathonSessionIds = $this->gameRepository->getMarathonSessionsForPlayers($playerIds, 3 * 3600);
+        $nightOwlCounts = $this->scoreEntryRepository->countNightOwlGamesForPlayers($playerIds);
+        $starEventCounts = $this->starEventRepository->countByPlayers($playerIds);
+        $takerScores = $this->gameRepository->getTakerScoresForPlayers($playerIds);
+        $wonGardeSansCounts = $this->gameRepository->countWonGamesWithContractForPlayers($playerIds, Contract::GardeSans);
+        $wonPetitAuBoutAttackCounts = $this->gameRepository->countWonGamesWithPetitAuBoutForPlayers($playerIds, Side::Attack);
+
+        $contexts = [];
+        foreach ($playerIds as $playerId) {
+            $contexts[$playerId] = new BadgeCheckContext(
+                chelemAnnouncedWonCount: $chelemCounts[$playerId] ?? 0,
+                coPlayerCount: $coPlayerCounts[$playerId] ?? 0,
+                completedGameCount: $completedCounts[$playerId] ?? 0,
+                distinctSessionIds: $distinctSessionIds[$playerId] ?? [],
+                distinctSessionCount: $distinctSessionCounts[$playerId] ?? 0,
+                gardeContreCount: $gardeContreCounts[$playerId] ?? 0,
+                gamesWithTakerScore: $gamesWithTakerScore[$playerId] ?? [],
+                marathonSessionIds: $marathonSessionIds[$playerId] ?? [],
+                nightOwlCount: $nightOwlCounts[$playerId] ?? 0,
+                starEventCount: $starEventCounts[$playerId] ?? 0,
+                takerScores: $takerScores[$playerId] ?? [],
+                wonGardeSansCount: $wonGardeSansCounts[$playerId] ?? 0,
+                wonPetitAuBoutAttackCount: $wonPetitAuBoutAttackCounts[$playerId] ?? 0,
+            );
+        }
+
+        return $contexts;
+    }
+
+    /**
+     * @param array<int, list<ScoreEntryPositionDto>> $sessionEntries
+     * @param array<int, list<PlayerScoreSumDto>>     $sessionScoreSums
+     */
+    private function checkCondition(
+        BadgeType $badgeType,
+        Player $player,
+        BadgeCheckContext $context,
+        array $sessionEntries,
+        array $sessionScoreSums,
+    ): bool {
         return match ($badgeType) {
-            BadgeType::Centurion => $this->checkCenturion($player),
-            BadgeType::ChampionStreak => $this->checkChampionStreak($player),
-            BadgeType::Comeback => $this->checkComeback($player),
-            BadgeType::FirstChelem => $this->checkFirstChelem($player),
-            BadgeType::FirstGame => $this->checkFirstGame($player),
-            BadgeType::Kamikaze => $this->checkKamikaze($player),
-            BadgeType::LastPlace => $this->checkLastPlace($player),
-            BadgeType::Marathon => $this->checkMarathon($player),
-            BadgeType::NightOwl => $this->checkNightOwl($player),
-            BadgeType::NoNet => $this->checkNoNet($player),
-            BadgeType::PetitMalin => $this->checkPetitMalin($player),
-            BadgeType::Regular => $this->checkRegular($player),
-            BadgeType::Social => $this->checkSocial($player),
-            BadgeType::StarCollector => $this->checkStarCollector($player),
-            BadgeType::Wall => $this->checkWall($player),
+            BadgeType::Centurion => $this->checkCenturion($context),
+            BadgeType::ChampionStreak => $this->checkChampionStreak($context),
+            BadgeType::Comeback => $this->checkComeback($player, $context, $sessionEntries),
+            BadgeType::FirstChelem => $this->checkFirstChelem($context),
+            BadgeType::FirstGame => $this->checkFirstGame($context),
+            BadgeType::Kamikaze => $this->checkKamikaze($context),
+            BadgeType::LastPlace => $this->checkLastPlace($player, $context, $sessionScoreSums),
+            BadgeType::Marathon => $this->checkMarathon($context),
+            BadgeType::NightOwl => $this->checkNightOwl($context),
+            BadgeType::NoNet => $this->checkNoNet($context),
+            BadgeType::PetitMalin => $this->checkPetitMalin($context),
+            BadgeType::Regular => $this->checkRegular($context),
+            BadgeType::Social => $this->checkSocial($context),
+            BadgeType::StarCollector => $this->checkStarCollector($context),
+            BadgeType::Wall => $this->checkWall($player, $context),
         };
     }
 
     /**
      * Player has >= 100 completed games.
      */
-    private function checkCenturion(Player $player): bool
+    private function checkCenturion(BadgeCheckContext $context): bool
     {
-        return $this->scoreEntryRepository->countCompletedGameEntriesForPlayer($player) >= 100;
+        return $context->completedGameCount >= 100;
     }
 
     /**
      * Player had >= 5 consecutive wins as taker.
      */
-    private function checkChampionStreak(Player $player): bool
+    private function checkChampionStreak(BadgeCheckContext $context): bool
     {
-        $scores = $this->gameRepository->getTakerScoresForPlayer($player);
-        $games = \array_map(static fn (int $score): array => ['score' => $score], $scores);
+        $games = \array_map(static fn (int $score): array => ['score' => $score], $context->takerScores);
 
         return $this->maxStreak($games, static fn (array $game): bool => $game['score'] > 0) >= 5;
     }
 
     /**
      * Player was last at some point during a session and ended up first.
+     *
+     * @param array<int, list<ScoreEntryPositionDto>> $sessionEntries
      */
-    private function checkComeback(Player $player): bool
+    private function checkComeback(Player $player, BadgeCheckContext $context, array $sessionEntries): bool
     {
-        $sessionIds = $this->scoreEntryRepository->getDistinctCompletedSessionIdsForPlayer($player);
-
-        foreach ($sessionIds as $sessionId) {
-            if ($this->checkComebackInSession($sessionId, $player)) {
+        foreach ($context->distinctSessionIds as $sessionId) {
+            if ($this->checkComebackInSession($sessionEntries[$sessionId] ?? [], $player)) {
                 return true;
             }
         }
@@ -154,10 +265,11 @@ final readonly class BadgeChecker
         return false;
     }
 
-    private function checkComebackInSession(int $sessionId, Player $player): bool
+    /**
+     * @param list<ScoreEntryPositionDto> $entries
+     */
+    private function checkComebackInSession(array $entries, Player $player): bool
     {
-        $entries = $this->scoreEntryRepository->getEntriesForSessionByPosition($sessionId);
-
         if (0 === \count($entries)) {
             return false;
         }
@@ -212,37 +324,37 @@ final readonly class BadgeChecker
     /**
      * Player was taker in a game with chelem=AnnouncedWon.
      */
-    private function checkFirstChelem(Player $player): bool
+    private function checkFirstChelem(BadgeCheckContext $context): bool
     {
-        return $this->gameRepository->countByTakerAndStatusAndChelem($player, Chelem::AnnouncedWon) >= 1;
+        return $context->chelemAnnouncedWonCount >= 1;
     }
 
     /**
      * Player has >= 1 completed game.
      */
-    private function checkFirstGame(Player $player): bool
+    private function checkFirstGame(BadgeCheckContext $context): bool
     {
-        return $this->scoreEntryRepository->countCompletedGameEntriesForPlayer($player) >= 1;
+        return $context->completedGameCount >= 1;
     }
 
     /**
      * Player was taker in a GardeContre game.
      */
-    private function checkKamikaze(Player $player): bool
+    private function checkKamikaze(BadgeCheckContext $context): bool
     {
-        return $this->gameRepository->countByTakerAndStatusAndContract($player, Contract::GardeContre) >= 1;
+        return $context->gardeContreCount >= 1;
     }
 
     /**
      * Player finished last (lowest cumulative score) in >= 5 sessions.
+     *
+     * @param array<int, list<PlayerScoreSumDto>> $sessionScoreSums
      */
-    private function checkLastPlace(Player $player): bool
+    private function checkLastPlace(Player $player, BadgeCheckContext $context, array $sessionScoreSums): bool
     {
-        $sessionIds = $this->scoreEntryRepository->getDistinctCompletedSessionIdsForPlayer($player);
-
         $lastPlaceCount = 0;
-        foreach ($sessionIds as $sessionId) {
-            if ($this->isLastInSession($sessionId, $player)) {
+        foreach ($context->distinctSessionIds as $sessionId) {
+            if ($this->isLastInSession($sessionScoreSums[$sessionId] ?? [], $player)) {
                 ++$lastPlaceCount;
             }
         }
@@ -250,10 +362,11 @@ final readonly class BadgeChecker
         return $lastPlaceCount >= 5;
     }
 
-    private function isLastInSession(int $sessionId, Player $player): bool
+    /**
+     * @param list<PlayerScoreSumDto> $scores
+     */
+    private function isLastInSession(array $scores, Player $player): bool
     {
-        $scores = $this->scoreEntryRepository->getScoreSumsByPlayerForSession($sessionId);
-
         if (0 === \count($scores)) {
             return false;
         }
@@ -264,74 +377,70 @@ final readonly class BadgeChecker
     /**
      * Player was in a session lasting > 3 hours.
      */
-    private function checkMarathon(Player $player): bool
+    private function checkMarathon(BadgeCheckContext $context): bool
     {
-        $sessions = $this->gameRepository->getMarathonSessionsForPlayer($player, 3 * 3600);
-
-        return \count($sessions) >= 1;
+        return \count($context->marathonSessionIds) >= 1;
     }
 
     /**
      * Player participated in a game completed between 00:00-04:59.
      */
-    private function checkNightOwl(Player $player): bool
+    private function checkNightOwl(BadgeCheckContext $context): bool
     {
-        return $this->scoreEntryRepository->countNightOwlGamesForPlayer($player) >= 1;
+        return $context->nightOwlCount >= 1;
     }
 
     /**
      * Player was taker in a GardeSans game AND won (taker's score > 0).
      */
-    private function checkNoNet(Player $player): bool
+    private function checkNoNet(BadgeCheckContext $context): bool
     {
-        return $this->gameRepository->countWonGamesWithContract($player, Contract::GardeSans) >= 1;
+        return $context->wonGardeSansCount >= 1;
     }
 
     /**
      * Player was taker in >= 5 games with petitAuBout=Attack AND taker won (score > 0).
      */
-    private function checkPetitMalin(Player $player): bool
+    private function checkPetitMalin(BadgeCheckContext $context): bool
     {
-        return $this->gameRepository->countWonGamesWithPetitAuBout($player, Side::Attack) >= 5;
+        return $context->wonPetitAuBoutAttackCount >= 5;
     }
 
     /**
      * Player participated in >= 10 distinct sessions with completed games.
      */
-    private function checkRegular(Player $player): bool
+    private function checkRegular(BadgeCheckContext $context): bool
     {
-        return $this->scoreEntryRepository->countDistinctCompletedSessionsForPlayer($player) >= 10;
+        return $context->distinctSessionCount >= 10;
     }
 
     /**
      * Player played with >= 10 distinct other players (in sessions with completed games).
      */
-    private function checkSocial(Player $player): bool
+    private function checkSocial(BadgeCheckContext $context): bool
     {
-        return $this->sessionRepository->countDistinctCoPlayersForPlayer($player) >= 10;
+        return $context->coPlayerCount >= 10;
     }
 
     /**
      * Player has >= 10 StarEvents.
      */
-    private function checkStarCollector(Player $player): bool
+    private function checkStarCollector(BadgeCheckContext $context): bool
     {
-        return $this->starEventRepository->countByPlayer($player) >= 10;
+        return $context->starEventCount >= 10;
     }
 
     /**
      * Player had >= 10 consecutive defense wins.
      * Defense win = game where player was NOT taker AND NOT partner, and taker's score < 0.
      */
-    private function checkWall(Player $player): bool
+    private function checkWall(Player $player, BadgeCheckContext $context): bool
     {
-        $games = $this->scoreEntryRepository->getGamesWithTakerScoreForPlayer($player);
-
         $playerId = $player->getId();
         $max = 0;
         $current = 0;
 
-        foreach ($games as $game) {
+        foreach ($context->gamesWithTakerScore as $game) {
             $isDefense = $game->takerId !== $playerId
                 && (null === $game->partnerId || $game->partnerId !== $playerId);
             $defenseWin = $isDefense && $game->takerScore < 0;

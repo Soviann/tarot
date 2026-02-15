@@ -404,7 +404,7 @@ final class GameRepository extends ServiceEntityRepository
 
         /** @var list<array{playerId: int|string, sessionId: int|string}> $results */
         $results = $this->createQueryBuilder('g')
-            ->select('IDENTITY(p.id) AS playerId', 'IDENTITY(g.session) AS sessionId')
+            ->select('p.id AS playerId', 'IDENTITY(g.session) AS sessionId')
             ->join('g.session', 's')
             ->join('s.players', 'p')
             ->andWhere('p.id IN (:playerIds)')
