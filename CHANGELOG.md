@@ -6,6 +6,10 @@ Le format est basé sur [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/)
 
 ## [Unreleased]
 
+### Fixed
+
+- **APP_SECRET retiré du contrôle de version** : le secret applicatif n'est plus stocké en dur dans `.env.dev` (fichier tracké par Git). Le fichier `.env.dev` a été supprimé et `.env` contient désormais une valeur placeholder. Les environnements de développement doivent utiliser `.env.dev.local` (gitignored) pour surcharger le secret.
+
 ### Changed
 
 - **Requêtes BDD centralisées dans les repositories** : toutes les requêtes Doctrine (~73) ont été migrées des services, controllers, processors et validateurs vers des repositories dédiés par entité (GameRepository, ScoreEntryRepository, StarEventRepository, EloHistoryRepository, PlayerRepository, PlayerGroupRepository, PlayerBadgeRepository). Utilisation exclusive du QueryBuilder (plus de DQL brut). EloRevertHelper converti de classe statique en service injectable.
