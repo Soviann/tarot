@@ -14,7 +14,7 @@ final class Version20260215180656 extends AbstractMigration
 {
     public function getDescription(): string
     {
-        return '';
+        return 'Add composite indexes on game, score_entry, and star_event tables';
     }
 
     public function up(Schema $schema): void
