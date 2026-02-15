@@ -550,6 +550,110 @@ class GameApiTest extends ApiTestCase
         $this->assertResponseStatusCodeSame(422);
     }
 
+    public function testRejectsOudlersOutOfRange(): void
+    {
+        $session = $this->createSessionWithPlayers('Alice', 'Bob', 'Charlie', 'Diana', 'Eve');
+        $players = $session->getPlayers()->toArray();
+
+        $game = new Game();
+        $game->setContract(Contract::Petite);
+        $game->setPosition(1);
+        $game->setSession($session);
+        $game->setTaker($players[0]);
+        $this->em->persist($game);
+        $this->em->flush();
+
+        // oudlers = -1 → 422
+        $this->client->request('PATCH', '/api/games/'.$game->getId(), [
+            'headers' => ['Content-Type' => 'application/merge-patch+json'],
+            'json' => [
+                'oudlers' => -1,
+                'points' => 45,
+                'status' => 'completed',
+            ],
+        ]);
+
+        $this->assertResponseStatusCodeSame(422);
+    }
+
+    public function testRejectsOudlersAboveMax(): void
+    {
+        $session = $this->createSessionWithPlayers('Alice', 'Bob', 'Charlie', 'Diana', 'Eve');
+        $players = $session->getPlayers()->toArray();
+
+        $game = new Game();
+        $game->setContract(Contract::Petite);
+        $game->setPosition(1);
+        $game->setSession($session);
+        $game->setTaker($players[0]);
+        $this->em->persist($game);
+        $this->em->flush();
+
+        // oudlers = 4 → 422
+        $this->client->request('PATCH', '/api/games/'.$game->getId(), [
+            'headers' => ['Content-Type' => 'application/merge-patch+json'],
+            'json' => [
+                'oudlers' => 4,
+                'points' => 45,
+                'status' => 'completed',
+            ],
+        ]);
+
+        $this->assertResponseStatusCodeSame(422);
+    }
+
+    public function testRejectsPointsBelowMin(): void
+    {
+        $session = $this->createSessionWithPlayers('Alice', 'Bob', 'Charlie', 'Diana', 'Eve');
+        $players = $session->getPlayers()->toArray();
+
+        $game = new Game();
+        $game->setContract(Contract::Petite);
+        $game->setPosition(1);
+        $game->setSession($session);
+        $game->setTaker($players[0]);
+        $this->em->persist($game);
+        $this->em->flush();
+
+        // points = -1 → 422
+        $this->client->request('PATCH', '/api/games/'.$game->getId(), [
+            'headers' => ['Content-Type' => 'application/merge-patch+json'],
+            'json' => [
+                'oudlers' => 2,
+                'points' => -1,
+                'status' => 'completed',
+            ],
+        ]);
+
+        $this->assertResponseStatusCodeSame(422);
+    }
+
+    public function testRejectsPointsAboveMax(): void
+    {
+        $session = $this->createSessionWithPlayers('Alice', 'Bob', 'Charlie', 'Diana', 'Eve');
+        $players = $session->getPlayers()->toArray();
+
+        $game = new Game();
+        $game->setContract(Contract::Petite);
+        $game->setPosition(1);
+        $game->setSession($session);
+        $game->setTaker($players[0]);
+        $this->em->persist($game);
+        $this->em->flush();
+
+        // points = 92 → 422
+        $this->client->request('PATCH', '/api/games/'.$game->getId(), [
+            'headers' => ['Content-Type' => 'application/merge-patch+json'],
+            'json' => [
+                'oudlers' => 2,
+                'points' => 92,
+                'status' => 'completed',
+            ],
+        ]);
+
+        $this->assertResponseStatusCodeSame(422);
+    }
+
     public function testPartnerMustBelongToSession(): void
     {
         $session = $this->createSessionWithPlayers('Alice', 'Bob', 'Charlie', 'Diana', 'Eve');

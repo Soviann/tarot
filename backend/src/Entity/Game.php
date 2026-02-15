@@ -27,6 +27,7 @@ use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Serializer\Attribute\Groups;
+use Symfony\Component\Validator\Constraints as Assert;
 
 #[ApiResource(
     operations: [
@@ -91,6 +92,7 @@ class Game
     #[ORM\Column(type: 'datetime_immutable')]
     private \DateTimeImmutable $createdAt;
 
+    #[Assert\Range(max: 3, min: 0)]
     #[Groups(['game:read', 'game:complete', 'session:detail'])]
     #[ORM\Column(nullable: true)]
     private ?int $oudlers = null;
@@ -112,6 +114,7 @@ class Game
     #[ORM\Column(enumType: Side::class)]
     private Side $poigneeOwner = Side::None;
 
+    #[Assert\Range(max: 91, min: 0)]
     #[Groups(['game:read', 'game:complete', 'session:detail'])]
     #[ORM\Column(nullable: true)]
     private ?float $points = null;
