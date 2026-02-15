@@ -629,7 +629,7 @@ Page d'aide in-app reprenant le contenu du guide utilisateur (`docs/user-guide.m
 
 **Fonctionnalités** :
 - Section « Installation » toujours visible
-- 12 sections en accordéon dépliable (`AccordionSection`, composant local)
+- 13 sections en accordéon dépliable (`AccordionSection`, composant local) dont une section « Badges » listant les 15 badges par catégorie (données statiques dans `BADGE_CATEGORIES`)
 - Lien vers le dépôt GitHub en bas de page
 - Bouton retour vers l'accueil
 - Accessible via l'icône `CircleHelp` sur la page d'accueil (`Home.tsx`), à droite du titre « Sessions récentes »
