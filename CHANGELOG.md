@@ -12,6 +12,7 @@ Le format est basé sur [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/)
 
 ### Changed
 
+- **Services `final readonly`** : `ScoreCalculator`, `EloCalculator`, `GlobalStatisticsService`, `PlayerStatisticsService` et `SessionSummaryService` sont désormais `final readonly`, alignés sur la convention des autres services du projet.
 - **Badges : suppression du side-effect sur GET statistiques** : le check de badges a été retiré de l'endpoint `GET /api/statistics/players/{id}` (side-effect d'écriture sur une route de lecture). Les badges sont désormais vérifiés uniquement lors de la complétion d'une donne (`GameCompleteProcessor`) et de l'ajout d'étoiles.
 
 ### Fixed

@@ -21,7 +21,7 @@ use App\Entity\Game;
  *   des arrondis (round) et des K différents par rôle.
  * - Le tableau $ratings doit contenir une entrée pour chaque joueur de la session, indexée par nom.
  */
-class EloCalculator
+final readonly class EloCalculator
 {
     /** K-factor appliqué à chaque défenseur (variation plus "douce"). */
     private const int K_DEFENDER = 15;
