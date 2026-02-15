@@ -23,6 +23,7 @@ abstract class ApiTestCase extends BaseApiTestCase
     {
         $this->client = static::createClient();
         $this->em = static::getContainer()->get(EntityManagerInterface::class);
+        static::getContainer()->get('cache.rate_limiter')->clear();
     }
 
     protected function createPlayerGroup(string $name, Player ...$players): PlayerGroup
