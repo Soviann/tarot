@@ -99,6 +99,12 @@ class Session
     #[Groups(['session:detail'])]
     private ?Game $inProgressGame = null;
 
+    /**
+     * Dernière activité — propriété non persistée, alimentée par les providers.
+     * Évite le lazy-load de la collection games.
+     */
+    private ?\DateTimeImmutable $lastPlayedAt = null;
+
     public function __construct()
     {
         $this->createdAt = new \DateTimeImmutable();
@@ -144,14 +150,14 @@ class Session
     #[Groups(['session:read'])]
     public function getLastPlayedAt(): \DateTimeImmutable
     {
-        $latest = $this->createdAt;
-        foreach ($this->games as $game) {
-            if ($game->getCreatedAt() > $latest) {
-                $latest = $game->getCreatedAt();
-            }
-        }
+        return $this->lastPlayedAt ?? $this->createdAt;
+    }
 
-        return $latest;
+    public function setLastPlayedAt(\DateTimeImmutable $lastPlayedAt): static
+    {
+        $this->lastPlayedAt = $lastPlayedAt;
+
+        return $this;
     }
 
     public function getCurrentDealer(): ?Player

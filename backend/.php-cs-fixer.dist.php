@@ -39,6 +39,9 @@ return (new PhpCsFixer\Config())
                 'method_private',
             ],
         ],
+        'phpdoc_to_comment' => [
+            'ignored_tags' => ['var'],
+        ],
         'ordered_imports' => [
             'imports_order' => ['class', 'function', 'const'],
             'sort_algorithm' => 'alpha',

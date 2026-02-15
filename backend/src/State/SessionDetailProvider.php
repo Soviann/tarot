@@ -35,6 +35,9 @@ final readonly class SessionDetailProvider implements ProviderInterface
             return null;
         }
 
+        $session->setLastPlayedAt(
+            $this->gameRepository->getMaxCreatedAtForSession($session) ?? $session->getCreatedAt(),
+        );
         $session->setCumulativeScores(\array_map(
             static fn (CumulativeScoreDto $dto) => [
                 'playerId' => $dto->playerId,
