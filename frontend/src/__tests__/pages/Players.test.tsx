@@ -342,6 +342,26 @@ describe("Players page", () => {
     expect(screen.getByText("17/01/2025")).toBeInTheDocument();
   });
 
+  it("navigates to player stats when clicking on a player row", () => {
+    setupMocks();
+    renderWithProviders(<Players />);
+
+    const aliceLink = screen.getByRole("link", { name: /Alice/ });
+    expect(aliceLink).toHaveAttribute("href", "/stats/player/1");
+
+    const bobLink = screen.getByRole("link", { name: /Bob/ });
+    expect(bobLink).toHaveAttribute("href", "/stats/player/2");
+  });
+
+  it("does not navigate when clicking the edit button", async () => {
+    setupMocks();
+    renderWithProviders(<Players />);
+
+    // Edit button should not be inside a link
+    const editButtons = screen.getAllByRole("button", { name: /Modifier/i });
+    expect(editButtons[0].closest("a")).toBeNull();
+  });
+
   it("renders inactive player with visual treatment", () => {
     const playersWithInactive = [
       { active: true, createdAt: "2025-01-15T10:00:00+00:00", id: 1, lastActivityAt: null, name: "Alice", playerGroups: [] },
