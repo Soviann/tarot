@@ -15,10 +15,10 @@ use App\Dto\GameTakerScoreDto;
 final readonly class BadgeCheckContext
 {
     /**
-     * @param list<int>              $distinctSessionIds
+     * @param list<int>               $distinctSessionIds
      * @param list<GameTakerScoreDto> $gamesWithTakerScore
-     * @param list<int>              $marathonSessionIds
-     * @param list<int>              $takerScores
+     * @param list<int>               $marathonSessionIds
+     * @param list<int>               $takerScores
      */
     public function __construct(
         public int $chelemAnnouncedWonCount = 0,

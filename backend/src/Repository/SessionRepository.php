@@ -131,7 +131,7 @@ final class SessionRepository extends ServiceEntityRepository
             ->getQuery()
             ->getResult();
 
-        $result = array_fill_keys($playerIds, 0);
+        $result = \array_fill_keys($playerIds, 0);
 
         foreach ($rows as $row) {
             $result[(int) $row['playerId']] = (int) $row['coPlayerCount'];

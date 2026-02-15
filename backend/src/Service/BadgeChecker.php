@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Service;
 
-use App\Dto\GameTakerScoreDto;
 use App\Dto\PlayerScoreSumDto;
 use App\Dto\ScoreEntryPositionDto;
 use App\Entity\Player;
