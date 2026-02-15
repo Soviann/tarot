@@ -10,6 +10,7 @@ Le format est basé sur [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/)
 
 - **Badges dans l'aide** : la page d'aide (`/aide`) affiche désormais la liste complète des 15 badges disponibles, regroupés par catégorie (Progression, Performance, Fun, Social), avec leur icône, nom et condition d'obtention.
 - **Rate limiting API** : les endpoints sous `/api/` sont désormais limités à 60 requêtes par minute par IP (sliding window). En cas de dépassement, l'API retourne une réponse 429 avec un corps JSON conforme RFC 7807. Les en-têtes `X-RateLimit-Limit`, `X-RateLimit-Remaining` et `Retry-After` sont inclus dans les réponses.
+- **Liste des joueurs cliquable** : toute la ligne d'un joueur est désormais cliquable pour accéder directement à sa page de statistiques.
 
 ### Changed
 
