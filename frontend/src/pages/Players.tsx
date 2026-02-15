@@ -1,5 +1,6 @@
 import { Pencil, Plus, UserX } from "lucide-react";
 import { type FormEvent, useCallback, useState } from "react";
+import { Link } from "react-router-dom";
 import { EmptyState, FAB, Modal, PlayerAvatar, SearchInput, Spinner } from "../components/ui";
 import { useCreatePlayer } from "../hooks/useCreatePlayer";
 import { usePlayerGroups } from "../hooks/usePlayerGroups";
@@ -147,41 +148,46 @@ export default function Players() {
         <ul className="flex flex-col gap-2">
           {players.map((player) => (
             <li
-              className="flex items-center gap-3 rounded-lg bg-surface-secondary p-3"
+              className="flex items-center gap-1 rounded-lg bg-surface-secondary"
               key={player.id}
             >
-              <PlayerAvatar
-                className={player.active ? "" : "opacity-50"}
-                color={player.color}
-                name={player.name}
-                playerId={player.id}
-              />
-              <div className="min-w-0 flex-1">
-                <div className="flex items-center gap-2">
-                  <p
-                    className={`truncate font-medium ${
-                      player.active
-                        ? "text-text-primary"
-                        : "text-text-muted line-through"
-                    }`}
-                  >
-                    {player.name}
+              <Link
+                className="flex min-w-0 flex-1 items-center gap-3 rounded-l-lg p-3 transition-colors hover:bg-surface-tertiary/50"
+                to={`/stats/player/${player.id}`}
+              >
+                <PlayerAvatar
+                  className={player.active ? "" : "opacity-50"}
+                  color={player.color}
+                  name={player.name}
+                  playerId={player.id}
+                />
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-center gap-2">
+                    <p
+                      className={`truncate font-medium ${
+                        player.active
+                          ? "text-text-primary"
+                          : "text-text-muted line-through"
+                      }`}
+                    >
+                      {player.name}
+                    </p>
+                    {!player.active && (
+                      <span className="shrink-0 rounded bg-surface-tertiary px-1.5 py-0.5 text-xs text-text-muted">
+                        Inactif
+                      </span>
+                    )}
+                  </div>
+                  <p className="text-xs text-text-muted">
+                    {player.lastActivityAt
+                      ? formatRelativeDate(player.lastActivityAt)
+                      : new Date(player.createdAt).toLocaleDateString("fr-FR")}
                   </p>
-                  {!player.active && (
-                    <span className="shrink-0 rounded bg-surface-tertiary px-1.5 py-0.5 text-xs text-text-muted">
-                      Inactif
-                    </span>
-                  )}
                 </div>
-                <p className="text-xs text-text-muted">
-                  {player.lastActivityAt
-                    ? formatRelativeDate(player.lastActivityAt)
-                    : new Date(player.createdAt).toLocaleDateString("fr-FR")}
-                </p>
-              </div>
+              </Link>
               <button
                 aria-label={`Modifier ${player.name}`}
-                className="flex min-h-10 min-w-10 items-center justify-center rounded-full text-text-secondary transition-colors hover:bg-surface-tertiary"
+                className="mr-1 flex min-h-10 min-w-10 items-center justify-center rounded-full text-text-secondary transition-colors hover:bg-surface-tertiary"
                 onClick={() => openEditModal(player)}
                 type="button"
               >
