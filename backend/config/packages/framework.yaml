@@ -9,6 +9,11 @@ framework:
     #esi: true
     #fragments: true
 
+when@prod:
+    framework:
+        session:
+            enabled: false
+
 when@test:
     framework:
         test: true
