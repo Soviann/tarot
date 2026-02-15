@@ -6,6 +6,10 @@ Le format est basé sur [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/)
 
 ## [Unreleased]
 
+### Added
+
+- **Rate limiting API** : les endpoints sous `/api/` sont désormais limités à 60 requêtes par minute par IP (sliding window). En cas de dépassement, l'API retourne une réponse 429 avec un corps JSON conforme RFC 7807. Les en-têtes `X-RateLimit-Limit`, `X-RateLimit-Remaining` et `Retry-After` sont inclus dans les réponses.
+
 ### Fixed
 
 - **Session PHP désactivée en production** : la session PHP (`PHPSESSID`) est désormais désactivée en environnement de production, conformément à l'architecture stateless de l'API.

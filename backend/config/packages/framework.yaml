@@ -1,6 +1,12 @@
 # yaml-language-server: $schema=../../vendor/symfony/dependency-injection/Loader/schema/services.schema.json
 # see https://symfony.com/doc/current/reference/configuration/framework.html
 framework:
+    rate_limiter:
+        api_general:
+            interval: '1 minute'
+            limit: 60
+            policy: sliding_window
+
     secret: '%env(APP_SECRET)%'
 
     # Note that the session will be started ONLY if you read or write from it.
