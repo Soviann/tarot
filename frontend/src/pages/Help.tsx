@@ -2,6 +2,45 @@ import { ArrowLeft, ChevronDown, ExternalLink } from "lucide-react";
 import { type ReactNode, useId, useState } from "react";
 import { Link } from "react-router-dom";
 
+// Source : backend/src/Enum/BadgeType.php — mettre à jour si les badges changent.
+const BADGE_CATEGORIES: { category: string; badges: { description: string; emoji: string; label: string }[] }[] = [
+  {
+    category: "Progression",
+    badges: [
+      { description: "Jouer sa première donne", emoji: "🎮", label: "Première donne" },
+      { description: "Jouer 100 donnes", emoji: "💯", label: "Centurion" },
+      { description: "Jouer 10 sessions", emoji: "🔟", label: "Habitué" },
+    ],
+  },
+  {
+    category: "Performance",
+    badges: [
+      { description: "5 victoires consécutives comme preneur", emoji: "🔥", label: "Inarrêtable" },
+      { description: "Réussir un Chelem annoncé", emoji: "👑", label: "Premier Chelem" },
+      { description: "Tenter une Garde Contre", emoji: "⚔️", label: "Kamikaze" },
+      { description: "Réussir une Garde Sans", emoji: "🎯", label: "Sans filet" },
+      { description: "Réussir 5 Petits au bout", emoji: "🃏", label: "Petit malin" },
+      { description: "10 victoires en défense d'affilée", emoji: "🛡️", label: "Muraille" },
+    ],
+  },
+  {
+    category: "Fun",
+    badges: [
+      { description: "Remonter de dernier à premier en une session", emoji: "📈", label: "Comeback" },
+      { description: "Finir dernier 5 fois", emoji: "💀", label: "Lanterne rouge" },
+      { description: "Recevoir 10 étoiles", emoji: "⭐", label: "Collectionneur d'étoiles" },
+    ],
+  },
+  {
+    category: "Social",
+    badges: [
+      { description: "Jouer une session de plus de 3 heures", emoji: "⏰", label: "Marathon" },
+      { description: "Jouer une donne après minuit", emoji: "🌙", label: "Noctambule" },
+      { description: "Jouer avec 10 joueurs différents", emoji: "👥", label: "Sociable" },
+    ],
+  },
+];
+
 function AccordionSection({
   children,
   title,
@@ -341,6 +380,27 @@ export default function Help() {
           Visible dans les statistiques globales et sur la fiche de chaque
           joueur.
         </p>
+      </AccordionSection>
+
+      <AccordionSection title="Badges">
+        <div className="space-y-4">
+          {BADGE_CATEGORIES.map(({ badges, category }) => (
+            <div key={category}>
+              <h3 className="font-medium text-text-primary">{category}</h3>
+              <div className="mt-2 space-y-2">
+                {badges.map((badge) => (
+                  <div key={badge.label} className="flex items-start gap-3">
+                    <span className="text-xl">{badge.emoji}</span>
+                    <div>
+                      <span className="text-sm font-medium text-text-primary">{badge.label}</span>
+                      <p className="text-xs text-text-muted">{badge.description}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ))}
+        </div>
       </AccordionSection>
 
       <AccordionSection title="Utilisation sur Smart TV">

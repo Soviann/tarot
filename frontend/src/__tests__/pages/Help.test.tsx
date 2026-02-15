@@ -30,6 +30,7 @@ describe("Help", () => {
       "Consulter les statistiques",
       "Système d'étoiles",
       "Classement ELO",
+      "Badges",
       "Utilisation sur Smart TV",
       "Thème sombre",
       "Règles de calcul des scores",
@@ -79,6 +80,51 @@ describe("Help", () => {
 
     await user.click(conceptsButton);
     expect(conceptsButton).toHaveAttribute("aria-expanded", "false");
+  });
+
+  it("displays all badges with emoji, name and condition when expanded", async () => {
+    const user = userEvent.setup();
+    renderWithProviders(<Help />);
+
+    const badgesButton = screen.getByRole("button", { name: /Badges/ });
+    await user.click(badgesButton);
+
+    const expectedBadges = [
+      { emoji: "🎮", label: "Première donne", description: "Jouer sa première donne" },
+      { emoji: "💯", label: "Centurion", description: "Jouer 100 donnes" },
+      { emoji: "🔟", label: "Habitué", description: "Jouer 10 sessions" },
+      { emoji: "🔥", label: "Inarrêtable", description: "5 victoires consécutives comme preneur" },
+      { emoji: "👑", label: "Premier Chelem", description: "Réussir un Chelem annoncé" },
+      { emoji: "⚔️", label: "Kamikaze", description: "Tenter une Garde Contre" },
+      { emoji: "🎯", label: "Sans filet", description: "Réussir une Garde Sans" },
+      { emoji: "🃏", label: "Petit malin", description: "Réussir 5 Petits au bout" },
+      { emoji: "🛡️", label: "Muraille", description: "10 victoires en défense d'affilée" },
+      { emoji: "📈", label: "Comeback", description: "Remonter de dernier à premier en une session" },
+      { emoji: "💀", label: "Lanterne rouge", description: "Finir dernier 5 fois" },
+      { emoji: "⭐", label: "Collectionneur d'étoiles", description: "Recevoir 10 étoiles" },
+      { emoji: "⏰", label: "Marathon", description: "Jouer une session de plus de 3 heures" },
+      { emoji: "🌙", label: "Noctambule", description: "Jouer une donne après minuit" },
+      { emoji: "👥", label: "Sociable", description: "Jouer avec 10 joueurs différents" },
+    ];
+
+    for (const badge of expectedBadges) {
+      expect(screen.getByText(badge.emoji)).toBeInTheDocument();
+      expect(screen.getByText(badge.label)).toBeInTheDocument();
+      expect(screen.getByText(badge.description)).toBeInTheDocument();
+    }
+  });
+
+  it("groups badges by category", async () => {
+    const user = userEvent.setup();
+    renderWithProviders(<Help />);
+
+    const badgesButton = screen.getByRole("button", { name: /Badges/ });
+    await user.click(badgesButton);
+
+    expect(screen.getByText("Progression")).toBeInTheDocument();
+    expect(screen.getByText("Performance")).toBeInTheDocument();
+    expect(screen.getByText("Fun")).toBeInTheDocument();
+    expect(screen.getByText("Social")).toBeInTheDocument();
   });
 
   it("renders a link to the GitHub repository", () => {
