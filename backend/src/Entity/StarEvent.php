@@ -28,6 +28,7 @@ use Symfony\Component\Validator\Constraints as Assert;
     denormalizationContext: ['groups' => ['star-event:write']],
 )]
 #[ORM\Entity(repositoryClass: StarEventRepository::class)]
+#[ORM\Index(columns: ['session_id', 'player_id'])]
 class StarEvent
 {
     #[Groups(['session:detail', 'star-event:read'])]
