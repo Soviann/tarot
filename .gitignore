@@ -1,6 +1,37 @@
-.DS_Store
+###> symfony/framework-bundle ###
+backend/.env.local
+backend/.env.local.php
+backend/.env.*.local
+backend/config/secrets/prod/prod.decrypt.private.php
+backend/public/bundles/
+backend/var/
+backend/vendor/
+###< symfony/framework-bundle ###
+
+###> phpunit/phpunit ###
+backend/phpunit.xml
+backend/.phpunit.cache/
+###< phpunit/phpunit ###
+
+###> friendsofphp/php-cs-fixer ###
+backend/.php-cs-fixer.php
+backend/.php-cs-fixer.cache
+###< friendsofphp/php-cs-fixer ###
+
+###> node ###
+frontend/node_modules/
+###< node ###
+
+###> ide ###
 .idea/
+.vscode/
+###< ide ###
+
+###> local ###
+.DS_Store
+.claude/
 .playwright-mcp/
 docs/plans/
 .ddev/share-providers/
 worktrees/
+###< local ###
