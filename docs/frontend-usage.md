@@ -682,6 +682,7 @@ Page d'aide in-app reprenant le contenu du guide utilisateur (`docs/user-guide.m
 - Modification du nom inline (bouton crayon)
 - Liste des membres avec avatar et bouton de retrait
 - Ajout de membres via modale `PlayerSelector`
+- Clôture des sessions ouvertes du groupe avec modale de confirmation
 - Suppression du groupe avec confirmation
 - Bouton retour vers `/groups`
 
