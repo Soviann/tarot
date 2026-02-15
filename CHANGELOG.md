@@ -12,6 +12,7 @@ Le format est basé sur [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/)
 
 ### Changed
 
+- **Nettoyage backend** : suppression des annotations `@throws` trompeuses sur `SessionController`, extraction du `applyGroupFilter` dupliqué dans un trait partagé `GroupFilterTrait`, et correction du risque N+1 sur `Session::getLastPlayedAt()` (la valeur est désormais hydratée depuis SQL par les providers).
 - **Index composites** : ajout d'index composites sur `game(session_id, status)`, `score_entry(game_id, player_id)` et `star_event(session_id, player_id)` pour optimiser les requêtes fréquentes.
 - **BadgeChecker : requêtes en batch** : `BadgeChecker::checkAndAward()` pré-charge désormais toutes les statistiques en batch (~12 requêtes) au lieu de requêtes individuelles par joueur × badge (~75+ requêtes). Introduit `BadgeCheckContext` comme value object portant les données pré-chargées.
 - **EloCalculator : identification par ID** : `EloCalculator::compute()` utilise désormais les IDs des joueurs comme clés du tableau `$ratings` (au lieu des noms), rendant le mapping plus robuste et simplifiant `GameCompleteProcessor`.

@@ -76,9 +76,9 @@ final class SessionRepository extends ServiceEntityRepository
      */
     public function findRecentWithLastActivity(int $maxResults = 5): array
     {
-        /** @var Session[] $result */
-        $result = $this->createQueryBuilder('s')
-            ->addSelect('COALESCE(MAX(g.createdAt), s.createdAt) AS HIDDEN lastActivity')
+        /** @var list<array{0: Session, lastActivity: string}> $rows */
+        $rows = $this->createQueryBuilder('s')
+            ->addSelect('COALESCE(MAX(g.createdAt), s.createdAt) AS lastActivity')
             ->leftJoin('s.games', 'g')
             ->groupBy('s')
             ->orderBy('lastActivity', 'DESC')
@@ -86,7 +86,11 @@ final class SessionRepository extends ServiceEntityRepository
             ->getQuery()
             ->getResult();
 
-        return $result;
+        return \array_map(static function (array $row): Session {
+            $row[0]->setLastPlayedAt(new \DateTimeImmutable($row['lastActivity']));
+
+            return $row[0];
+        }, $rows);
     }
 
     public function countDistinctCoPlayersForPlayer(Player $player): int
