@@ -31,6 +31,7 @@ tarot/
 
 - Store in `docs/plans/` (project-local, never global).
 - Temporary — delete after the related PR is merged.
+- **Concise plans only**: describe what to do (files, logic, order), not how (no code blocks). Code is written at implementation time.
 
 ## Mandatory TDD
 
