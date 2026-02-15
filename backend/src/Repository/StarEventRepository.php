@@ -52,6 +52,35 @@ final class StarEventRepository extends ServiceEntityRepository
             ->getSingleScalarResult();
     }
 
+    /**
+     * @param list<int> $playerIds
+     *
+     * @return array<int, int> playerId => star event count
+     */
+    public function countByPlayers(array $playerIds): array
+    {
+        if ([] === $playerIds) {
+            return [];
+        }
+
+        /** @var list<array{cnt: string, playerId: int|string}> $rows */
+        $rows = $this->createQueryBuilder('se')
+            ->select('IDENTITY(se.player) AS playerId, COUNT(se.id) AS cnt')
+            ->andWhere('se.player IN (:playerIds)')
+            ->setParameter('playerIds', $playerIds)
+            ->groupBy('se.player')
+            ->getQuery()
+            ->getResult();
+
+        $result = \array_fill_keys($playerIds, 0);
+
+        foreach ($rows as $row) {
+            $result[(int) $row['playerId']] = (int) $row['cnt'];
+        }
+
+        return $result;
+    }
+
     public function countByPlayerFiltered(Player $player, ?int $playerGroupId = null): int
     {
         $qb = $this->createQueryBuilder('se')

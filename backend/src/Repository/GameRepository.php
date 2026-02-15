@@ -258,6 +258,208 @@ final class GameRepository extends ServiceEntityRepository
     }
 
     /**
+     * @param list<int> $playerIds
+     *
+     * @return array<int, int> playerId => count
+     */
+    public function countByTakerAndChelemForPlayers(array $playerIds, Chelem $chelem): array
+    {
+        if ([] === $playerIds) {
+            return [];
+        }
+
+        /** @var list<array{count: int|string, playerId: int|string}> $results */
+        $results = $this->createQueryBuilder('g')
+            ->select('IDENTITY(g.taker) AS playerId', 'COUNT(g.id) AS count')
+            ->andWhere('g.taker IN (:playerIds)')
+            ->andWhere('g.status = :status')
+            ->andWhere('g.chelem = :chelem')
+            ->setParameter('chelem', $chelem)
+            ->setParameter('playerIds', $playerIds)
+            ->setParameter('status', GameStatus::Completed)
+            ->groupBy('g.taker')
+            ->getQuery()
+            ->getResult();
+
+        $map = \array_fill_keys($playerIds, 0);
+        foreach ($results as $row) {
+            $map[(int) $row['playerId']] = (int) $row['count'];
+        }
+
+        return $map;
+    }
+
+    /**
+     * @param list<int> $playerIds
+     *
+     * @return array<int, int> playerId => count
+     */
+    public function countByTakerAndContractForPlayers(array $playerIds, Contract $contract): array
+    {
+        if ([] === $playerIds) {
+            return [];
+        }
+
+        /** @var list<array{count: int|string, playerId: int|string}> $results */
+        $results = $this->createQueryBuilder('g')
+            ->select('IDENTITY(g.taker) AS playerId', 'COUNT(g.id) AS count')
+            ->andWhere('g.taker IN (:playerIds)')
+            ->andWhere('g.status = :status')
+            ->andWhere('g.contract = :contract')
+            ->setParameter('contract', $contract)
+            ->setParameter('playerIds', $playerIds)
+            ->setParameter('status', GameStatus::Completed)
+            ->groupBy('g.taker')
+            ->getQuery()
+            ->getResult();
+
+        $map = \array_fill_keys($playerIds, 0);
+        foreach ($results as $row) {
+            $map[(int) $row['playerId']] = (int) $row['count'];
+        }
+
+        return $map;
+    }
+
+    /**
+     * @param list<int> $playerIds
+     *
+     * @return array<int, int> playerId => count
+     */
+    public function countWonGamesWithContractForPlayers(array $playerIds, Contract $contract): array
+    {
+        if ([] === $playerIds) {
+            return [];
+        }
+
+        /** @var list<array{count: int|string, playerId: int|string}> $results */
+        $results = $this->createQueryBuilder('g')
+            ->select('IDENTITY(g.taker) AS playerId', 'COUNT(g.id) AS count')
+            ->join('g.scoreEntries', 'se')
+            ->andWhere('g.taker IN (:playerIds)')
+            ->andWhere('g.status = :status')
+            ->andWhere('g.contract = :contract')
+            ->andWhere('se.player = g.taker')
+            ->andWhere('se.score > 0')
+            ->setParameter('contract', $contract)
+            ->setParameter('playerIds', $playerIds)
+            ->setParameter('status', GameStatus::Completed)
+            ->groupBy('g.taker')
+            ->getQuery()
+            ->getResult();
+
+        $map = \array_fill_keys($playerIds, 0);
+        foreach ($results as $row) {
+            $map[(int) $row['playerId']] = (int) $row['count'];
+        }
+
+        return $map;
+    }
+
+    /**
+     * @param list<int> $playerIds
+     *
+     * @return array<int, int> playerId => count
+     */
+    public function countWonGamesWithPetitAuBoutForPlayers(array $playerIds, Side $side): array
+    {
+        if ([] === $playerIds) {
+            return [];
+        }
+
+        /** @var list<array{count: int|string, playerId: int|string}> $results */
+        $results = $this->createQueryBuilder('g')
+            ->select('IDENTITY(g.taker) AS playerId', 'COUNT(g.id) AS count')
+            ->join('g.scoreEntries', 'se')
+            ->andWhere('g.taker IN (:playerIds)')
+            ->andWhere('g.status = :status')
+            ->andWhere('g.petitAuBout = :petitAuBout')
+            ->andWhere('se.player = g.taker')
+            ->andWhere('se.score > 0')
+            ->setParameter('petitAuBout', $side)
+            ->setParameter('playerIds', $playerIds)
+            ->setParameter('status', GameStatus::Completed)
+            ->groupBy('g.taker')
+            ->getQuery()
+            ->getResult();
+
+        $map = \array_fill_keys($playerIds, 0);
+        foreach ($results as $row) {
+            $map[(int) $row['playerId']] = (int) $row['count'];
+        }
+
+        return $map;
+    }
+
+    /**
+     * @param list<int> $playerIds
+     *
+     * @return array<int, list<int>> playerId => list of marathon session IDs
+     */
+    public function getMarathonSessionsForPlayers(array $playerIds, int $thresholdSeconds): array
+    {
+        if ([] === $playerIds) {
+            return [];
+        }
+
+        /** @var list<array{playerId: int|string, sessionId: int|string}> $results */
+        $results = $this->createQueryBuilder('g')
+            ->select('p.id AS playerId', 'IDENTITY(g.session) AS sessionId')
+            ->join('g.session', 's')
+            ->join('s.players', 'p')
+            ->andWhere('p.id IN (:playerIds)')
+            ->andWhere('g.status = :status')
+            ->andWhere('g.completedAt IS NOT NULL')
+            ->setParameter('playerIds', $playerIds)
+            ->setParameter('status', GameStatus::Completed)
+            ->groupBy('p.id')
+            ->addGroupBy('g.session')
+            ->having('MAX(TIMESTAMPDIFF(SECOND, s.createdAt, g.completedAt)) > :threshold')
+            ->setParameter('threshold', $thresholdSeconds)
+            ->getQuery()
+            ->getResult();
+
+        $map = \array_fill_keys($playerIds, []);
+        foreach ($results as $row) {
+            $map[(int) $row['playerId']][] = (int) $row['sessionId'];
+        }
+
+        return $map;
+    }
+
+    /**
+     * @param list<int> $playerIds
+     *
+     * @return array<int, list<int>> playerId => list of taker scores
+     */
+    public function getTakerScoresForPlayers(array $playerIds): array
+    {
+        if ([] === $playerIds) {
+            return [];
+        }
+
+        /** @var list<array{playerId: int|string, score: int|string}> $results */
+        $results = $this->createQueryBuilder('g')
+            ->select('IDENTITY(g.taker) AS playerId', 'se.score')
+            ->join('g.scoreEntries', 'se')
+            ->andWhere('g.taker IN (:playerIds)')
+            ->andWhere('g.status = :status')
+            ->andWhere('se.player = g.taker')
+            ->setParameter('playerIds', $playerIds)
+            ->setParameter('status', GameStatus::Completed)
+            ->orderBy('g.createdAt', 'ASC')
+            ->getQuery()
+            ->getResult();
+
+        $map = \array_fill_keys($playerIds, []);
+        foreach ($results as $row) {
+            $map[(int) $row['playerId']][] = (int) $row['score'];
+        }
+
+        return $map;
+    }
+
+    /**
      * @return list<ContractDistributionDto>
      */
     public function getContractDistribution(?int $playerGroupId = null): array
