@@ -46,6 +46,7 @@ class PlayerGroup
     #[ORM\Column(type: 'datetime_immutable')]
     private \DateTimeImmutable $createdAt;
 
+    #[Assert\Length(max: 100)]
     #[Assert\NotBlank]
     #[Groups(['player-group:read', 'player-group:write', 'player:read', 'session:read'])]
     #[ORM\Column(length: 100, unique: true)]

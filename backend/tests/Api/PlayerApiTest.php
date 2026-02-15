@@ -53,6 +53,16 @@ class PlayerApiTest extends ApiTestCase
         $this->assertResponseStatusCodeSame(422);
     }
 
+    public function testCreatePlayerWithNameTooLong(): void
+    {
+        $this->client->request('POST', '/api/players', [
+            'headers' => ['Content-Type' => 'application/ld+json'],
+            'json' => ['name' => str_repeat('A', 51)],
+        ]);
+
+        $this->assertResponseStatusCodeSame(422);
+    }
+
     public function testUpdatePlayerName(): void
     {
         $player = $this->createPlayer('Alice');
