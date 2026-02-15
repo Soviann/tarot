@@ -29,7 +29,7 @@ use App\Enum\Side;
  *
  * @see REQUIRED_POINTS pour la table oudlers → points requis
  */
-class ScoreCalculator
+final readonly class ScoreCalculator
 {
     /** Nombre de points requis selon le nombre d'oudlers (0 à 3). */
     public const array REQUIRED_POINTS = [0 => 56, 1 => 51, 2 => 41, 3 => 36];
