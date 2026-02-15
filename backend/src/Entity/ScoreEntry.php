@@ -9,6 +9,7 @@ use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Serializer\Attribute\Groups;
 
 #[ORM\Entity(repositoryClass: ScoreEntryRepository::class)]
+#[ORM\Index(columns: ['game_id', 'player_id'])]
 class ScoreEntry
 {
     #[ORM\ManyToOne(targetEntity: Game::class, inversedBy: 'scoreEntries')]

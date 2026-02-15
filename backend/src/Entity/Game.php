@@ -62,6 +62,7 @@ use Symfony\Component\Validator\Constraints as Assert;
 )]
 #[OnlyLastGameEditable(groups: ['game:delete', 'game:patch'])]
 #[ORM\Entity(repositoryClass: GameRepository::class)]
+#[ORM\Index(columns: ['session_id', 'status'])]
 #[PlayersBelongToSession(groups: ['game:patch'])]
 class Game
 {
