@@ -530,6 +530,76 @@ class StatisticsApiTest extends ApiTestCase
         $this->assertSame([], $data['records']);
     }
 
+    public function testPlayerStatisticsEndpointHasNoWriteSideEffect(): void
+    {
+        // Seed data has completed games → players qualify for FirstGame badge.
+        // GET /api/statistics/players/{id} must NOT create any badge (read-only).
+        $alice = $this->players['Alice'];
+
+        $badgeCountBefore = (int) $this->em
+            ->createQuery('SELECT COUNT(b) FROM App\Entity\PlayerBadge b WHERE b.player = :p')
+            ->setParameter('p', $alice)
+            ->getSingleScalarResult();
+
+        $this->client->request('GET', '/api/statistics/players/'.$alice->getId());
+        $this->assertResponseIsSuccessful();
+
+        $this->em->clear();
+
+        $badgeCountAfter = (int) $this->em
+            ->createQuery('SELECT COUNT(b) FROM App\Entity\PlayerBadge b WHERE b.player = :p')
+            ->setParameter('p', $alice)
+            ->getSingleScalarResult();
+
+        $this->assertSame($badgeCountBefore, $badgeCountAfter, 'GET player statistics must not create badges (read-only endpoint).');
+    }
+
+    public function testBadgesAwardedOnGameCompletion(): void
+    {
+        $this->client->disableReboot();
+
+        $alice = $this->players['Alice'];
+
+        // No badges yet
+        $badgeCountBefore = (int) $this->em
+            ->createQuery('SELECT COUNT(b) FROM App\Entity\PlayerBadge b WHERE b.player = :p')
+            ->setParameter('p', $alice)
+            ->getSingleScalarResult();
+        $this->assertSame(0, $badgeCountBefore);
+
+        // Complete a game via API (triggers GameCompleteProcessor → badge check)
+        $response = $this->client->request('POST', '/api/sessions/'.$this->session->getId().'/games', [
+            'headers' => ['Content-Type' => 'application/ld+json'],
+            'json' => [
+                'contract' => 'petite',
+                'taker' => $this->getIri($alice),
+            ],
+        ]);
+        $this->assertResponseStatusCodeSame(201);
+        $gameIri = $response->toArray()['@id'];
+
+        $this->client->request('PATCH', $gameIri, [
+            'headers' => ['Content-Type' => 'application/merge-patch+json'],
+            'json' => [
+                'oudlers' => 2,
+                'partner' => $this->getIri($this->players['Bob']),
+                'points' => 45,
+                'status' => 'completed',
+            ],
+        ]);
+        $this->assertResponseIsSuccessful();
+
+        // Badges should have been awarded by the processor
+        $this->em->clear();
+
+        $badgeCountAfter = (int) $this->em
+            ->createQuery('SELECT COUNT(b) FROM App\Entity\PlayerBadge b WHERE b.player = :p')
+            ->setParameter('p', $alice)
+            ->getSingleScalarResult();
+
+        $this->assertGreaterThan(0, $badgeCountAfter, 'Badges should be awarded when a game is completed via API.');
+    }
+
     public function testGlobalStatisticsWithNonExistentGroup(): void
     {
         $response = $this->client->request('GET', '/api/statistics?playerGroup=99999');

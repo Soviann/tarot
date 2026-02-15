@@ -10,6 +10,10 @@ Le format est basé sur [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/)
 
 - **Rate limiting API** : les endpoints sous `/api/` sont désormais limités à 60 requêtes par minute par IP (sliding window). En cas de dépassement, l'API retourne une réponse 429 avec un corps JSON conforme RFC 7807. Les en-têtes `X-RateLimit-Limit`, `X-RateLimit-Remaining` et `Retry-After` sont inclus dans les réponses.
 
+### Changed
+
+- **Badges : suppression du side-effect sur GET statistiques** : le check de badges a été retiré de l'endpoint `GET /api/statistics/players/{id}` (side-effect d'écriture sur une route de lecture). Les badges sont désormais vérifiés uniquement lors de la complétion d'une donne (`GameCompleteProcessor`) et de l'ajout d'étoiles.
+
 ### Fixed
 
 - **Documentation API désactivée en production** : la doc Swagger/OpenAPI et l'entrypoint API Platform sont désormais désactivés en environnement de production pour ne pas exposer la structure de l'API.

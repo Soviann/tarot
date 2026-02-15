@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\Controller;
 
 use App\Repository\PlayerRepository;
-use App\Service\BadgeChecker;
 use App\Service\GlobalStatisticsService;
 use App\Service\PlayerStatisticsService;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -42,14 +41,12 @@ readonly class StatisticsController
     }
 
     #[Route('/api/statistics/players/{id}', methods: ['GET'])]
-    public function player(int $id, Request $request, BadgeChecker $badgeChecker, PlayerStatisticsService $playerStatisticsService): JsonResponse
+    public function player(int $id, Request $request, PlayerStatisticsService $playerStatisticsService): JsonResponse
     {
         $player = $this->playerRepository->find($id);
         if (null === $player) {
             throw new NotFoundHttpException('Joueur introuvable.');
         }
-
-        $badgeChecker->checkAndAwardForPlayer($player);
 
         $playerGroupId = $request->query->has('playerGroup')
             ? (int) $request->query->get('playerGroup')

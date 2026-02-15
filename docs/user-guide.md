@@ -541,7 +541,6 @@ L'application propose un système de **15 badges** (succès) que les joueurs dé
 Les badges sont vérifiés automatiquement :
 - À chaque **donne complétée** (pour tous les joueurs de la session)
 - À chaque **étoile ajoutée** (pour tous les joueurs de la session)
-- À la **consultation des statistiques** d'un joueur (attribution rétroactive)
 
 ### Notification
 
