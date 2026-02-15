@@ -8,6 +8,7 @@ Le format est basé sur [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/)
 
 ### Fixed
 
+- **Validation des oudlers et points** : les champs `oudlers` (0–3) et `points` (0–91) sont désormais validés par des contraintes `Range`. Un garde-fou dans `ScoreCalculator` empêche aussi les valeurs hors bornes de provoquer une `UndefinedArrayKeyException`.
 - **Validation du preneur à la création de donne** : le preneur est désormais vérifié comme appartenant à la session, à la fois dans le processeur de création (POST) et dans le validateur de complétion (PATCH). Auparavant, seul le partenaire était validé.
 - **APP_SECRET retiré du contrôle de version** : le secret applicatif n'est plus stocké en dur dans `.env.dev` (fichier tracké par Git). Le fichier `.env.dev` a été supprimé et `.env` contient désormais une valeur placeholder. Les environnements de développement doivent utiliser `.env.dev.local` (gitignored) pour surcharger le secret.
 
