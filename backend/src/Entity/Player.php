@@ -58,6 +58,7 @@ class Player
     #[ORM\Column(type: 'datetime_immutable', nullable: true)]
     private ?\DateTimeImmutable $lastActivityAt = null;
 
+    #[Assert\Length(max: 50)]
     #[Assert\NotBlank]
     #[Groups(['game:read', 'player-group:detail', 'player:read', 'player:write', 'score-entry:read', 'session:detail', 'session:read'])]
     #[ORM\Column(length: 50, unique: true)]

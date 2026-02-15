@@ -57,6 +57,16 @@ class PlayerGroupApiTest extends ApiTestCase
         $this->assertResponseStatusCodeSame(422);
     }
 
+    public function testCreateGroupWithNameTooLong(): void
+    {
+        $this->client->request('POST', '/api/player-groups', [
+            'headers' => ['Content-Type' => 'application/ld+json'],
+            'json' => ['name' => str_repeat('A', 101)],
+        ]);
+
+        $this->assertResponseStatusCodeSame(422);
+    }
+
     public function testGetGroupDetail(): void
     {
         $alice = $this->createPlayer('Alice');
