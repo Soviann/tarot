@@ -553,6 +553,10 @@ Sur la page **Statistiques d'un joueur** (accessible via Stats → clic sur un j
 - Un bouton **« Voir les X restants »** pour révéler les badges verrouillés (grisés, avec leur condition de déblocage)
 - Un clic sur **« Masquer les badges verrouillés »** les cache à nouveau
 
+### Liste complète dans l'aide
+
+La page **Aide** (`/aide`) contient une section **Badges** listant l'ensemble des 15 badges, regroupés par catégorie (Progression, Performance, Fun, Social), avec pour chacun l'icône, le nom et la condition d'obtention. Cette section est accessible sans nécessiter de données joueur.
+
 ---
 
 ## Thème sombre
