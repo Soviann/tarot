@@ -12,6 +12,8 @@ Le format est basé sur [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/)
 
 ### Fixed
 
+- **Documentation API désactivée en production** : la doc Swagger/OpenAPI et l'entrypoint API Platform sont désormais désactivés en environnement de production pour ne pas exposer la structure de l'API.
+- **Pagination max par page** : ajout d'un plafond de 50 éléments par page (`pagination_maximum_items_per_page`) et activation du contrôle client (`?itemsPerPage=N`) pour empêcher les requêtes abusives demandant des milliers d'éléments.
 - **Session PHP désactivée en production** : la session PHP (`PHPSESSID`) est désormais désactivée en environnement de production, conformément à l'architecture stateless de l'API.
 - **Validation de longueur des noms** : ajout de contraintes `Assert\Length` sur `Player::$name` (max 50) et `PlayerGroup::$name` (max 100) pour retourner une erreur 422 au lieu d'une exception Doctrine 500 lorsque le nom dépasse la taille de la colonne en base.
 - **Validation des oudlers et points** : les champs `oudlers` (0–3) et `points` (0–91) sont désormais validés par des contraintes `Range`. Un garde-fou dans `ScoreCalculator` empêche aussi les valeurs hors bornes de provoquer une `UndefinedArrayKeyException`.
