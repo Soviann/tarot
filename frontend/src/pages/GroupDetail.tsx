@@ -24,6 +24,7 @@ export default function GroupDetail() {
   const [editName, setEditName] = useState("");
   const [addModalOpen, setAddModalOpen] = useState(false);
   const [selectedPlayerIds, setSelectedPlayerIds] = useState<number[]>([]);
+  const [closeModalOpen, setCloseModalOpen] = useState(false);
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
 
   const startEditName = useCallback(() => {
@@ -167,13 +168,7 @@ export default function GroupDetail() {
       <button
         className="rounded-lg bg-amber-100 px-3 py-2 text-sm font-medium text-amber-800 transition-colors hover:bg-amber-200 disabled:opacity-50 dark:bg-amber-900/30 dark:text-amber-200 dark:hover:bg-amber-700"
         disabled={closeGroupSessions.isPending}
-        onClick={() => {
-          if (window.confirm("Voulez-vous clôturer toutes les sessions ouvertes de ce groupe ?")) {
-            closeGroupSessions.mutate(groupId, {
-              onSuccess: () => toast("Sessions terminées"),
-            });
-          }
-        }}
+        onClick={() => setCloseModalOpen(true)}
         type="button"
       >
         {closeGroupSessions.isPending ? "Clôture en cours…" : "Clôturer les sessions"}
@@ -261,6 +256,43 @@ export default function GroupDetail() {
           >
             Enregistrer
           </button>
+        </div>
+      </Modal>
+
+      {/* Modal confirmation clôture */}
+      <Modal
+        onClose={() => setCloseModalOpen(false)}
+        open={closeModalOpen}
+        title="Clôturer les sessions"
+      >
+        <div className="flex flex-col gap-4">
+          <p className="text-text-secondary">
+            Voulez-vous clôturer toutes les sessions ouvertes de ce groupe ?
+          </p>
+          <div className="flex gap-3">
+            <button
+              className="flex-1 rounded-lg border border-surface-border px-4 py-2 font-medium text-text-primary transition-colors hover:bg-surface-secondary"
+              onClick={() => setCloseModalOpen(false)}
+              type="button"
+            >
+              Annuler
+            </button>
+            <button
+              className="flex-1 rounded-lg bg-amber-500 px-4 py-2 font-medium text-white transition-colors hover:bg-amber-600 disabled:opacity-50"
+              disabled={closeGroupSessions.isPending}
+              onClick={() => {
+                closeGroupSessions.mutate(groupId, {
+                  onSuccess: () => {
+                    toast("Sessions terminées");
+                    setCloseModalOpen(false);
+                  },
+                });
+              }}
+              type="button"
+            >
+              Confirmer
+            </button>
+          </div>
         </div>
       </Modal>
 

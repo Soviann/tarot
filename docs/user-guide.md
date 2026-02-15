@@ -275,7 +275,7 @@ Sur l'écran récapitulatif, le bouton **« Partager »** génère une image du 
 
 ### Clôturer toutes les sessions d'un groupe
 
-Depuis la page d'un **groupe de joueurs** (menu Groupes → sélectionner un groupe), le bouton **« Clôturer les sessions »** ferme en un clic toutes les sessions ouvertes du groupe.
+Depuis la page d'un **groupe de joueurs** (menu Groupes → sélectionner un groupe), le bouton **« Clôturer les sessions »** ouvre une modale de confirmation. Après validation, toutes les sessions ouvertes du groupe sont clôturées.
 
 ---
 
