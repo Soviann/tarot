@@ -27,6 +27,8 @@ use Doctrine\Persistence\ManagerRegistry;
  */
 final class ScoreEntryRepository extends ServiceEntityRepository
 {
+    use GroupFilterTrait;
+
     public function __construct(ManagerRegistry $registry)
     {
         parent::__construct($registry, ScoreEntry::class);
@@ -609,14 +611,5 @@ final class ScoreEntryRepository extends ServiceEntityRepository
 
         /** @var list<GamesPlayedCountDto> */
         return $qb->getQuery()->getResult();
-    }
-
-    private function applyGroupFilter(\Doctrine\ORM\QueryBuilder $qb, ?int $playerGroupId, string $gameAlias = 'g'): void
-    {
-        if (null !== $playerGroupId) {
-            $qb->join($gameAlias.'.session', 's_grp')
-               ->andWhere('s_grp.playerGroup = :group')
-               ->setParameter('group', $playerGroupId);
-        }
     }
 }

@@ -26,6 +26,8 @@ use Doctrine\Persistence\ManagerRegistry;
  */
 final class GameRepository extends ServiceEntityRepository
 {
+    use GroupFilterTrait;
+
     public function __construct(ManagerRegistry $registry)
     {
         parent::__construct($registry, Game::class);
@@ -138,6 +140,19 @@ final class GameRepository extends ServiceEntityRepository
             ->getSingleScalarResult();
 
         return $result;
+    }
+
+    public function getMaxCreatedAtForSession(Session $session): ?\DateTimeImmutable
+    {
+        /** @var string|null $result */
+        $result = $this->createQueryBuilder('g')
+            ->select('MAX(g.createdAt)')
+            ->andWhere('g.session = :session')
+            ->setParameter('session', $session)
+            ->getQuery()
+            ->getSingleScalarResult();
+
+        return null !== $result ? new \DateTimeImmutable($result) : null;
     }
 
     public function getMaxPositionForSession(Session $session): int
@@ -738,14 +753,5 @@ final class GameRepository extends ServiceEntityRepository
             'averageGameDurationSeconds' => null !== $result['avg'] ? (int) \round((float) $result['avg']) : null,
             'totalPlayTimeSeconds' => (int) ($result['total'] ?? 0),
         ];
-    }
-
-    private function applyGroupFilter(\Doctrine\ORM\QueryBuilder $qb, ?int $playerGroupId, string $gameAlias = 'g'): void
-    {
-        if (null !== $playerGroupId) {
-            $qb->join($gameAlias.'.session', 's_grp')
-               ->andWhere('s_grp.playerGroup = :group')
-               ->setParameter('group', $playerGroupId);
-        }
     }
 }

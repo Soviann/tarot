@@ -7,8 +7,6 @@ namespace App\Controller;
 use App\Repository\PlayerGroupRepository;
 use App\Repository\SessionRepository;
 use App\Service\SessionSummaryService;
-use Doctrine\ORM\Exception\ORMException;
-use Doctrine\ORM\OptimisticLockException;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\Routing\Attribute\Route;
@@ -21,10 +19,6 @@ readonly class SessionController
     ) {
     }
 
-    /**
-     * @throws OptimisticLockException
-     * @throws ORMException
-     */
     #[Route('/api/player-groups/{id}/close-sessions', methods: ['POST'])]
     public function closeGroupSessions(int $id, SessionRepository $sessionRepository): JsonResponse
     {
@@ -36,10 +30,6 @@ readonly class SessionController
         return new JsonResponse(['closedCount' => $sessionRepository->closeActiveSessionsForGroup($group)]);
     }
 
-    /**
-     * @throws OptimisticLockException
-     * @throws ORMException
-     */
     #[Route('/api/sessions/{id}/summary', methods: ['GET'])]
     public function summary(int $id, SessionSummaryService $sessionSummaryService): JsonResponse
     {
