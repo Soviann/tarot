@@ -175,6 +175,37 @@ final class ScoreEntryRepository extends ServiceEntityRepository
             ->getSingleScalarResult();
     }
 
+    /**
+     * @param list<int> $playerIds
+     *
+     * @return array<int, int> playerId => count
+     */
+    public function countCompletedGameEntriesForPlayers(array $playerIds): array
+    {
+        if ([] === $playerIds) {
+            return [];
+        }
+
+        /** @var list<array{cnt: int|string, playerId: int|string}> $results */
+        $results = $this->createQueryBuilder('se')
+            ->select('COUNT(se.id) AS cnt', 'IDENTITY(se.player) AS playerId')
+            ->join('se.game', 'g')
+            ->andWhere('se.player IN (:playerIds)')
+            ->andWhere('g.status = :status')
+            ->setParameter('playerIds', $playerIds)
+            ->setParameter('status', GameStatus::Completed)
+            ->groupBy('se.player')
+            ->getQuery()
+            ->getResult();
+
+        $map = \array_fill_keys($playerIds, 0);
+        foreach ($results as $row) {
+            $map[(int) $row['playerId']] = (int) $row['cnt'];
+        }
+
+        return $map;
+    }
+
     public function countDistinctCompletedSessionsForPlayer(Player $player): int
     {
         return (int) $this->createQueryBuilder('se')
@@ -186,6 +217,37 @@ final class ScoreEntryRepository extends ServiceEntityRepository
             ->setParameter('status', GameStatus::Completed)
             ->getQuery()
             ->getSingleScalarResult();
+    }
+
+    /**
+     * @param list<int> $playerIds
+     *
+     * @return array<int, int> playerId => count
+     */
+    public function countDistinctCompletedSessionsForPlayers(array $playerIds): array
+    {
+        if ([] === $playerIds) {
+            return [];
+        }
+
+        /** @var list<array{cnt: int|string, playerId: int|string}> $results */
+        $results = $this->createQueryBuilder('se')
+            ->select('COUNT(DISTINCT g.session) AS cnt', 'IDENTITY(se.player) AS playerId')
+            ->join('se.game', 'g')
+            ->andWhere('se.player IN (:playerIds)')
+            ->andWhere('g.status = :status')
+            ->setParameter('playerIds', $playerIds)
+            ->setParameter('status', GameStatus::Completed)
+            ->groupBy('se.player')
+            ->getQuery()
+            ->getResult();
+
+        $map = \array_fill_keys($playerIds, 0);
+        foreach ($results as $row) {
+            $map[(int) $row['playerId']] = (int) $row['cnt'];
+        }
+
+        return $map;
     }
 
     public function countNightOwlGamesForPlayer(Player $player): int
@@ -205,6 +267,40 @@ final class ScoreEntryRepository extends ServiceEntityRepository
     }
 
     /**
+     * @param list<int> $playerIds
+     *
+     * @return array<int, int> playerId => count
+     */
+    public function countNightOwlGamesForPlayers(array $playerIds): array
+    {
+        if ([] === $playerIds) {
+            return [];
+        }
+
+        /** @var list<array{cnt: int|string, playerId: int|string}> $results */
+        $results = $this->createQueryBuilder('se')
+            ->select('COUNT(se.id) AS cnt', 'IDENTITY(se.player) AS playerId')
+            ->join('se.game', 'g')
+            ->andWhere('se.player IN (:playerIds)')
+            ->andWhere('g.status = :status')
+            ->andWhere('g.completedAt IS NOT NULL')
+            ->andWhere('HOUR(g.completedAt) >= 0')
+            ->andWhere('HOUR(g.completedAt) < 5')
+            ->setParameter('playerIds', $playerIds)
+            ->setParameter('status', GameStatus::Completed)
+            ->groupBy('se.player')
+            ->getQuery()
+            ->getResult();
+
+        $map = \array_fill_keys($playerIds, 0);
+        foreach ($results as $row) {
+            $map[(int) $row['playerId']] = (int) $row['cnt'];
+        }
+
+        return $map;
+    }
+
+    /**
      * @return list<int>
      */
     public function getDistinctCompletedSessionIdsForPlayer(Player $player): array
@@ -221,6 +317,37 @@ final class ScoreEntryRepository extends ServiceEntityRepository
             ->getResult();
 
         return \array_map(static fn (array $row): int => (int) $row['sessionId'], $results);
+    }
+
+    /**
+     * @param list<int> $playerIds
+     *
+     * @return array<int, list<int>> playerId => list of session IDs
+     */
+    public function getDistinctCompletedSessionIdsForPlayers(array $playerIds): array
+    {
+        if ([] === $playerIds) {
+            return [];
+        }
+
+        /** @var list<array{playerId: int|string, sessionId: int|string}> $results */
+        $results = $this->createQueryBuilder('se')
+            ->select('DISTINCT IDENTITY(se.player) AS playerId', 'IDENTITY(se.session) AS sessionId')
+            ->join('se.game', 'g')
+            ->andWhere('se.player IN (:playerIds)')
+            ->andWhere('g.status = :status')
+            ->setParameter('playerIds', $playerIds)
+            ->setParameter('status', GameStatus::Completed)
+            ->getQuery()
+            ->getResult();
+
+        /** @var array<int, list<int>> $map */
+        $map = \array_fill_keys($playerIds, []);
+        foreach ($results as $row) {
+            $map[(int) $row['playerId']][] = (int) $row['sessionId'];
+        }
+
+        return $map;
     }
 
     /**
@@ -387,6 +514,51 @@ final class ScoreEntryRepository extends ServiceEntityRepository
             ->orderBy('g.createdAt', 'ASC')
             ->getQuery()
             ->getResult();
+    }
+
+    /**
+     * @param list<int> $playerIds
+     *
+     * @return array<int, list<GameTakerScoreDto>> playerId => taker score DTOs
+     */
+    public function getGamesWithTakerScoreForPlayers(array $playerIds): array
+    {
+        if ([] === $playerIds) {
+            return [];
+        }
+
+        /** @var list<array{gameId: int|string, partnerId: int|string|null, playerId: int|string, takerId: int|string, takerScore: int|string}> $results */
+        $results = $this->createQueryBuilder('se')
+            ->select(
+                'g.id AS gameId',
+                'IDENTITY(g.partner) AS partnerId',
+                'IDENTITY(se.player) AS playerId',
+                'IDENTITY(g.taker) AS takerId',
+                'se2.score AS takerScore',
+            )
+            ->join('se.game', 'g')
+            ->join('g.scoreEntries', 'se2')
+            ->andWhere('se.player IN (:playerIds)')
+            ->andWhere('g.status = :status')
+            ->andWhere('se2.player = g.taker')
+            ->setParameter('playerIds', $playerIds)
+            ->setParameter('status', GameStatus::Completed)
+            ->orderBy('g.createdAt', 'ASC')
+            ->getQuery()
+            ->getResult();
+
+        /** @var array<int, list<GameTakerScoreDto>> $map */
+        $map = \array_fill_keys($playerIds, []);
+        foreach ($results as $row) {
+            $map[(int) $row['playerId']][] = new GameTakerScoreDto(
+                $row['gameId'],
+                $row['partnerId'],
+                $row['takerId'],
+                $row['takerScore'],
+            );
+        }
+
+        return $map;
     }
 
     /**

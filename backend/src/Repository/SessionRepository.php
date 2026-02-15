@@ -105,6 +105,41 @@ final class SessionRepository extends ServiceEntityRepository
             ->getSingleScalarResult();
     }
 
+    /**
+     * @param list<int> $playerIds
+     *
+     * @return array<int, int> playerId => distinct co-player count
+     */
+    public function countDistinctCoPlayersForPlayers(array $playerIds): array
+    {
+        if ([] === $playerIds) {
+            return [];
+        }
+
+        /** @var list<array{coPlayerCount: string, playerId: int}> $rows */
+        $rows = $this->createQueryBuilder('s')
+            ->select('p.id AS playerId, COUNT(DISTINCT p2.id) AS coPlayerCount')
+            ->join('s.players', 'p')
+            ->join('s.players', 'p2')
+            ->join('s.games', 'g')
+            ->andWhere('p.id IN (:playerIds)')
+            ->andWhere('p2 != p')
+            ->andWhere('g.status = :status')
+            ->setParameter('playerIds', $playerIds)
+            ->setParameter('status', GameStatus::Completed)
+            ->groupBy('p.id')
+            ->getQuery()
+            ->getResult();
+
+        $result = \array_fill_keys($playerIds, 0);
+
+        foreach ($rows as $row) {
+            $result[(int) $row['playerId']] = (int) $row['coPlayerCount'];
+        }
+
+        return $result;
+    }
+
     public function countAll(?int $playerGroupId = null): int
     {
         $qb = $this->createQueryBuilder('s')
