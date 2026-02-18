@@ -6,233 +6,107 @@ Le format est basé sur [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/)
 
 ## [Unreleased]
 
-### Fixed
-
-- **Classement par groupe** : le classement (leaderboard) dans les statistiques était vide lors du filtrage par groupe, car la requête joignait la session via `ScoreEntry.session` (toujours `null` pour les entrées de jeu). La jointure passe désormais par `Game.session`.
+## [1.0.0] - 2026-02-16
 
 ### Added
 
 - **Badges dans l'aide** : la page d'aide (`/aide`) affiche désormais la liste complète des 15 badges disponibles, regroupés par catégorie (Progression, Performance, Fun, Social), avec leur icône, nom et condition d'obtention.
 - **Rate limiting API** : les endpoints sous `/api/` sont désormais limités à 60 requêtes par minute par IP (sliding window). En cas de dépassement, l'API retourne une réponse 429 avec un corps JSON conforme RFC 7807. Les en-têtes `X-RateLimit-Limit`, `X-RateLimit-Remaining` et `Retry-After` sont inclus dans les réponses.
 - **Liste des joueurs cliquable** : toute la ligne d'un joueur est désormais cliquable pour accéder directement à sa page de statistiques.
-
-### Changed
-
-- **Lazy-load et code-splitting** : toutes les pages (sauf Home) sont désormais chargées en lazy-loading via `React.lazy()`, et `recharts` est isolé dans un chunk dédié via `manualChunks`. Cela réduit la taille du bundle initial et supprime le warning Vite sur les chunks > 500 kB.
-- **Clôture de sessions (groupe)** : le bouton « Clôturer les sessions » sur la page d'un groupe ouvre désormais une modale de confirmation au lieu d'un `window.confirm()` natif du navigateur, pour une expérience cohérente avec le reste de l'application.
-- **Nettoyage backend** : suppression des annotations `@throws` trompeuses sur `SessionController`, extraction du `applyGroupFilter` dupliqué dans un trait partagé `GroupFilterTrait`, et correction du risque N+1 sur `Session::getLastPlayedAt()` (la valeur est désormais hydratée depuis SQL par les providers).
-- **Index composites** : ajout d'index composites sur `game(session_id, status)`, `score_entry(game_id, player_id)` et `star_event(session_id, player_id)` pour optimiser les requêtes fréquentes.
-- **BadgeChecker : requêtes en batch** : `BadgeChecker::checkAndAward()` pré-charge désormais toutes les statistiques en batch (~12 requêtes) au lieu de requêtes individuelles par joueur × badge (~75+ requêtes). Introduit `BadgeCheckContext` comme value object portant les données pré-chargées.
-- **EloCalculator : identification par ID** : `EloCalculator::compute()` utilise désormais les IDs des joueurs comme clés du tableau `$ratings` (au lieu des noms), rendant le mapping plus robuste et simplifiant `GameCompleteProcessor`.
-- **Services `final readonly`** : `ScoreCalculator`, `EloCalculator`, `GlobalStatisticsService`, `PlayerStatisticsService` et `SessionSummaryService` sont désormais `final readonly`, alignés sur la convention des autres services du projet.
-- **Badges : suppression du side-effect sur GET statistiques** : le check de badges a été retiré de l'endpoint `GET /api/statistics/players/{id}` (side-effect d'écriture sur une route de lecture). Les badges sont désormais vérifiés uniquement lors de la complétion d'une donne (`GameCompleteProcessor`) et de l'ajout d'étoiles.
-
-### Fixed
-
-- **Documentation API désactivée en production** : la doc Swagger/OpenAPI et l'entrypoint API Platform sont désormais désactivés en environnement de production pour ne pas exposer la structure de l'API.
-- **Pagination max par page** : ajout d'un plafond de 50 éléments par page (`pagination_maximum_items_per_page`) et activation du contrôle client (`?itemsPerPage=N`) pour empêcher les requêtes abusives demandant des milliers d'éléments.
-- **Session PHP désactivée en production** : la session PHP (`PHPSESSID`) est désormais désactivée en environnement de production, conformément à l'architecture stateless de l'API.
-- **Validation de longueur des noms** : ajout de contraintes `Assert\Length` sur `Player::$name` (max 50) et `PlayerGroup::$name` (max 100) pour retourner une erreur 422 au lieu d'une exception Doctrine 500 lorsque le nom dépasse la taille de la colonne en base.
-- **Validation des oudlers et points** : les champs `oudlers` (0–3) et `points` (0–91) sont désormais validés par des contraintes `Range`. Un garde-fou dans `ScoreCalculator` empêche aussi les valeurs hors bornes de provoquer une `UndefinedArrayKeyException`.
-- **Validation du preneur à la création de donne** : le preneur est désormais vérifié comme appartenant à la session, à la fois dans le processeur de création (POST) et dans le validateur de complétion (PATCH). Auparavant, seul le partenaire était validé.
-- **APP_SECRET retiré du contrôle de version** : le secret applicatif n'est plus stocké en dur dans `.env.dev` (fichier tracké par Git). Le fichier `.env.dev` a été supprimé et `.env` contient désormais une valeur placeholder. Les environnements de développement doivent utiliser `.env.dev.local` (gitignored) pour surcharger le secret.
-
-### Changed
-
-- **Requêtes BDD centralisées dans les repositories** : toutes les requêtes Doctrine (~73) ont été migrées des services, controllers, processors et validateurs vers des repositories dédiés par entité (GameRepository, ScoreEntryRepository, StarEventRepository, EloHistoryRepository, PlayerRepository, PlayerGroupRepository, PlayerBadgeRepository). Utilisation exclusive du QueryBuilder (plus de DQL brut). EloRevertHelper converti de classe statique en service injectable.
-- **DTOs typés pour les retours de repositories** : 22 DTOs créés dans `src/Dto/` pour remplacer les tableaux typés par PHPDoc. Utilisation de l'opérateur `NEW` de Doctrine pour le mapping automatique des résultats de requêtes.
-
-### Added
-
 - **Animation des modales** : les modales s'ouvrent avec un slide-up depuis le bas (200 ms ease-out) et se ferment avec un slide-down. Le backdrop apparaît et disparaît en fondu (200 ms). Améliore la fluidité de l'interface.
 - **Spinner de chargement animé** : indicateur de chargement animé (cercle tournant accent) remplaçant le texte brut « Chargement… » sur toutes les pages. Accessible (`role="status"`, texte masqué pour lecteurs d'écran). Deux tailles : `md` (pleine page) et `sm` (inline).
 - **États vides illustrés** : icônes et messages explicites sur les pages sans contenu (groupes, joueurs, détail groupe, sessions). Bouton d'action contextuel quand applicable (ex : « Créer un groupe » sur la page groupes vide).
 - **Toasts de confirmation** : un toast discret (haut de l'écran, auto-dismiss 2 s) confirme désormais chaque action utilisateur réussie — création de joueur/session/donne, ajout d'étoile, modification du donneur, gestion des groupes, clôture de session, etc. Icône et couleur distinctes pour succès (vert) et erreur (rouge). Maximum 3 toasts empilés, animation d'apparition fluide, compatible dark mode.
-
-### Changed
-
-- **Joueurs — dernière activité** : la page Joueurs affiche désormais la date de dernière activité en format relatif (« Aujourd'hui », « Hier », « Il y a 3 jours ») au lieu de la date de création. Les joueurs sans activité conservent l'affichage de la date de création.
-- **Statistiques — sections en menu déroulant** : les pages de statistiques globales et par joueur affichent désormais les métriques clés et le classement en haut, suivis d'un menu déroulant permettant de choisir la section détaillée à afficher. Réduit le scroll sur mobile.
-- **Badges — masquer les verrouillés par défaut** : seuls les badges débloqués sont affichés. Un bouton « Voir les X restants » permet de révéler les badges verrouillés à la demande.
-
-### Fixed
-
-- **Dark mode — contraste** : les textes secondaires et discrets (`text-muted`, `text-secondary`) sont désormais plus lisibles en mode sombre (conformité WCAG AA 4.5:1). Les socles du podium (récap de session) sont plus vibrants en dark mode. Les liens accent (page d'aide) utilisent un bleu clair visible sur fond sombre.
-
-### Added
-
 - **Légende du graphique d'évolution des scores** : le graphique de la page session affiche désormais des chips filtrables permettant d'identifier et de masquer/afficher chaque joueur. Les couleurs des courbes correspondent aux couleurs d'avatar personnalisées des joueurs (ou à la couleur par défaut).
-
-### Changed
-
-- **Graphique ELO global** : les chips de filtrage des joueurs sont remplacées par un menu déroulant « Joueurs » avec indicateurs de couleur, plus adapté quand le nombre de joueurs est élevé. Les couleurs utilisent désormais les 10 couleurs d'avatar (au lieu de 5) et sont basées sur `playerId % 10`.
-
-- **Session — menu overflow** : toutes les actions du header de session (récap, QR code, modifier les joueurs, changer le groupe, terminer/réouvrir) sont regroupées dans un menu « ⋮ » (overflow) à droite du titre. Le header passe à une seule ligne (titre + menu). Nouveau composant UI réutilisable `OverflowMenu` et nouvelle modale `ChangeGroupModal`.
-
-### Added
-
 - **Badges et succès** : système de gamification avec 15 badges débloqués automatiquement selon l'activité des joueurs (Première donne, Centurion, Kamikaze, Sans filet, Noctambule, etc.). Les badges se débloquent à la complétion d'une donne, à l'ajout d'une étoile, ou de manière rétroactive lors de la consultation des statistiques. Une modale dédiée s'affiche pour annoncer les nouveaux badges débloqués. Section grille dans les statistiques par joueur avec compteur (X/15), badges débloqués en premier avec date, badges verrouillés grisés.
-
 - **Résumé de session** : écran récapitulatif visuel avec classement (podium + tableau), faits marquants (MVP, lanterne rouge, meilleure/pire donne, contrat favori, durée, nombre de donnes, étoiles) et titres humoristiques (Le Boucher, L'Éternel Défenseur, Le Flambeur). Accessible via le bouton graphique sur l'écran de session. Design optimisé pour le screenshot avec partage en image (Web Share API ou téléchargement).
-
 - **Clôture de session** : bouton « Terminer la session » (icône cadenas) verrouillant la session pour empêcher la création de nouvelles donnes. La session peut être réouverte à tout moment. Le récap s'affiche automatiquement à la clôture.
-
 - **Clôture en masse** : depuis la page d'un groupe de joueurs, bouton « Clôturer les sessions » pour terminer toutes les sessions ouvertes du groupe en un clic.
-
 - **QR code de partage** : bouton « Partager » (icône QR code) sur l'écran de session, affichant un QR code encodant l'URL directe de la session. Mode plein écran disponible pour faciliter le scan par les autres joueurs. Nouvelle dépendance `qrcode.react`.
-
 - **Records personnels** : meilleur/pire score, série de victoires consécutives, meilleure session, plus grand écart de points. Chaque record indique la valeur, la date, le contrat et un lien vers la session. Affiché sur la page de statistiques par joueur en remplacement des simples meilleur/pire scores.
-
 - **Taux de réussite par contrat et par joueur** : tableau croisé joueurs × contrats sur la page Statistiques, montrant le pourcentage de victoire et le nombre de donnes pour chaque joueur en tant que preneur. Cellules colorées pour une lecture rapide. Nouveau endpoint `contractSuccessRateByPlayer` dans l'API statistiques globales, composant `ContractSuccessRateTable`.
-
 - **Graphique d'évolution ELO globale** : sur la page Statistiques, un graphique multi-lignes montre l'évolution du rating ELO de tous les joueurs au fil des donnes. Chips cliquables pour filtrer par joueur, couleur personnalisée, ligne de référence à 1500. Nouveau endpoint `eloEvolution` dans l'API statistiques globales, composant `GlobalEloEvolutionChart`.
-
 - **Toggle thème sombre** : bouton lune/soleil dans le header (à gauche de l'aide) pour basculer entre les modes clair et sombre. Détection automatique de la préférence système au premier lancement, persistance du choix en localStorage.
-
 - **Couleur d'avatar personnalisée** : choix d'une couleur pour l'avatar d'un joueur (palette de 10 couleurs prédéfinies + sélecteur libre), avec option « Auto » pour revenir à la couleur déterministe par défaut. La couleur choisie est utilisée partout où l'avatar apparaît (sessions, classements, statistiques, historique des donnes). Champ `color` ajouté à l'entité `Player` et propagé dans les endpoints statistiques (`playerColor`).
-
-- **Undo rapide** : bouton flottant « Annuler » avec décompte circulaire de 5 secondes après chaque saisie de donne, permettant de supprimer instantanément la dernière donne sans passer par la modale de suppression
-
-- **Tri et limite des sessions récentes** : l'API retourne les 5 sessions les plus récemment jouées (triées par date de dernière donne), au lieu de toutes les sessions sans tri
-
+- **Undo rapide** : bouton flottant « Annuler » avec décompte circulaire de 5 secondes après chaque saisie de donne, permettant de supprimer instantanément la dernière donne sans passer par la modale de suppression.
+- **Tri et limite des sessions récentes** : l'API retourne les 5 sessions les plus récemment jouées (triées par date de dernière donne), au lieu de toutes les sessions sans tri.
 - **Pagination de l'historique des donnes** : les donnes sont désormais chargées par pages de 10 depuis l'API (`/sessions/{id}/games`), avec un bouton « Voir plus » pour charger la suite. Nouveau hook `useSessionGames` avec `useInfiniteQuery`. La donne en cours est désormais une propriété dédiée `inProgressGame` sur le détail de session, alimentée par le provider côté serveur. Extension Doctrine `CompletedGamesExtension` pour filtrer les donnes en cours du endpoint paginé.
-
-- **Groupes de joueurs** : création de cercles de jeu avec statistiques et classements filtrés par groupe (#91)
-- **Association automatique** : les sessions sont automatiquement associées au groupe quand tous les joueurs sont membres
-- **Association manuelle** : sélecteur de groupe sur l'écran de session avec propagation des joueurs
-- **Filtre par groupe** : toutes les statistiques et classements filtrables par groupe
-- **Attribution de groupes depuis la modification d'un joueur** : chips de sélection de groupes dans la modale d'édition
-- **Page Groupes** : nouvel onglet dans la navigation pour gérer les groupes
-- **Aide in-app** : section dédiée aux groupes dans la page d'aide
-
+- **Groupes de joueurs** : création de cercles de jeu avec statistiques et classements filtrés par groupe. Association automatique des sessions quand tous les joueurs sont membres. Association manuelle via sélecteur de groupe sur l'écran de session. Filtre par groupe sur toutes les statistiques et classements. Attribution de groupes depuis la modale d'édition joueur. Page Groupes dédiée dans la navigation. Section aide in-app.
 - **Mèmes de victoire et défaite** : système de mèmes plein écran à la complétion d'une donne (~40 % de chance, 3 secondes). Composant `MemeOverlay`, services `selectVictoryMeme` / `selectDefeatMeme`, 16 images dans `public/memes/`.
-  - **Victoire** — déclencheurs garantis : Success Kid (petit au bout attaque), Obama se décore (victoire en solo). Pool aléatoire : Borat, Champions, DiCaprio Toast, Over 9000, Pacha.
-  - **Défaite** — déclencheurs garantis : You Were the Chosen One / Pikachu surpris / Picard Facepalm (défaite improbable : 3 bouts, chelem raté, garde contre), Crying Jordan (garde sans perdue). 40 % This is Fine, sinon pool : Ah Shit, Just to Suffer, Sad Pablo.
-
 - **Suivi de la durée des donnes** : nouveau champ `completedAt` sur les donnes, renseigné automatiquement à la complétion. Chronomètre en temps réel sur le bandeau de donne en cours. Durée affichée dans l'historique des donnes. Nouvelles statistiques globales (durée moyenne par donne, temps de jeu total) et par joueur. Utilitaire `formatDuration` et hook `useElapsedTime`.
+- **Compatibilité Smart TV** : support des Smart TV Samsung (Tizen 5.0+) et LG (webOS 5.0+). Build ciblant `chrome64` pour transpiler les syntaxes ES2020+. Mise en page responsive grand écran (`font-size` 20px, contenu centré `max-w-4xl`, graphiques agrandis). Navigation D-pad via `:focus-visible` global avec anneau accent. Cibles tactiles minimales 40px sur les boutons critiques.
+- **Classement ELO** : système de rating ELO dynamique entre joueurs, calculé après chaque donne en tenant compte du niveau des adversaires (K-factors différenciés : preneur 40, partenaire 25, défenseur 15). Entité `EloHistory`, service `EloCalculator`, intégration dans les processeurs de complétion et suppression de donne (avec revert automatique). Section « Classement ELO » dans les statistiques globales, carte ELO et graphique d'évolution dans les statistiques par joueur.
+- **Raccourci « Même config »** : bouton dans la modale de nouvelle donne pour pré-remplir le preneur et le contrat de la dernière donne jouée.
+- **Changement de joueurs** : depuis l'écran de session, bouton ⇄ pour modifier les joueurs sans repasser par l'accueil. Si les 5 joueurs choisis correspondent à une session active, navigation automatique vers celle-ci ; sinon, création d'une nouvelle session.
+- **Système d'étoiles** : attribution d'étoiles aux joueurs pendant une session avec pénalité automatique tous les 3 étoiles (−100 pts pour le joueur pénalisé, +25 pts pour les 4 autres). Entité `StarEvent`, endpoint API, intégration dans les scores cumulés, classement et statistiques. Interface étoiles cliquables sur le tableau des scores.
+- **Rotation du donneur** : attribution automatique du premier donneur à la création de session, rotation au joueur suivant après complétion d'une donne, icône de cartes sur le scoreboard et affichage dans la modale de saisie et l'historique.
+- **Suppression d'une donne** : suppression de la dernière donne (en cours ou complétée) avec modale de confirmation, recalcul automatique des scores.
+- **Statistiques globales** : écran `/stats` avec classement des joueurs (score total, taux de victoire), métriques clés (total donnes/sessions) et répartition des contrats en barres horizontales.
+- **Statistiques par joueur** : écran `/stats/player/:id` avec métriques (donnes jouées, score moyen, meilleur/pire), répartition des rôles, contrats pris et graphique d'évolution des scores récents.
+- **Évolution des scores en session** : graphique linéaire montrant les scores cumulés de chaque joueur au fil des donnes.
+- **API statistiques backend** : `GET /api/statistics` et `GET /api/statistics/players/{id}`.
+- **Formulaire de saisie des donnes** : wizard en 2 étapes — NewGameModal (preneur + contrat) et CompleteGameModal (partenaire, oudlers, points, bonus, aperçu scores).
+- **Écran de session** : tableau des scores cumulés (Scoreboard), bandeau donne en cours (InProgressBanner), historique des donnes (GameList), bouton FAB nouvelle donne.
+- **Écran d'accueil** : sélection de 5 joueurs (avec chips, recherche, création inline), démarrage/reprise de session, liste des sessions récentes.
+- **Gestion des joueurs** : écran complet avec liste, recherche par nom, ajout via formulaire modal, gestion des doublons (erreur 422).
+- **Modification et désactivation des joueurs** : modale de modification avec champ nom et toggle actif/inactif. Les joueurs inactifs sont affichés avec nom barré et badge « Inactif ».
+- **Navigation clavier dans la recherche de joueurs** : flèches ↑/↓ pour parcourir les résultats, Entrée pour sélectionner, Échap pour fermer. Pattern combobox ARIA complet.
+- **Design system** : thème Tailwind CSS 4 complet avec tokens de couleur (accent, surface, texte, score, contrat, avatar) et support du mode sombre via `@custom-variant dark`.
+- **Composants UI** : PlayerAvatar, ContractBadge, ScoreDisplay, FAB, Modal, Stepper, SearchInput, Select, OverflowMenu.
+- **Hooks utilitaires** : `useAnimatedCounter`, `useDebounce`, `useElapsedTime`, `useSession`, `useSessionGames`, `useSessions`, `useCreateSession`, `useCreateGame`, `useCompleteGame`, `usePlayers`, `useCreatePlayer`, `useUpdatePlayer`, `useGlobalStats`, `usePlayerStats`.
+- **Service `calculateScore`** : miroir frontend du ScoreCalculator backend pour aperçu des scores en temps réel.
+- **Confirmation étoile** : modale de confirmation avant attribution d'une étoile.
+- **Forcer le donneur** : possibilité de changer manuellement le donneur d'une session.
+- **Pré-remplissage nom joueur** : le champ nom de la modale « Nouveau joueur » est pré-rempli avec le texte de recherche.
+- **Page d'aide in-app** : page `/aide` avec guide utilisateur en accordéons dépliables.
+- **Guide de contribution** : fichier `CONTRIBUTING.md` à la racine du projet.
+- **Hookify rules** : 4 règles de garde automatiques — `require-ddev-exec`, `no-schema-update`, `no-dump-functions`, `no-console-log`.
+- **Documentation** : guide utilisateur (`docs/user-guide.md`) et référence développeur (`docs/frontend-usage.md`).
+- **Tests** : 207 tests frontend (30 fichiers) + 22 tests API fonctionnels + 35 tests unitaires ScoreCalculator.
+- **Infrastructure** : DDEV (PHP 8.3, MariaDB 10.11), Symfony 7.4, API Platform 4, React 19, Vite, TanStack Query, PWA.
 
 ### Changed
 
-- **Toggle thème sombre** : déplacé du header global vers la page d'accueil, à côté du bouton d'aide, pour ne plus pousser le contenu vers le bas.
-
-- **Bouton d'aide** : visible uniquement sur la page d'accueil, aligné à droite du titre « Sessions récentes » (au lieu d'être dans le header global).
+- **Lazy-load et code-splitting** : toutes les pages (sauf Home) sont chargées en lazy-loading via `React.lazy()`, et `recharts` est isolé dans un chunk dédié via `manualChunks`.
+- **Clôture de sessions (groupe)** : le bouton « Clôturer les sessions » ouvre désormais une modale de confirmation au lieu d'un `window.confirm()`.
+- **Nettoyage backend** : suppression des annotations `@throws` trompeuses, extraction du `GroupFilterTrait`, correction du risque N+1 sur `Session::getLastPlayedAt()`.
+- **Index composites** : ajout d'index composites sur `game(session_id, status)`, `score_entry(game_id, player_id)` et `star_event(session_id, player_id)`.
+- **BadgeChecker : requêtes en batch** : pré-charge toutes les statistiques en batch (~12 requêtes) au lieu de requêtes individuelles (~75+). Introduit `BadgeCheckContext`.
+- **EloCalculator : identification par ID** : utilise les IDs des joueurs comme clés du tableau `$ratings` au lieu des noms.
+- **Services `final readonly`** : `ScoreCalculator`, `EloCalculator`, `GlobalStatisticsService`, `PlayerStatisticsService` et `SessionSummaryService`.
+- **Badges : suppression du side-effect sur GET statistiques** : le check de badges est retiré de `GET /api/statistics/players/{id}`. Les badges sont vérifiés uniquement à la complétion d'une donne et à l'ajout d'étoiles.
+- **Requêtes BDD centralisées dans les repositories** : toutes les requêtes Doctrine (~73) migrées vers des repositories dédiés. Utilisation exclusive du QueryBuilder.
+- **DTOs typés pour les retours de repositories** : 22 DTOs dans `src/Dto/` avec l'opérateur `NEW` de Doctrine.
+- **Joueurs — dernière activité** : la page Joueurs affiche la date de dernière activité en format relatif.
+- **Statistiques — sections en menu déroulant** : métriques clés et classement en haut, puis menu déroulant pour la section détaillée.
+- **Badges — masquer les verrouillés par défaut** : seuls les badges débloqués sont affichés. Un bouton « Voir les X restants » permet de révéler les badges verrouillés.
+- **Graphique ELO global** : les chips de filtrage sont remplacées par un menu déroulant « Joueurs » avec indicateurs de couleur.
+- **Session — menu overflow** : toutes les actions du header regroupées dans un menu « ⋮ ». Le header passe à une seule ligne.
+- **Toggle thème sombre** : déplacé du header global vers la page d'accueil.
+- **Bouton d'aide** : visible uniquement sur la page d'accueil.
+- **Accueil — refonte mobile** : sessions récentes en haut, sélection des joueurs en bas (zone du pouce). Le bouton « Démarrer » apparaît à la place de la barre de recherche une fois les 5 joueurs sélectionnés.
+- **Accueil — sélection des joueurs** : les joueurs apparaissent uniquement lors d'une recherche.
+- **Historique des donnes** : boutons Modifier et Supprimer déplacés sur une ligne séparée avec taille augmentée.
+- **Commandes simplifiées** : cibles Makefile au lieu des commandes `ddev exec` verbeuses.
 
 ### Fixed
 
-- **Page blanche au clic sur un groupe** : les joueurs étaient rendus comme des IRIs au lieu d'objets (groupe de sérialisation `player-group:detail` manquant sur `Player`)
-- **Création joueur depuis le formulaire de groupe** : le submit remontait dans l'arbre React via le portal et déclenchait la création du groupe prématurément
-- **Classement vide dans les stats d'un groupe** : les INNER JOINs mutuellement exclusifs (game vs star entries) éliminaient toutes les lignes de la requête leaderboard
-- **Groupes non pré-sélectionnés dans la modale d'édition joueur** : groupe de sérialisation `player:read` manquant sur `PlayerGroup.id` et `PlayerGroup.name`
+- **Classement par groupe** : la requête joignait la session via `ScoreEntry.session` (toujours `null`). La jointure passe désormais par `Game.session`.
+- **Documentation API désactivée en production** : la doc Swagger/OpenAPI et l'entrypoint API Platform sont désactivés en production.
+- **Pagination max par page** : plafond de 50 éléments par page avec contrôle client `?itemsPerPage=N`.
+- **Session PHP désactivée en production** : la session PHP (`PHPSESSID`) est désactivée en production (API stateless).
+- **Validation de longueur des noms** : contraintes `Assert\Length` sur `Player::$name` (max 50) et `PlayerGroup::$name` (max 100).
+- **Validation des oudlers et points** : les champs `oudlers` (0–3) et `points` (0–91) sont validés par des contraintes `Range`.
+- **Validation du preneur à la création de donne** : le preneur est vérifié comme appartenant à la session dans le processeur et le validateur.
+- **APP_SECRET retiré du contrôle de version** : le secret n'est plus stocké en dur dans `.env.dev`.
+- **Dark mode — contraste** : textes secondaires plus lisibles en mode sombre (conformité WCAG AA 4.5:1).
+- **Page blanche au clic sur un groupe** : groupe de sérialisation manquant sur `Player`.
+- **Création joueur depuis le formulaire de groupe** : le submit remontait via le portal React.
+- **Classement vide dans les stats d'un groupe** : INNER JOINs mutuellement exclusifs corrigés.
+- **Groupes non pré-sélectionnés dans la modale d'édition joueur** : groupes de sérialisation manquants.
+- **Accueil — centrage et débordement** : titre, avatars et compteur centrés ; chips en `flex-wrap`.
+- **DevTools en production** : React Query DevTools ne sont plus chargées en production.
 
 ### Removed
 
-- **Mème « First Time? »** : suppression du mème garanti à la première défaite du preneur dans la session (incompatible avec la pagination côté serveur — seules les donnes chargées étaient vérifiées)
-
-### Changed
-
-- **CLAUDE.md** : commandes simplifiées avec cibles Makefile au lieu des commandes `ddev exec` verbeuses
-- **Historique des donnes** : boutons Modifier et Supprimer déplacés sur une ligne séparée en dessous des informations de la donne, avec une taille augmentée pour une meilleure accessibilité mobile
-
-### Added
-
-- **Hookify rules** : 4 règles de garde automatiques — `require-ddev-exec` (commandes via DDEV), `no-schema-update` (migrations obligatoires), `no-dump-functions` (pas de dd/dump/var_dump), `no-console-log` (pas de console.log)
-
-- **Navigation clavier dans la recherche de joueurs** : flèches ↑/↓ pour parcourir les résultats, Entrée pour sélectionner, Échap pour fermer la liste. Pattern combobox ARIA complet (`role="combobox"`, `role="listbox"`/`role="option"`, `aria-activedescendant`, `aria-expanded`). Nouvelles props SearchInput : `onKeyDown`, `clearKey`, `inputProps`.
-
-- **Modification et désactivation des joueurs** : bouton crayon sur chaque joueur de la liste, modale de modification avec champ nom et toggle actif/inactif. Les joueurs inactifs sont affichés avec nom barré, badge « Inactif » et avatar grisé. Ils n'apparaissent plus dans la sélection lors de la création de session, mais leurs données historiques (scores, statistiques, ELO) sont conservées. Hook `useUpdatePlayer`, champ `active` sur l'entité `Player`.
-
-- **Pré-remplissage nom joueur** : le champ nom de la modale « Nouveau joueur » est pré-rempli avec le texte de recherche en cours
-
-- **Confirmation étoile** : modale de confirmation avant attribution d'une étoile à un joueur, évitant les appuis accidentels. Composant `AddStarModal` avec boutons Annuler/Confirmer.
-
-- **Forcer le donneur** : possibilité de changer manuellement le donneur d'une session en appuyant sur l'icône de cartes du donneur actuel dans le tableau des scores. Modale de sélection parmi les 5 joueurs, opération PATCH `/sessions/{id}` avec validation (le donneur doit appartenir à la session). Hook `useUpdateDealer`, composant `ChangeDealerModal`.
-
-- **Page d'aide in-app** : page `/aide` accessible via l'icône ? en haut à droite de chaque écran, reprenant le contenu du guide utilisateur en accordéons dépliables (installation, concepts clés, gestion des joueurs, sessions, saisie, statistiques, étoiles, ELO, Smart TV, thème sombre, règles de calcul), avec lien vers le dépôt GitHub
-- **Guide de contribution** : fichier `CONTRIBUTING.md` à la racine du projet avec prérequis, conventions de code, workflow Git, soumission d'issues et de PRs
-
-### Changed
-
-- **Accueil — refonte mobile** : les sessions récentes sont affichées en haut de l'écran pour un accès rapide, la sélection des joueurs est en bas (zone du pouce). Le bouton « Démarrer » est remplacé par un bouton intégré qui apparaît avec animation à la place de la barre de recherche une fois les 5 joueurs sélectionnés. Chaque session affiche les avatars des joueurs et la date relative de la dernière donne (« Aujourd'hui », « Hier », « Il y a X jours »). La liste est limitée à 5 sessions avec un bouton « Voir tout ». L'état vide affiche un message aléatoire engageant. Un message motivant aléatoire est affiché en sous-titre de la section « Nouvelle session ».
-
-- **Accueil — sélection des joueurs** : la liste complète des joueurs n'est plus affichée par défaut. Les joueurs apparaissent uniquement lors d'une recherche via la barre de recherche, simplifiant l'interface.
-
-### Fixed
-
-- **Accueil — centrage et débordement** : le titre, les avatars sélectionnés et le compteur de joueurs sont maintenant centrés horizontalement ; les chips passent à la ligne (`flex-wrap`) au lieu de déborder de l'écran
-- **DevTools en production** : les React Query DevTools ne sont plus chargées ni affichées en production (lazy import conditionnel sur `import.meta.env.DEV`)
-
-### Added
-
-- **Compatibilité Smart TV** : support des Smart TV Samsung (Tizen 5.0+) et LG (webOS 5.0+). Build ciblant `chrome64` pour transpiler les syntaxes ES2020+. Mise en page responsive grand écran (`font-size` 20px, contenu centré `max-w-4xl`, graphiques agrandis). Navigation D-pad via `:focus-visible` global avec anneau accent. Cibles tactiles minimales 40px sur les boutons critiques.
-
-- **Classement ELO** : système de rating ELO dynamique entre joueurs, calculé après chaque donne en tenant compte du niveau des adversaires (K-factors différenciés : preneur 40, partenaire 25, défenseur 15). Entité `EloHistory`, service `EloCalculator`, intégration dans les processeurs de complétion et suppression de donne (avec revert automatique). Section « Classement ELO » dans les statistiques globales, carte ELO et graphique d'évolution dans les statistiques par joueur. Composants `EloRanking` et `EloEvolutionChart`.
-
-- **Raccourci « Même config »** : bouton dans la modale de nouvelle donne pour pré-remplir le preneur et le contrat de la dernière donne jouée, réduisant la saisie quand un joueur prend plusieurs fois de suite
-
-- **Changement de joueurs** : depuis l'écran de session, bouton ⇄ pour modifier les joueurs sans repasser par l'accueil. Ouvre une modale `SwapPlayersModal` avec pré-sélection des joueurs actuels, réutilisant le `PlayerSelector` existant. Si les 5 joueurs choisis correspondent à une session active, navigation automatique vers celle-ci ; sinon, création d'une nouvelle session. Bouton désactivé pendant une donne en cours.
-
-- **Système d'étoiles** : attribution d'étoiles aux joueurs pendant une session avec pénalité automatique tous les 3 étoiles (−100 pts pour le joueur pénalisé, +25 pts pour les 4 autres). Entité `StarEvent`, endpoint API `POST/GET /sessions/{id}/star-events`, intégration dans les scores cumulés, classement et statistiques. Interface étoiles cliquables sur le tableau des scores, compteur par joueur, affichage dans les stats globales et par joueur.
-
-- **Rotation du donneur** : attribution automatique du premier donneur à la création de session (premier joueur alphabétique), copie sur chaque donne, rotation au joueur suivant après complétion d'une donne, icône de cartes sur le scoreboard et affichage dans la modale de saisie et l'historique des donnes
-- **Suppression d'une donne** : suppression de la dernière donne (en cours ou complétée) avec modal de confirmation, recalcul automatique des scores, bouton « Supprimer » dans l'historique et « Annuler » sur le bandeau donne en cours
-- **Statistiques globales** : écran `/stats` avec classement des joueurs (score total, taux de victoire), métriques clés (total donnes/sessions) et répartition des contrats en barres horizontales
-- **Statistiques par joueur** : écran `/stats/player/:id` avec métriques (donnes jouées, score moyen, meilleur/pire), répartition des rôles, contrats pris et graphique d'évolution des scores récents
-- **Évolution des scores en session** : graphique linéaire dans `SessionPage` montrant les scores cumulés de chaque joueur au fil des donnes (visible à partir de 2 donnes terminées)
-- **API statistiques backend** : `GET /api/statistics` (classement, répartition contrats, totaux) et `GET /api/statistics/players/{id}` (statistiques détaillées par joueur)
-- **Composants graphiques** : `Leaderboard`, `ContractDistributionChart`, `ScoreTrendChart`, `ScoreEvolutionChart` (Recharts)
-- **Hooks** : `useGlobalStats`, `usePlayerStats` pour la récupération des données statistiques via TanStack Query
-- **Types API** : `GlobalStatistics`, `LeaderboardEntry`, `ContractDistributionEntry`, `PlayerStatistics`, `PlayerContractEntry`, `RecentScoreEntry`
-- **Formulaire de saisie des donnes** : wizard en 2 étapes — NewGameModal (preneur + contrat) et CompleteGameModal (partenaire, oudlers, points, bonus, aperçu scores)
-- **Hook `useCompleteGame`** : mutation PATCH avec `application/merge-patch+json` pour compléter ou modifier une donne, avec invalidation du cache session
-- **Service `calculateScore`** : miroir frontend du ScoreCalculator backend pour aperçu des scores en temps réel (base, poignée, petit au bout, chelem, distribution preneur/partenaire/défenseurs)
-- **Composant `NewGameModal`** : sélection du preneur (avatars) et du contrat (grille colorée 2×2)
-- **Composant `CompleteGameModal`** : formulaire complet avec section bonus repliable, aperçu des scores, mode édition avec pré-remplissage
-- **Écran de session** : tableau des scores cumulés (Scoreboard), bandeau donne en cours (InProgressBanner), historique des donnes (GameList), bouton FAB nouvelle donne, navigation retour
-- **Hook `useSession`** : récupération du détail d'une session (joueurs, donnes, scores cumulés) via TanStack Query
-- **Hook `useCreateGame`** : mutation POST pour créer une nouvelle donne avec invalidation du cache session
-- **Composant `Scoreboard`** : bandeau horizontal scrollable avec avatars et scores cumulés colorés
-- **Composant `InProgressBanner`** : carte pour donne en cours avec preneur, contrat et bouton Compléter
-- **Composant `GameList`** : liste des donnes terminées avec preneur, partenaire, contrat, score et bouton modifier
-- **Types `Game`, `GamePlayer`, `ScoreEntry`, `SessionDetail`, `CumulativeScore`** : interfaces TypeScript pour le détail de session
-- **Sérialisation backend** : ajout du groupe `session:detail` sur Player.id/name, Game et ScoreEntry pour que `GET /api/sessions/{id}` retourne les objets imbriqués
-- **Écran d'accueil** : sélection de 5 joueurs (avec chips, recherche, création inline), démarrage/reprise de session, liste des sessions récentes
-- **Hook `useSessions`** : récupération des sessions via TanStack Query
-- **Hook `useCreateSession`** : mutation POST avec conversion des IDs en IRIs et invalidation du cache
-- **Composant `PlayerSelector`** : sélection contrôlée de joueurs avec chips, limite à 5, création inline via modal
-- **Composant `SessionList`** : liste cliquable des sessions récentes avec noms des joueurs, date et badge "En cours"
-- **Page `SessionPage`** : écran complet de session avec scoreboard, donne en cours, historique et FAB
-- **Route `/sessions/:id`** : navigation vers une session spécifique
-- **Types `Session` et `SessionPlayer`** : interfaces TypeScript pour les réponses API
-- **Gestion des joueurs** : écran complet avec liste, recherche par nom, ajout via formulaire modal, gestion des doublons (erreur 422)
-- **Hook `usePlayers`** : récupération des joueurs via TanStack Query avec filtrage côté client
-- **Hook `useCreatePlayer`** : mutation POST avec invalidation du cache et propagation des erreurs API
-- **Types API** : interfaces `Player`, `HydraCollection<T>` et classe `ApiError` pour les erreurs HTTP enrichies
-- **Design system** : thème Tailwind CSS 4 complet avec tokens de couleur (accent, surface, texte, score, contrat, avatar) et support du mode sombre via `@custom-variant dark`
-- **ThemeProvider** : contexte React + hook `useTheme` pour basculer light/dark avec persistance localStorage et respect de `prefers-color-scheme`
-- **Types frontend** : miroir TypeScript des enums backend (Contract, Chelem, GameStatus, Poignee, Side) en `as const`
-- **PlayerAvatar** : composant avatar avec initiales (support noms composés), couleur déterministe (10 couleurs) et 3 tailles (sm/md/lg)
-- **ContractBadge** : badge coloré par type de contrat (Petite/Garde/Garde Sans/Garde Contre)
-- **ScoreDisplay** : affichage de score avec couleur positive/négative/neutre, animation rAF et tabular-nums
-- **FAB** : bouton d'action flottant fixe, 56px, couleur accent, support disabled
-- **Modal** : dialogue en portail avec focus trap, fermeture Escape/backdrop, `aria-labelledby`, plein écran mobile
-- **Stepper** : contrôle incrémental −/+ avec bornes min/max, ARIA `role=group` et tap targets 44px
-- **SearchInput** : champ de recherche avec debounce configurable et bouton clear
-- **Hooks utilitaires** : `useAnimatedCounter` (animation rAF), `useDebounce` (délai configurable)
-- **Documentation** : guide utilisateur (`docs/user-guide.md`) et référence développeur (`docs/frontend-usage.md`)
-- **Tests frontend** : 207 tests (30 fichiers) couvrant tous les composants, hooks, services et pages
-- **Initialisation du projet** : CLAUDE.md, README.md, CHANGELOG.md, document de conception
-- **Document de conception** : architecture complète et design UI de l'application de scores au Tarot
-- **Projet GitHub** : 12 issues créées et organisées sur le tableau Tarot - Roadmap
-- **Configuration DDEV** : PHP 8.3, MariaDB 10.11, exposition du port Vite pour le serveur de dev frontend
-- **Backend Symfony 7.4** : squelette Symfony avec API Platform 4, Doctrine ORM, NelmioCorsBundle
-- **Frontend React 19** : application TypeScript avec Vite, Tailwind CSS 4, TanStack Query, React Router, PWA
-- **Structure frontend** : routing avec 3 pages (Accueil, Stats, Joueurs), layout avec navigation basse, client API
-- **Environnement de test** : base de données db_test configurée, PHPUnit opérationnel
-- **Qualité backend** : PHP CS Fixer (@Symfony + risky) et PHPStan (niveau max) avec hook PostToolUse automatique
-- **Service ScoreCalculator** : calcul des scores FFT pour le jeu à 5 joueurs avec bonus (poignée, petit au bout, chelem) et distribution preneur/partenaire/défenseurs
-- **Tests ScoreCalculator** : 35 tests unitaires couvrant tous les contrats, bonus, distribution avec/sans partenaire et invariant somme=0
-- **API Player** : CRUD complet (GET, POST, PATCH) avec validation unicité du nom et groupes de sérialisation
-- **API Session** : smart-create (retrouve session active existante avec les mêmes joueurs), détail avec scores cumulés via DQL, filtrage par joueurs
-- **API Game** : sous-ressource `/sessions/{id}/games`, création en 2 étapes (preneur+contrat → complétion), calcul automatique des scores via ScoreCalculator, édition de la dernière donne avec recalcul
-- **Validation métier** : `OnlyLastGameEditable` (seule la dernière donne modifiable), `PlayersBelongToSession` (preneur/partenaire de la session)
-- **Tests API fonctionnels** : 22 tests (Player, Session, Game, FullFlow E2E) avec `dama/doctrine-test-bundle` pour l'isolation par transaction
+- **Mème « First Time? »** : supprimé (incompatible avec la pagination côté serveur).
