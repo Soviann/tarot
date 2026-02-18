@@ -31,7 +31,7 @@ Application mobile (PWA) de suivi des scores pour le Tarot à 5 joueurs, conform
 
 L'application est une **Progressive Web App** (PWA). Elle s'utilise dans un navigateur mobile et peut être ajoutée à l'écran d'accueil :
 
-1. Ouvrir l'application dans **Chrome** (Android) ou **Safari** (iOS)
+1. Ouvrir **https://web-tarot.cafe76.fr** dans **Chrome** (Android) ou **Safari** (iOS)
 2. Appuyer sur le menu du navigateur (⋮ ou ⬆️ Partager)
 3. Sélectionner **« Ajouter à l'écran d'accueil »**
 4. L'icône apparaît comme une application native
@@ -453,7 +453,7 @@ L'application est compatible avec les **Smart TV** Samsung (Tizen 5.0+) et LG (w
 ### Ouvrir l'application
 
 1. Ouvrir le **navigateur intégré** de la TV (Samsung Internet ou LG Web Browser)
-2. Saisir l'URL de l'application
+2. Saisir l'adresse **https://web-tarot.cafe76.fr**
 3. L'interface s'adapte automatiquement à l'écran large : texte agrandi, contenu centré
 
 ### Navigation au D-pad (télécommande)
