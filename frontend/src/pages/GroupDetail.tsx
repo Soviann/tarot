@@ -1,6 +1,7 @@
 import { ArrowLeft, Check, Pencil, Trash2, UserMinus, UserPlus } from "lucide-react";
 import { type FormEvent, useCallback, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
+import NotFound from "./NotFound";
 import PlayerSelector from "../components/PlayerSelector";
 import { EmptyState, Modal, PlayerAvatar, Spinner } from "../components/ui";
 import { useCloseGroupSessions } from "../hooks/useCloseGroupSessions";
@@ -107,11 +108,7 @@ export default function GroupDetail() {
   }
 
   if (!group) {
-    return (
-      <div className="p-4 lg:p-8">
-        <p className="py-8 text-center text-text-muted">Groupe introuvable</p>
-      </div>
-    );
+    return <NotFound />;
   }
 
   return (
