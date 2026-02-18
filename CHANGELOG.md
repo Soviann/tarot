@@ -8,7 +8,7 @@ Le format est basé sur [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/)
 
 ### Changed
 
-- **Modale de complétion** : le bandeau d'information affiche désormais l'appelé (ou « Seul ») à côté du preneur, permettant de vérifier rapidement la configuration avant validation.
+- **Modale de complétion** : le bandeau d'information affiche désormais l'appelé à côté du preneur, permettant de vérifier rapidement la configuration avant validation.
 
 ## [1.0.0] - 2026-02-16
 
