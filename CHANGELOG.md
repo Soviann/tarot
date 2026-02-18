@@ -6,6 +6,8 @@ Le format est basé sur [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/)
 
 ## [Unreleased]
 
+## [1.1.0] - 2026-02-18
+
 ### Added
 
 - **Page 404** : une page d'erreur avec l'illustration de « L'Excuse » s'affiche pour les URLs inconnues et les ressources introuvables (session, joueur, groupe inexistants).
