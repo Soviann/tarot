@@ -10,6 +10,7 @@ import ToastContainer from "./components/ui/ToastContainer";
 const GroupDetail = lazy(() => import("./pages/GroupDetail"));
 const Groups = lazy(() => import("./pages/Groups"));
 const Help = lazy(() => import("./pages/Help"));
+const NotFound = lazy(() => import("./pages/NotFound"));
 const Players = lazy(() => import("./pages/Players"));
 const PlayerStats = lazy(() => import("./pages/PlayerStats"));
 const SessionPage = lazy(() => import("./pages/SessionPage"));
@@ -50,6 +51,7 @@ export default function App() {
                     path="/stats/player/:id"
                     element={<PlayerStats />}
                   />
+                  <Route path="*" element={<NotFound />} />
                 </Route>
               </Routes>
             </Suspense>

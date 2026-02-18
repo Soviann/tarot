@@ -1,5 +1,6 @@
 import { useMemo, useState } from "react";
 import { Link, useNavigate, useParams, useSearchParams } from "react-router-dom";
+import NotFound from "./NotFound";
 import BadgeGrid from "../components/BadgeGrid";
 import ContractDistributionChart from "../components/ContractDistributionChart";
 import EloEvolutionChart from "../components/EloEvolutionChart";
@@ -53,11 +54,7 @@ export default function PlayerStats() {
   }
 
   if (!stats) {
-    return (
-      <div className="p-4 text-center text-text-muted">
-        Joueur introuvable
-      </div>
-    );
+    return <NotFound />;
   }
 
   // Map PlayerContractEntry[] to ContractDistributionEntry[] for the shared chart

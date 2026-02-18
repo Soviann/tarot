@@ -54,7 +54,7 @@ function makeMutationResult(overrides?: Record<string, unknown>) {
 
 function setupMocks(overrides?: {
   closeGroupSessions?: Record<string, unknown>;
-  group?: typeof mockGroup | undefined;
+  group?: typeof mockGroup | null;
   isPending?: boolean;
 }) {
   const closeMutate = vi.fn();
@@ -80,9 +80,17 @@ function setupMocks(overrides?: {
   return { closeMutate };
 }
 
-describe("GroupDetail — close sessions modal", () => {
+describe("GroupDetail", () => {
   afterEach(() => {
     vi.clearAllMocks();
+  });
+
+  it("shows NotFound when group is null", () => {
+    setupMocks({ group: null });
+    renderWithProviders(<GroupDetail />);
+
+    expect(screen.getByRole("heading", { level: 1, name: /404/ })).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: /accueil/i })).toHaveAttribute("href", "/");
   });
 
   it("opens a confirmation modal when clicking 'Clôturer les sessions'", async () => {

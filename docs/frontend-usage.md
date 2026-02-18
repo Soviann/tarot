@@ -777,6 +777,19 @@ Page d'aide in-app reprenant le contenu du guide utilisateur (`docs/user-guide.m
 
 **Hooks utilisés** : `useSessionSummary`
 
+### Page 404 (`NotFound`)
+
+**Fichier** : `pages/NotFound.tsx`
+
+Page affichée lorsqu'aucune route ne correspond à l'URL demandée (catch-all `*`).
+
+**Route** : `*` (toute URL non reconnue)
+
+**Fonctionnalités** :
+- Illustration de la carte de tarot « L'Excuse »
+- Message « Page introuvable »
+- Lien de retour vers l'accueil
+
 ---
 
 ## Composants métier

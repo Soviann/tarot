@@ -2,6 +2,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { ArrowLeftRight, BarChart3, Lock, LockOpen, QrCode, Users } from "lucide-react";
 import { useCallback, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
+import NotFound from "./NotFound";
 import AddStarModal from "../components/AddStarModal";
 import BadgeUnlockedModal from "../components/BadgeUnlockedModal";
 import ChangeDealerModal from "../components/ChangeDealerModal";
@@ -133,11 +134,7 @@ export default function SessionPage() {
   }
 
   if (!session) {
-    return (
-      <div className="p-4 text-center text-text-muted">
-        Session introuvable
-      </div>
-    );
+    return <NotFound />;
   }
 
   return (

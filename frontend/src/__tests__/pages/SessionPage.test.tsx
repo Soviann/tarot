@@ -442,7 +442,8 @@ describe("SessionPage", () => {
     });
     renderWithProviders(<SessionPage />);
 
-    expect(screen.getByText("Session introuvable")).toBeInTheDocument();
+    expect(screen.getByRole("heading", { level: 1, name: /404/ })).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: /accueil/i })).toHaveAttribute("href", "/");
   });
 
   it("renders scoreboard with player names", () => {
