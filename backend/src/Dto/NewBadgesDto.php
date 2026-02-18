@@ -45,7 +45,7 @@ final readonly class NewBadgesDto implements \JsonSerializable
     }
 
     /**
-     * Serializes as: { "123": [ {badge}, ... ], "456": [ ... ] }
+     * Serializes as: { "123": [ {badge}, ... ], "456": [ ... ] }.
      *
      * @return array<int, list<array{description: string, emoji: string, label: string, type: string}>>
      */

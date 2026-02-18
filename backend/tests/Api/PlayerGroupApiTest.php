@@ -61,7 +61,7 @@ class PlayerGroupApiTest extends ApiTestCase
     {
         $this->client->request('POST', '/api/player-groups', [
             'headers' => ['Content-Type' => 'application/ld+json'],
-            'json' => ['name' => str_repeat('A', 101)],
+            'json' => ['name' => \str_repeat('A', 101)],
         ]);
 
         $this->assertResponseStatusCodeSame(422);
