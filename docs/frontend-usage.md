@@ -1087,7 +1087,7 @@ Modal de complétion (étape 2) ou modification d'une donne. Titre dynamique sel
 | `sessionId` | `number` | *requis* — ID de la session |
 
 **Fonctionnalités** :
-- Bandeau info preneur + contrat (lecture seule)
+- Bandeau info preneur + contrat (lecture seule), avec affichage dynamique de l'appelé (avatar + nom) ou « Seul » dès la sélection
 - Sélection partenaire ou « Seul » (self-call)
 - Stepper oudlers (0-3) avec indication points requis
 - Saisie points avec inputMode numérique

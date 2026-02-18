@@ -309,8 +309,10 @@ describe("CompleteGameModal", () => {
     // Oudlers should show 2
     const oudlerStatus = screen.getByRole("status");
     expect(oudlerStatus).toHaveTextContent("2");
-    // Bob should be selected as partner (ring-2)
-    expect(screen.getByRole("img", { name: "Bob" }).closest("button")).toHaveClass("ring-2");
+    // Bob should be selected as partner (ring-2) — target the one in the partner section
+    const partnerHeading = screen.getByRole("heading", { name: "Partenaire" });
+    const partnerSection = partnerHeading.closest("div")!;
+    expect(partnerSection.querySelector("[role='img'][aria-label='Bob']")!.closest("button")).toHaveClass("ring-2");
   });
 
   it("shows error message when mutation fails", () => {
@@ -321,6 +323,64 @@ describe("CompleteGameModal", () => {
     );
 
     expect(screen.getByText("Server error")).toBeInTheDocument();
+  });
+
+  it("shows partner name in banner in edit mode", () => {
+    setupMock();
+    renderWithProviders(
+      <CompleteGameModal game={completedGame} onClose={vi.fn()} open players={mockPlayers} sessionId={1} />,
+    );
+
+    // Banner should show partner info alongside taker
+    const banner = screen.getByText("Alice").closest("[class*='bg-surface-secondary']")!;
+    expect(banner).toHaveTextContent("Bob");
+  });
+
+  it("shows selected partner name in banner when partner chosen", async () => {
+    setupMock();
+    renderWithProviders(
+      <CompleteGameModal game={inProgressGame} onClose={vi.fn()} open players={mockPlayers} sessionId={1} />,
+    );
+
+    // Select Charlie as partner
+    await userEvent.click(screen.getByRole("img", { name: "Charlie" }).closest("button")!);
+
+    // Banner should now show Charlie
+    const banner = screen.getByText("Alice").closest("[class*='bg-surface-secondary']")!;
+    expect(banner).toHaveTextContent("Charlie");
+  });
+
+  it("does not show partner in banner when self-call selected", async () => {
+    setupMock();
+    renderWithProviders(
+      <CompleteGameModal game={inProgressGame} onClose={vi.fn()} open players={mockPlayers} sessionId={1} />,
+    );
+
+    await userEvent.click(screen.getByRole("button", { name: "Seul" }));
+
+    // Banner should NOT show any partner info
+    const banner = screen.getByText("Alice").closest("[class*='bg-surface-secondary']")!;
+    expect(banner).not.toHaveTextContent("avec");
+  });
+
+  it("allows switching from self-call to a partner", async () => {
+    setupMock();
+    renderWithProviders(
+      <CompleteGameModal game={inProgressGame} onClose={vi.fn()} open players={mockPlayers} sessionId={1} />,
+    );
+
+    // Select Seul first
+    await userEvent.click(screen.getByRole("button", { name: "Seul" }));
+    expect(screen.getByRole("button", { name: "Seul" })).toHaveClass("ring-2");
+
+    // Now click a player — should switch away from Seul
+    await userEvent.click(screen.getByRole("img", { name: "Bob" }).closest("button")!);
+
+    // Banner should show Bob
+    const banner = screen.getByText("Alice").closest("[class*='bg-surface-secondary']")!;
+    expect(banner).toHaveTextContent("Bob");
+    // Seul should no longer be active
+    expect(screen.getByRole("button", { name: "Seul" })).not.toHaveClass("ring-2");
   });
 
   it("does not render when open is false", () => {

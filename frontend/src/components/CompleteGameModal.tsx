@@ -100,6 +100,7 @@ export default function CompleteGameModal({ game, onBadgesUnlocked, onClose, onG
   }, [chelem, game.contract, oudlers, partnerId, petitAuBout, poignee, pointsNum, pointsValid, selfCall]);
 
   const otherPlayers = players.filter((p) => p.id !== game.taker.id);
+  const selectedPartner = partnerId !== null ? players.find((p) => p.id === partnerId) ?? null : null;
 
   function handleSelfCall() {
     setSelfCall(true);
@@ -152,13 +153,22 @@ export default function CompleteGameModal({ game, onBadgesUnlocked, onClose, onG
   return (
     <Modal onClose={onClose} open={open} title={title}>
       <div className="flex max-h-[70vh] flex-col gap-4 overflow-y-auto">
-        {/* Bandeau info preneur */}
+        {/* Bandeau info preneur + appelé */}
         <div className="flex items-center gap-3 rounded-xl bg-surface-secondary p-3">
           <PlayerAvatar color={game.taker.color} name={game.taker.name} playerId={game.taker.id} size="md" />
           <div className="flex flex-col gap-1">
             <span className="text-sm font-medium text-text-primary">{game.taker.name}</span>
             <ContractBadge contract={game.contract} />
           </div>
+          {!selfCall && selectedPartner && (
+            <div className="ml-auto flex items-center gap-2">
+              <span className="text-right text-sm text-text-primary">
+                <span className="text-text-muted">avec </span>
+                <span className="font-medium">{selectedPartner.name}</span>
+              </span>
+              <PlayerAvatar color={selectedPartner.color} name={selectedPartner.name} playerId={selectedPartner.id} size="sm" />
+            </div>
+          )}
         </div>
 
         {/* Partenaire */}
@@ -177,9 +187,8 @@ export default function CompleteGameModal({ game, onBadgesUnlocked, onClose, onG
             {otherPlayers.map((player) => (
               <button
                 className={`rounded-full p-0.5 transition-all ${
-                  partnerId === player.id ? "ring-2 ring-accent-500" : ""
+                  partnerId === player.id && !selfCall ? "ring-2 ring-accent-500" : ""
                 } ${selfCall ? "opacity-40" : ""}`}
-                disabled={selfCall}
                 key={player.id}
                 onClick={() => handleSelectPartner(player.id)}
                 type="button"
