@@ -6,6 +6,10 @@ Le format est basé sur [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/)
 
 ## [Unreleased]
 
+### Fixed
+
+- **Classement par groupe** : le classement (leaderboard) dans les statistiques était vide lors du filtrage par groupe, car la requête joignait la session via `ScoreEntry.session` (toujours `null` pour les entrées de jeu). La jointure passe désormais par `Game.session`.
+
 ### Added
 
 - **Badges dans l'aide** : la page d'aide (`/aide`) affiche désormais la liste complète des 15 badges disponibles, regroupés par catégorie (Progression, Performance, Fun, Social), avec leur icône, nom et condition d'obtention.
