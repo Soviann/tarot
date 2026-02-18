@@ -5,6 +5,20 @@
 # Usage : make <cible>   (ex. make test, make lint)
 # ──────────────────────────────────────────────────
 
+include .env
+
+# Si ENV est défini, inclure le fichier d'environnement correspondant
+ifdef ENV
+ifneq ("$(wildcard .env.$(ENV))","")
+	include .env.$(ENV)
+endif
+endif
+
+# .env.local prévaut toujours (chargé en dernier)
+ifneq ("$(wildcard .env.local)","")
+	include .env.local
+endif
+
 .DEFAULT_GOAL := help
 
 # ── Couleurs ──────────────────────────────────────
