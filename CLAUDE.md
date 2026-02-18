@@ -104,8 +104,19 @@ Format: `<type>(scope): description` — Types: `feat`, `fix`, `chore`, `refacto
 
 Semantic versioning: `vMAJOR.MINOR.PATCH`
 - Tag after a coherent set of issues is merged (milestone)
-- Release notes generated from CHANGELOG.md
 - No release per PR — only at milestones
+- **Workflow**: update CHANGELOG `[Unreleased]` → `[X.Y.Z] - YYYY-MM-DD`, then tag on `main`
+- **GitHub Action** (`.github/workflows/release.yml`): pushing a `v*` tag automatically creates a GitHub Release with notes extracted from CHANGELOG
+- Keep `[Unreleased]` section at the top of CHANGELOG for ongoing work
+
+```bash
+# Release workflow:
+# 1. On main, ensure CHANGELOG has the new version section
+# 2. Tag and push:
+git tag vX.Y.Z
+git push origin vX.Y.Z
+# 3. GitHub Action creates the release automatically
+```
 
 ```bash
 # Workflow for each issue:
