@@ -6,6 +6,10 @@ Le format est basé sur [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/)
 
 ## [Unreleased]
 
+### Added
+
+- **Page 404** : une page d'erreur avec l'illustration de « L'Excuse » s'affiche pour les URLs inconnues et les ressources introuvables (session, joueur, groupe inexistants).
+
 ### Changed
 
 - **Modale de complétion** : le bandeau d'information affiche désormais l'appelé à côté du preneur, permettant de vérifier rapidement la configuration avant validation.
