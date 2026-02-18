@@ -33,6 +33,13 @@ export default defineConfig({
   ],
   build: {
     target: "chrome64",
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          recharts: ["recharts"],
+        },
+      },
+    },
   },
   server: {
     host: "0.0.0.0",

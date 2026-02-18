@@ -14,6 +14,7 @@ Le format est basé sur [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/)
 
 ### Changed
 
+- **Lazy-load et code-splitting** : toutes les pages (sauf Home) sont désormais chargées en lazy-loading via `React.lazy()`, et `recharts` est isolé dans un chunk dédié via `manualChunks`. Cela réduit la taille du bundle initial et supprime le warning Vite sur les chunks > 500 kB.
 - **Clôture de sessions (groupe)** : le bouton « Clôturer les sessions » sur la page d'un groupe ouvre désormais une modale de confirmation au lieu d'un `window.confirm()` natif du navigateur, pour une expérience cohérente avec le reste de l'application.
 - **Nettoyage backend** : suppression des annotations `@throws` trompeuses sur `SessionController`, extraction du `applyGroupFilter` dupliqué dans un trait partagé `GroupFilterTrait`, et correction du risque N+1 sur `Session::getLastPlayedAt()` (la valeur est désormais hydratée depuis SQL par les providers).
 - **Index composites** : ajout d'index composites sur `game(session_id, status)`, `score_entry(game_id, player_id)` et `star_event(session_id, player_id)` pour optimiser les requêtes fréquentes.
