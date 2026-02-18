@@ -303,7 +303,7 @@ La saisie se fait en **2 étapes** :
 
 ### Étape 2 — Fin de la donne
 
-1. **Sélectionner le partenaire** : appuyer sur l'avatar du joueur appelé, ou **« Seul »** si le preneur appelle son propre roi
+1. **Sélectionner le partenaire** : appuyer sur l'avatar du joueur appelé, ou **« Seul »** si le preneur appelle son propre roi. Le bandeau en haut de la modale affiche l'appelé à côté du preneur pour vérification rapide.
 2. **Nombre d'oudlers** : utiliser le stepper (0 à 3)
 3. **Points réalisés** : saisir le total de points du camp attaquant (0 à 91)
 4. **Bonus** (section dépliable, optionnel) :
