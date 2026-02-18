@@ -16,6 +16,7 @@ backend/.phpunit.cache/
 ###> friendsofphp/php-cs-fixer ###
 backend/.php-cs-fixer.php
 backend/.php-cs-fixer.cache
+.php-cs-fixer.cache
 ###< friendsofphp/php-cs-fixer ###
 
 ###> node ###
