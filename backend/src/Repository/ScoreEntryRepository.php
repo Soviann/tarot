@@ -89,7 +89,7 @@ final class ScoreEntryRepository extends ServiceEntityRepository
             ->addGroupBy('p.name')
             ->orderBy('p.name', 'ASC');
 
-        /** @var list<CumulativeScoreDto> */
+        /* @var list<CumulativeScoreDto> */
         return $qb->getQuery()->getResult();
     }
 
@@ -200,7 +200,7 @@ final class ScoreEntryRepository extends ServiceEntityRepository
             ->getQuery()
             ->getResult();
 
-        $map = \array_fill_keys($playerIds, 0);
+        $map = array_fill_keys($playerIds, 0);
         foreach ($results as $row) {
             $map[(int) $row['playerId']] = (int) $row['cnt'];
         }
@@ -244,7 +244,7 @@ final class ScoreEntryRepository extends ServiceEntityRepository
             ->getQuery()
             ->getResult();
 
-        $map = \array_fill_keys($playerIds, 0);
+        $map = array_fill_keys($playerIds, 0);
         foreach ($results as $row) {
             $map[(int) $row['playerId']] = (int) $row['cnt'];
         }
@@ -294,7 +294,7 @@ final class ScoreEntryRepository extends ServiceEntityRepository
             ->getQuery()
             ->getResult();
 
-        $map = \array_fill_keys($playerIds, 0);
+        $map = array_fill_keys($playerIds, 0);
         foreach ($results as $row) {
             $map[(int) $row['playerId']] = (int) $row['cnt'];
         }
@@ -318,7 +318,7 @@ final class ScoreEntryRepository extends ServiceEntityRepository
             ->getQuery()
             ->getResult();
 
-        return \array_map(static fn (array $row): int => (int) $row['sessionId'], $results);
+        return array_map(static fn (array $row): int => (int) $row['sessionId'], $results);
     }
 
     /**
@@ -344,7 +344,7 @@ final class ScoreEntryRepository extends ServiceEntityRepository
             ->getResult();
 
         /** @var array<int, list<int>> $map */
-        $map = \array_fill_keys($playerIds, []);
+        $map = array_fill_keys($playerIds, []);
         foreach ($results as $row) {
             $map[(int) $row['playerId']][] = (int) $row['sessionId'];
         }
@@ -357,7 +357,7 @@ final class ScoreEntryRepository extends ServiceEntityRepository
      */
     public function getEntriesForSessionByPosition(int $sessionId): array
     {
-        /** @var list<ScoreEntryPositionDto> */
+        /* @var list<ScoreEntryPositionDto> */
         return $this->createQueryBuilder('se')
             ->select('NEW App\Dto\ScoreEntryPositionDto(IDENTITY(se.player), g.position, se.score)')
             ->join('se.game', 'g')
@@ -375,7 +375,7 @@ final class ScoreEntryRepository extends ServiceEntityRepository
      */
     public function getScoreSumsByPlayerForSession(int $sessionId): array
     {
-        /** @var list<PlayerScoreSumDto> */
+        /* @var list<PlayerScoreSumDto> */
         return $this->createQueryBuilder('se')
             ->select('NEW App\Dto\PlayerScoreSumDto(IDENTITY(se.player), SUM(se.score))')
             ->join('se.game', 'g')
@@ -433,7 +433,7 @@ final class ScoreEntryRepository extends ServiceEntityRepository
 
         $this->applyGroupFilter($qb, $playerGroupId);
 
-        /** @var list<RecentScoreDto> */
+        /* @var list<RecentScoreDto> */
         return $qb->getQuery()->getResult();
     }
 
@@ -503,7 +503,7 @@ final class ScoreEntryRepository extends ServiceEntityRepository
      */
     public function getGamesWithTakerScoreForPlayer(Player $player): array
     {
-        /** @var list<GameTakerScoreDto> */
+        /* @var list<GameTakerScoreDto> */
         return $this->createQueryBuilder('se')
             ->select('NEW App\Dto\GameTakerScoreDto(g.id, IDENTITY(g.partner), IDENTITY(g.taker), se2.score)')
             ->join('se.game', 'g')
@@ -550,7 +550,7 @@ final class ScoreEntryRepository extends ServiceEntityRepository
             ->getResult();
 
         /** @var array<int, list<GameTakerScoreDto>> $map */
-        $map = \array_fill_keys($playerIds, []);
+        $map = array_fill_keys($playerIds, []);
         foreach ($results as $row) {
             $map[(int) $row['playerId']][] = new GameTakerScoreDto(
                 $row['gameId'],
@@ -578,8 +578,12 @@ final class ScoreEntryRepository extends ServiceEntityRepository
             ->orderBy('SUM(se.score)', 'DESC');
 
         if (null !== $playerGroupId) {
-            $qb->leftJoin('App\Entity\Session', 's_grp', 'WITH', 'se.session = s_grp')
-               ->andWhere('(g IS NOT NULL AND g.status = :status AND s_grp.playerGroup = :group) OR (se.game IS NULL AND s_grp.playerGroup = :group)')
+            $qb->leftJoin('g.session', 's_game_grp')
+               ->leftJoin('se.session', 's_star_grp')
+               ->andWhere(
+                   '(g IS NOT NULL AND g.status = :status AND s_game_grp.playerGroup = :group) OR '.
+                   '(se.game IS NULL AND s_star_grp.playerGroup = :group)',
+               )
                ->setParameter('status', GameStatus::Completed)
                ->setParameter('group', $playerGroupId);
         } else {
@@ -587,7 +591,7 @@ final class ScoreEntryRepository extends ServiceEntityRepository
                ->setParameter('status', GameStatus::Completed);
         }
 
-        /** @var list<LeaderboardScoreDto> */
+        /* @var list<LeaderboardScoreDto> */
         return $qb->getQuery()->getResult();
     }
 
@@ -609,7 +613,7 @@ final class ScoreEntryRepository extends ServiceEntityRepository
                ->setParameter('group', $playerGroupId);
         }
 
-        /** @var list<GamesPlayedCountDto> */
+        /* @var list<GamesPlayedCountDto> */
         return $qb->getQuery()->getResult();
     }
 }
