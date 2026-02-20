@@ -1,7 +1,7 @@
 import { ChevronDown, Layers } from "lucide-react";
 import { useState } from "react";
 import { REQUIRED_POINTS } from "../services/scoreCalculator";
-import type { Game } from "../types/api";
+import type { Game, ScoreEntry } from "../types/api";
 import { formatDuration } from "../utils/formatDuration";
 import { ContractBadge, EmptyState, PlayerAvatar, ScoreDisplay, Spinner } from "./ui";
 
@@ -19,6 +19,26 @@ function formatScoreDiff(points: number, oudlers: number): string {
   const required = REQUIRED_POINTS[oudlers];
   const diff = Math.trunc(points) - required;
   return diff >= 0 ? `+${diff}` : `${diff}`;
+}
+
+function ScoreRow({ entry, role }: { entry: ScoreEntry; role?: string }) {
+  return (
+    <div className="flex items-center justify-between">
+      <div className="flex items-center gap-2">
+        <PlayerAvatar
+          color={entry.player.color}
+          name={entry.player.name}
+          playerId={entry.player.id}
+          size="sm"
+        />
+        <span className="text-sm text-text-primary">{entry.player.name}</span>
+        {role && (
+          <span className="rounded bg-blue-500/15 px-1.5 py-0.5 text-[10px] font-semibold text-blue-400">{role}</span>
+        )}
+      </div>
+      <ScoreDisplay animated={false} className="text-sm" value={entry.score} />
+    </div>
+  );
 }
 
 export default function GameList({
@@ -54,15 +74,6 @@ export default function GameList({
             ? Math.floor((new Date(game.completedAt).getTime() - new Date(game.createdAt).getTime()) / 1000)
             : null;
           const isExpanded = expandedId === game.id;
-
-          // Build ordered score entries: taker, partner, defense
-          const takerEntry = game.scoreEntries.find((e) => e.player.id === game.taker.id);
-          const partnerEntry = game.partner
-            ? game.scoreEntries.find((e) => e.player.id === game.partner!.id)
-            : null;
-          const defenseEntries = game.scoreEntries.filter(
-            (e) => e.player.id !== game.taker.id && e.player.id !== game.partner?.id,
-          );
 
           return (
             <li
@@ -106,59 +117,30 @@ export default function GameList({
                   size={16}
                 />
               </div>
-              {isExpanded && game.oudlers !== null && game.points !== null && (
-                <div className="mt-2 border-t border-border pt-2">
-                  <div className="mb-2 text-center text-xs text-text-muted">
-                    {game.oudlers} {game.oudlers > 1 ? "bouts" : "bout"} · {formatScoreDiff(game.points, game.oudlers)}
+              {isExpanded && game.oudlers !== null && game.points !== null && (() => {
+                const takerEntry = game.scoreEntries.find((e) => e.player.id === game.taker.id);
+                const partnerEntry = game.partner
+                  ? game.scoreEntries.find((e) => e.player.id === game.partner!.id)
+                  : null;
+                const defenseEntries = game.scoreEntries.filter(
+                  (e) => e.player.id !== game.taker.id && e.player.id !== game.partner?.id,
+                );
+
+                return (
+                  <div className="mt-2 border-t border-border pt-2">
+                    <div className="mb-2 text-center text-xs text-text-muted">
+                      {game.oudlers} {game.oudlers === 1 ? "bout" : "bouts"} · {formatScoreDiff(game.points, game.oudlers)}
+                    </div>
+                    <div className="space-y-1">
+                      {takerEntry && <ScoreRow entry={takerEntry} role="Preneur" />}
+                      {partnerEntry && <ScoreRow entry={partnerEntry} role="Appelé" />}
+                      {defenseEntries.map((entry) => (
+                        <ScoreRow entry={entry} key={entry.id} />
+                      ))}
+                    </div>
                   </div>
-                  <div className="space-y-1">
-                    {takerEntry && (
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-2">
-                          <PlayerAvatar
-                            color={takerEntry.player.color}
-                            name={takerEntry.player.name}
-                            playerId={takerEntry.player.id}
-                            size="sm"
-                          />
-                          <span className="text-sm text-text-primary">{takerEntry.player.name}</span>
-                          <span className="rounded bg-blue-500/15 px-1.5 py-0.5 text-[10px] font-semibold text-blue-400">Preneur</span>
-                        </div>
-                        <ScoreDisplay animated={false} className="text-sm" value={takerEntry.score} />
-                      </div>
-                    )}
-                    {partnerEntry && (
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-2">
-                          <PlayerAvatar
-                            color={partnerEntry.player.color}
-                            name={partnerEntry.player.name}
-                            playerId={partnerEntry.player.id}
-                            size="sm"
-                          />
-                          <span className="text-sm text-text-primary">{partnerEntry.player.name}</span>
-                          <span className="rounded bg-blue-500/15 px-1.5 py-0.5 text-[10px] font-semibold text-blue-400">Appelé</span>
-                        </div>
-                        <ScoreDisplay animated={false} className="text-sm" value={partnerEntry.score} />
-                      </div>
-                    )}
-                    {defenseEntries.map((entry) => (
-                      <div className="flex items-center justify-between" key={entry.id}>
-                        <div className="flex items-center gap-2">
-                          <PlayerAvatar
-                            color={entry.player.color}
-                            name={entry.player.name}
-                            playerId={entry.player.id}
-                            size="sm"
-                          />
-                          <span className="text-sm text-text-primary">{entry.player.name}</span>
-                        </div>
-                        <ScoreDisplay animated={false} className="text-sm" value={entry.score} />
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
+                );
+              })()}
               {isSessionActive && game.position === maxPosition && (
                 <div className="mt-2 flex gap-2">
                   <button
