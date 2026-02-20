@@ -49,6 +49,7 @@ use Symfony\Component\Validator\Constraints as Assert;
     uriTemplate: '/sessions/{sessionId}/games',
     operations: [
         new GetCollection(
+            paginationClientEnabled: true,
             paginationItemsPerPage: 10,
             order: ['position' => 'DESC'],
         ),

@@ -82,6 +82,12 @@ describe("computeScoreEvolution", () => {
     expect(computeScoreEvolution([], players)).toEqual([]);
   });
 
+  it("filters out in-progress games", () => {
+    const inProgressGame: Game = { ...makeGame(3, {}), scoreEntries: [], status: "in_progress" };
+    const result = computeScoreEvolution([...twoGames, inProgressGame], players);
+    expect(result).toHaveLength(2);
+  });
+
   it("sorts games by position", () => {
     const game2 = makeGame(2, { Alice: -10, Bob: -10, Charlie: 10, Diana: 10, Eve: 0 });
     const game1 = makeGame(1, { Alice: 50, Bob: 20, Charlie: -20, Diana: -20, Eve: -30 });
