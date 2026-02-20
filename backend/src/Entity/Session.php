@@ -15,6 +15,7 @@ use App\State\SessionCreateProcessor;
 use App\State\SessionDetailProvider;
 use App\State\SessionPatchProcessor;
 use App\Validator\DealerBelongsToSession;
+use App\Validator\PlayerOrderMatchesSession;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
@@ -40,6 +41,7 @@ use Symfony\Component\Validator\Constraints as Assert;
     denormalizationContext: ['groups' => ['session:write']],
 )]
 #[DealerBelongsToSession]
+#[PlayerOrderMatchesSession]
 #[ORM\Entity(repositoryClass: SessionRepository::class)]
 class Session
 {
@@ -70,6 +72,11 @@ class Session
     #[ORM\JoinColumn(nullable: true, onDelete: 'SET NULL')]
     #[ORM\ManyToOne(targetEntity: PlayerGroup::class)]
     private ?PlayerGroup $playerGroup = null;
+
+    /** @var int[]|null */
+    #[Groups(['session:detail', 'session:patch'])]
+    #[ORM\Column(type: 'json', nullable: true)]
+    private ?array $playerOrder = null;
 
     /** @var Collection<int, Player> */
     #[Assert\Count(exactly: 5, exactMessage: 'Une session doit avoir exactement 5 joueurs.')]
@@ -120,7 +127,7 @@ class Session
 
     public function advanceDealer(): void
     {
-        $players = $this->players->getValues();
+        $players = $this->getOrderedPlayers();
         $count = \count($players);
 
         if (0 === $count || null === $this->currentDealer) {
@@ -180,6 +187,32 @@ class Session
         return $this->games;
     }
 
+    /**
+     * @return Player[]
+     */
+    public function getOrderedPlayers(): array
+    {
+        $players = $this->players->getValues();
+
+        if (null === $this->playerOrder) {
+            return $players;
+        }
+
+        $indexed = [];
+        foreach ($players as $player) {
+            $indexed[$player->getId()] = $player;
+        }
+
+        $ordered = [];
+        foreach ($this->playerOrder as $id) {
+            if (isset($indexed[$id])) {
+                $ordered[] = $indexed[$id];
+            }
+        }
+
+        return $ordered;
+    }
+
     public function getInProgressGame(): ?Game
     {
         return $this->inProgressGame;
@@ -226,11 +259,12 @@ class Session
         return $this->playerGroup;
     }
 
-    public function setPlayerGroup(?PlayerGroup $playerGroup): static
+    /**
+     * @return int[]|null
+     */
+    public function getPlayerOrder(): ?array
     {
-        $this->playerGroup = $playerGroup;
-
-        return $this;
+        return $this->playerOrder;
     }
 
     /**
@@ -239,6 +273,23 @@ class Session
     public function getPlayers(): Collection
     {
         return $this->players;
+    }
+
+    public function setPlayerGroup(?PlayerGroup $playerGroup): static
+    {
+        $this->playerGroup = $playerGroup;
+
+        return $this;
+    }
+
+    /**
+     * @param int[]|null $playerOrder
+     */
+    public function setPlayerOrder(?array $playerOrder): static
+    {
+        $this->playerOrder = $playerOrder;
+
+        return $this;
     }
 
     public function addPlayer(Player $player): static

@@ -207,6 +207,7 @@ export interface SessionDetail {
   inProgressGame?: Game | null;
   isActive: boolean;
   playerGroup: PlayerGroup | null;
+  playerOrder: number[] | null;
   players: GamePlayer[];
   starEvents: StarEvent[];
 }

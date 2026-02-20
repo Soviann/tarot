@@ -1,5 +1,5 @@
 import { useQueryClient } from "@tanstack/react-query";
-import { ArrowLeftRight, BarChart3, Lock, LockOpen, QrCode, Users } from "lucide-react";
+import { ArrowLeftRight, ArrowUpDown, BarChart3, Lock, LockOpen, QrCode, Users } from "lucide-react";
 import { useCallback, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import NotFound from "./NotFound";
@@ -13,6 +13,7 @@ import GameList from "../components/GameList";
 import InProgressBanner from "../components/InProgressBanner";
 import MemeOverlay from "../components/MemeOverlay";
 import NewGameModal from "../components/NewGameModal";
+import ReorderPlayersModal from "../components/ReorderPlayersModal";
 import Scoreboard from "../components/Scoreboard";
 import ScoreEvolutionChart from "../components/ScoreEvolutionChart";
 import ShareQrCodeModal from "../components/ShareQrCodeModal";
@@ -24,6 +25,7 @@ import { useAllSessionGames } from "../hooks/useAllSessionGames";
 import { useCloseSession } from "../hooks/useCloseSession";
 import { useCreateGame } from "../hooks/useCreateGame";
 import { usePlayerGroups } from "../hooks/usePlayerGroups";
+import { useReorderPlayers } from "../hooks/useReorderPlayers";
 import { useSession } from "../hooks/useSession";
 import { useSessionGames } from "../hooks/useSessionGames";
 import { useUpdateDealer } from "../hooks/useUpdateDealer";
@@ -34,6 +36,7 @@ import type { GameContext, MemeConfig } from "../services/memeSelector";
 import { selectDefeatMeme, selectVictoryMeme } from "../services/memeSelector";
 import type { Badge } from "../types/api";
 import { GameStatus } from "../types/enums";
+import { sortPlayersByOrder } from "../utils/playerOrder";
 
 export default function SessionPage() {
   const { id } = useParams<{ id: string }>();
@@ -51,6 +54,7 @@ export default function SessionPage() {
   const closeSession = useCloseSession(sessionId);
   const createGame = useCreateGame(sessionId);
   const { groups } = usePlayerGroups();
+  const reorderPlayers = useReorderPlayers(sessionId);
   const updateDealer = useUpdateDealer(sessionId);
   const updateGroup = useUpdateSessionGroup(sessionId);
   const { toast } = useToast();
@@ -66,6 +70,11 @@ export default function SessionPage() {
 
   const lastGame = inProgressGame ?? lastCompletedGame;
 
+  const orderedPlayers = useMemo(
+    () => (session ? sortPlayersByOrder(session.players, session.playerOrder) : []),
+    [session],
+  );
+
   const queryClient = useQueryClient();
   const [activeMeme, setActiveMeme] = useState<MemeConfig | null>(null);
   const [badgeModalBadges, setBadgeModalBadges] = useState<Record<string, Badge[]> | null>(null);
@@ -77,6 +86,7 @@ export default function SessionPage() {
   const [editModalOpen, setEditModalOpen] = useState(false);
   const [memeLabel, setMemeLabel] = useState<string | undefined>(undefined);
   const [newGameModalOpen, setNewGameModalOpen] = useState(false);
+  const [reorderModalOpen, setReorderModalOpen] = useState(false);
   const [shareModalOpen, setShareModalOpen] = useState(false);
   const [starModalOpen, setStarModalOpen] = useState(false);
   const [starPlayerId, setStarPlayerId] = useState<number | null>(null);
@@ -89,6 +99,9 @@ export default function SessionPage() {
       { icon: <QrCode size={18} />, label: "Partager (QR)", onClick: () => setShareModalOpen(true) },
       { disabled: !!inProgressGame, icon: <ArrowLeftRight size={18} />, label: "Modifier les joueurs", onClick: () => setSwapModalOpen(true) },
     ];
+    if (session?.isActive) {
+      items.push({ disabled: !!inProgressGame, icon: <ArrowUpDown size={18} />, label: "Changer l'ordre", onClick: () => setReorderModalOpen(true) });
+    }
     if (groups.length > 0) {
       items.push({ icon: <Users size={18} />, label: "Changer le groupe", onClick: () => setChangeGroupModalOpen(true) });
     }
@@ -191,7 +204,7 @@ export default function SessionPage() {
           setStarModalOpen(true);
         }}
         onDealerChange={() => setChangeDealerModalOpen(true)}
-        players={session.players}
+        players={orderedPlayers}
         starEvents={session.starEvents}
       />
 
@@ -210,7 +223,7 @@ export default function SessionPage() {
           </h2>
           <ScoreEvolutionChart
             games={allGames}
-            players={session.players}
+            players={orderedPlayers}
           />
         </section>
       )}
@@ -266,7 +279,7 @@ export default function SessionPage() {
         lastGameConfig={lastCompletedGame ? { contract: lastCompletedGame.contract, takerId: lastCompletedGame.taker.id } : undefined}
         onClose={() => setNewGameModalOpen(false)}
         open={newGameModalOpen}
-        players={session.players}
+        players={orderedPlayers}
       />
 
       {inProgressGame && (
@@ -277,7 +290,7 @@ export default function SessionPage() {
           onGameCompleted={handleGameCompleted}
           onGameSaved={handleGameSaved}
           open={completeModalOpen}
-          players={session.players}
+          players={orderedPlayers}
           sessionId={sessionId}
         />
       )}
@@ -287,7 +300,7 @@ export default function SessionPage() {
           game={lastCompletedGame}
           onClose={() => setEditModalOpen(false)}
           open={editModalOpen}
-          players={session.players}
+          players={orderedPlayers}
           sessionId={sessionId}
         />
       )}
@@ -302,7 +315,7 @@ export default function SessionPage() {
       )}
 
       <SwapPlayersModal
-        currentPlayerIds={session.players.map((p) => p.id)}
+        currentPlayerIds={orderedPlayers.map((p) => p.id)}
         onClose={() => setSwapModalOpen(false)}
         onSwap={(newSession) => {
           setSwapModalOpen(false);
@@ -311,6 +324,21 @@ export default function SessionPage() {
           }
         }}
         open={swapModalOpen}
+      />
+
+      <ReorderPlayersModal
+        isPending={reorderPlayers.isPending}
+        onClose={() => setReorderModalOpen(false)}
+        onConfirm={(playerIds) => {
+          reorderPlayers.mutate(playerIds, {
+            onSuccess: () => {
+              toast("Ordre des joueurs modifié");
+              setReorderModalOpen(false);
+            },
+          });
+        }}
+        open={reorderModalOpen}
+        players={orderedPlayers}
       />
 
       <AddStarModal
@@ -349,7 +377,7 @@ export default function SessionPage() {
             });
           }}
           open={changeDealerModalOpen}
-          players={session.players}
+          players={orderedPlayers}
         />
       )}
 
@@ -411,7 +439,7 @@ export default function SessionPage() {
           newBadges={badgeModalBadges}
           onClose={() => setBadgeModalBadges(null)}
           open={badgeModalBadges !== null}
-          players={session.players}
+          players={orderedPlayers}
         />
       )}
 
