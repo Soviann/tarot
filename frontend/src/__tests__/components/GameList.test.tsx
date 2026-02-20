@@ -52,6 +52,7 @@ const games: Game[] = [
 const defaultProps = {
   hasNextPage: false,
   isFetchingNextPage: false,
+  isSessionActive: true,
   onDeleteLast: () => {},
   onEditLast: () => {},
   onLoadMore: () => {},
@@ -186,5 +187,14 @@ describe("GameList", () => {
     );
 
     expect(screen.getByText("Chargement…")).toBeInTheDocument();
+  });
+
+  it("hides edit and delete buttons when session is not active", () => {
+    renderWithProviders(
+      <GameList games={games} {...defaultProps} isSessionActive={false} />,
+    );
+
+    expect(screen.queryByRole("button", { name: "Modifier" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Supprimer" })).not.toBeInTheDocument();
   });
 });

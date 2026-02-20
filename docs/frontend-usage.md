@@ -935,13 +935,14 @@ Liste des donnes terminées en ordre anti-chronologique (position décroissante)
 | `games` | `Game[]` | *requis* — donnes terminées (triées par position DESC depuis l'API) |
 | `hasNextPage` | `boolean` | *requis* — `true` s'il reste des pages à charger |
 | `isFetchingNextPage` | `boolean` | *requis* — `true` pendant le chargement de la page suivante |
+| `isSessionActive` | `boolean` | *requis* — `true` si la session est en cours (masque les boutons d'action sinon) |
 | `onDeleteLast` | `() => void` | *requis* — action pour supprimer la dernière donne |
 | `onEditLast` | `() => void` | *requis* — action pour modifier la dernière donne |
 | `onLoadMore` | `() => void` | *requis* — action pour charger la page suivante |
 
 **Fonctionnalités** :
 - Chaque carte : avatar preneur, nom, badge contrat, durée de la donne (si `completedAt` disponible), « avec [partenaire] » ou « Seul », donneur, score du preneur
-- Boutons « Modifier » et « Supprimer » uniquement sur la dernière donne (position la plus élevée)
+- Boutons « Modifier » et « Supprimer » uniquement sur la dernière donne (position la plus élevée) et uniquement si la session est en cours (`isSessionActive`)
 - Bouton « Voir plus » quand `hasNextPage` est vrai, affichant « Chargement… » pendant le fetch
 - État vide : « Aucune donne jouée »
 
