@@ -191,7 +191,7 @@ describe("PlayerSelector", () => {
     expect(onChange).toHaveBeenCalledWith([2, 3, 4, 5]);
   });
 
-  it("shows selected player chips at the top", () => {
+  it("shows selected player chips", () => {
     setupMocks();
     const onChange = vi.fn();
     renderWithProviders(

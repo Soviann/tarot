@@ -46,7 +46,8 @@ export default function PlayerSelector({
   );
 
   const isFull = selectedPlayerIds.length >= maxPlayers;
-  const listVisible = !!search && !isPending && players.length > 0;
+  const dropdownVisible = !!search;
+  const hasResults = dropdownVisible && !isPending && players.length > 0;
 
   const handleSearch = useCallback((value: string) => {
     setSearch(value);
@@ -66,7 +67,14 @@ export default function PlayerSelector({
 
   const handleKeyDown = useCallback(
     (e: KeyboardEvent<HTMLInputElement>) => {
-      if (!listVisible) return;
+      if (e.key === "Escape" && dropdownVisible) {
+        e.preventDefault();
+        setHighlightedIndex(null);
+        setClearKey((k) => k + 1);
+        return;
+      }
+
+      if (!hasResults) return;
 
       switch (e.key) {
         case "ArrowDown":
@@ -98,14 +106,9 @@ export default function PlayerSelector({
           }
           break;
         }
-        case "Escape":
-          e.preventDefault();
-          setHighlightedIndex(null);
-          setClearKey((k) => k + 1);
-          break;
       }
     },
-    [highlightedIndex, isFull, listVisible, players, selectedPlayerIds, togglePlayer],
+    [dropdownVisible, hasResults, highlightedIndex, isFull, players, selectedPlayerIds, togglePlayer],
   );
 
   const removePlayer = useCallback(
@@ -152,8 +155,6 @@ export default function PlayerSelector({
   const highlightedPlayerId =
     highlightedIndex !== null ? players[highlightedIndex]?.id : undefined;
 
-  const dropdownVisible = !!search;
-
   return (
     <div className="flex flex-col gap-3">
       {/* Recherche ou bouton Démarrer */}
@@ -176,6 +177,7 @@ export default function PlayerSelector({
             <div
               className="absolute bottom-full left-0 z-10 mb-1 max-h-60 w-full overflow-y-auto rounded-lg border border-surface-border bg-surface-primary shadow-lg"
               data-testid="player-dropdown"
+              id="player-dropdown"
             >
               {isPending && (
                 <div className="p-2">
@@ -255,8 +257,8 @@ export default function PlayerSelector({
               "aria-activedescendant": highlightedPlayerId
                 ? `player-option-${highlightedPlayerId}`
                 : undefined,
-              "aria-controls": listVisible ? "player-listbox" : undefined,
-              "aria-expanded": listVisible,
+              "aria-controls": dropdownVisible ? "player-dropdown" : undefined,
+              "aria-expanded": dropdownVisible,
               role: "combobox",
             }}
             onKeyDown={handleKeyDown}
