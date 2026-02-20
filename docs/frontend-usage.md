@@ -886,16 +886,16 @@ Composant de sélection de joueurs avec limite configurable. Inclut chips, reche
 | `maxPlayers` | `number` | *optionnel* — limite de joueurs sélectionnables (défaut : 5). Passer `Infinity` pour pas de limite (utilisé par les groupes). |
 
 **Fonctionnalités** :
-- Chips en haut avec avatar + nom des joueurs sélectionnés (clic = déselection)
+- `SearchInput` (avec `forwardRef`) en haut pour rechercher des joueurs — les résultats s'affichent dans un **dropdown overlay au-dessus** du champ (visible uniquement pendant la recherche)
+- Compteur « X/N joueurs sélectionnés » sous le champ (masqué si `maxPlayers` est `Infinity`)
+- Chips sous le compteur avec avatar + nom des joueurs sélectionnés (clic = déselection)
 - Placeholders ronds pour les places restantes (masqués si `maxPlayers` est `Infinity`)
-- Compteur « X/N joueurs sélectionnés » (masqué si `maxPlayers` est `Infinity`)
-- `SearchInput` pour rechercher des joueurs — la liste n'apparaît que lorsqu'un terme de recherche est saisi
 - Quand 5 joueurs sont sélectionnés et `onStart` est fourni : la barre de recherche est remplacée par un bouton « Démarrer la session »
 - Filtre les joueurs inactifs de la liste de sélection (seuls les joueurs actifs sont sélectionnables)
 - Les joueurs déjà sélectionnés restent affichés en chips même s'ils sont inactifs
-- Liste des joueurs (visible uniquement pendant une recherche) : clic = toggle sélection, `ring-2 ring-accent-500` si sélectionné
+- Liste des joueurs dans le dropdown : clic = toggle sélection (focus conservé sur l'input via `onMouseDown` + `preventDefault`), `ring-2 ring-accent-500` si sélectionné
 - Joueurs non sélectionnés grisés et désactivés quand 5 sont déjà choisis
-- Bouton « + Nouveau joueur » ouvrant un `Modal` de création
+- Bouton « + Nouveau joueur » intégré dans le dropdown (visible uniquement pendant la recherche), ouvrant un `Modal` de création
 - Pré-remplissage du nom avec le texte de recherche à l'ouverture de la modale
 - Auto-sélection du joueur créé si < 5
 - **Navigation clavier** : ↑/↓ pour parcourir la liste, Entrée pour sélectionner, Échap pour fermer
@@ -1692,7 +1692,7 @@ Contrôle incrémental avec boutons −/+, bornes min/max.
 
 **Fichier** : `components/ui/SearchInput.tsx`
 
-Champ de recherche avec debounce intégré et bouton d'effacement. Supporte la navigation clavier via les props `onKeyDown`, `clearKey` et `inputProps`.
+Champ de recherche avec debounce intégré et bouton d'effacement. Supporte `forwardRef` pour le focus programmatique, et la navigation clavier via les props `onKeyDown`, `clearKey` et `inputProps`.
 
 | Prop | Type | Défaut | Description |
 |------|------|--------|-------------|
