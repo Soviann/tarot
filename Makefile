@@ -1,7 +1,7 @@
 # ──────────────────────────────────────────────────
 # Tarot — Makefile
 # ──────────────────────────────────────────────────
-# Raccourcis pour les commandes DDEV les plus courantes.
+# Raccourcis pour les commandes courantes.
 # Usage : make <cible>   (ex. make test, make lint)
 # ──────────────────────────────────────────────────
 
@@ -26,38 +26,19 @@ CYAN  := \033[36m
 GREEN := \033[32m
 RESET := \033[0m
 
-# ── Chemins container ─────────────────────────────
-BACK  := /var/www/html/backend
-FRONT := /var/www/html/frontend
+# ── Chemins ─────────────────────────────────────
+BACK  := backend
+FRONT := frontend
 
 # ── Workflows ─────────────────────────────────────
 
 .PHONY: dev prod ci
 
-dev: start install db-migrate ## Premier lancement dev (DDEV + dépendances + migrations)
+dev: install db-migrate ## Premier lancement dev (dépendances + migrations)
 
 prod: install-back install-front build db-migrate cc ## Déploiement prod (dépendances + build + migrations + cache)
 
 ci: lint test ## Intégration continue (lint + tests)
-
-# ── Environnement ─────────────────────────────────
-
-.PHONY: start stop restart status logs
-
-start: ## Démarrer DDEV (containers + Vite daemon)
-	ddev start
-
-stop: ## Arrêter DDEV (ce projet uniquement)
-	ddev stop
-
-restart: ## Redémarrer DDEV
-	ddev restart
-
-status: ## Afficher le statut DDEV
-	ddev status
-
-logs: ## Afficher les logs du container web
-	ddev logs -f
 
 # ── Installation ──────────────────────────────────
 
@@ -66,25 +47,25 @@ logs: ## Afficher les logs du container web
 install: install-back install-front ## Installer toutes les dépendances (backend + frontend)
 
 install-back: ## Installer les dépendances Composer
-	ddev composer install
+	cd $(BACK) && composer install
 
 install-front: ## Installer les dépendances npm
-	ddev exec bash -c 'cd $(FRONT) && npm install'
+	cd $(FRONT) && npm install
 
 # ── Base de données ───────────────────────────────
 
 .PHONY: db-diff db-migrate db-reset
 
 db-diff: ## Générer une migration Doctrine
-	ddev exec bash -c 'cd $(BACK) && php bin/console doctrine:migrations:diff -n'
+	cd $(BACK) && php bin/console doctrine:migrations:diff -n
 
 db-migrate: ## Exécuter les migrations
-	ddev exec bash -c 'cd $(BACK) && php bin/console doctrine:migrations:migrate -n'
+	cd $(BACK) && php bin/console doctrine:migrations:migrate -n
 
 db-reset: ## Recréer la base de données et jouer les migrations
-	ddev exec bash -c 'cd $(BACK) && php bin/console doctrine:database:drop --force --if-exists'
-	ddev exec bash -c 'cd $(BACK) && php bin/console doctrine:database:create'
-	ddev exec bash -c 'cd $(BACK) && php bin/console doctrine:migrations:migrate -n'
+	cd $(BACK) && php bin/console doctrine:database:drop --force --if-exists
+	cd $(BACK) && php bin/console doctrine:database:create
+	cd $(BACK) && php bin/console doctrine:migrations:migrate -n
 
 # ── Tests ─────────────────────────────────────────
 
@@ -93,10 +74,10 @@ db-reset: ## Recréer la base de données et jouer les migrations
 test: test-back test-front ## Lancer tous les tests (backend + frontend)
 
 test-back: ## Lancer les tests PHPUnit
-	ddev exec bash -c 'cd $(BACK) && vendor/bin/phpunit'
+	cd $(BACK) && vendor/bin/phpunit
 
 test-front: ## Lancer les tests Vitest
-	ddev exec bash -c 'cd $(FRONT) && npx vitest run'
+	cd $(FRONT) && npx vitest run
 
 # ── Qualité de code ───────────────────────────────
 
@@ -107,29 +88,29 @@ lint: lint-back lint-front ## Vérifier la qualité (PHPStan + CS Fixer dry-run 
 lint-back: phpstan cs-dry ## Vérifier le backend (PHPStan + CS Fixer dry-run)
 
 lint-front: ## Vérifier le frontend (TypeScript)
-	ddev exec bash -c 'cd $(FRONT) && npx tsc --noEmit'
+	cd $(FRONT) && npx tsc --noEmit
 
 phpstan: ## Lancer PHPStan (analyse statique PHP)
-	ddev exec bash -c 'cd $(BACK) && vendor/bin/phpstan analyse'
+	cd $(BACK) && vendor/bin/phpstan analyse
 
 cs-dry: ## Vérifier le style PHP (dry-run, sans modifier)
-	ddev exec bash -c 'cd $(BACK) && vendor/bin/php-cs-fixer fix --dry-run --diff'
+	cd $(BACK) && vendor/bin/php-cs-fixer fix --dry-run --diff
 
 cs: ## Corriger le style PHP (modifie les fichiers)
-	ddev exec bash -c 'cd $(BACK) && vendor/bin/php-cs-fixer fix'
+	cd $(BACK) && vendor/bin/php-cs-fixer fix
 
 # ── Build ─────────────────────────────────────────
 
 .PHONY: build serve-prod verify-build
 
 build: ## Compiler le frontend pour la production
-	ddev exec bash -c 'cd $(FRONT) && npm run build'
+	cd $(FRONT) && npm run build
 
-serve-prod: build ## Compiler et servir le build prod (https://tarot.ddev.site:4173)
-	ddev exec bash -c 'cd $(FRONT) && npx vite preview --host 0.0.0.0 --port 4173'
+serve-prod: build ## Compiler et servir le build prod (port 4173)
+	cd $(FRONT) && npx vite preview --host 0.0.0.0 --port 4173
 
 verify-build: build ## Vérifier que le build prod ne contient pas de code de debug
-	@ddev exec bash -c 'cd $(FRONT) && ! grep -q "ReactQueryDevtools" dist/assets/*.js' \
+	@cd $(FRONT) && ! grep -q "ReactQueryDevtools" dist/assets/*.js \
 		&& printf "  $(GREEN)✓$(RESET) Pas de ReactQueryDevtools dans le bundle\n" \
 		|| (printf "  $(CYAN)✗$(RESET) ReactQueryDevtools trouvé dans le bundle !\n" && exit 1)
 
@@ -138,10 +119,10 @@ verify-build: build ## Vérifier que le build prod ne contient pas de code de de
 .PHONY: cc sf
 
 cc: ## Vider le cache Symfony
-	ddev exec bash -c 'cd $(BACK) && php bin/console cache:clear'
+	cd $(BACK) && php bin/console cache:clear
 
 sf: ## Lancer une commande Symfony (usage : make sf CMD="debug:router")
-	ddev exec bash -c 'cd $(BACK) && php bin/console $(CMD)'
+	cd $(BACK) && php bin/console $(CMD)
 
 # ── Aide ──────────────────────────────────────────
 
