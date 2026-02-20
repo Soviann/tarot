@@ -5,18 +5,18 @@
 # Usage : make <cible>   (ex. make test, make lint)
 # ──────────────────────────────────────────────────
 
-include .env
+include backend/.env
 
 # Si ENV est défini, inclure le fichier d'environnement correspondant
 ifdef ENV
-ifneq ("$(wildcard .env.$(ENV))","")
-	include .env.$(ENV)
+ifneq ("$(wildcard backend/.env.$(ENV))","")
+	include backend/.env.$(ENV)
 endif
 endif
 
 # .env.local prévaut toujours (chargé en dernier)
-ifneq ("$(wildcard .env.local)","")
-	include .env.local
+ifneq ("$(wildcard backend/.env.local)","")
+	include backend/.env.local
 endif
 
 .DEFAULT_GOAL := help
