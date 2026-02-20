@@ -130,6 +130,6 @@ sf: ## Lancer une commande Symfony (usage : make sf CMD="debug:router")
 
 help: ## Afficher cette aide
 	@printf "\n$(CYAN)Tarot$(RESET) — Commandes disponibles :\n\n"
-	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | \
+	@grep -hE '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | \
 		awk 'BEGIN {FS = ":.*?## "}; {printf "  $(GREEN)%-15s$(RESET) %s\n", $$1, $$2}'
 	@printf "\n"
