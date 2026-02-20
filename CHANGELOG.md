@@ -8,6 +8,7 @@ Le format est basé sur [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/)
 
 ### Added
 
+- **Logs Symfony (Monolog)** : ajout de `symfony/monolog-bundle` avec fichiers rotatifs en production (14 jours de rétention dans `var/log/`), pour diagnostiquer les erreurs 500.
 - **Statistiques d'étoiles** : nouvelle section « Étoiles » sur la page de statistiques joueur, avec nombre total, pénalités, ratio par donne et par session, record en une session et nombre de sessions avec étoiles.
 - **Ordre personnalisé des joueurs** : possibilité de réorganiser l'ordre des joueurs dans une session via le menu ⋮ > « Changer l'ordre ». L'ordre personnalisé s'applique au tableau des scores, au graphe d'évolution, à la sélection preneur/appelé et à la rotation automatique du donneur.
 - **Détail des scores par donne** : au clic sur une donne dans l'historique, un panneau dépliable affiche les scores individuels de chaque joueur (preneur → appelé → défense) avec le nombre de bouts et l'écart par rapport au contrat.
