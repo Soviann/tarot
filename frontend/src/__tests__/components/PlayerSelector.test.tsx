@@ -191,7 +191,7 @@ describe("PlayerSelector", () => {
     expect(onChange).toHaveBeenCalledWith([2, 3, 4, 5]);
   });
 
-  it("shows selected player chips at the top", () => {
+  it("shows selected player chips", () => {
     setupMocks();
     const onChange = vi.fn();
     renderWithProviders(
@@ -233,12 +233,14 @@ describe("PlayerSelector", () => {
     });
   });
 
-  it("shows create player button", () => {
+  it("shows create player button when searching", async () => {
     setupMocks();
     const onChange = vi.fn();
     renderWithProviders(
       <PlayerSelector onSelectionChange={onChange} selectedPlayerIds={[]} />,
     );
+
+    await searchFor("a");
 
     expect(
       screen.getByRole("button", { name: "Ajouter un joueur" }),
@@ -252,6 +254,7 @@ describe("PlayerSelector", () => {
       <PlayerSelector onSelectionChange={onChange} selectedPlayerIds={[]} />,
     );
 
+    await searchFor("a");
     await userEvent.click(
       screen.getByRole("button", { name: "Ajouter un joueur" }),
     );
@@ -536,6 +539,71 @@ describe("PlayerSelector", () => {
       await waitFor(() => {
         expect(screen.queryByText("Alice")).not.toBeInTheDocument();
       });
+    });
+  });
+
+  describe("dropdown overlay and focus", () => {
+    it("renders results in a dropdown container above the input", async () => {
+      setupMocks();
+      renderWithProviders(
+        <PlayerSelector onSelectionChange={vi.fn()} selectedPlayerIds={[]} />,
+      );
+
+      await searchFor("a");
+
+      const dropdown = screen.getByTestId("player-dropdown");
+      expect(dropdown).toBeInTheDocument();
+      expect(dropdown.querySelector('[role="listbox"]')).toBeInTheDocument();
+    });
+
+    it("keeps focus on search input after selecting a player", async () => {
+      setupMocks();
+      const onChange = vi.fn();
+      renderWithProviders(
+        <PlayerSelector onSelectionChange={onChange} selectedPlayerIds={[]} />,
+      );
+
+      await searchFor("a");
+      const input = screen.getByRole("combobox");
+
+      await userEvent.click(screen.getByText("Alice"));
+
+      expect(onChange).toHaveBeenCalledWith([1]);
+      expect(input).toHaveFocus();
+    });
+
+    it("shows create player button only when search is active", async () => {
+      setupMocks();
+      renderWithProviders(
+        <PlayerSelector onSelectionChange={vi.fn()} selectedPlayerIds={[]} />,
+      );
+
+      // Not visible before search
+      expect(
+        screen.queryByRole("button", { name: "Ajouter un joueur" }),
+      ).not.toBeInTheDocument();
+
+      await searchFor("a");
+
+      // Visible during search
+      expect(
+        screen.getByRole("button", { name: "Ajouter un joueur" }),
+      ).toBeInTheDocument();
+    });
+
+    it("shows create player button inside the dropdown", async () => {
+      setupMocks();
+      renderWithProviders(
+        <PlayerSelector onSelectionChange={vi.fn()} selectedPlayerIds={[]} />,
+      );
+
+      await searchFor("a");
+
+      const dropdown = screen.getByTestId("player-dropdown");
+      const createButton = dropdown.querySelector(
+        'button[aria-label="Ajouter un joueur"]',
+      );
+      expect(createButton).toBeInTheDocument();
     });
   });
 

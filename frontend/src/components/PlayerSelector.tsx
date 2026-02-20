@@ -1,5 +1,5 @@
 import { Play, Plus } from "lucide-react";
-import { type FormEvent, type KeyboardEvent, useCallback, useMemo, useState } from "react";
+import { type FormEvent, type KeyboardEvent, useCallback, useMemo, useRef, useState } from "react";
 import { useCreatePlayer } from "../hooks/useCreatePlayer";
 import { usePlayers } from "../hooks/usePlayers";
 import { useToast } from "../hooks/useToast";
@@ -29,6 +29,7 @@ export default function PlayerSelector({
   const [modalOpen, setModalOpen] = useState(false);
   const [newName, setNewName] = useState("");
 
+  const searchInputRef = useRef<HTMLInputElement>(null);
   const { players: allPlayers } = usePlayers();
   const { isPending, players: searchedPlayers } = usePlayers(search);
   const createPlayer = useCreatePlayer();
@@ -45,7 +46,8 @@ export default function PlayerSelector({
   );
 
   const isFull = selectedPlayerIds.length >= maxPlayers;
-  const listVisible = !!search && !isPending && players.length > 0;
+  const dropdownVisible = !!search;
+  const hasResults = dropdownVisible && !isPending && players.length > 0;
 
   const handleSearch = useCallback((value: string) => {
     setSearch(value);
@@ -65,7 +67,14 @@ export default function PlayerSelector({
 
   const handleKeyDown = useCallback(
     (e: KeyboardEvent<HTMLInputElement>) => {
-      if (!listVisible) return;
+      if (e.key === "Escape" && dropdownVisible) {
+        e.preventDefault();
+        setHighlightedIndex(null);
+        setClearKey((k) => k + 1);
+        return;
+      }
+
+      if (!hasResults) return;
 
       switch (e.key) {
         case "ArrowDown":
@@ -97,14 +106,9 @@ export default function PlayerSelector({
           }
           break;
         }
-        case "Escape":
-          e.preventDefault();
-          setHighlightedIndex(null);
-          setClearKey((k) => k + 1);
-          break;
       }
     },
-    [highlightedIndex, isFull, listVisible, players, selectedPlayerIds, togglePlayer],
+    [dropdownVisible, hasResults, highlightedIndex, isFull, players, selectedPlayerIds, togglePlayer],
   );
 
   const removePlayer = useCallback(
@@ -153,6 +157,123 @@ export default function PlayerSelector({
 
   return (
     <div className="flex flex-col gap-3">
+      {/* Recherche ou bouton Démarrer */}
+      {isFull && onStart ? (
+        <button
+          className="w-full animate-fade-in rounded-lg bg-accent-500 py-3 font-semibold text-white transition-colors hover:bg-accent-600 disabled:opacity-50"
+          disabled={isStartPending}
+          onClick={onStart}
+          type="button"
+        >
+          <span className="flex items-center justify-center gap-2">
+            <Play size={20} />
+            Démarrer la session
+          </span>
+        </button>
+      ) : (
+        <div className="relative">
+          {/* Dropdown overlay au-dessus du champ */}
+          {dropdownVisible && (
+            <div
+              className="absolute bottom-full left-0 z-10 mb-1 max-h-60 w-full overflow-y-auto rounded-lg border border-surface-border bg-surface-primary shadow-lg"
+              data-testid="player-dropdown"
+              id="player-dropdown"
+            >
+              {isPending && (
+                <div className="p-2">
+                  <Spinner size="sm" />
+                </div>
+              )}
+
+              {!isPending && players.length === 0 && (
+                <p className="py-4 text-center text-text-muted">
+                  Aucun joueur trouvé
+                </p>
+              )}
+
+              {!isPending && players.length > 0 && (
+                <ul className="flex flex-col gap-1 p-1" id="player-listbox" role="listbox">
+                  {players.map((player, index) => {
+                    const isSelected = selectedPlayerIds.includes(player.id);
+                    const isDisabled = isFull && !isSelected;
+                    const isHighlighted = highlightedIndex === index;
+
+                    return (
+                      <li
+                        aria-disabled={isDisabled || undefined}
+                        aria-selected={isSelected}
+                        className={`flex w-full cursor-pointer items-center gap-3 rounded-lg p-2 text-left transition-colors ${
+                          isSelected
+                            ? "bg-accent-50 ring-2 ring-accent-500"
+                            : isHighlighted
+                              ? "bg-accent-100"
+                              : "hover:bg-surface-secondary"
+                        } ${isDisabled ? "cursor-not-allowed opacity-40" : ""}`}
+                        id={`player-option-${player.id}`}
+                        key={player.id}
+                        onMouseDown={(e) => {
+                          e.preventDefault();
+                          if (!isDisabled) {
+                            togglePlayer(player.id);
+                          }
+                        }}
+                        role="option"
+                      >
+                        <PlayerAvatar
+                          color={player.color}
+                          name={player.name}
+                          playerId={player.id}
+                          size="sm"
+                        />
+                        <span className="font-medium text-text-primary">
+                          {player.name}
+                        </span>
+                      </li>
+                    );
+                  })}
+                </ul>
+              )}
+
+              {/* Bouton créer joueur */}
+              <button
+                aria-label="Ajouter un joueur"
+                className="flex w-full items-center gap-2 border-t border-surface-border p-2 text-sm text-text-muted transition-colors hover:bg-surface-secondary hover:text-accent-500 dark:hover:text-accent-300"
+                onMouseDown={(e) => {
+                  e.preventDefault();
+                  openModal();
+                }}
+                type="button"
+              >
+                <Plus size={16} />
+                <span>Nouveau joueur</span>
+              </button>
+            </div>
+          )}
+
+          <SearchInput
+            ref={searchInputRef}
+            clearKey={clearKey}
+            inputProps={{
+              "aria-activedescendant": highlightedPlayerId
+                ? `player-option-${highlightedPlayerId}`
+                : undefined,
+              "aria-controls": dropdownVisible ? "player-dropdown" : undefined,
+              "aria-expanded": dropdownVisible,
+              role: "combobox",
+            }}
+            onKeyDown={handleKeyDown}
+            onSearch={handleSearch}
+            placeholder="Rechercher un joueur…"
+          />
+        </div>
+      )}
+
+      {Number.isFinite(maxPlayers) && (
+        <p className="text-center text-sm text-text-muted">
+          {selectedPlayerIds.length}/{maxPlayers} joueurs sélectionnés
+        </p>
+      )}
+
       {/* Chips des joueurs sélectionnés */}
       <div className="flex flex-wrap items-center justify-center gap-2" data-testid="selected-chips">
         {selectedPlayers.map((player) => (
@@ -176,106 +297,6 @@ export default function PlayerSelector({
             ),
           )}
       </div>
-
-      {Number.isFinite(maxPlayers) && (
-        <p className="text-center text-sm text-text-muted">
-          {selectedPlayerIds.length}/{maxPlayers} joueurs sélectionnés
-        </p>
-      )}
-
-      {/* Recherche ou bouton Démarrer */}
-      {isFull && onStart ? (
-        <button
-          className="w-full animate-fade-in rounded-lg bg-accent-500 py-3 font-semibold text-white transition-colors hover:bg-accent-600 disabled:opacity-50"
-          disabled={isStartPending}
-          onClick={onStart}
-          type="button"
-        >
-          <span className="flex items-center justify-center gap-2">
-            <Play size={20} />
-            Démarrer la session
-          </span>
-        </button>
-      ) : (
-        <>
-          <SearchInput
-            clearKey={clearKey}
-            inputProps={{
-              "aria-activedescendant": highlightedPlayerId
-                ? `player-option-${highlightedPlayerId}`
-                : undefined,
-              "aria-controls": listVisible ? "player-listbox" : undefined,
-              "aria-expanded": listVisible,
-              role: "combobox",
-            }}
-            onKeyDown={handleKeyDown}
-            onSearch={handleSearch}
-            placeholder="Rechercher un joueur…"
-          />
-
-          {/* Liste des joueurs (visible uniquement lors d'une recherche) */}
-          {search && (
-            <>
-              {isPending && <Spinner size="sm" />}
-
-              {!isPending && players.length === 0 && (
-                <p className="py-4 text-center text-text-muted">
-                  Aucun joueur trouvé
-                </p>
-              )}
-
-              {!isPending && players.length > 0 && (
-                <ul className="flex flex-col gap-1" id="player-listbox" role="listbox">
-                  {players.map((player, index) => {
-                    const isSelected = selectedPlayerIds.includes(player.id);
-                    const isDisabled = isFull && !isSelected;
-                    const isHighlighted = highlightedIndex === index;
-
-                    return (
-                      <li
-                        aria-disabled={isDisabled || undefined}
-                        aria-selected={isSelected}
-                        className={`flex w-full cursor-pointer items-center gap-3 rounded-lg p-2 text-left transition-colors ${
-                          isSelected
-                            ? "bg-accent-50 ring-2 ring-accent-500"
-                            : isHighlighted
-                              ? "bg-accent-100"
-                              : "hover:bg-surface-secondary"
-                        } ${isDisabled ? "cursor-not-allowed opacity-40" : ""}`}
-                        id={`player-option-${player.id}`}
-                        key={player.id}
-                        onClick={() => !isDisabled && togglePlayer(player.id)}
-                        role="option"
-                      >
-                        <PlayerAvatar
-                          color={player.color}
-                          name={player.name}
-                          playerId={player.id}
-                          size="sm"
-                        />
-                        <span className="font-medium text-text-primary">
-                          {player.name}
-                        </span>
-                      </li>
-                    );
-                  })}
-                </ul>
-              )}
-            </>
-          )}
-
-          {/* Bouton créer joueur */}
-          <button
-            aria-label="Ajouter un joueur"
-            className="flex items-center gap-2 rounded-lg border border-dashed border-surface-border p-2 text-sm text-text-muted transition-colors hover:border-accent-400 hover:text-accent-500 dark:hover:text-accent-300"
-            onClick={openModal}
-            type="button"
-          >
-            <Plus size={16} />
-            <span>Nouveau joueur</span>
-          </button>
-        </>
-      )}
 
       {/* Modal création joueur */}
       <Modal onClose={closeModal} open={modalOpen} title="Nouveau joueur">
