@@ -106,10 +106,10 @@ En haut de l'écran, les **sessions récentes** permettent de reprendre rapideme
 
 En bas de l'écran, la zone de sélection des joueurs est accessible au pouce :
 
-1. **Rechercher** un joueur dans la barre de recherche — la liste des résultats apparaît en tapant un nom
-2. Sélectionner **5 joueurs** parmi les résultats
+1. **Rechercher** un joueur dans la barre de recherche — les résultats s'affichent dans un menu déroulant **au-dessus** du champ (optimisé pour mobile : visible même avec le clavier ouvert)
+2. Sélectionner **5 joueurs** parmi les résultats — le focus reste sur le champ de recherche après chaque sélection pour enchaîner rapidement
    - Utiliser les flèches **↑/↓** pour parcourir la liste, **Entrée** pour sélectionner, **Échap** pour fermer la liste
-   - Possibilité d'ajouter un nouveau joueur à la volée avec **« + Ajouter »**
+   - Possibilité d'ajouter un nouveau joueur à la volée avec **« + Nouveau joueur »** (dans le menu déroulant)
 3. Une fois les 5 joueurs sélectionnés, la barre de recherche se transforme en bouton **« Démarrer la session »** — appuyer dessus pour lancer la partie
 
 > **Session intelligente** : si une session active existe déjà avec les mêmes 5 joueurs, l'application la reprend automatiquement au lieu d'en créer une nouvelle.
