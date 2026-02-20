@@ -44,34 +44,36 @@ tarot/
 
 ## Commands
 
-All commands run via DDEV (enforced by hookify rule `require-ddev-exec`).
-Use `make help` to see all available targets.
+**Always use `make` targets** when one exists for the task at hand (tests, lint, migrations, etc.) — never call the underlying tools directly.
+
+The Makefile contains generic commands (no DDEV prefix). In local dev, DDEV is used as the runtime environment, so **always prefix `make` with `ddev exec`** (enforced by hookify rule `require-ddev-exec`).
+
+Use `ddev exec make help` to see all available targets.
 
 ```bash
-# Environment
-make dev                # First launch (DDEV + deps + migrations)
-make start / stop       # Start/stop DDEV
+# Workflows
+ddev exec make dev              # First launch (deps + migrations)
 
 # Tests
-make test               # All tests (backend + frontend)
-make test-back          # PHPUnit
-make test-front         # Vitest
+ddev exec make test             # All tests (backend + frontend)
+ddev exec make test-back        # PHPUnit
+ddev exec make test-front       # Vitest
 
 # Quality
-make lint               # All linters (PHPStan + CS Fixer dry-run + TypeScript)
-make phpstan            # PHPStan only
-make cs                 # PHP CS Fixer (fix)
+ddev exec make lint             # All linters (PHPStan + CS Fixer dry-run + TypeScript)
+ddev exec make phpstan          # PHPStan only
+ddev exec make cs               # PHP CS Fixer (fix)
 
 # Database
-make db-diff            # Generate a migration
-make db-migrate         # Run migrations
+ddev exec make db-diff          # Generate a migration
+ddev exec make db-migrate       # Run migrations
 
 # Build
-make build              # Production build
-make serve-prod         # Build + serve (port 4173)
+ddev exec make build            # Production build
+ddev exec make serve-prod       # Build + serve (port 4173)
 
 # Symfony
-make sf CMD="..."       # Any Symfony console command
+ddev exec make sf CMD="..."     # Any Symfony console command
 ```
 
 ## Git
