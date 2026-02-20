@@ -49,11 +49,12 @@ export function calculateScore(input: ScoreCalculatorInput): ScoreResult {
   const { chelem, contract, oudlers, partnerId, petitAuBout, poignee, points } = input;
   const multiplier = CONTRACT_MULTIPLIER[contract];
   const requiredPoints = REQUIRED_POINTS[oudlers];
-  const attackWins = points >= requiredPoints;
+  const intPoints = Math.trunc(points);
+  const attackWins = intPoints >= requiredPoints;
   const selfCall = partnerId === null;
 
   // Score de base : (|points - requis| + 25) × multiplicateur
-  let baseScore = (Math.abs(points - requiredPoints) + 25) * multiplier;
+  let baseScore = (Math.abs(intPoints - requiredPoints) + 25) * multiplier;
   if (!attackWins) {
     baseScore = -baseScore;
   }

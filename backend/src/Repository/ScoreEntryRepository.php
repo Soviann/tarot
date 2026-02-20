@@ -200,7 +200,7 @@ final class ScoreEntryRepository extends ServiceEntityRepository
             ->getQuery()
             ->getResult();
 
-        $map = array_fill_keys($playerIds, 0);
+        $map = \array_fill_keys($playerIds, 0);
         foreach ($results as $row) {
             $map[(int) $row['playerId']] = (int) $row['cnt'];
         }
@@ -244,7 +244,7 @@ final class ScoreEntryRepository extends ServiceEntityRepository
             ->getQuery()
             ->getResult();
 
-        $map = array_fill_keys($playerIds, 0);
+        $map = \array_fill_keys($playerIds, 0);
         foreach ($results as $row) {
             $map[(int) $row['playerId']] = (int) $row['cnt'];
         }
@@ -294,7 +294,7 @@ final class ScoreEntryRepository extends ServiceEntityRepository
             ->getQuery()
             ->getResult();
 
-        $map = array_fill_keys($playerIds, 0);
+        $map = \array_fill_keys($playerIds, 0);
         foreach ($results as $row) {
             $map[(int) $row['playerId']] = (int) $row['cnt'];
         }
@@ -318,7 +318,7 @@ final class ScoreEntryRepository extends ServiceEntityRepository
             ->getQuery()
             ->getResult();
 
-        return array_map(static fn (array $row): int => (int) $row['sessionId'], $results);
+        return \array_map(static fn (array $row): int => (int) $row['sessionId'], $results);
     }
 
     /**
@@ -344,7 +344,7 @@ final class ScoreEntryRepository extends ServiceEntityRepository
             ->getResult();
 
         /** @var array<int, list<int>> $map */
-        $map = array_fill_keys($playerIds, []);
+        $map = \array_fill_keys($playerIds, []);
         foreach ($results as $row) {
             $map[(int) $row['playerId']][] = (int) $row['sessionId'];
         }
@@ -550,7 +550,7 @@ final class ScoreEntryRepository extends ServiceEntityRepository
             ->getResult();
 
         /** @var array<int, list<GameTakerScoreDto>> $map */
-        $map = array_fill_keys($playerIds, []);
+        $map = \array_fill_keys($playerIds, []);
         foreach ($results as $row) {
             $map[(int) $row['playerId']][] = new GameTakerScoreDto(
                 $row['gameId'],
