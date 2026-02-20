@@ -34,44 +34,59 @@ FRONT := frontend
 
 .PHONY: dev prod ci
 
-dev: install db-migrate ## Premier lancement dev (dépendances + migrations)
+dev: ## Premier lancement dev (dépendances + migrations)
+	$(MAKE) install
+	$(MAKE) db-migrate
 
-prod: install-back install-front build db-migrate cc ## Déploiement prod (dépendances + build + migrations + cache)
+prod: ## Déploiement prod (dépendances --no-dev + dump env + build + migrations + cache)
+	$(MAKE) install-back-prod install-front
+	$(MAKE) dump-env APP_ENV=prod
+	$(MAKE) build db-migrate cc
 
-ci: lint test ## Intégration continue (lint + tests)
+ci: ## Intégration continue (lint + tests)
+	$(MAKE) lint
+	$(MAKE) test
 
 # ── Installation ──────────────────────────────────
 
-.PHONY: install install-back install-front
+.PHONY: install install-back install-back-prod install-front dump-env
 
-install: install-back install-front ## Installer toutes les dépendances (backend + frontend)
+install: ## Installer toutes les dépendances (backend + frontend)
+	$(MAKE) install-back install-front
 
 install-back: ## Installer les dépendances Composer
 	cd $(BACK) && composer install
 
+install-back-prod: ## Installer les dépendances Composer (sans dev, optimisé)
+	cd $(BACK) && composer install --no-dev --optimize-autoloader
+
 install-front: ## Installer les dépendances npm
 	cd $(FRONT) && npm install
+
+dump-env: ## Compiler .env pour Symfony (utilise APP_ENV)
+	cd $(BACK) && composer dump-env $(APP_ENV)
 
 # ── Base de données ───────────────────────────────
 
 .PHONY: db-diff db-migrate db-reset
 
 db-diff: ## Générer une migration Doctrine
-	cd $(BACK) && php bin/console doctrine:migrations:diff -n
+	$(MAKE) sf CMD="doctrine:migrations:diff -n"
 
 db-migrate: ## Exécuter les migrations
-	cd $(BACK) && php bin/console doctrine:migrations:migrate -n
+	$(MAKE) sf CMD="doctrine:migrations:migrate -n"
 
 db-reset: ## Recréer la base de données et jouer les migrations
-	cd $(BACK) && php bin/console doctrine:database:drop --force --if-exists
-	cd $(BACK) && php bin/console doctrine:database:create
-	cd $(BACK) && php bin/console doctrine:migrations:migrate -n
+	$(MAKE) sf CMD="doctrine:database:drop --force --if-exists"
+	$(MAKE) sf CMD="doctrine:database:create"
+	$(MAKE) sf CMD="doctrine:migrations:migrate -n"
 
 # ── Tests ─────────────────────────────────────────
 
 .PHONY: test test-back test-front
 
-test: test-back test-front ## Lancer tous les tests (backend + frontend)
+test: ## Lancer tous les tests (backend + frontend)
+	$(MAKE) test-back test-front
 
 test-back: ## Lancer les tests PHPUnit
 	cd $(BACK) && vendor/bin/phpunit
@@ -81,11 +96,13 @@ test-front: ## Lancer les tests Vitest
 
 # ── Qualité de code ───────────────────────────────
 
-.PHONY: lint lint-back lint-front fix phpstan cs
+.PHONY: lint lint-back lint-front phpstan cs cs-dry
 
-lint: lint-back lint-front ## Vérifier la qualité (PHPStan + CS Fixer dry-run + TypeScript)
+lint: ## Vérifier la qualité (PHPStan + CS Fixer dry-run + TypeScript)
+	$(MAKE) lint-back lint-front
 
-lint-back: phpstan cs-dry ## Vérifier le backend (PHPStan + CS Fixer dry-run)
+lint-back: ## Vérifier le backend (PHPStan + CS Fixer dry-run)
+	$(MAKE) phpstan cs-dry
 
 lint-front: ## Vérifier le frontend (TypeScript)
 	cd $(FRONT) && npx tsc --noEmit
@@ -106,10 +123,12 @@ cs: ## Corriger le style PHP (modifie les fichiers)
 build: ## Compiler le frontend pour la production
 	cd $(FRONT) && npm run build
 
-serve-prod: build ## Compiler et servir le build prod (port 4173)
+serve-prod: ## Compiler et servir le build prod (port 4173)
+	$(MAKE) build
 	cd $(FRONT) && npx vite preview --host 0.0.0.0 --port 4173
 
-verify-build: build ## Vérifier que le build prod ne contient pas de code de debug
+verify-build: ## Vérifier que le build prod ne contient pas de code de debug
+	$(MAKE) build
 	@cd $(FRONT) && ! grep -q "ReactQueryDevtools" dist/assets/*.js \
 		&& printf "  $(GREEN)✓$(RESET) Pas de ReactQueryDevtools dans le bundle\n" \
 		|| (printf "  $(CYAN)✗$(RESET) ReactQueryDevtools trouvé dans le bundle !\n" && exit 1)
@@ -119,7 +138,7 @@ verify-build: build ## Vérifier que le build prod ne contient pas de code de de
 .PHONY: cc sf
 
 cc: ## Vider le cache Symfony
-	cd $(BACK) && php bin/console cache:clear
+	$(MAKE) sf CMD="cache:clear"
 
 sf: ## Lancer une commande Symfony (usage : make sf CMD="debug:router")
 	cd $(BACK) && php bin/console $(CMD)
