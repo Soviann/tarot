@@ -57,6 +57,13 @@ final readonly class SessionCreateProcessor implements ProcessorInterface
             $session->setCurrentDealer($firstPlayer);
         }
 
+        /** @var int[] $playerOrder */
+        $playerOrder = \array_map(
+            static fn (Player $p) => $p->getId(),
+            $session->getPlayers()->getValues()
+        );
+        $session->setPlayerOrder($playerOrder);
+
         $this->autoAssociatePlayerGroup($session, $playerIds, $count);
         $this->em->flush();
 

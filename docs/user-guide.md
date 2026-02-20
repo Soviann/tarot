@@ -116,7 +116,7 @@ En bas de l'écran, la zone de sélection des joueurs est accessible au pouce :
 
 ### Donneur
 
-À la création d'une session, le **premier joueur** (ordre alphabétique) est désigné comme donneur. Après chaque donne terminée, le donneur **tourne automatiquement** au joueur suivant dans l'ordre alphabétique. Après le dernier joueur, la rotation reprend au premier (cycle).
+À la création d'une session, le **premier joueur** (ordre alphabétique) est désigné comme donneur. Après chaque donne terminée, le donneur **tourne automatiquement** au joueur suivant. Après le dernier joueur, la rotation reprend au premier (cycle). L'ordre de rotation suit l'**ordre personnalisé** des joueurs s'il a été défini (voir ci-dessous), sinon l'ordre alphabétique par défaut.
 
 Le donneur actuel est identifiable par un **icône de cartes** bleu sur son avatar dans le tableau des scores.
 
@@ -130,6 +130,19 @@ Si le donneur automatique ne correspond pas (reprise de partie, erreur de rotati
 4. Appuyer sur **Valider**
 
 > Le donneur sélectionné doit être un joueur de la session. La rotation automatique reprend normalement à partir du nouveau donneur.
+
+#### Changer l'ordre des joueurs
+
+Par défaut, les joueurs sont affichés et la rotation du donneur suit l'**ordre alphabétique**. Pour adapter l'ordre à la disposition physique autour de la table :
+
+1. Ouvrir le **menu ⋮** en haut à droite
+2. Appuyer sur **« Changer l'ordre »** (disponible uniquement quand la session est active et aucune donne n'est en cours)
+3. Utiliser les **flèches haut/bas** pour déplacer chaque joueur
+4. Appuyer sur **Valider**
+
+L'ordre personnalisé s'applique au **tableau des scores**, au **graphe d'évolution**, à la **sélection du preneur/appelé** et à la **rotation du donneur**.
+
+> Pour réinitialiser l'ordre alphabétique, il suffit de ré-ordonner manuellement les joueurs dans l'ordre alphabétique.
 
 ---
 

@@ -374,6 +374,28 @@ updateDealer.mutate(playerId, {
 | `isError` | `boolean` | `true` si erreur (ex. joueur pas dans la session 422) |
 | `error` | `ApiError \| null` | Détails de l'erreur |
 
+### `useReorderPlayers`
+
+**Fichier** : `hooks/useReorderPlayers.ts`
+
+Mutation pour changer l'ordre des joueurs d'une session. Envoie un PATCH à `/sessions/{id}` avec `Content-Type: application/merge-patch+json` et `{ playerOrder: number[] }`.
+Invalide le cache `["session", sessionId]` en cas de succès.
+
+```ts
+const reorderPlayers = useReorderPlayers(sessionId);
+
+reorderPlayers.mutate([3, 1, 5, 2, 4], {
+  onSuccess: () => closeModal(),
+});
+```
+
+| Retour | Type | Description |
+|--------|------|-------------|
+| `mutate` | `(playerOrder: number[]) => void` | Lance la mise à jour de l'ordre |
+| `isPending` | `boolean` | `true` pendant la requête |
+| `isError` | `boolean` | `true` si erreur (ex. IDs invalides 422) |
+| `error` | `ApiError \| null` | Détails de l'erreur |
+
 ### `useGlobalStats`
 
 **Fichier** : `hooks/useGlobalStats.ts`
@@ -763,7 +785,7 @@ Page d'aide in-app reprenant le contenu du guide utilisateur (`docs/user-guide.m
 - Bouton retour vers l'accueil
 - États : chargement, session introuvable
 
-**Hooks utilisés** : `useSession`, `useSessionGames`, `useAllSessionGames`, `useAddStar`, `useCloseSession`, `useCreateGame`, `useCreateSession` (via SwapPlayersModal), `useCompleteGame`, `useDeleteGame`, `usePlayerGroups`, `useUpdateDealer`, `useUpdateSessionGroup`, `useNavigate`
+**Hooks utilisés** : `useSession`, `useSessionGames`, `useAllSessionGames`, `useAddStar`, `useCloseSession`, `useCreateGame`, `useCreateSession` (via SwapPlayersModal), `useCompleteGame`, `useDeleteGame`, `usePlayerGroups`, `useReorderPlayers`, `useUpdateDealer`, `useUpdateSessionGroup`, `useNavigate`
 
 **Modales** :
 - `AddStarModal` : confirmation avant attribution d'étoile à un joueur
@@ -774,6 +796,7 @@ Page d'aide in-app reprenant le contenu du guide utilisateur (`docs/user-guide.m
 - `DeleteGameModal` : confirmation de suppression de la dernière donne
 - Modale de confirmation de clôture de session (inline `<Modal>`)
 - `NewGameModal` : sélection preneur + contrat (étape 1)
+- `ReorderPlayersModal` : réorganisation de l'ordre des joueurs avec flèches haut/bas
 - `ShareQrCodeModal` : affichage d'un QR code encodant l'URL de la session avec mode plein écran
 - `SwapPlayersModal` : changement de joueurs avec navigation vers la session résultante
 
@@ -966,6 +989,25 @@ Modal de sélection manuelle du donneur parmi les joueurs de la session.
 - Donneur actuel pré-sélectionné
 - Bouton Valider désactivé si le même donneur est sélectionné ou si `isPending`
 - Affichage du nom du joueur sélectionné
+
+### `ReorderPlayersModal`
+
+**Fichier** : `components/ReorderPlayersModal.tsx`
+
+Modal de réorganisation de l'ordre des joueurs dans une session. Liste verticale avec flèches haut/bas.
+
+| Prop | Type | Description |
+|------|------|-------------|
+| `isPending` | `boolean?` | Désactiver le bouton Valider pendant la mutation |
+| `onClose` | `() => void` | *requis* — fermeture |
+| `onConfirm` | `(playerIds: number[]) => void` | *requis* — callback avec le nouvel ordre d'IDs |
+| `open` | `boolean` | *requis* — afficher ou masquer |
+| `players` | `GamePlayer[]` | *requis* — joueurs dans l'ordre actuel |
+
+**Fonctionnalités** :
+- Liste verticale avec avatar + nom + flèches ChevronUp/ChevronDown
+- Flèche haut désactivée pour le premier joueur, flèche bas pour le dernier
+- Bouton Valider désactivé si l'ordre n'a pas changé ou si `isPending`
 
 ### `AddStarModal`
 
