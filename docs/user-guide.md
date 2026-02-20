@@ -385,6 +385,7 @@ L'écran de détail d'un joueur affiche :
 - **Menu déroulant de section** : un sélecteur permet de choisir la section affichée parmi :
   - **Records personnels** (par défaut) : meilleur score, pire score, série de victoires consécutives (en tant que preneur), meilleure session (total de points dans une session) et plus grand écart (différence entre points réalisés et points requis). Chaque record indique la date, le contrat (si applicable) et un lien vers la session concernée.
   - **Badges** : grille des badges débloqués (verrouillés masqués par défaut, révélables via un bouton)
+  - **Étoiles** (masquée si aucune étoile) : nombre total d'étoiles, pénalités, ratio par donne et par session, record en une session et nombre de sessions avec étoiles
   - **Répartition des rôles** : barre visuelle montrant combien de fois le joueur a été preneur, partenaire ou défenseur
   - **Contrats** : graphique à barres des contrats joués en tant que preneur
   - **Évolution des scores** : graphique linéaire des 50 derniers scores
@@ -420,7 +421,7 @@ Le système d'étoiles permet de **pénaliser** un joueur en dehors du jeu de ca
 
 - Les pénalités d'étoiles sont **incluses dans les scores cumulés** de la session
 - Les pénalités apparaissent dans le **classement global** des statistiques
-- Les statistiques d'un joueur affichent le **nombre total d'étoiles** reçues et le **nombre de pénalités** subies
+- Les statistiques d'un joueur affichent une section **« Étoiles »** dédiée avec le nombre total, les pénalités, le ratio par donne/session, le record en une session et le nombre de sessions avec étoiles
 
 > **Note** : la somme des scores de pénalité est toujours nulle (−100 + 4 × 25 = 0).
 

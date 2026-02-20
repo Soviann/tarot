@@ -11,11 +11,12 @@ import { PlayerAvatar, Select, Spinner } from "../components/ui";
 import { usePlayerStats } from "../hooks/usePlayerStats";
 import { formatDuration } from "../utils/formatDuration";
 
-type PlayerStatsSection = "badges" | "contracts" | "elo" | "records" | "roles" | "scores";
+type PlayerStatsSection = "badges" | "contracts" | "elo" | "records" | "roles" | "scores" | "stars";
 
 const ALL_SECTIONS: { label: string; value: PlayerStatsSection }[] = [
   { label: "Records personnels", value: "records" },
   { label: "Badges", value: "badges" },
+  { label: "Étoiles", value: "stars" },
   { label: "Répartition des rôles", value: "roles" },
   { label: "Contrats", value: "contracts" },
   { label: "Évolution des scores", value: "scores" },
@@ -43,6 +44,7 @@ export default function PlayerStats() {
       records: true,
       roles: rolesTotal > 0,
       scores: stats.recentScores.length > 0,
+      stars: stats.totalStars > 0,
     };
     return ALL_SECTIONS.filter((s) => hasData[s.value]);
   }, [rolesTotal, stats]);
@@ -110,27 +112,6 @@ export default function PlayerStats() {
         )}
       </div>
 
-      {stats.totalStars > 0 && (
-        <div className="flex gap-3">
-          <div className="flex-1 rounded-xl bg-surface-elevated p-3 text-center">
-            <span className="block text-lg font-bold text-yellow-400">
-              {"★".repeat(Math.min(stats.totalStars, 10))}{stats.totalStars > 10 ? "…" : ""}
-            </span>
-            <span className="text-xs text-text-muted">
-              {stats.totalStars} étoile{stats.totalStars > 1 ? "s" : ""}
-            </span>
-          </div>
-          <div className="flex-1 rounded-xl bg-surface-elevated p-3 text-center">
-            <span className="block text-lg font-bold text-score-negative">
-              {stats.starPenalties}
-            </span>
-            <span className="text-xs text-text-muted">
-              Pénalité{stats.starPenalties > 1 ? "s" : ""}
-            </span>
-          </div>
-        </div>
-      )}
-
       {stats.playerGroups.length > 0 && (
         <section>
           <h2 className="mb-2 text-sm font-semibold text-text-secondary">Groupes</h2>
@@ -154,6 +135,24 @@ export default function PlayerStats() {
         options={availableSections}
         value={selectedSection}
       />
+
+      {selectedSection === "stars" && (
+        <section>
+          <div className="mb-3 flex items-center gap-2">
+            <span className="text-lg text-yellow-400">
+              {"★".repeat(Math.min(stats.totalStars, 10))}{stats.totalStars > 10 ? "…" : ""}
+            </span>
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            <MetricCard label="Étoiles" value={String(stats.totalStars)} />
+            <MetricCard label="Pénalités" value={String(stats.starPenalties)} />
+            <MetricCard label="Par donne" value={String(stats.starsPerGame)} />
+            <MetricCard label="Par session" value={String(stats.starsPerSession)} />
+            <MetricCard label="Max en une session" value={String(stats.maxStarsInSession)} />
+            <MetricCard label="Sessions avec étoiles" value={String(stats.sessionsWithStars)} />
+          </div>
+        </section>
+      )}
 
       {selectedSection === "records" && (
         <PersonalRecords records={stats.records} />

@@ -97,6 +97,44 @@ final class StarEventRepository extends ServiceEntityRepository
         return (int) $qb->getQuery()->getSingleScalarResult();
     }
 
+    public function countSessionsWithStarsForPlayer(Player $player, ?int $playerGroupId = null): int
+    {
+        $qb = $this->createQueryBuilder('se')
+            ->select('COUNT(DISTINCT IDENTITY(se.session))')
+            ->andWhere('se.player = :player')
+            ->setParameter('player', $player);
+
+        if (null !== $playerGroupId) {
+            $qb->join('App\Entity\Session', 's_grp', 'WITH', 'se.session = s_grp')
+               ->andWhere('s_grp.playerGroup = :group')
+               ->setParameter('group', $playerGroupId);
+        }
+
+        return (int) $qb->getQuery()->getSingleScalarResult();
+    }
+
+    public function getMaxStarsInSessionForPlayer(Player $player, ?int $playerGroupId = null): int
+    {
+        $qb = $this->createQueryBuilder('se')
+            ->select('COUNT(se.id) AS cnt')
+            ->andWhere('se.player = :player')
+            ->setParameter('player', $player)
+            ->groupBy('se.session')
+            ->orderBy('cnt', 'DESC')
+            ->setMaxResults(1);
+
+        if (null !== $playerGroupId) {
+            $qb->join('App\Entity\Session', 's_grp', 'WITH', 'se.session = s_grp')
+               ->andWhere('s_grp.playerGroup = :group')
+               ->setParameter('group', $playerGroupId);
+        }
+
+        /** @var array{cnt: string}|null $result */
+        $result = $qb->getQuery()->getOneOrNullResult();
+
+        return null !== $result ? (int) $result['cnt'] : 0;
+    }
+
     public function countAll(?int $playerGroupId = null): int
     {
         $qb = $this->createQueryBuilder('se')
