@@ -402,6 +402,144 @@ class SessionApiTest extends ApiTestCase
         $this->assertSame(0, $data['closedCount']);
     }
 
+    public function testPatchPlayerOrderValid(): void
+    {
+        $session = $this->createSessionWithPlayers('Alice', 'Bob', 'Charlie', 'Diana', 'Eve');
+        $playerIds = $session->getPlayers()->map(static fn ($p) => $p->getId())->getValues();
+
+        // Reverse the order
+        $reversed = \array_reverse($playerIds);
+
+        $response = $this->client->request('PATCH', $this->getIri($session), [
+            'headers' => ['Content-Type' => 'application/merge-patch+json'],
+            'json' => ['playerOrder' => $reversed],
+        ]);
+
+        $this->assertResponseIsSuccessful();
+        $data = $response->toArray();
+        $this->assertSame($reversed, $data['playerOrder']);
+    }
+
+    public function testPatchPlayerOrderInvalidIds(): void
+    {
+        $session = $this->createSessionWithPlayers('Alice', 'Bob', 'Charlie', 'Diana', 'Eve');
+
+        $this->client->request('PATCH', $this->getIri($session), [
+            'headers' => ['Content-Type' => 'application/merge-patch+json'],
+            'json' => ['playerOrder' => [999, 998, 997, 996, 995]],
+        ]);
+
+        $this->assertResponseStatusCodeSame(422);
+    }
+
+    public function testPatchPlayerOrderDuplicates(): void
+    {
+        $session = $this->createSessionWithPlayers('Alice', 'Bob', 'Charlie', 'Diana', 'Eve');
+        $firstId = $session->getPlayers()->first()->getId();
+
+        $this->client->request('PATCH', $this->getIri($session), [
+            'headers' => ['Content-Type' => 'application/merge-patch+json'],
+            'json' => ['playerOrder' => [$firstId, $firstId, $firstId, $firstId, $firstId]],
+        ]);
+
+        $this->assertResponseStatusCodeSame(422);
+    }
+
+    public function testPatchPlayerOrderWrongCount(): void
+    {
+        $session = $this->createSessionWithPlayers('Alice', 'Bob', 'Charlie', 'Diana', 'Eve');
+        $playerIds = $session->getPlayers()->map(static fn ($p) => $p->getId())->getValues();
+
+        $this->client->request('PATCH', $this->getIri($session), [
+            'headers' => ['Content-Type' => 'application/merge-patch+json'],
+            'json' => ['playerOrder' => \array_slice($playerIds, 0, 3)],
+        ]);
+
+        $this->assertResponseStatusCodeSame(422);
+    }
+
+    public function testPatchPlayerOrderNullResetsOrder(): void
+    {
+        $session = $this->createSessionWithPlayers('Alice', 'Bob', 'Charlie', 'Diana', 'Eve');
+        $playerIds = $session->getPlayers()->map(static fn ($p) => $p->getId())->getValues();
+
+        // Set order first
+        $this->client->request('PATCH', $this->getIri($session), [
+            'headers' => ['Content-Type' => 'application/merge-patch+json'],
+            'json' => ['playerOrder' => \array_reverse($playerIds)],
+        ]);
+        $this->assertResponseIsSuccessful();
+
+        // Reset to null
+        $response = $this->client->request('PATCH', $this->getIri($session), [
+            'headers' => ['Content-Type' => 'application/merge-patch+json'],
+            'json' => ['playerOrder' => null],
+        ]);
+        $this->assertResponseIsSuccessful();
+        $data = $response->toArray();
+        $this->assertNull($data['playerOrder']);
+    }
+
+    public function testDealerAdvancesFollowingCustomPlayerOrder(): void
+    {
+        $session = $this->createSessionWithPlayers('Alice', 'Bob', 'Charlie', 'Diana', 'Eve');
+        $players = $session->getPlayers()->toArray();
+        $playerIds = \array_map(static fn ($p) => $p->getId(), $players);
+
+        // Custom order: reverse (Eve, Diana, Charlie, Bob, Alice)
+        $reversed = \array_reverse($playerIds);
+        $session->setPlayerOrder($reversed);
+        // Eve = first in custom order, set as current dealer
+        $session->setCurrentDealer($players[4]); // Eve
+        $this->em->flush();
+
+        // Create an in-progress game via entity
+        $game = new Game();
+        $game->setContract(Contract::Petite);
+        $game->setPosition(1);
+        $game->setSession($session);
+        $game->setStatus(GameStatus::InProgress);
+        $game->setTaker($players[0]); // Alice
+        $this->em->persist($game);
+        $this->em->flush();
+
+        // Complete the game via API PATCH → triggers advanceDealer
+        $this->client->request('PATCH', $this->getIri($game), [
+            'headers' => ['Content-Type' => 'application/merge-patch+json'],
+            'json' => [
+                'oudlers' => 2,
+                'partner' => $this->getIri($players[1]),
+                'points' => 45,
+                'status' => 'completed',
+            ],
+        ]);
+        $this->assertResponseIsSuccessful();
+
+        // Dealer should advance: Eve → Diana (second in reversed order)
+        $response = $this->client->request('GET', $this->getIri($session));
+        $this->assertResponseIsSuccessful();
+        $data = $response->toArray();
+        $this->assertSame($players[3]->getId(), $data['currentDealer']['id']); // Diana
+    }
+
+    public function testCreateSessionSetsInitialPlayerOrder(): void
+    {
+        $playerIris = $this->createPlayerIris('Alice', 'Bob', 'Charlie', 'Diana', 'Eve');
+
+        $response = $this->client->request('POST', '/api/sessions', [
+            'headers' => ['Content-Type' => 'application/ld+json'],
+            'json' => ['players' => $playerIris],
+        ]);
+
+        $this->assertResponseStatusCodeSame(201);
+        $data = $response->toArray();
+
+        // Fetch detail to get playerOrder (session:detail group)
+        $detail = $this->client->request('GET', '/api/sessions/'.$data['id'])->toArray();
+        $this->assertNotNull($detail['playerOrder']);
+        $this->assertCount(5, $detail['playerOrder']);
+    }
+
     /**
      * @return string[]
      */
