@@ -439,6 +439,24 @@ const allGames = data?.pages.flatMap(p => p.member) ?? [];
 
 **Query key** : `["session", sessionId, "games"]` — invalidé automatiquement par prefix matching quand `["session", sessionId]` est invalidé par les mutations existantes.
 
+### `useAllSessionGames`
+
+**Fichier** : `hooks/useAllSessionGames.ts`
+
+Récupère **toutes** les donnes d'une session en une seule requête (sans pagination). Utilisé par le graphe d'évolution des scores pour calculer les scores cumulés corrects.
+
+```ts
+const { data: allGames } = useAllSessionGames(sessionId);
+// allGames: Game[] | undefined
+```
+
+| Retour | Type | Description |
+|--------|------|-------------|
+| `data` | `Game[] \| undefined` | Toutes les donnes de la session (sélecteur `member`) |
+| …autres | — | Tous les champs de `UseQueryResult` |
+
+**Query key** : `["session", sessionId, "allGames"]` — invalidé automatiquement par prefix matching.
+
 ### `useCloseGroupSessions`
 
 **Fichier** : `hooks/useCloseGroupSessions.ts`
@@ -735,7 +753,7 @@ Page d'aide in-app reprenant le contenu du guide utilisateur (`docs/user-guide.m
 
 **Fonctionnalités** :
 - Tableau des scores cumulés (composant `Scoreboard`) avec avatars et scores colorés
-- Graphique d'évolution des scores (`ScoreEvolutionChart`) visible quand ≥ 2 donnes terminées (basé sur les donnes chargées)
+- Graphique d'évolution des scores (`ScoreEvolutionChart`) visible quand ≥ 2 donnes terminées (basé sur toutes les donnes via `useAllSessionGames`)
 - Bandeau « donne en cours » (`InProgressBanner`) si `session.inProgressGame` est non nul
 - Historique des donnes terminées (`GameList`) paginé côté serveur (10 par page, bouton « Voir plus »)
 - Bouton FAB (+) pour démarrer une nouvelle donne (désactivé si donne en cours)
@@ -745,7 +763,7 @@ Page d'aide in-app reprenant le contenu du guide utilisateur (`docs/user-guide.m
 - Bouton retour vers l'accueil
 - États : chargement, session introuvable
 
-**Hooks utilisés** : `useSession`, `useSessionGames`, `useAddStar`, `useCloseSession`, `useCreateGame`, `useCreateSession` (via SwapPlayersModal), `useCompleteGame`, `useDeleteGame`, `usePlayerGroups`, `useUpdateDealer`, `useUpdateSessionGroup`, `useNavigate`
+**Hooks utilisés** : `useSession`, `useSessionGames`, `useAllSessionGames`, `useAddStar`, `useCloseSession`, `useCreateGame`, `useCreateSession` (via SwapPlayersModal), `useCompleteGame`, `useDeleteGame`, `usePlayerGroups`, `useUpdateDealer`, `useUpdateSessionGroup`, `useNavigate`
 
 **Modales** :
 - `AddStarModal` : confirmation avant attribution d'étoile à un joueur
@@ -1267,7 +1285,7 @@ formatDuration(7200);  // "2h"
 
 **Fichier** : `services/scoreCalculator.ts`
 
-Miroir frontend du `ScoreCalculator` backend. Calcule les scores d'une donne en temps réel pour l'aperçu.
+Miroir frontend du `ScoreCalculator` backend. Calcule les scores d'une donne en temps réel pour l'aperçu. Les points sont tronqués à l'entier (`Math.trunc`) avant le calcul, comme le backend (`(int) $points`).
 
 ```ts
 import { calculateScore } from "./services/scoreCalculator";

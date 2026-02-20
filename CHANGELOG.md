@@ -6,6 +6,11 @@ Le format est basé sur [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/)
 
 ## [Unreleased]
 
+### Fixed
+
+- **Graphe d'évolution des scores** : les scores cumulés étaient calculés uniquement à partir des donnes chargées (10 par page), faussant le graphe pour les sessions de plus de 10 donnes. Le graphe utilise désormais toutes les donnes de la session.
+- **Calculateur de score (frontend)** : les demi-points (ex. 53.5) n'étaient pas tronqués à l'entier avant le calcul, contrairement au backend, provoquant des écarts dans la prévisualisation.
+
 ## [1.1.0] - 2026-02-18
 
 ### Added

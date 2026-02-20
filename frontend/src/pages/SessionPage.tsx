@@ -20,6 +20,7 @@ import SwapPlayersModal from "../components/SwapPlayersModal";
 import { FAB, Modal, OverflowMenu, Spinner, UndoFAB } from "../components/ui";
 import type { OverflowMenuItem } from "../components/ui/OverflowMenu";
 import { useAddStar } from "../hooks/useAddStar";
+import { useAllSessionGames } from "../hooks/useAllSessionGames";
 import { useCloseSession } from "../hooks/useCloseSession";
 import { useCreateGame } from "../hooks/useCreateGame";
 import { usePlayerGroups } from "../hooks/usePlayerGroups";
@@ -32,6 +33,7 @@ import { apiFetch } from "../services/api";
 import type { GameContext, MemeConfig } from "../services/memeSelector";
 import { selectDefeatMeme, selectVictoryMeme } from "../services/memeSelector";
 import type { Badge } from "../types/api";
+import { GameStatus } from "../types/enums";
 
 export default function SessionPage() {
   const { id } = useParams<{ id: string }>();
@@ -44,6 +46,7 @@ export default function SessionPage() {
     hasNextPage,
     isFetchingNextPage,
   } = useSessionGames(sessionId);
+  const { data: allGames } = useAllSessionGames(sessionId);
   const addStar = useAddStar(sessionId);
   const closeSession = useCloseSession(sessionId);
   const createGame = useCreateGame(sessionId);
@@ -200,13 +203,13 @@ export default function SessionPage() {
         />
       )}
 
-      {completedGames.length >= 2 && (
+      {allGames && allGames.filter((g) => g.status === GameStatus.Completed).length >= 2 && (
         <section>
           <h2 className="mb-2 text-sm font-semibold text-text-secondary">
             Évolution des scores
           </h2>
           <ScoreEvolutionChart
-            games={completedGames}
+            games={allGames}
             players={session.players}
           />
         </section>
