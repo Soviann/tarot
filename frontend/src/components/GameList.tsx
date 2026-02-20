@@ -82,6 +82,9 @@ export default function GameList({
               onClick={() => setExpandedId(isExpanded ? null : game.id)}
             >
               <div className="flex items-center gap-3">
+                <span className="w-6 text-center text-xs font-semibold text-text-muted">
+                  #{game.position}
+                </span>
                 <PlayerAvatar
                   color={game.taker.color}
                   name={game.taker.name}

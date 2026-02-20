@@ -964,7 +964,7 @@ Liste des donnes terminées en ordre anti-chronologique (position décroissante)
 | `onLoadMore` | `() => void` | *requis* — action pour charger la page suivante |
 
 **Fonctionnalités** :
-- Chaque carte : avatar preneur, nom, badge contrat, durée de la donne (si `completedAt` disponible), « avec [partenaire] » ou « Seul », donneur, score du preneur
+- Chaque carte : numéro de donne (`#position`), avatar preneur, nom, badge contrat, durée de la donne (si `completedAt` disponible), « avec [partenaire] » ou « Seul », donneur, score du preneur
 - Boutons « Modifier » et « Supprimer » uniquement sur la dernière donne (position la plus élevée) et uniquement si la session est en cours (`isSessionActive`)
 - Bouton « Voir plus » quand `hasNextPage` est vrai, affichant « Chargement… » pendant le fetch
 - État vide : « Aucune donne jouée »

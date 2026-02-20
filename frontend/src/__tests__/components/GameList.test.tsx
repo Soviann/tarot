@@ -71,6 +71,17 @@ describe("GameList", () => {
     expect(items[1]).toHaveTextContent("Garde");
   });
 
+  it("displays the deal number (position) for each game", () => {
+    renderWithProviders(
+      <GameList games={games} {...defaultProps} />,
+    );
+
+    const items = screen.getAllByRole("listitem");
+    // Game at position 2 should display "#2", position 1 should display "#1"
+    expect(items[0]).toHaveTextContent("#2");
+    expect(items[1]).toHaveTextContent("#1");
+  });
+
   it("shows taker name for each game", () => {
     renderWithProviders(
       <GameList games={games} {...defaultProps} />,

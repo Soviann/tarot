@@ -167,6 +167,7 @@ Si une donne est en cours (étape 1 validée, étape 2 en attente), un bandeau b
 
 Liste paginée des donnes jouées (les 10 plus récentes en premier, avec un bouton « Voir plus » pour charger la suite), montrant pour chaque donne :
 
+- Le **numéro de la donne** (#1, #2, #3…)
 - Le preneur et son partenaire
 - Le donneur de la donne
 - Le contrat (badge coloré) et la **durée de la donne** (si disponible)
