@@ -147,8 +147,8 @@ export interface PlayerContractEntry {
 
 export interface PlayerStatistics {
   averageGameDurationSeconds: number | null;
-  badges: Badge[];
   averageScore: number;
+  badges: Badge[];
   bestGameScore: number;
   contractDistribution: PlayerContractEntry[];
   eloHistory: EloHistoryEntry[];
@@ -157,12 +157,16 @@ export interface PlayerStatistics {
   gamesAsPartner: number;
   gamesAsTaker: number;
   gamesPlayed: number;
+  maxStarsInSession: number;
   player: GamePlayer;
   playerGroups: { id: number; name: string }[];
   recentScores: RecentScoreEntry[];
   records: PersonalRecord[];
   sessionsPlayed: number;
+  sessionsWithStars: number;
   starPenalties: number;
+  starsPerGame: number;
+  starsPerSession: number;
   totalPlayTimeSeconds: number;
   totalStars: number;
   winRateAsTaker: number;

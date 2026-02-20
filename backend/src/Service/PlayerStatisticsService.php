@@ -193,7 +193,7 @@ final readonly class PlayerStatisticsService
      * - Historique ELO et records personnels
      * - Durée moyenne et totale de jeu
      *
-     * @return array{badges: list<array{description: string, emoji: string, label: string, type: string, unlockedAt: string|null}>, averageGameDurationSeconds: int|null, averageScore: float, bestGameScore: int, contractDistribution: list<array{contract: string, count: int, winRate: float, wins: int}>, eloHistory: list<array{date: string, gameId: int, ratingAfter: int, ratingChange: int}>, eloRating: int, gamesAsDefender: int, gamesAsPartner: int, gamesAsTaker: int, gamesPlayed: int, player: array{id: int|null, name: string}, playerGroups: list<array{id: int|null, name: string}>, recentScores: list<array{date: string, gameId: int, score: int, sessionId: int}>, records: list<array{contract: string|null, date: string, sessionId: int|null, type: string, value: int|float}>, sessionsPlayed: int, starPenalties: int, totalPlayTimeSeconds: int, totalStars: int, winRateAsTaker: float, worstGameScore: int}
+     * @return array{badges: list<array{description: string, emoji: string, label: string, type: string, unlockedAt: string|null}>, averageGameDurationSeconds: int|null, averageScore: float, bestGameScore: int, contractDistribution: list<array{contract: string, count: int, winRate: float, wins: int}>, eloHistory: list<array{date: string, gameId: int, ratingAfter: int, ratingChange: int}>, eloRating: int, gamesAsDefender: int, gamesAsPartner: int, gamesAsTaker: int, gamesPlayed: int, maxStarsInSession: int, player: array{id: int|null, name: string}, playerGroups: list<array{id: int|null, name: string}>, recentScores: list<array{date: string, gameId: int, score: int, sessionId: int}>, records: list<array{contract: string|null, date: string, sessionId: int|null, type: string, value: int|float}>, sessionsPlayed: int, sessionsWithStars: int, starPenalties: int, starsPerGame: float, starsPerSession: float, totalPlayTimeSeconds: int, totalStars: int, winRateAsTaker: float, worstGameScore: int}
      */
     public function getPlayerStats(Player $player, ?int $playerGroupId = null): array
     {
@@ -243,6 +243,8 @@ final readonly class PlayerStatisticsService
 
         $totalStars = $this->starEventRepository->countByPlayerFiltered($player, $playerGroupId);
         $starPenalties = (int) \floor($totalStars / 3);
+        $maxStarsInSession = $this->starEventRepository->getMaxStarsInSessionForPlayer($player, $playerGroupId);
+        $sessionsWithStars = $this->starEventRepository->countSessionsWithStarsForPlayer($player, $playerGroupId);
 
         $durationStats = $this->getPlayerDurationStats($player, $playerGroupId);
 
@@ -258,6 +260,7 @@ final readonly class PlayerStatisticsService
             'gamesAsPartner' => $gamesAsPartner,
             'gamesAsTaker' => $gamesAsTaker,
             'gamesPlayed' => $gamesPlayed,
+            'maxStarsInSession' => $maxStarsInSession,
             'player' => ['id' => $playerId, 'name' => $player->getName()],
             'playerGroups' => \array_map(
                 static fn (PlayerGroup $pg) => ['id' => $pg->getId(), 'name' => $pg->getName()],
@@ -266,7 +269,10 @@ final readonly class PlayerStatisticsService
             'recentScores' => $formattedRecentScores,
             'records' => $this->getPlayerRecords($player, $playerGroupId),
             'sessionsPlayed' => $sessionsPlayed,
+            'sessionsWithStars' => $sessionsWithStars,
             'starPenalties' => $starPenalties,
+            'starsPerGame' => $gamesPlayed > 0 ? \round($totalStars / $gamesPlayed, 1) : 0.0,
+            'starsPerSession' => $sessionsPlayed > 0 ? \round($totalStars / $sessionsPlayed, 1) : 0.0,
             'totalPlayTimeSeconds' => $durationStats['totalPlayTimeSeconds'],
             'totalStars' => $totalStars,
             'winRateAsTaker' => $gamesAsTaker > 0 ? \round($winsAsTaker / $gamesAsTaker * 100, 1) : 0.0,

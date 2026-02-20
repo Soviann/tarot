@@ -81,7 +81,7 @@ import type { HydraCollection, Player } from "./types/api";
 | `LeaderboardEntry` | `gamesAsTaker`, `gamesPlayed`, `playerColor: string \| null`, `playerId`, `playerName`, `totalScore`, `winRate`, `wins` |
 | `PlayerContractEntry` | `contract: Contract`, `count`, `winRate`, `wins` |
 | `PersonalRecord` | `contract: string \| null`, `date: string`, `sessionId: number \| null`, `type: string`, `value: number` |
-| `PlayerStatistics` | `badges: Badge[]`, `averageGameDurationSeconds: number \| null`, `averageScore`, `bestGameScore`, `contractDistribution`, `eloHistory: EloHistoryEntry[]`, `eloRating: number`, `gamesAsDefender`, `gamesAsPartner`, `gamesAsTaker`, `gamesPlayed`, `player`, `playerGroups: { id: number; name: string }[]`, `records: PersonalRecord[]`, `recentScores`, `sessionsPlayed`, `starPenalties`, `totalPlayTimeSeconds: number`, `totalStars`, `winRateAsTaker`, `worstGameScore` |
+| `PlayerStatistics` | `badges: Badge[]`, `averageGameDurationSeconds: number \| null`, `averageScore`, `bestGameScore`, `contractDistribution`, `eloHistory: EloHistoryEntry[]`, `eloRating: number`, `gamesAsDefender`, `gamesAsPartner`, `gamesAsTaker`, `gamesPlayed`, `maxStarsInSession`, `player`, `playerGroups: { id: number; name: string }[]`, `records: PersonalRecord[]`, `recentScores`, `sessionsPlayed`, `sessionsWithStars`, `starPenalties`, `starsPerGame`, `starsPerSession`, `totalPlayTimeSeconds: number`, `totalStars`, `winRateAsTaker`, `worstGameScore` |
 | `RecentScoreEntry` | `date: string`, `gameId: number`, `score: number`, `sessionId: number` |
 
 ### `ApiError`
@@ -759,7 +759,7 @@ Page d'aide in-app reprenant le contenu du guide utilisateur (`docs/user-guide.m
 - Filtre par groupe (`GroupFilter`) — filtre les statistiques par groupe (initialisation depuis `?group=`)
 - Métriques clés : donnes jouées, taux de victoire, score moyen, ELO, sessions, durée moyenne par donne et temps de jeu total (si disponible)
 - Groupes du joueur : badges cliquables renvoyant vers `/groups/:id`
-- **Menu déroulant de section** : les sections détaillées sont accessibles via un `<select>` (une seule visible à la fois) — Records personnels, Badges, Répartition des rôles, Contrats, Évolution des scores, Évolution ELO
+- **Menu déroulant de section** : les sections détaillées sont accessibles via un `<Select>` (une seule visible à la fois) — Records personnels, Badges, Étoiles (masquée si 0 étoiles), Répartition des rôles, Contrats, Évolution des scores, Évolution ELO
 - Bouton retour vers `/stats`
 - États : chargement, joueur introuvable
 
