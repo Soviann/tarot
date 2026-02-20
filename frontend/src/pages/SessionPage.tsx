@@ -223,6 +223,7 @@ export default function SessionPage() {
           games={completedGames}
           hasNextPage={hasNextPage ?? false}
           isFetchingNextPage={isFetchingNextPage}
+          isSessionActive={session.isActive}
           onDeleteLast={() => setDeleteModalOpen(true)}
           onEditLast={() => setEditModalOpen(true)}
           onLoadMore={() => fetchNextPage()}

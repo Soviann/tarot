@@ -323,7 +323,7 @@ Après la validation d'une donne, un **bouton flottant « Annuler »** (en bas �
 
 ### Modifier la dernière donne
 
-Seule la **dernière donne** de la session est modifiable. Pour la modifier :
+Seule la **dernière donne** de la session est modifiable (uniquement si la session est encore **en cours** — les boutons sont masqués sur une session terminée). Pour la modifier :
 
 1. Appuyer sur le bouton **« Modifier »** affiché à côté de la dernière donne dans l'historique
 2. Modifier les paramètres souhaités (partenaire, oudlers, points, bonus)
@@ -331,7 +331,7 @@ Seule la **dernière donne** de la session est modifiable. Pour la modifier :
 
 ### Supprimer la dernière donne
 
-Seule la **dernière donne** peut être supprimée (erreur de saisie, donne annulée). Deux cas :
+Seule la **dernière donne** peut être supprimée (erreur de saisie, donne annulée), uniquement si la session est **en cours**. Deux cas :
 
 - **Donne terminée** : appuyer sur le bouton **« Supprimer »** (en rouge) à côté de la dernière donne dans l'historique
 - **Donne en cours** : appuyer sur le bouton **« Annuler »** dans le bandeau de donne en cours
