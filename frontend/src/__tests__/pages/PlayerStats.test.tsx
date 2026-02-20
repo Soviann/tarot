@@ -18,6 +18,9 @@ vi.mock("../../hooks/usePlayerGroups", () => ({
 
 vi.mock("../../hooks/usePlayerStats");
 
+// jsdom doesn't implement scrollIntoView
+Element.prototype.scrollIntoView = vi.fn();
+
 const mockStats = {
   averageGameDurationSeconds: 480,
   badges: [],
@@ -35,7 +38,8 @@ const mockStats = {
   gamesAsPartner: 20,
   gamesAsTaker: 35,
   gamesPlayed: 145,
-  player: { id: 1, name: "Alice" },
+  maxStarsInSession: 3,
+  player: { color: null, id: 1, name: "Alice" },
   playerGroups: [{ id: 1, name: "Mardi soir" }],
   recentScores: [
     { date: "2026-02-07T12:00:00+00:00", gameId: 3, score: 120, sessionId: 1 },
@@ -48,7 +52,10 @@ const mockStats = {
     { contract: null, date: "2026-02-07T12:00:00+00:00", sessionId: null, type: "win_streak", value: 3 },
   ],
   sessionsPlayed: 10,
+  sessionsWithStars: 0,
   starPenalties: 0,
+  starsPerGame: 0,
+  starsPerSession: 0,
   totalPlayTimeSeconds: 4800,
   totalStars: 0,
   winRateAsTaker: 57.1,
@@ -220,6 +227,65 @@ describe("PlayerStats page", () => {
     expect(screen.getByText("8min")).toBeInTheDocument();
     expect(screen.getByText("Temps de jeu total")).toBeInTheDocument();
     expect(screen.getByText("1h 20min")).toBeInTheDocument();
+  });
+
+  it("renders star section when player has stars", async () => {
+    const user = userEvent.setup();
+    const statsWithStars = {
+      ...mockStats,
+      maxStarsInSession: 3,
+      sessionsWithStars: 4,
+      starPenalties: 2,
+      starsPerGame: 0.5,
+      starsPerSession: 0.7,
+      totalStars: 7,
+    };
+    vi.mocked(usePlayerStatsModule.usePlayerStats).mockReturnValue({
+      isPending: false,
+      stats: statsWithStars,
+    } as ReturnType<typeof usePlayerStatsModule.usePlayerStats>);
+
+    renderWithProviders(<PlayerStats />);
+
+    // Open the custom Select dropdown
+    const trigger = screen.getByRole("button", { name: /records personnels/i });
+    await user.click(trigger);
+
+    // "Étoiles" option should be available
+    const starsOption = screen.getByRole("option", { name: /étoiles/i });
+    expect(starsOption).toBeInTheDocument();
+
+    // Select the star section
+    await user.click(starsOption);
+
+    // Check star stats are displayed
+    expect(screen.getByText("7")).toBeInTheDocument();
+    expect(screen.getByText("2")).toBeInTheDocument();
+    expect(screen.getByText(/pénalité/i)).toBeInTheDocument();
+    expect(screen.getByText("0.5")).toBeInTheDocument();
+    expect(screen.getByText(/par donne/i)).toBeInTheDocument();
+    expect(screen.getByText("0.7")).toBeInTheDocument();
+    expect(screen.getByText(/par session/i)).toBeInTheDocument();
+    expect(screen.getByText(/max en une session/i)).toBeInTheDocument();
+    expect(screen.getByText("4")).toBeInTheDocument();
+    expect(screen.getByText(/sessions avec étoile/i)).toBeInTheDocument();
+  });
+
+  it("hides star section when player has no stars", async () => {
+    const user = userEvent.setup();
+    vi.mocked(usePlayerStatsModule.usePlayerStats).mockReturnValue({
+      isPending: false,
+      stats: mockStats,
+    } as ReturnType<typeof usePlayerStatsModule.usePlayerStats>);
+
+    renderWithProviders(<PlayerStats />);
+
+    // Open the custom Select dropdown
+    const trigger = screen.getByRole("button", { name: /records personnels/i });
+    await user.click(trigger);
+
+    // "Étoiles" should NOT be in the options
+    expect(screen.queryByRole("option", { name: /étoiles/i })).not.toBeInTheDocument();
   });
 
   it("navigates back to /stats on back button click", async () => {

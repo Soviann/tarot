@@ -8,6 +8,7 @@ use App\Entity\Game;
 use App\Entity\Player;
 use App\Entity\ScoreEntry;
 use App\Entity\Session;
+use App\Entity\StarEvent;
 use App\Enum\Contract;
 use App\Enum\GameStatus;
 
@@ -598,6 +599,76 @@ class StatisticsApiTest extends ApiTestCase
             ->getSingleScalarResult();
 
         $this->assertGreaterThan(0, $badgeCountAfter, 'Badges should be awarded when a game is completed via API.');
+    }
+
+    public function testPlayerStatisticsIncludesStarStats(): void
+    {
+        $alice = $this->players['Alice'];
+
+        // Create a second session
+        $session2 = new Session();
+        foreach ($this->players as $player) {
+            $session2->addPlayer($player);
+        }
+        $this->em->persist($session2);
+        $this->em->flush();
+
+        // Add 3 star events for Alice in session1 and 2 in session2
+        for ($i = 0; $i < 3; ++$i) {
+            $star = new StarEvent();
+            $star->setPlayer($alice);
+            $star->setSession($this->session);
+            $this->em->persist($star);
+        }
+        for ($i = 0; $i < 2; ++$i) {
+            $star = new StarEvent();
+            $star->setPlayer($alice);
+            $star->setSession($session2);
+            $this->em->persist($star);
+        }
+        $this->em->flush();
+
+        $response = $this->client->request('GET', '/api/statistics/players/'.$alice->getId());
+        $this->assertResponseIsSuccessful();
+        $data = $response->toArray();
+
+        // totalStars: 5
+        $this->assertSame(5, $data['totalStars']);
+        // starPenalties: floor(5/3) = 1
+        $this->assertSame(1, $data['starPenalties']);
+
+        // New fields
+        // starsPerGame: 5 / 3 = 1.7
+        $this->assertArrayHasKey('starsPerGame', $data);
+        $this->assertEqualsWithDelta(1.7, $data['starsPerGame'], 0.01);
+
+        // starsPerSession: 5 / 1 = 5.0 (only 1 session with games for Alice)
+        $this->assertArrayHasKey('starsPerSession', $data);
+        $this->assertEqualsWithDelta(5.0, $data['starsPerSession'], 0.01);
+
+        // maxStarsInSession: 3 (session1 has 3 stars)
+        $this->assertArrayHasKey('maxStarsInSession', $data);
+        $this->assertSame(3, $data['maxStarsInSession']);
+
+        // sessionsWithStars: 2 (both sessions have stars)
+        $this->assertArrayHasKey('sessionsWithStars', $data);
+        $this->assertSame(2, $data['sessionsWithStars']);
+    }
+
+    public function testPlayerStatisticsStarStatsWithNoStars(): void
+    {
+        $alice = $this->players['Alice'];
+
+        $response = $this->client->request('GET', '/api/statistics/players/'.$alice->getId());
+        $this->assertResponseIsSuccessful();
+        $data = $response->toArray();
+
+        $this->assertSame(0, $data['totalStars']);
+        $this->assertSame(0, $data['starPenalties']);
+        $this->assertEqualsWithDelta(0.0, $data['starsPerGame'], 0.01);
+        $this->assertEqualsWithDelta(0.0, $data['starsPerSession'], 0.01);
+        $this->assertSame(0, $data['maxStarsInSession']);
+        $this->assertSame(0, $data['sessionsWithStars']);
     }
 
     public function testGlobalStatisticsWithNonExistentGroup(): void
