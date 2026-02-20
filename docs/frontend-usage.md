@@ -755,7 +755,7 @@ Page d'aide in-app reprenant le contenu du guide utilisateur (`docs/user-guide.m
 - Tableau des scores cumulés (composant `Scoreboard`) avec avatars et scores colorés
 - Graphique d'évolution des scores (`ScoreEvolutionChart`) visible quand ≥ 2 donnes terminées (basé sur toutes les donnes via `useAllSessionGames`)
 - Bandeau « donne en cours » (`InProgressBanner`) si `session.inProgressGame` est non nul
-- Historique des donnes terminées (`GameList`) paginé côté serveur (10 par page, bouton « Voir plus »)
+- Historique des donnes terminées (`GameList`) paginé côté serveur (10 par page, bouton « Voir plus »), avec détail dépliable par donne (scores individuels, bouts, écart contrat)
 - Bouton FAB (+) pour démarrer une nouvelle donne (désactivé si donne en cours)
 - Menu overflow (`OverflowMenu`) regroupant : récap, partage QR, changement de joueurs, changement de groupe, clôture/réouverture de session
 - Bandeau « Session terminée » (ambre) quand `isActive === false`

@@ -6,6 +6,10 @@ Le format est basé sur [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/)
 
 ## [Unreleased]
 
+### Added
+
+- **Détail des scores par donne** : au clic sur une donne dans l'historique, un panneau dépliable affiche les scores individuels de chaque joueur (preneur → appelé → défense) avec le nombre de bouts et l'écart par rapport au contrat.
+
 ### Fixed
 
 - **Boutons de modification de la dernière donne** : les boutons « Modifier » et « Supprimer » restaient visibles et actifs sur une session clôturée. Ils sont désormais masqués lorsque la session est terminée.

@@ -1,4 +1,6 @@
-import { Layers } from "lucide-react";
+import { ChevronDown, Layers } from "lucide-react";
+import { useState } from "react";
+import { REQUIRED_POINTS } from "../services/scoreCalculator";
 import type { Game } from "../types/api";
 import { formatDuration } from "../utils/formatDuration";
 import { ContractBadge, EmptyState, PlayerAvatar, ScoreDisplay, Spinner } from "./ui";
@@ -13,6 +15,12 @@ interface GameListProps {
   onLoadMore: () => void;
 }
 
+function formatScoreDiff(points: number, oudlers: number): string {
+  const required = REQUIRED_POINTS[oudlers];
+  const diff = Math.trunc(points) - required;
+  return diff >= 0 ? `+${diff}` : `${diff}`;
+}
+
 export default function GameList({
   games,
   hasNextPage,
@@ -22,6 +30,8 @@ export default function GameList({
   onEditLast,
   onLoadMore,
 }: GameListProps) {
+  const [expandedId, setExpandedId] = useState<number | null>(null);
+
   if (games.length === 0) {
     return (
       <EmptyState
@@ -43,11 +53,22 @@ export default function GameList({
           const durationSeconds = game.completedAt
             ? Math.floor((new Date(game.completedAt).getTime() - new Date(game.createdAt).getTime()) / 1000)
             : null;
+          const isExpanded = expandedId === game.id;
+
+          // Build ordered score entries: taker, partner, defense
+          const takerEntry = game.scoreEntries.find((e) => e.player.id === game.taker.id);
+          const partnerEntry = game.partner
+            ? game.scoreEntries.find((e) => e.player.id === game.partner!.id)
+            : null;
+          const defenseEntries = game.scoreEntries.filter(
+            (e) => e.player.id !== game.taker.id && e.player.id !== game.partner?.id,
+          );
 
           return (
             <li
-              className="rounded-xl bg-surface-card p-3"
+              className="cursor-pointer rounded-xl bg-surface-card p-3"
               key={game.id}
+              onClick={() => setExpandedId(isExpanded ? null : game.id)}
             >
               <div className="flex items-center gap-3">
                 <PlayerAvatar
@@ -80,19 +101,76 @@ export default function GameList({
                     </span>
                   )}
                 </div>
+                <ChevronDown
+                  className={`shrink-0 text-text-muted transition-transform ${isExpanded ? "rotate-180" : ""}`}
+                  size={16}
+                />
               </div>
+              {isExpanded && game.oudlers !== null && game.points !== null && (
+                <div className="mt-2 border-t border-border pt-2">
+                  <div className="mb-2 text-center text-xs text-text-muted">
+                    {game.oudlers} {game.oudlers > 1 ? "bouts" : "bout"} · {formatScoreDiff(game.points, game.oudlers)}
+                  </div>
+                  <div className="space-y-1">
+                    {takerEntry && (
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <PlayerAvatar
+                            color={takerEntry.player.color}
+                            name={takerEntry.player.name}
+                            playerId={takerEntry.player.id}
+                            size="sm"
+                          />
+                          <span className="text-sm text-text-primary">{takerEntry.player.name}</span>
+                          <span className="rounded bg-blue-500/15 px-1.5 py-0.5 text-[10px] font-semibold text-blue-400">Preneur</span>
+                        </div>
+                        <ScoreDisplay animated={false} className="text-sm" value={takerEntry.score} />
+                      </div>
+                    )}
+                    {partnerEntry && (
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <PlayerAvatar
+                            color={partnerEntry.player.color}
+                            name={partnerEntry.player.name}
+                            playerId={partnerEntry.player.id}
+                            size="sm"
+                          />
+                          <span className="text-sm text-text-primary">{partnerEntry.player.name}</span>
+                          <span className="rounded bg-blue-500/15 px-1.5 py-0.5 text-[10px] font-semibold text-blue-400">Appelé</span>
+                        </div>
+                        <ScoreDisplay animated={false} className="text-sm" value={partnerEntry.score} />
+                      </div>
+                    )}
+                    {defenseEntries.map((entry) => (
+                      <div className="flex items-center justify-between" key={entry.id}>
+                        <div className="flex items-center gap-2">
+                          <PlayerAvatar
+                            color={entry.player.color}
+                            name={entry.player.name}
+                            playerId={entry.player.id}
+                            size="sm"
+                          />
+                          <span className="text-sm text-text-primary">{entry.player.name}</span>
+                        </div>
+                        <ScoreDisplay animated={false} className="text-sm" value={entry.score} />
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
               {isSessionActive && game.position === maxPosition && (
                 <div className="mt-2 flex gap-2">
                   <button
                     className="flex-1 rounded-lg bg-surface-elevated px-3 py-1.5 text-sm font-medium text-text-secondary"
-                    onClick={onEditLast}
+                    onClick={(e) => { e.stopPropagation(); onEditLast(); }}
                     type="button"
                   >
                     Modifier
                   </button>
                   <button
                     className="flex-1 rounded-lg bg-red-500/10 px-3 py-1.5 text-sm font-medium text-red-500"
-                    onClick={onDeleteLast}
+                    onClick={(e) => { e.stopPropagation(); onDeleteLast(); }}
                     type="button"
                   >
                     Supprimer

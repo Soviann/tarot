@@ -159,6 +159,11 @@ Liste paginée des donnes jouées (les 10 plus récentes en premier, avec un bou
 - Le contrat (badge coloré) et la **durée de la donne** (si disponible)
 - Le résultat (gain/perte du preneur)
 
+Au **clic sur une donne**, un panneau dépliable affiche le détail :
+
+- **Nombre de bouts** et **écart par rapport au contrat** (ex. « 2 bouts · +15 »)
+- Score de chaque joueur dans l'ordre : **preneur** → **appelé** → **défense**, avec indicateur +/−
+
 ### Menu d'actions (⋮)
 
 La ligne du header de session affiche un bouton **⋮** (trois points verticaux) qui regroupe les actions secondaires :
