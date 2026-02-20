@@ -197,4 +197,107 @@ describe("GameList", () => {
     expect(screen.queryByRole("button", { name: "Modifier" })).not.toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "Supprimer" })).not.toBeInTheDocument();
   });
+
+  describe("score detail expansion", () => {
+    it("expands game detail on click showing bouts and score vs contract", async () => {
+      renderWithProviders(
+        <GameList games={[baseGame]} {...defaultProps} isSessionActive={false} />,
+      );
+
+      // Initially no bouts info visible
+      expect(screen.queryByText(/bouts/)).not.toBeInTheDocument();
+
+      await userEvent.click(screen.getByRole("listitem"));
+
+      // baseGame: bouts=2, points=56, required for 2 bouts=41, diff=+15
+      expect(screen.getByText("2 bouts · +15")).toBeInTheDocument();
+    });
+
+    it("shows role labels and defense scores when expanded", async () => {
+      renderWithProviders(
+        <GameList games={[baseGame]} {...defaultProps} isSessionActive={false} />,
+      );
+
+      // Defense scores not visible initially
+      expect(screen.queryByText("-80")).not.toBeInTheDocument();
+
+      await userEvent.click(screen.getByRole("listitem"));
+
+      // Should show role labels
+      expect(screen.getByText("Preneur")).toBeInTheDocument();
+      expect(screen.getByText("Appelé")).toBeInTheDocument();
+
+      // Defense scores should now be visible (3 defenders with -80)
+      expect(screen.getAllByText("-80")).toHaveLength(3);
+    });
+
+    it("does not show Appelé label when no partner", async () => {
+      const soloGame: Game = {
+        ...baseGame,
+        partner: null,
+        scoreEntries: [
+          { id: 6, player: { id: 1, name: "Alice" }, score: 200 },
+          { id: 7, player: { id: 2, name: "Bob" }, score: -50 },
+          { id: 8, player: { id: 3, name: "Charlie" }, score: -50 },
+          { id: 9, player: { id: 4, name: "Diana" }, score: -50 },
+          { id: 10, player: { id: 5, name: "Eve" }, score: -50 },
+        ],
+        taker: { id: 1, name: "Alice" },
+      };
+
+      renderWithProviders(
+        <GameList games={[soloGame]} {...defaultProps} isSessionActive={false} />,
+      );
+
+      await userEvent.click(screen.getByRole("listitem"));
+
+      expect(screen.getByText("Preneur")).toBeInTheDocument();
+      expect(screen.queryByText("Appelé")).not.toBeInTheDocument();
+    });
+
+    it("collapses on second click", async () => {
+      renderWithProviders(
+        <GameList games={[baseGame]} {...defaultProps} isSessionActive={false} />,
+      );
+
+      const item = screen.getByRole("listitem");
+      await userEvent.click(item);
+      expect(screen.getByText(/bouts/)).toBeInTheDocument();
+
+      await userEvent.click(item);
+      expect(screen.queryByText(/bouts/)).not.toBeInTheDocument();
+    });
+
+    it("does not expand when clicking edit or delete buttons", async () => {
+      renderWithProviders(
+        <GameList games={games} {...defaultProps} />,
+      );
+
+      // Click edit button on last game (position 2)
+      await userEvent.click(screen.getByRole("button", { name: "Modifier" }));
+      expect(screen.queryByText(/bouts/)).not.toBeInTheDocument();
+
+      // Click delete button
+      await userEvent.click(screen.getByRole("button", { name: "Supprimer" }));
+      expect(screen.queryByText(/bouts/)).not.toBeInTheDocument();
+    });
+
+    it("shows scores ordered: taker first, then partner, then defense", async () => {
+      renderWithProviders(
+        <GameList games={[baseGame]} {...defaultProps} isSessionActive={false} />,
+      );
+
+      await userEvent.click(screen.getByRole("listitem"));
+
+      // Verify order: the detail section should list taker (Charlie), partner (Bob), then defense
+      const listitem = screen.getByRole("listitem");
+      const text = listitem.textContent ?? "";
+      // Find positions of role labels in the text
+      const preneurIdx = text.indexOf("Preneur");
+      const appeleIdx = text.indexOf("Appelé");
+      const firstDefenseIdx = text.indexOf("Alice", appeleIdx);
+      expect(preneurIdx).toBeLessThan(appeleIdx);
+      expect(appeleIdx).toBeLessThan(firstDefenseIdx);
+    });
+  });
 });
