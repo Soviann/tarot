@@ -9,6 +9,7 @@ backend/vendor/
 ###< symfony/framework-bundle ###
 
 ###> phpunit/phpunit ###
+backend/bin/.phpunit.result.cache
 backend/phpunit.xml
 backend/.phpunit.cache/
 ###< phpunit/phpunit ###
@@ -21,6 +22,7 @@ backend/.php-cs-fixer.cache
 
 ###> node ###
 frontend/node_modules/
+node_modules/
 ###< node ###
 
 ###> ide ###
