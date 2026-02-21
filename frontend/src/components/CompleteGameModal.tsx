@@ -2,7 +2,7 @@ import { ChevronDown, Mic } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useCompleteGame } from "../hooks/useCompleteGame";
 import { useResetOnOpen } from "../hooks/useResetOnOpen";
-import { useToast } from "../hooks/useToast";
+import { toast } from "sonner";
 import { useVoiceScoring } from "../hooks/useVoiceScoring";
 import type { GameContext } from "../services/memeSelector";
 import { calculateScore, REQUIRED_POINTS } from "../services/scoreCalculator";
@@ -44,7 +44,6 @@ const chelemOptions: { label: string; value: ChelemType }[] = [
 
 export default function CompleteGameModal({ game, onBadgesUnlocked, onClose, onGameCompleted, onGameSaved, open, players, sessionId }: CompleteGameModalProps) {
   const completeGame = useCompleteGame(game.id, sessionId);
-  const { toast } = useToast();
   const isEditMode = game.status === GameStatus.Completed;
 
   const playerNames = useMemo(() => players.map((p) => p.name), [players]);

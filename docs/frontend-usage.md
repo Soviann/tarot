@@ -156,20 +156,18 @@ const { isDark, toggle } = useTheme();
 
 **Prérequis** : composant dans un `<ThemeProvider>`.
 
-### `useToast`
+### Toasts (sonner)
 
-**Fichier** : `hooks/useToast.ts`
+**Bibliothèque** : [`sonner`](https://sonner.emilkowal.ski/)
 
 ```ts
-const { dismiss, toast, toastError, toasts } = useToast();
+import { toast } from "sonner";
+
+toast("Joueur créé");          // succès
+toast.error("Erreur réseau");  // erreur
 ```
 
-- `toast(message)` — affiche un toast de succès (auto-dismiss 2 s)
-- `toastError(message)` — affiche un toast d'erreur (auto-dismiss 3 s)
-- `dismiss(id)` — ferme un toast manuellement
-- `toasts` — liste des toasts actifs (`ToastItem[]`)
-
-**Prérequis** : composant dans un `<ToastProvider>` (déjà dans `App.tsx`).
+Pas de provider nécessaire — le composant `<Toaster />` est rendu dans `App.tsx` (`position="top-center"`, `richColors`).
 
 ### `usePlayers`
 
@@ -918,7 +916,7 @@ Page d'aide in-app reprenant le contenu du guide utilisateur (`docs/user-guide.m
 - Partage en image via `html-to-image` + Web Share API (fallback : téléchargement PNG)
 - Lien retour vers la session
 
-**Hooks utilisés** : `useSessionSummary`, `useToast`
+**Hooks utilisés** : `useSessionSummary`
 
 ### Page 404 (`NotFound`)
 
@@ -1607,7 +1605,7 @@ Construit le pool pondéré de mèmes éligibles pour un contexte donné. Foncti
 Tous les composants sont exportés depuis `components/ui/index.ts` :
 
 ```tsx
-import { ContractBadge, EmptyState, FAB, MetricCard, Modal, OverflowMenu, PlayerAvatar, ScoreDisplay, SearchInput, Select, Spinner, Stepper, Toast, ToastContainer, UndoFAB } from "./components/ui";
+import { ContractBadge, EmptyState, FAB, MetricCard, Modal, OverflowMenu, PlayerAvatar, ScoreDisplay, SearchInput, Select, Spinner, Stepper, UndoFAB } from "./components/ui";
 ```
 
 ### `PlayerAvatar`
@@ -1818,30 +1816,6 @@ Dialogue modal en portail avec focus trap et fermeture Escape/backdrop. Plein é
   <p>Voulez-vous vraiment supprimer ?</p>
 </Modal>
 ```
-
-### `Toast` / `ToastContainer`
-
-**Fichiers** : `components/ui/Toast.tsx`, `components/ui/ToastContainer.tsx`
-
-Toast de confirmation discret (haut de l'écran, auto-dismiss). Utilise le contexte `useToast`.
-
-`ToastContainer` est déjà rendu dans `App.tsx` — pas besoin de l'ajouter manuellement.
-
-```tsx
-import { useToast } from "../hooks/useToast";
-
-const { toast, toastError } = useToast();
-
-// Toast de succès (auto-dismiss 2 s)
-toast("Joueur créé");
-
-// Toast d'erreur (auto-dismiss 3 s)
-toastError("Erreur de connexion");
-```
-
-Comportement : max 3 toasts empilés, animation slide-down, clic ou touche Entrée/Échap pour fermer (`tabIndex={0}`), icône CheckCircle (succès) ou XCircle (erreur).
-
----
 
 ### `Spinner`
 

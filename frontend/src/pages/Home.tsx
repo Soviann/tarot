@@ -5,7 +5,7 @@ import PlayerSelector from "../components/PlayerSelector";
 import SessionList from "../components/SessionList";
 import { useCreateSession } from "../hooks/useCreateSession";
 import { useTheme } from "../hooks/useTheme";
-import { useToast } from "../hooks/useToast";
+import { toast } from "sonner";
 import type { Session } from "../types/api";
 
 const REQUIRED_PLAYERS = 5;
@@ -24,8 +24,6 @@ export default function Home() {
   const createSession = useCreateSession();
   const navigate = useNavigate();
   const { isDark, toggle } = useTheme();
-  const { toast } = useToast();
-
   const motivationalMessage = useMemo(
     () => MOTIVATIONAL_MESSAGES[Math.floor(Math.random() * MOTIVATIONAL_MESSAGES.length)],
     [],

@@ -615,11 +615,11 @@ Le choix est **mémorisé** automatiquement dans le navigateur (`localStorage`) 
 
 ## Toasts de confirmation
 
-Chaque action réussie déclenche un **toast de confirmation** — un petit bandeau discret qui apparaît en haut de l'écran et disparaît automatiquement après 2 secondes (3 secondes pour les erreurs).
+Chaque action réussie déclenche un **toast de confirmation** — un petit bandeau discret qui apparaît en haut de l'écran et disparaît automatiquement. Les erreurs utilisent un style rouge distinct.
 
 Exemples : « Joueur créé », « Donne enregistrée », « Session terminée », « Étoile ajoutée », « Groupe supprimé », etc.
 
-Les toasts s'empilent verticalement (3 maximum) et peuvent être fermés en les touchant ou avec les touches Entrée/Échap au clavier.
+Les toasts s'empilent verticalement et peuvent être fermés en cliquant dessus. Le système utilise la bibliothèque [sonner](https://sonner.emilkowal.ski/) pour une meilleure accessibilité (régions `aria-live`) et des animations fluides.
 
 ---
 

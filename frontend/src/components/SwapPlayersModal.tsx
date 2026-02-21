@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useCreateSession } from "../hooks/useCreateSession";
 import { useResetOnOpen } from "../hooks/useResetOnOpen";
-import { useToast } from "../hooks/useToast";
+import { toast } from "sonner";
 import type { Session } from "../types/api";
 import PlayerSelector from "./PlayerSelector";
 import { Modal } from "./ui";
@@ -21,8 +21,6 @@ export default function SwapPlayersModal({
 }: SwapPlayersModalProps) {
   const [selectedPlayerIds, setSelectedPlayerIds] = useState<number[]>(currentPlayerIds);
   const createSession = useCreateSession();
-  const { toast } = useToast();
-
   useResetOnOpen(open, () => {
     setSelectedPlayerIds(currentPlayerIds);
     createSession.reset();

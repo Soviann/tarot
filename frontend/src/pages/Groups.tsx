@@ -6,7 +6,7 @@ import { EmptyState, FAB, Modal, Spinner } from "../components/ui";
 import { useCreatePlayerGroup } from "../hooks/useCreatePlayerGroup";
 import { useDeletePlayerGroup } from "../hooks/useDeletePlayerGroup";
 import { usePlayerGroups } from "../hooks/usePlayerGroups";
-import { useToast } from "../hooks/useToast";
+import { toast } from "sonner";
 import { ApiError } from "../services/api";
 import type { PlayerGroup } from "../types/api";
 
@@ -15,8 +15,6 @@ export default function Groups() {
   const { groups, isPending } = usePlayerGroups();
   const createGroup = useCreatePlayerGroup();
   const deleteGroup = useDeletePlayerGroup();
-  const { toast } = useToast();
-
   const [modalOpen, setModalOpen] = useState(false);
   const [newName, setNewName] = useState("");
   const [selectedPlayerIds, setSelectedPlayerIds] = useState<number[]>([]);
