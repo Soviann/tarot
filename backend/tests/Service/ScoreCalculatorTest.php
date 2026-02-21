@@ -429,7 +429,7 @@ class ScoreCalculatorTest extends TestCase
 
         $entries = $this->calculator->compute($game);
 
-        $sum = \array_sum(\array_map(static fn (ScoreEntry $e) => $e->getScore(), $entries));
+        $sum = \array_sum(\array_map(static fn (ScoreEntry $e): int => $e->getScore(), $entries));
         $this->assertSame(0, $sum, \sprintf(
             'La somme des scores doit être 0, obtenu %d (contrat=%s, oudlers=%d, pts=%.1f)',
             $sum,

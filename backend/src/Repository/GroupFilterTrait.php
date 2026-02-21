@@ -38,7 +38,7 @@ trait GroupFilterTrait
     private function applySessionGroupFilter(QueryBuilder $qb, ?int $playerGroupId, string $entityAlias, string $sessionRelation = 'session'): void
     {
         if (null !== $playerGroupId) {
-            $qb->join('App\Entity\Session', 's_grp', 'WITH', $entityAlias.'.'.$sessionRelation.' = s_grp')
+            $qb->join(\App\Entity\Session::class, 's_grp', 'WITH', $entityAlias.'.'.$sessionRelation.' = s_grp')
                ->andWhere('s_grp.playerGroup = :group')
                ->setParameter('group', $playerGroupId);
         }

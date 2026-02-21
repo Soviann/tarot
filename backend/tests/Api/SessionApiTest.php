@@ -179,7 +179,7 @@ class SessionApiTest extends ApiTestCase
 
     public function testLastPlayedAtEqualsCreatedAtWhenNoGames(): void
     {
-        $session = $this->createSessionWithPlayers('Alice', 'Bob', 'Charlie', 'Diana', 'Eve');
+        $this->createSessionWithPlayers('Alice', 'Bob', 'Charlie', 'Diana', 'Eve');
 
         $response = $this->client->request('GET', '/api/sessions');
 
@@ -403,7 +403,7 @@ class SessionApiTest extends ApiTestCase
     public function testPatchPlayerOrderValid(): void
     {
         $session = $this->createSessionWithPlayers('Alice', 'Bob', 'Charlie', 'Diana', 'Eve');
-        $playerIds = $session->getPlayers()->map(static fn ($p) => $p->getId())->getValues();
+        $playerIds = $session->getPlayers()->map(static fn ($p): ?int => $p->getId())->getValues();
 
         // Reverse the order
         $reversed = \array_reverse($playerIds);
@@ -446,7 +446,7 @@ class SessionApiTest extends ApiTestCase
     public function testPatchPlayerOrderWrongCount(): void
     {
         $session = $this->createSessionWithPlayers('Alice', 'Bob', 'Charlie', 'Diana', 'Eve');
-        $playerIds = $session->getPlayers()->map(static fn ($p) => $p->getId())->getValues();
+        $playerIds = $session->getPlayers()->map(static fn ($p): ?int => $p->getId())->getValues();
 
         $this->client->request('PATCH', $this->getIri($session), [
             'headers' => ['Content-Type' => 'application/merge-patch+json'],
@@ -459,7 +459,7 @@ class SessionApiTest extends ApiTestCase
     public function testPatchPlayerOrderNullResetsOrder(): void
     {
         $session = $this->createSessionWithPlayers('Alice', 'Bob', 'Charlie', 'Diana', 'Eve');
-        $playerIds = $session->getPlayers()->map(static fn ($p) => $p->getId())->getValues();
+        $playerIds = $session->getPlayers()->map(static fn ($p): ?int => $p->getId())->getValues();
 
         // Set order first
         $this->client->request('PATCH', $this->getIri($session), [
@@ -482,7 +482,7 @@ class SessionApiTest extends ApiTestCase
     {
         $session = $this->createSessionWithPlayers('Alice', 'Bob', 'Charlie', 'Diana', 'Eve');
         $players = $session->getPlayers()->toArray();
-        $playerIds = \array_map(static fn ($p) => $p->getId(), $players);
+        $playerIds = \array_map(static fn (\App\Entity\Player $p): ?int => $p->getId(), $players);
 
         // Custom order: reverse (Eve, Diana, Charlie, Bob, Alice)
         $reversed = \array_reverse($playerIds);

@@ -35,7 +35,7 @@ readonly class KonamiController
         $existingTypes = $this->playerBadgeRepository->getExistingBadgeTypesForPlayer($player);
 
         if (\in_array(BadgeType::Konami, $existingTypes, true)) {
-            return new JsonResponse(null, 200);
+            return new JsonResponse(null, \Symfony\Component\HttpFoundation\Response::HTTP_OK);
         }
 
         $badge = new PlayerBadge();

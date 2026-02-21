@@ -28,7 +28,7 @@ class PlayerOrderMatchesSessionValidator extends ConstraintValidator
         }
 
         $playerIds = $value->getPlayers()->map(
-            static fn ($player) => $player->getId()
+            static fn ($player): ?int => $player->getId()
         )->getValues();
 
         \sort($playerIds);

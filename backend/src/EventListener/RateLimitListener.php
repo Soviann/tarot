@@ -43,7 +43,7 @@ final readonly class RateLimitListener
         if (!$limit->isAccepted()) {
             $response = new JsonResponse(
                 ['detail' => 'Too many requests.', 'status' => 429, 'title' => 'Rate limit exceeded', 'type' => 'https://tools.ietf.org/html/rfc6585#section-4'],
-                429,
+                \Symfony\Component\HttpFoundation\Response::HTTP_TOO_MANY_REQUESTS,
                 [
                     'Retry-After' => \max(1, $limit->getRetryAfter()->getTimestamp() - \time()),
                     'X-RateLimit-Limit' => $limit->getLimit(),

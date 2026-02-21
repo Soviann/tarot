@@ -245,7 +245,7 @@ class EloCalculatorTest extends TestCase
         $game->setPosition(1);
 
         // Add score entries to determine win/loss
-        foreach ($this->players as $name => $player) {
+        foreach ($this->players as $player) {
             $entry = new ScoreEntry();
             $entry->setGame($game);
             $entry->setPlayer($player);

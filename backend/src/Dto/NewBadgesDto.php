@@ -36,7 +36,7 @@ final readonly class NewBadgesDto implements \JsonSerializable
 
         foreach ($newBadges as $playerId => $badges) {
             $formatted[(int) $playerId] = \array_map(
-                static fn (BadgeType $b) => BadgeDto::fromArray($b->toArray()),
+                static fn (BadgeType $b): BadgeDto => BadgeDto::fromArray($b->toArray()),
                 $badges
             );
         }
@@ -55,7 +55,7 @@ final readonly class NewBadgesDto implements \JsonSerializable
 
         foreach ($this->badgesByPlayerId as $playerId => $badges) {
             $out[(int) $playerId] = \array_map(
-                static fn (BadgeDto $b) => $b->jsonSerialize(),
+                static fn (BadgeDto $b): array => $b->jsonSerialize(),
                 $badges
             );
         }
