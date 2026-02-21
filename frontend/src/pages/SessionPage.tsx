@@ -58,7 +58,7 @@ export default function SessionPage() {
   const reorderPlayers = useReorderPlayers(sessionId);
   const updateDealer = useUpdateDealer(sessionId);
   const updateGroup = useUpdateSessionGroup(sessionId);
-  const { toast } = useToast();
+  const { toast, toastError } = useToast();
 
   const inProgressGame = session?.inProgressGame ?? null;
 
@@ -163,9 +163,13 @@ export default function SessionPage() {
     if (undoGameId === null) return;
     const gameId = undoGameId;
     setUndoGameId(null);
-    await apiFetch<void>(`/games/${gameId}`, { method: "DELETE" });
-    queryClient.invalidateQueries({ queryKey: ["session", sessionId] });
-  }, [queryClient, sessionId, undoGameId]);
+    try {
+      await apiFetch<void>(`/games/${gameId}`, { method: "DELETE" });
+      queryClient.invalidateQueries({ queryKey: ["session", sessionId] });
+    } catch {
+      toastError("Erreur lors de l'annulation de la donne");
+    }
+  }, [queryClient, sessionId, toastError, undoGameId]);
 
   if (isPending) {
     return (
