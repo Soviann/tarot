@@ -30,6 +30,9 @@
     "last 2 versions",
     "not dead"
   ],
+  "overrides": {
+    "minimatch": "^10.2.1"
+  },
   "dependencies": {
     "@tanstack/react-query": "^5.90.20",
     "@vitejs/plugin-react": "^5.1.3",
