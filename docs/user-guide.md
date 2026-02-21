@@ -285,6 +285,11 @@ Il affiche :
   - « Le Boucher » : a infligé le plus de points aux défenseurs
   - « L'Éternel Défenseur » : a le moins pris
   - « Le Flambeur » : a tenté le plus de Garde Sans/Contre
+  - « Le Kamikaze » : échoue le plus souvent en tant que preneur (min 2 prises)
+  - « Le Solitaire » : le moins appelé comme partenaire
+  - « Le Paratonnerre » : a attiré le plus d'étoiles
+  - « Le Yo-Yo » : les scores les plus imprévisibles
+  - « Le Régulier » : les scores les plus réguliers
 
 ### Partager le récapitulatif
 
