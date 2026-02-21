@@ -6,6 +6,10 @@ Le format est basé sur [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/)
 
 ## [Unreleased]
 
+### Fixed
+
+- **ScoreEvolutionChart** : ajout de `minWidth={0}` sur tous les `ResponsiveContainer` Recharts pour supprimer le warning de dimensions négatives au premier rendu
+
 ### Changed
 
 - **ErrorBoundary** : remplacement du composant custom par `react-error-boundary` avec bouton « Réessayer » (reset sans rechargement de page)

@@ -113,7 +113,7 @@ export default function ScoreEvolutionChart({ games, players }: ScoreEvolutionCh
         })}
       </div>
       <div className="h-64 lg:h-96">
-        <ResponsiveContainer height="100%" width="100%">
+        <ResponsiveContainer height="100%" minWidth={0} width="100%">
           <LineChart data={data} margin={{ bottom: 0, left: 0, right: 16, top: 8 }}>
             <XAxis
               dataKey="position"

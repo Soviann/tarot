@@ -102,6 +102,13 @@ describe("ScoreEvolutionChart", () => {
     expect(container.innerHTML).toBe("");
   });
 
+  it("sets minWidth={0} on ResponsiveContainer to prevent negative dimension warning", () => {
+    render(<ScoreEvolutionChart games={twoGames} players={players} />);
+
+    const container = screen.getByTestId("responsive-container");
+    expect(container).toHaveAttribute("data-min-width", "0");
+  });
+
   it("renders chart with all player lines by default", () => {
     render(<ScoreEvolutionChart games={twoGames} players={players} />);
 
