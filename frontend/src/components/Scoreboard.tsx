@@ -29,6 +29,7 @@ interface ScoreboardProps {
   addStarPending?: boolean;
   cumulativeScores: CumulativeScore[];
   currentDealerId?: number | null;
+  isUpsideDown?: boolean;
   onAddStar?: (playerId: number) => void;
   onDealerChange?: () => void;
   players: GamePlayer[];
@@ -39,6 +40,7 @@ export default function Scoreboard({
   addStarPending = false,
   cumulativeScores,
   currentDealerId,
+  isUpsideDown = false,
   onAddStar,
   onDealerChange,
   players,
@@ -56,12 +58,30 @@ export default function Scoreboard({
     return map;
   }, [starEvents]);
 
+  const displayScoreMap = useMemo(() => {
+    if (!isUpsideDown) return scoreMap;
+    const negated = new Map<number, number>();
+    for (const [id, score] of scoreMap) {
+      negated.set(id, -score);
+    }
+    return negated;
+  }, [isUpsideDown, scoreMap]);
+
   // Nouveau tirage aléatoire uniquement quand le donneur change
   // eslint-disable-next-line react-hooks/exhaustive-deps
   const suitPath = useMemo(() => pickRandomSuit(), [currentDealerId]);
 
   return (
-    <div className="flex gap-2 lg:justify-center lg:gap-6">
+    <div className="relative">
+      {isUpsideDown && (
+        <div className="absolute -top-5 right-0 flex items-center gap-1 text-xs text-text-muted" title="Classement inversé">
+          <svg className="size-3 animate-spin" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+            <path d="M4 4v5h5M20 20v-5h-5" strokeLinecap="round" strokeLinejoin="round" />
+            <path d="M20.49 9A9 9 0 0 0 5.64 5.64L4 4m16 16-1.64-1.64A9 9 0 0 1 3.51 15" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+        </div>
+      )}
+      <div className="flex gap-2 lg:justify-center lg:gap-6">
       {players.map((player) => {
         const totalStars = starCountMap.get(player.id) ?? 0;
         const currentStars = totalStars % STARS_PER_PENALTY;
@@ -99,7 +119,7 @@ export default function Scoreboard({
             <span className="max-w-full truncate text-xs text-text-secondary lg:max-w-24 lg:text-sm">
               {player.name}
             </span>
-            <ScoreDisplay animated={false} value={scoreMap.get(player.id) ?? 0} />
+            <ScoreDisplay animated={false} value={displayScoreMap.get(player.id) ?? 0} />
             {onAddStar && (
               <button
                 aria-label={`Ajouter une étoile à ${player.name}`}
@@ -123,6 +143,7 @@ export default function Scoreboard({
           </div>
         );
       })}
+      </div>
     </div>
   );
 }

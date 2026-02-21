@@ -22,6 +22,7 @@ import { FAB, Modal, OverflowMenu, Spinner, UndoFAB } from "../components/ui";
 import type { OverflowMenuItem } from "../components/ui/OverflowMenu";
 import { useAddStar } from "../hooks/useAddStar";
 import { useShake } from "../hooks/useShake";
+import { useUpsideDown } from "../hooks/useUpsideDown";
 import { useAllSessionGames } from "../hooks/useAllSessionGames";
 import { useCloseSession } from "../hooks/useCloseSession";
 import { useCreateGame } from "../hooks/useCreateGame";
@@ -101,6 +102,9 @@ export default function SessionPage() {
   }, []);
 
   useShake(handleShake, { enabled: !scoresFlipped && !shakeModalOpen });
+
+  // Gyroscope upside-down easter egg
+  const isUpsideDown = useUpsideDown();
 
   const [changeDealerModalOpen, setChangeDealerModalOpen] = useState(false);
   const [changeGroupModalOpen, setChangeGroupModalOpen] = useState(false);
@@ -205,6 +209,7 @@ export default function SessionPage() {
           addStarPending={addStar.isPending}
           cumulativeScores={session.cumulativeScores}
           currentDealerId={session.currentDealer?.id ?? null}
+          isUpsideDown={isUpsideDown}
           onAddStar={(playerId) => {
             setStarPlayerId(playerId);
             addStar.reset();
