@@ -6,11 +6,13 @@ function makeContext(overrides: Partial<GameContext> = {}): GameContext {
   return {
     attackWins: true,
     chelem: Chelem.None,
+    consecutiveLosses: 0,
     contract: Contract.Petite,
     isSelfCall: false,
     oudlers: 0,
     petitAuBout: Side.None,
     points: 51,
+    previousScore: null,
     takerScore: 50,
     ...overrides,
   };
@@ -188,6 +190,135 @@ describe("buildPool", () => {
 
       expect(ids).toContain("infinity-beyond");
       expect(ids).toContain("mind-blown");
+    });
+  });
+
+  describe("victory — spiderman-pointing (self-call)", () => {
+    it("includes spiderman-pointing (weight 40) on self-call win", () => {
+      expect(poolWeight(makeContext({ isSelfCall: true }), "spiderman-pointing")).toBe(40);
+    });
+
+    it("does NOT include spiderman-pointing on non-self-call win", () => {
+      expect(poolIds(makeContext())).not.toContain("spiderman-pointing");
+    });
+
+    it("does NOT include spiderman-pointing on self-call loss", () => {
+      expect(poolIds(makeContext({ attackWins: false, isSelfCall: true }))).not.toContain("spiderman-pointing");
+    });
+
+    it("spiderman-pointing coexists with obama-medal on self-call win", () => {
+      const ids = poolIds(makeContext({ isSelfCall: true }));
+
+      expect(ids).toContain("spiderman-pointing");
+      expect(ids).toContain("obama-medal");
+    });
+  });
+
+  describe("victory — jordan-peele (tight margin)", () => {
+    it("includes jordan-peele (weight 20) on tight win with 0 margin", () => {
+      // 0 oudlers → required 56, points 56 → margin 0
+      expect(poolWeight(makeContext({ oudlers: 0, points: 56 }), "jordan-peele")).toBe(20);
+    });
+
+    it("includes jordan-peele on tight win with 5 margin", () => {
+      // 1 oudler → required 51, points 56 → margin 5
+      expect(poolIds(makeContext({ oudlers: 1, points: 56 }))).toContain("jordan-peele");
+    });
+
+    it("does NOT include jordan-peele on comfortable win (margin > 5)", () => {
+      // 1 oudler → required 51, points 57 → margin 6
+      expect(poolIds(makeContext({ oudlers: 1, points: 57 }))).not.toContain("jordan-peele");
+    });
+
+    it("does NOT include jordan-peele on defeat", () => {
+      expect(poolIds(makeContext({ attackWins: false, oudlers: 0, points: 55 }))).not.toContain("jordan-peele");
+    });
+
+    it("jordan-peele coexists with base victory memes", () => {
+      const ids = poolIds(makeContext({ oudlers: 0, points: 56 }));
+
+      expect(ids).toContain("jordan-peele");
+      expect(ids).toContain("borat");
+    });
+  });
+
+  describe("victory — chris-pratt-wow (garde-contre win)", () => {
+    it("includes chris-pratt-wow (weight 20) on garde-contre victory", () => {
+      expect(poolWeight(makeContext({ contract: Contract.GardeContre }), "chris-pratt-wow")).toBe(20);
+    });
+
+    it("does NOT include chris-pratt-wow on petite victory", () => {
+      expect(poolIds(makeContext())).not.toContain("chris-pratt-wow");
+    });
+
+    it("does NOT include chris-pratt-wow on garde-contre loss", () => {
+      expect(poolIds(makeContext({ attackWins: false, contract: Contract.GardeContre }))).not.toContain("chris-pratt-wow");
+    });
+
+    it("does NOT include chris-pratt-wow on garde sans victory", () => {
+      expect(poolIds(makeContext({ contract: Contract.GardeSans }))).not.toContain("chris-pratt-wow");
+    });
+  });
+
+  describe("defeat — this-is-fine boost (losing streak)", () => {
+    it("this-is-fine has weight 1 on basic loss (no streak)", () => {
+      expect(poolWeight(makeContext({ attackWins: false }), "this-is-fine")).toBe(1);
+    });
+
+    it("this-is-fine has weight 1 on 2 consecutive losses", () => {
+      expect(poolWeight(makeContext({ attackWins: false, consecutiveLosses: 2 }), "this-is-fine")).toBe(1);
+    });
+
+    it("this-is-fine has boosted weight (20) on 3+ consecutive losses", () => {
+      expect(poolWeight(makeContext({ attackWins: false, consecutiveLosses: 3 }), "this-is-fine")).toBe(20);
+    });
+
+    it("this-is-fine has boosted weight on 5 consecutive losses", () => {
+      expect(poolWeight(makeContext({ attackWins: false, consecutiveLosses: 5 }), "this-is-fine")).toBe(20);
+    });
+
+    it("does NOT boost this-is-fine on victory (even with streak)", () => {
+      // On victory, this-is-fine is not in the pool at all
+      expect(poolIds(makeContext({ consecutiveLosses: 5 }))).not.toContain("this-is-fine");
+    });
+  });
+
+  describe("defeat — ill-be-back (big loss after big win)", () => {
+    it("includes ill-be-back (weight 20) on big loss after big win", () => {
+      // Previous score >= 50, current takerScore <= -50
+      expect(poolWeight(makeContext({ attackWins: false, previousScore: 50, takerScore: -50 }), "ill-be-back")).toBe(20);
+    });
+
+    it("includes ill-be-back on very big swing", () => {
+      expect(poolIds(makeContext({ attackWins: false, previousScore: 200, takerScore: -200 }))).toContain("ill-be-back");
+    });
+
+    it("does NOT include ill-be-back when previous score < 50", () => {
+      expect(poolIds(makeContext({ attackWins: false, previousScore: 49, takerScore: -50 }))).not.toContain("ill-be-back");
+    });
+
+    it("does NOT include ill-be-back when current takerScore > -50", () => {
+      expect(poolIds(makeContext({ attackWins: false, previousScore: 50, takerScore: -49 }))).not.toContain("ill-be-back");
+    });
+
+    it("does NOT include ill-be-back when previousScore is null", () => {
+      expect(poolIds(makeContext({ attackWins: false, previousScore: null, takerScore: -100 }))).not.toContain("ill-be-back");
+    });
+
+    it("does NOT include ill-be-back on victory", () => {
+      expect(poolIds(makeContext({ previousScore: 50, takerScore: 50 }))).not.toContain("ill-be-back");
+    });
+
+    it("ill-be-back coexists with this-is-fine boost on losing streak", () => {
+      const ids = poolIds(makeContext({
+        attackWins: false,
+        consecutiveLosses: 3,
+        previousScore: 50,
+        takerScore: -50,
+      }));
+
+      expect(ids).toContain("ill-be-back");
+      expect(ids).toContain("this-is-fine");
     });
   });
 });

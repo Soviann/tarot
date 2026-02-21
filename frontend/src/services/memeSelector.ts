@@ -1,3 +1,4 @@
+import { REQUIRED_POINTS } from "./scoreCalculator";
 import { Chelem, Contract, Side } from "../types/enums";
 
 export interface MemeConfig {
@@ -9,11 +10,13 @@ export interface MemeConfig {
 export interface GameContext {
   attackWins: boolean;
   chelem: Chelem;
+  consecutiveLosses: number;
   contract: Contract;
   isSelfCall: boolean;
   oudlers: number;
   petitAuBout: Side;
   points: number;
+  previousScore: number | null;
   takerScore: number;
 }
 
@@ -42,6 +45,12 @@ const PICARD_FACEPALM: MemeConfig = { caption: "", id: "picard-facepalm", image:
 const PIKACHU_SURPRISED: MemeConfig = { caption: "", id: "pikachu-surprised", image: "/memes/pikachu-surprised.webp" };
 const SAD_PABLO: MemeConfig = { caption: "", id: "sad-pablo", image: "/memes/sad-pablo.webp" };
 const THIS_IS_FINE: MemeConfig = { caption: "", id: "this-is-fine", image: "/memes/this-is-fine.webp" };
+
+// Contextual
+const CHRIS_PRATT_WOW: MemeConfig = { caption: "", id: "chris-pratt-wow", image: "/memes/chris-pratt-wow.gif" };
+const ILL_BE_BACK: MemeConfig = { caption: "I'll be back", id: "ill-be-back", image: "/memes/ill-be-back.gif" };
+const JORDAN_PEELE: MemeConfig = { caption: "", id: "jordan-peele", image: "/memes/jordan-peele.jpg" };
+const SPIDERMAN_POINTING: MemeConfig = { caption: "", id: "spiderman-pointing", image: "/memes/spiderman-pointing.webp" };
 
 // Special
 const INFINITY_BEYOND: MemeConfig = { caption: "To infinity… and beyond!", id: "infinity-beyond", image: "/memes/infinity-beyond.jpg" };
@@ -72,6 +81,14 @@ export function buildPool(ctx: GameContext): WeightedMeme[] {
     }
     if (ctx.isSelfCall) {
       pool.push({ meme: OBAMA_MEDAL, weight: 40 });
+      pool.push({ meme: SPIDERMAN_POINTING, weight: 40 });
+    }
+    if (ctx.contract === Contract.GardeContre) {
+      pool.push({ meme: CHRIS_PRATT_WOW, weight: 20 });
+    }
+    const margin = ctx.points - REQUIRED_POINTS[ctx.oudlers];
+    if (margin >= 0 && margin <= 5) {
+      pool.push({ meme: JORDAN_PEELE, weight: 20 });
     }
     // Base victory pool
     pool.push({ meme: BORAT, weight: BASE_WEIGHT });
@@ -89,11 +106,14 @@ export function buildPool(ctx: GameContext): WeightedMeme[] {
     if (ctx.contract === Contract.GardeSans) {
       pool.push({ meme: CRYING_JORDAN, weight: 20 });
     }
+    if (ctx.previousScore !== null && ctx.previousScore >= 50 && ctx.takerScore <= -50) {
+      pool.push({ meme: ILL_BE_BACK, weight: 20 });
+    }
     // Base defeat pool
     pool.push({ meme: AH_SHIT, weight: BASE_WEIGHT });
     pool.push({ meme: JUST_TO_SUFFER, weight: BASE_WEIGHT });
     pool.push({ meme: SAD_PABLO, weight: BASE_WEIGHT });
-    pool.push({ meme: THIS_IS_FINE, weight: BASE_WEIGHT });
+    pool.push({ meme: THIS_IS_FINE, weight: ctx.consecutiveLosses >= 3 ? 20 : BASE_WEIGHT });
   }
 
   return pool;

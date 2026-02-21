@@ -143,11 +143,33 @@ export default function SessionPage() {
   }, [groups.length, inProgressGame, session?.isActive, sessionId]);
 
   const handleGameCompleted = useCallback((ctx: GameContext) => {
+    // Enrich context with session history for contextual memes
+    if (!ctx.attackWins && inProgressGame && allGames) {
+      const takerId = inProgressGame.taker.id;
+      // Count consecutive losses (current game = 1)
+      let streak = 1;
+      for (const game of allGames) {
+        const entry = game.scoreEntries.find((e) => e.player.id === takerId);
+        if (entry && entry.score < 0) {
+          streak++;
+        } else {
+          break;
+        }
+      }
+      ctx = { ...ctx, consecutiveLosses: streak };
+      // Previous game score for the taker
+      if (allGames.length > 0) {
+        const prevEntry = allGames[0].scoreEntries.find((e) => e.player.id === takerId);
+        if (prevEntry) {
+          ctx = { ...ctx, previousScore: prevEntry.score };
+        }
+      }
+    }
     const meme = selectMeme(ctx);
     if (meme) {
       setActiveMeme(meme);
     }
-  }, []);
+  }, [allGames, inProgressGame]);
 
   const handleGameSaved = useCallback((gameId: number) => {
     setUndoGameId(gameId);

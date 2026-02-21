@@ -527,6 +527,9 @@ Après la saisie d'une donne, un **mème aléatoire** peut apparaître en plein 
 |-----------|-------|-------|
 | Petit au bout attaque | Success Kid | Élevé |
 | Victoire en solo | Obama se décore | Très élevé |
+| Victoire en solo | Spiderman Pointing | Très élevé |
+| Victoire en garde-contre | Chris Pratt "Wow" (GIF) | Élevé |
+| Victoire serrée (marge ≤ 5 pts) | Sweating Jordan Peele | Élevé |
 | Victoire (pool de base) | Borat "Great Success" | Normal |
 | Victoire (pool de base) | Freddie Mercury Champions | Normal |
 | Victoire (pool de base) | DiCaprio Toast | Normal |
@@ -541,6 +544,8 @@ Après la saisie d'une donne, un **mème aléatoire** peut apparaître en plein 
 | idem | Picard Facepalm | Élevé |
 | idem | Pikachu surpris | Élevé |
 | Garde sans perdue | Crying Michael Jordan | Élevé |
+| Grosse défaite après bon score précédent | I'll Be Back (Terminator, GIF) | Élevé |
+| 3+ donnes avec score négatif d'affilée | This is Fine (poids boosté) | Élevé |
 | Défaite (pool de base) | This is Fine | Normal |
 | Défaite (pool de base) | Sad Pablo Escobar | Normal |
 | Défaite (pool de base) | Ah Shit, Here We Go Again (CJ) | Normal |
