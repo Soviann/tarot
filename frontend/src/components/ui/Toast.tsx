@@ -1,4 +1,5 @@
 import { CheckCircle, XCircle } from "lucide-react";
+import type { KeyboardEvent } from "react";
 import type { ToastItem } from "../../hooks/useToast";
 
 interface ToastProps {
@@ -9,6 +10,12 @@ interface ToastProps {
 export default function Toast({ onDismiss, toast }: ToastProps) {
   const isError = toast.type === "error";
 
+  const handleKeyDown = (e: KeyboardEvent) => {
+    if (e.key === "Enter" || e.key === "Escape") {
+      onDismiss(toast.id);
+    }
+  };
+
   return (
     <div
       className={`flex cursor-pointer items-center gap-2 rounded-xl px-4 py-2.5 shadow-lg
@@ -16,7 +23,9 @@ export default function Toast({ onDismiss, toast }: ToastProps) {
         animate-toast-in
         ${isError ? "text-red-600 dark:text-red-400" : "text-emerald-600 dark:text-emerald-400"}`}
       onClick={() => onDismiss(toast.id)}
+      onKeyDown={handleKeyDown}
       role="status"
+      tabIndex={0}
     >
       {isError ? <XCircle size={18} /> : <CheckCircle size={18} />}
       <span className="text-sm font-medium text-gray-800 dark:text-gray-100">

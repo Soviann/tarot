@@ -1,6 +1,6 @@
 import { EllipsisVertical } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
-import type { ReactNode } from "react";
+import type { KeyboardEvent as ReactKeyboardEvent, ReactNode } from "react";
 import { Link } from "react-router-dom";
 
 interface OverflowMenuItemBase {
@@ -27,8 +27,47 @@ interface OverflowMenuProps {
 export default function OverflowMenu({ items, label }: OverflowMenuProps) {
   const [open, setOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
+  const menuRef = useRef<HTMLDivElement>(null);
+  const focusIndexRef = useRef(-1);
 
-  const close = useCallback(() => setOpen(false), []);
+  const close = useCallback(() => {
+    focusIndexRef.current = -1;
+    setOpen(false);
+  }, []);
+
+  const focusItem = useCallback((startIndex: number, direction: 1 | -1) => {
+    const menu = menuRef.current;
+    if (!menu) return;
+    const menuItems = menu.querySelectorAll<HTMLElement>('[role="menuitem"]');
+    const count = menuItems.length;
+    if (count === 0) return;
+    // Skip disabled items
+    for (let i = 0; i < count; i++) {
+      const index = ((startIndex + i * direction) % count + count) % count;
+      const el = menuItems[index];
+      if (!el.hasAttribute("disabled")) {
+        focusIndexRef.current = index;
+        el.focus();
+        return;
+      }
+    }
+  }, []);
+
+  const handleMenuKeyDown = useCallback(
+    (e: ReactKeyboardEvent) => {
+      const count = items.length;
+      if (e.key === "ArrowDown") {
+        e.preventDefault();
+        const next = focusIndexRef.current === -1 ? 0 : (focusIndexRef.current + 1) % count;
+        focusItem(next, 1);
+      } else if (e.key === "ArrowUp") {
+        e.preventDefault();
+        const next = focusIndexRef.current === -1 ? count - 1 : (focusIndexRef.current - 1 + count) % count;
+        focusItem(next, -1);
+      }
+    },
+    [focusItem, items.length],
+  );
 
   useEffect(() => {
     if (!open) return;
@@ -54,6 +93,8 @@ export default function OverflowMenu({ items, label }: OverflowMenuProps) {
   return (
     <div className="relative" ref={containerRef}>
       <button
+        aria-expanded={open}
+        aria-haspopup="menu"
         aria-label={label}
         className="rounded-lg p-1 text-text-secondary lg:p-2"
         onClick={() => setOpen((prev) => !prev)}
@@ -63,7 +104,12 @@ export default function OverflowMenu({ items, label }: OverflowMenuProps) {
       </button>
 
       {open && (
-        <div className="absolute right-0 top-full z-50 mt-1 min-w-44 rounded-lg border border-surface-border bg-surface-elevated py-1 shadow-lg">
+        <div
+          className="absolute right-0 top-full z-50 mt-1 min-w-44 rounded-lg border border-surface-border bg-surface-elevated py-1 shadow-lg"
+          onKeyDown={handleMenuKeyDown}
+          ref={menuRef}
+          role="menu"
+        >
           {items.map((item) => {
             const content = (
               <>
@@ -78,6 +124,7 @@ export default function OverflowMenu({ items, label }: OverflowMenuProps) {
                   className="flex items-center gap-3 px-4 py-2.5 text-sm text-text-primary hover:bg-surface-secondary"
                   key={item.label}
                   onClick={close}
+                  role="menuitem"
                   to={item.href}
                 >
                   {content}
@@ -94,6 +141,7 @@ export default function OverflowMenu({ items, label }: OverflowMenuProps) {
                   item.onClick();
                   close();
                 }}
+                role="menuitem"
                 type="button"
               >
                 {content}
