@@ -14,6 +14,7 @@ class PlayerOrderMatchesSession extends Constraint
 {
     public string $message = 'L\'ordre des joueurs ne correspond pas aux joueurs de la session.';
 
+    #[\Override]
     public function getTargets(): string
     {
         return self::CLASS_CONSTRAINT;

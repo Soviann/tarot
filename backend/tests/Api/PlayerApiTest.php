@@ -11,7 +11,7 @@ class PlayerApiTest extends ApiTestCase
         $this->createPlayer('Alice');
         $this->createPlayer('Bob');
 
-        $response = $this->client->request('GET', '/api/players');
+        $this->client->request('GET', '/api/players');
 
         $this->assertResponseIsSuccessful();
         $this->assertJsonContains(['totalItems' => 2]);
@@ -95,7 +95,7 @@ class PlayerApiTest extends ApiTestCase
     {
         $player = $this->createPlayer('Alice');
 
-        $response = $this->client->request('GET', $this->getIri($player));
+        $this->client->request('GET', $this->getIri($player));
 
         $this->assertResponseIsSuccessful();
         $this->assertJsonContains(['active' => true]);

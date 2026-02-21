@@ -22,7 +22,7 @@ class SessionGroupTest extends ApiTestCase
         $response = $this->client->request('POST', '/api/sessions', [
             'headers' => ['Content-Type' => 'application/ld+json'],
             'json' => [
-                'players' => \array_map(fn ($p) => $this->getIri($p), $players),
+                'players' => \array_map($this->getIri(...), $players),
             ],
         ]);
 
@@ -47,7 +47,7 @@ class SessionGroupTest extends ApiTestCase
         $response = $this->client->request('POST', '/api/sessions', [
             'headers' => ['Content-Type' => 'application/ld+json'],
             'json' => [
-                'players' => \array_map(fn ($p) => $this->getIri($p), $players),
+                'players' => \array_map($this->getIri(...), $players),
             ],
         ]);
 

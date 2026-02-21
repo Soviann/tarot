@@ -14,6 +14,7 @@ class PlayersBelongToSession extends Constraint
 {
     public string $message = 'Le joueur "{{ player }}" n\'appartient pas à la session.';
 
+    #[\Override]
     public function getTargets(): string
     {
         return self::CLASS_CONSTRAINT;

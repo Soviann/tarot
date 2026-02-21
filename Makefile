@@ -99,7 +99,7 @@ test-front: ## Lancer les tests Vitest
 
 # ── Qualité de code ───────────────────────────────
 
-.PHONY: lint lint-back lint-front phpstan cs cs-dry
+.PHONY: lint lint-back lint-front phpstan cs cs-dry rector rector-dry
 
 lint: ## Vérifier la qualité (PHPStan + CS Fixer dry-run + TypeScript)
 	$(MAKE) lint-back lint-front
@@ -118,6 +118,12 @@ cs-dry: ## Vérifier le style PHP (dry-run, sans modifier)
 
 cs: ## Corriger le style PHP (modifie les fichiers)
 	cd $(BACK) && vendor/bin/php-cs-fixer fix
+
+rector: ## Appliquer les refactorings Rector
+	cd $(BACK) && vendor/bin/rector process
+
+rector-dry: ## Prévisualiser les refactorings Rector (dry-run)
+	cd $(BACK) && vendor/bin/rector process --dry-run
 
 # ── Build ─────────────────────────────────────────
 

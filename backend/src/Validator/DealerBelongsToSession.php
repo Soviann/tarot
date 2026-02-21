@@ -14,6 +14,7 @@ class DealerBelongsToSession extends Constraint
 {
     public string $message = 'Le donneur doit être un joueur de la session.';
 
+    #[\Override]
     public function getTargets(): string
     {
         return self::CLASS_CONSTRAINT;

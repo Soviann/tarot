@@ -13,7 +13,7 @@ class PlayerGroupApiTest extends ApiTestCase
         $this->createPlayerGroup('Mardi soir', $alice, $bob);
         $this->createPlayerGroup('Famille');
 
-        $response = $this->client->request('GET', '/api/player-groups');
+        $this->client->request('GET', '/api/player-groups');
 
         $this->assertResponseIsSuccessful();
         $this->assertJsonContains(['totalItems' => 2]);
@@ -23,7 +23,7 @@ class PlayerGroupApiTest extends ApiTestCase
     {
         $alice = $this->createPlayer('Alice');
 
-        $response = $this->client->request('POST', '/api/player-groups', [
+        $this->client->request('POST', '/api/player-groups', [
             'headers' => ['Content-Type' => 'application/ld+json'],
             'json' => [
                 'name' => 'Collègues',

@@ -95,7 +95,7 @@ final readonly class SessionSummaryService
         }
 
         // Sort by score DESC
-        \usort($ranking, static fn (array $a, array $b) => $b['score'] <=> $a['score']);
+        \usort($ranking, static fn (array $a, array $b): int => $b['score'] <=> $a['score']);
 
         // Assign positions (ties share the same position)
         $position = 1;
@@ -222,7 +222,7 @@ final readonly class SessionSummaryService
 
         $lastCompletedAt = new \DateTimeImmutable($maxCompletedAt);
 
-        return (int) \abs($lastCompletedAt->getTimestamp() - $session->getCreatedAt()->getTimestamp());
+        return \abs($lastCompletedAt->getTimestamp() - $session->getCreatedAt()->getTimestamp());
     }
 
     /** Nombre d'étoiles attribuées pendant la session. */

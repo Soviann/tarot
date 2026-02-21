@@ -59,7 +59,7 @@ final readonly class SessionCreateProcessor implements ProcessorInterface
 
         /** @var int[] $playerOrder */
         $playerOrder = \array_map(
-            static fn (Player $p) => $p->getId(),
+            static fn (Player $p): ?int => $p->getId(),
             $session->getPlayers()->getValues()
         );
         $session->setPlayerOrder($playerOrder);
@@ -85,7 +85,7 @@ final readonly class SessionCreateProcessor implements ProcessorInterface
             $matchingGroups,
             static function (PlayerGroup $pg) use ($playerIds): bool {
                 $groupPlayerIds = $pg->getPlayers()->map(
-                    static fn (Player $p) => $p->getId()
+                    static fn (Player $p): ?int => $p->getId()
                 )->getValues();
 
                 return empty(\array_diff($playerIds, $groupPlayerIds));

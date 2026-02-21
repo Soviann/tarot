@@ -14,6 +14,7 @@ class OnlyLastGameEditable extends Constraint
 {
     public string $message = 'Seule la dernière donne de la session est modifiable.';
 
+    #[\Override]
     public function getTargets(): string
     {
         return self::CLASS_CONSTRAINT;

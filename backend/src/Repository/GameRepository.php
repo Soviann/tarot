@@ -567,7 +567,7 @@ final class GameRepository extends ServiceEntityRepository
     {
         $qb = $this->createQueryBuilder('g')
             ->select('NEW App\Dto\ContractWinsByPlayerDto(g.contract, IDENTITY(g.taker), COUNT(g.id))')
-            ->join('App\Entity\ScoreEntry', 'se', 'WITH', 'se.game = g AND se.player = g.taker')
+            ->join(\App\Entity\ScoreEntry::class, 'se', 'WITH', 'se.game = g AND se.player = g.taker')
             ->andWhere('g.status = :status')
             ->andWhere('se.score > 0')
             ->setParameter('status', GameStatus::Completed)
@@ -653,7 +653,7 @@ final class GameRepository extends ServiceEntityRepository
     {
         $qb = $this->createQueryBuilder('g')
             ->select('NEW App\Dto\PlayerCountDto(COUNT(g.id), IDENTITY(g.taker))')
-            ->join('App\Entity\ScoreEntry', 'se', 'WITH', 'se.game = g AND se.player = g.taker')
+            ->join(\App\Entity\ScoreEntry::class, 'se', 'WITH', 'se.game = g AND se.player = g.taker')
             ->andWhere('g.status = :status')
             ->andWhere('se.score > 0')
             ->setParameter('status', GameStatus::Completed)
@@ -700,7 +700,7 @@ final class GameRepository extends ServiceEntityRepository
     {
         $qb = $this->createQueryBuilder('g')
             ->select('COUNT(g.id)')
-            ->join('App\Entity\ScoreEntry', 'se', 'WITH', 'se.game = g AND se.player = g.taker')
+            ->join(\App\Entity\ScoreEntry::class, 'se', 'WITH', 'se.game = g AND se.player = g.taker')
             ->andWhere('g.taker = :player')
             ->andWhere('g.status = :status')
             ->andWhere('se.score > 0')
@@ -717,7 +717,7 @@ final class GameRepository extends ServiceEntityRepository
     {
         $qb = $this->createQueryBuilder('g')
             ->select('COUNT(DISTINCT g.session)')
-            ->join('App\Entity\ScoreEntry', 'se', 'WITH', 'se.game = g AND se.player = :player')
+            ->join(\App\Entity\ScoreEntry::class, 'se', 'WITH', 'se.game = g AND se.player = :player')
             ->andWhere('g.status = :status')
             ->setParameter('player', $player)
             ->setParameter('status', GameStatus::Completed);
@@ -755,7 +755,7 @@ final class GameRepository extends ServiceEntityRepository
     {
         $qb = $this->createQueryBuilder('g')
             ->select('NEW App\Dto\ContractWinsDto(g.contract, COUNT(g.id))')
-            ->join('App\Entity\ScoreEntry', 'se', 'WITH', 'se.game = g AND se.player = g.taker')
+            ->join(\App\Entity\ScoreEntry::class, 'se', 'WITH', 'se.game = g AND se.player = g.taker')
             ->andWhere('g.taker = :player')
             ->andWhere('g.status = :status')
             ->andWhere('se.score > 0')
@@ -777,7 +777,7 @@ final class GameRepository extends ServiceEntityRepository
     {
         $qb = $this->createQueryBuilder('g')
             ->select('NEW App\Dto\TakerGameRecordDto(g.contract, g.createdAt, g.id, g.oudlers, g.points, se.score, IDENTITY(g.session))')
-            ->join('App\Entity\ScoreEntry', 'se', 'WITH', 'se.game = g AND se.player = g.taker')
+            ->join(\App\Entity\ScoreEntry::class, 'se', 'WITH', 'se.game = g AND se.player = g.taker')
             ->andWhere('g.taker = :player')
             ->andWhere('g.status = :status')
             ->setParameter('player', $player)
@@ -798,7 +798,7 @@ final class GameRepository extends ServiceEntityRepository
     {
         $qb = $this->createQueryBuilder('g')
             ->select('AVG(TIMESTAMPDIFF(SECOND, g.createdAt, g.completedAt)) AS avg', 'SUM(TIMESTAMPDIFF(SECOND, g.createdAt, g.completedAt)) AS total')
-            ->join('App\Entity\ScoreEntry', 'se', 'WITH', 'se.game = g AND se.player = :player')
+            ->join(\App\Entity\ScoreEntry::class, 'se', 'WITH', 'se.game = g AND se.player = :player')
             ->andWhere('g.status = :status')
             ->andWhere('g.completedAt IS NOT NULL')
             ->setParameter('player', $player)

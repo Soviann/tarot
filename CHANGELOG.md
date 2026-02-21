@@ -6,6 +6,12 @@ Le format est basé sur [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/)
 
 ## [Unreleased]
 
+### Changed
+
+- **Dépendances npm** : mise à jour de toutes les dépendances (Tailwind CSS 4.2, TanStack Query 5.90, Vite 7.3, jsdom 28.1, lucide-react 0.575, etc.) et ajout d'un override pour `sourcemap-codec` afin d'éliminer le warning de dépréciation
+- **Dépendances Composer** : mise à jour de toutes les dépendances (API Platform 4.2.17, PHPUnit 12.5.14, PHPStan 2.1.39, PHP CS Fixer 3.94, Doctrine Migrations 3.9.6, etc.)
+- **Rector** : ajout de Rector comme outil de refactoring automatique et application des règles PHP 8.3, Symfony 7.4, dead code, et type declarations sur l'ensemble du backend (23 fichiers améliorés : return types sur closures, `#[Override]`, `::class` au lieu de FQCN strings, constantes HTTP Symfony, suppression de variables inutilisées)
+
 ## [1.4.0] - 2026-02-21
 
 ### Added

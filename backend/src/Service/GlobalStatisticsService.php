@@ -108,7 +108,7 @@ final readonly class GlobalStatisticsService
         $rows = $this->gameRepository->getContractDistribution($dateRange, $playerGroupId);
 
         return \array_map(
-            static fn (ContractDistributionDto $row) => [
+            static fn (ContractDistributionDto $row): array => [
                 'contract' => $row->contract->value,
                 'count' => $row->count,
                 'percentage' => \round($row->count / $total * 100, 2),
@@ -163,7 +163,7 @@ final readonly class GlobalStatisticsService
         $rows = $this->eloHistoryRepository->getEloRanking($playerGroupId);
 
         return \array_map(
-            static fn (EloRankingEntryDto $row) => [
+            static fn (EloRankingEntryDto $row): array => [
                 'eloRating' => $row->eloRating,
                 'gamesPlayed' => $row->gamesPlayed,
                 'playerColor' => $row->playerColor,
@@ -220,7 +220,7 @@ final readonly class GlobalStatisticsService
         }
 
         return \array_map(
-            static fn (LeaderboardScoreDto $row) => [
+            static fn (LeaderboardScoreDto $row): array => [
                 'gamesAsTaker' => $gamesAsTaker[$row->playerId] ?? 0,
                 'gamesPlayed' => $gamesPlayed[$row->playerId] ?? 0,
                 'playerColor' => $row->playerColor,
