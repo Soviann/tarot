@@ -39,7 +39,7 @@ dev: ## Premier lancement dev (dépendances + migrations)
 	$(MAKE) db-migrate
 
 prod: ## Déploiement prod (dépendances --no-dev + dump env + build + migrations + cache)
-	$(MAKE) install-back-prod install-front
+	$(MAKE) install-back-prod install-front-prod
 	$(MAKE) dump-env APP_ENV=prod
 	$(MAKE) build db-migrate cc
 
@@ -49,7 +49,7 @@ ci: ## Intégration continue (lint + tests)
 
 # ── Installation ──────────────────────────────────
 
-.PHONY: install install-back install-back-prod install-front dump-env
+.PHONY: install install-back install-back-prod install-front install-front-prod dump-env
 
 install: ## Installer toutes les dépendances (backend + frontend)
 	$(MAKE) install-back install-front
@@ -62,6 +62,9 @@ install-back-prod: ## Installer les dépendances Composer (sans dev, optimisé)
 
 install-front: ## Installer les dépendances npm
 	cd $(FRONT) && npm install
+
+install-front-prod: ## Installer les dépendances npm (prod, lockfile exact)
+	cd $(FRONT) && npm ci
 
 dump-env: ## Compiler .env pour Symfony (utilise APP_ENV)
 	cd $(BACK) && composer dump-env $(APP_ENV)
