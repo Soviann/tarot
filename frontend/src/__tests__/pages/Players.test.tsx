@@ -413,7 +413,7 @@ describe("Players page", () => {
     const editButtons = screen.getAllByRole("button", { name: /Modifier/i });
     await userEvent.click(editButtons[0]);
 
-    const swatch = screen.getByRole("radio", { name: "#ef4444" });
+    const swatch = screen.getByRole("radio", { name: "Rouge" });
     await userEvent.click(swatch);
     await userEvent.click(screen.getByRole("button", { name: "Enregistrer" }));
 
@@ -421,6 +421,21 @@ describe("Players page", () => {
       expect.objectContaining({ color: "#ef4444", id: 1 }),
       expect.anything(),
     );
+  });
+
+  it("uses French color names for aria-labels on color radio buttons", async () => {
+    setupMocks();
+    renderWithProviders(<Players />);
+
+    const editButtons = screen.getAllByRole("button", { name: /Modifier/i });
+    await userEvent.click(editButtons[0]);
+
+    // Should have French names, not hex codes
+    expect(screen.getByRole("radio", { name: "Rouge" })).toBeInTheDocument();
+    expect(screen.getByRole("radio", { name: "Bleu" })).toBeInTheDocument();
+    expect(screen.getByRole("radio", { name: "Vert" })).toBeInTheDocument();
+    // Should NOT have hex codes as aria-labels
+    expect(screen.queryByRole("radio", { name: "#ef4444" })).not.toBeInTheDocument();
   });
 
   it("resets color to auto", async () => {

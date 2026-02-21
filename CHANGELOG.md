@@ -21,6 +21,9 @@ Le format est basé sur [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/)
 
 ### Changed
 
+- **Accessibilité OverflowMenu** : ajout de `role="menu"` / `role="menuitem"`, `aria-expanded` sur le bouton déclencheur, et navigation clavier fléchée (ArrowUp/ArrowDown) avec saut des items désactivés.
+- **Accessibilité couleurs joueur** : les boutons radio de couleur dans la modale d'édition affichent désormais des noms français (« Rouge », « Bleu », etc.) au lieu de codes hexadécimaux pour les lecteurs d'écran.
+- **Accessibilité Toast** : les toasts sont maintenant focusables au clavier (`tabIndex`) et peuvent être fermés avec Entrée ou Échap.
 - **Recherche de joueurs (mobile)** : les résultats de recherche s'affichent désormais dans un dropdown au-dessus du champ de recherche (visibles même avec le clavier ouvert). Le focus reste sur le champ après chaque sélection. Le bouton « Nouveau joueur » est intégré au dropdown.
 - **Cache requêtes (staleTime)** : configuration d'un `staleTime` de 30 secondes sur le `QueryClient` pour éviter les refetch systématiques à chaque navigation.
 

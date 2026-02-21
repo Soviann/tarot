@@ -1654,7 +1654,7 @@ Chaque item est soit un **bouton** (avec `onClick`), soit un **lien** (avec `hre
 | `disabled` | `boolean` | bouton | Désactive l'item (opacity réduite, clic ignoré) |
 | `href` | `string` | lien | *requis* — navigation interne (utilise `<Link>`) |
 
-**Comportement** : le menu se ferme au clic en dehors, après sélection d'un item, ou à l'appui sur Échap.
+**Comportement** : le menu se ferme au clic en dehors, après sélection d'un item, ou à l'appui sur Échap. Le bouton déclencheur expose `aria-expanded` et `aria-haspopup="menu"`. Le conteneur porte `role="menu"`, chaque item `role="menuitem"`. Les touches fléchées (↑/↓) permettent de naviguer entre les items (les items désactivés sont sautés).
 
 ```tsx
 <OverflowMenu
@@ -1706,7 +1706,7 @@ toast("Joueur créé");
 toastError("Erreur de connexion");
 ```
 
-Comportement : max 3 toasts empilés, animation slide-down, clic pour fermer, icône CheckCircle (succès) ou XCircle (erreur).
+Comportement : max 3 toasts empilés, animation slide-down, clic ou touche Entrée/Échap pour fermer (`tabIndex={0}`), icône CheckCircle (succès) ou XCircle (erreur).
 
 ---
 

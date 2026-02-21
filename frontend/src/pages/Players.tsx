@@ -11,10 +11,18 @@ import { ApiError } from "../services/api";
 import { formatRelativeDate } from "../services/formatRelativeDate";
 import type { Player } from "../types/api";
 
-const PRESET_COLORS = [
-  "#ef4444", "#f97316", "#eab308", "#22c55e", "#14b8a6",
-  "#3b82f6", "#6366f1", "#a855f7", "#ec4899", "#78716c",
-] as const;
+const PRESET_COLORS: readonly { hex: string; name: string }[] = [
+  { hex: "#ef4444", name: "Rouge" },
+  { hex: "#f97316", name: "Orange" },
+  { hex: "#eab308", name: "Jaune" },
+  { hex: "#22c55e", name: "Vert" },
+  { hex: "#14b8a6", name: "Turquoise" },
+  { hex: "#3b82f6", name: "Bleu" },
+  { hex: "#6366f1", name: "Indigo" },
+  { hex: "#a855f7", name: "Violet" },
+  { hex: "#ec4899", name: "Rose" },
+  { hex: "#78716c", name: "Gris" },
+];
 
 export default function Players() {
   const [search, setSearch] = useState("");
@@ -280,17 +288,17 @@ export default function Players() {
               >
                 Auto
               </button>
-              {PRESET_COLORS.map((c) => (
+              {PRESET_COLORS.map(({ hex, name }) => (
                 <button
-                  aria-checked={editColor === c}
-                  aria-label={c}
+                  aria-checked={editColor === hex}
+                  aria-label={name}
                   className={`size-7 rounded-full transition-shadow ${
-                    editColor === c ? "ring-2 ring-accent-500 ring-offset-2" : ""
+                    editColor === hex ? "ring-2 ring-accent-500 ring-offset-2" : ""
                   }`}
-                  key={c}
-                  onClick={() => setEditColor(c)}
+                  key={hex}
+                  onClick={() => setEditColor(hex)}
                   role="radio"
-                  style={{ backgroundColor: c }}
+                  style={{ backgroundColor: hex }}
                   type="button"
                 />
               ))}
