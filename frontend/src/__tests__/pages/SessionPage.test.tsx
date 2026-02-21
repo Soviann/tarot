@@ -1,6 +1,6 @@
 import { screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import ToastContainer from "../../components/ui/ToastContainer";
+import { toast } from "sonner";
 import SessionPage from "../../pages/SessionPage";
 
 vi.mock("react-countup", () => ({
@@ -24,6 +24,12 @@ import * as apiModule from "../../services/api";
 import { renderWithProviders } from "../test-utils";
 import type { Game, SessionDetail } from "../../types/api";
 
+vi.mock("sonner", () => ({
+  toast: Object.assign(vi.fn(), {
+    error: vi.fn(),
+    success: vi.fn(),
+  }),
+}));
 vi.mock("../../hooks/useAddStar");
 vi.mock("../../hooks/useCloseSession");
 vi.mock("../../hooks/useCompleteGame");
@@ -727,7 +733,7 @@ describe("SessionPage", () => {
 
     vi.mocked(apiModule.apiFetch).mockRejectedValue(new Error("Erreur réseau"));
 
-    renderWithProviders(<><SessionPage /><ToastContainer /></>);
+    renderWithProviders(<SessionPage />);
 
     // Open CompleteGameModal
     await userEvent.click(screen.getByRole("button", { name: "Compléter" }));
@@ -745,7 +751,7 @@ describe("SessionPage", () => {
 
     // Should show toast error and have called correct endpoint
     await waitFor(() => {
-      expect(screen.getByText("Erreur lors de l'annulation de la donne")).toBeInTheDocument();
+      expect(toast.error).toHaveBeenCalledWith("Erreur lors de l'annulation de la donne");
     });
     expect(apiModule.apiFetch).toHaveBeenCalledWith("/games/2", { method: "DELETE" });
   });

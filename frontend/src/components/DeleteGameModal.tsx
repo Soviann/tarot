@@ -1,6 +1,6 @@
 import { useDeleteGame } from "../hooks/useDeleteGame";
 import { useResetOnOpen } from "../hooks/useResetOnOpen";
-import { useToast } from "../hooks/useToast";
+import { toast } from "sonner";
 import type { Game } from "../types/api";
 import { Modal } from "./ui";
 
@@ -13,8 +13,6 @@ interface DeleteGameModalProps {
 
 export default function DeleteGameModal({ game, onClose, open, sessionId }: DeleteGameModalProps) {
   const deleteGame = useDeleteGame(game.id, sessionId);
-  const { toast } = useToast();
-
   useResetOnOpen(open, () => deleteGame.reset());
 
   function handleConfirm() {

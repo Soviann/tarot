@@ -2,7 +2,7 @@ import { RotateCcw } from "lucide-react";
 import { useState } from "react";
 import type { useCreateGame } from "../hooks/useCreateGame";
 import { useResetOnOpen } from "../hooks/useResetOnOpen";
-import { useToast } from "../hooks/useToast";
+import { toast } from "sonner";
 import type { GamePlayer } from "../types/api";
 import { Contract } from "../types/enums";
 import type { Contract as ContractType } from "../types/enums";
@@ -27,8 +27,6 @@ const contracts: { colorClass: string; label: string; value: ContractType }[] = 
 export default function NewGameModal({ createGame, currentDealerName, lastGameConfig, onClose, open, players }: NewGameModalProps) {
   const [selectedContract, setSelectedContract] = useState<ContractType | null>(null);
   const [selectedTakerId, setSelectedTakerId] = useState<number | null>(null);
-  const { toast } = useToast();
-
   useResetOnOpen(open, () => {
     setSelectedContract(null);
     setSelectedTakerId(null);

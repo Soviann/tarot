@@ -2,13 +2,12 @@ import { QueryClientProvider } from "@tanstack/react-query";
 import { lazy, Suspense } from "react";
 import { ErrorBoundary } from "react-error-boundary";
 import { BrowserRouter, Route, Routes } from "react-router-dom";
+import { Toaster } from "sonner";
 import { ErrorFallback } from "./components/ErrorFallback";
 import Layout from "./components/Layout";
-import { ThemeProvider } from "./hooks/useTheme";
-import { ToastProvider } from "./hooks/useToast";
+import { ThemeProvider, useTheme } from "./hooks/useTheme";
 import Home from "./pages/Home";
 import { queryClient } from "./queryClient";
-import ToastContainer from "./components/ui/ToastContainer";
 
 const GroupDetail = lazy(() => import("./pages/GroupDetail"));
 const Groups = lazy(() => import("./pages/Groups"));
@@ -28,6 +27,11 @@ const ReactQueryDevtools = import.meta.env.DEV
     )
   : () => null;
 
+function ThemedToaster() {
+  const { isDark } = useTheme();
+  return <Toaster position="top-center" richColors theme={isDark ? "dark" : "light"} />;
+}
+
 export default function App() {
   return (
     <ErrorBoundary
@@ -36,36 +40,34 @@ export default function App() {
     >
       <ThemeProvider>
         <QueryClientProvider client={queryClient}>
-          <ToastProvider>
-            <BrowserRouter>
-              <Suspense>
-                <Routes>
-                  <Route element={<Layout />}>
-                    <Route path="/" element={<Home />} />
-                    <Route path="/aide" element={<Help />} />
-                    <Route path="/groups" element={<Groups />} />
-                    <Route path="/groups/:id" element={<GroupDetail />} />
-                    <Route path="/players" element={<Players />} />
-                    <Route
-                      path="/sessions/:id/summary"
-                      element={<SessionSummary />}
-                    />
-                    <Route
-                      path="/sessions/:id"
-                      element={<SessionPage />}
-                    />
-                    <Route path="/stats" element={<Stats />} />
-                    <Route
-                      path="/stats/player/:id"
-                      element={<PlayerStats />}
-                    />
-                    <Route path="*" element={<NotFound />} />
-                  </Route>
-                </Routes>
-              </Suspense>
-            </BrowserRouter>
-            <ToastContainer />
-          </ToastProvider>
+          <BrowserRouter>
+            <Suspense>
+              <Routes>
+                <Route element={<Layout />}>
+                  <Route path="/" element={<Home />} />
+                  <Route path="/aide" element={<Help />} />
+                  <Route path="/groups" element={<Groups />} />
+                  <Route path="/groups/:id" element={<GroupDetail />} />
+                  <Route path="/players" element={<Players />} />
+                  <Route
+                    path="/sessions/:id/summary"
+                    element={<SessionSummary />}
+                  />
+                  <Route
+                    path="/sessions/:id"
+                    element={<SessionPage />}
+                  />
+                  <Route path="/stats" element={<Stats />} />
+                  <Route
+                    path="/stats/player/:id"
+                    element={<PlayerStats />}
+                  />
+                  <Route path="*" element={<NotFound />} />
+                </Route>
+              </Routes>
+            </Suspense>
+          </BrowserRouter>
+          <ThemedToaster />
           {import.meta.env.DEV && (
             <Suspense>
               <ReactQueryDevtools initialIsOpen={false} />
