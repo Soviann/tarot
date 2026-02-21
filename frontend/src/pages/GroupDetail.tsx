@@ -8,7 +8,7 @@ import { useCloseGroupSessions } from "../hooks/useCloseGroupSessions";
 import { useDeletePlayerGroup } from "../hooks/useDeletePlayerGroup";
 import { usePlayerGroup } from "../hooks/usePlayerGroup";
 import { useUpdatePlayerGroup } from "../hooks/useUpdatePlayerGroup";
-import { useToast } from "../hooks/useToast";
+import { toast } from "sonner";
 import { ApiError } from "../services/api";
 
 export default function GroupDetail() {
@@ -19,8 +19,6 @@ export default function GroupDetail() {
   const closeGroupSessions = useCloseGroupSessions();
   const updateGroup = useUpdatePlayerGroup();
   const deleteGroup = useDeletePlayerGroup();
-  const { toast } = useToast();
-
   const [editingName, setEditingName] = useState(false);
   const [editName, setEditName] = useState("");
   const [addModalOpen, setAddModalOpen] = useState(false);

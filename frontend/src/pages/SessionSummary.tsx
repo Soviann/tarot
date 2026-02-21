@@ -3,7 +3,7 @@ import { useCallback, useRef, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { PlayerAvatar, ScoreDisplay, Spinner } from "../components/ui";
 import { useSessionSummary } from "../hooks/useSessionSummary";
-import { useToast } from "../hooks/useToast";
+import { toast } from "sonner";
 import type {
   SessionAward,
   SessionHighlights,
@@ -311,7 +311,6 @@ export default function SessionSummary() {
   const { data: summary, isPending } = useSessionSummary(sessionId);
   const summaryRef = useRef<HTMLDivElement>(null);
   const [isSharing, setIsSharing] = useState(false);
-  const { toastError } = useToast();
 
   const handleShare = useCallback(async () => {
     if (!summaryRef.current) return;
@@ -338,11 +337,11 @@ export default function SessionSummary() {
         a.click();
       }
     } catch {
-      toastError("Échec du partage");
+      toast.error("Échec du partage");
     } finally {
       setIsSharing(false);
     }
-  }, [sessionId, toastError]);
+  }, [sessionId]);
 
   if (isPending) {
     return (

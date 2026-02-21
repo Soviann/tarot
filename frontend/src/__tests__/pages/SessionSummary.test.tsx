@@ -1,9 +1,16 @@
 import { screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import { toast } from "sonner";
 import * as useSessionSummaryModule from "../../hooks/useSessionSummary";
-import * as useToastModule from "../../hooks/useToast";
 import SessionSummary from "../../pages/SessionSummary";
 import { renderWithProviders } from "../test-utils";
+
+vi.mock("sonner", () => ({
+  toast: Object.assign(vi.fn(), {
+    error: vi.fn(),
+    success: vi.fn(),
+  }),
+}));
 
 vi.mock("react-router-dom", async (importOriginal) => ({
   ...(await importOriginal()),
@@ -153,21 +160,13 @@ describe("SessionSummary page", () => {
       isPending: false,
     } as ReturnType<typeof useSessionSummaryModule.useSessionSummary>);
 
-    const mockToastError = vi.fn();
-    vi.spyOn(useToastModule, "useToast").mockReturnValue({
-      dismiss: vi.fn(),
-      toast: vi.fn(),
-      toastError: mockToastError,
-      toasts: [],
-    });
-
     const user = userEvent.setup();
     renderWithProviders(<SessionSummary />);
 
     await user.click(screen.getByText("Partager"));
 
     await waitFor(() => {
-      expect(mockToastError).toHaveBeenCalledWith("Échec du partage");
+      expect(toast.error).toHaveBeenCalledWith("Échec du partage");
     });
   });
 });

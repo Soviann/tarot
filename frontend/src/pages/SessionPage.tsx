@@ -29,7 +29,7 @@ import { useReorderPlayers } from "../hooks/useReorderPlayers";
 import { useSession } from "../hooks/useSession";
 import { useSessionGames } from "../hooks/useSessionGames";
 import { useShake } from "../hooks/useShake";
-import { useToast } from "../hooks/useToast";
+import { toast } from "sonner";
 import { useUpdateDealer } from "../hooks/useUpdateDealer";
 import { useUpdateSessionGroup } from "../hooks/useUpdateSessionGroup";
 import { useUpsideDown } from "../hooks/useUpsideDown";
@@ -59,7 +59,6 @@ export default function SessionPage() {
   const reorderPlayers = useReorderPlayers(sessionId);
   const updateDealer = useUpdateDealer(sessionId);
   const updateGroup = useUpdateSessionGroup(sessionId);
-  const { toast, toastError } = useToast();
 
   const inProgressGame = session?.inProgressGame ?? null;
 
@@ -183,9 +182,9 @@ export default function SessionPage() {
       await apiFetch<void>(`/games/${gameId}`, { method: "DELETE" });
       queryClient.invalidateQueries({ queryKey: ["session", sessionId] });
     } catch {
-      toastError("Erreur lors de l'annulation de la donne");
+      toast.error("Erreur lors de l'annulation de la donne");
     }
-  }, [queryClient, sessionId, toastError, undoGameId]);
+  }, [queryClient, sessionId, undoGameId]);
 
   if (isPending) {
     return (

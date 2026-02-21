@@ -11,6 +11,4 @@ export { default as SearchInput } from "./SearchInput";
 export { default as Select } from "./Select";
 export { default as Spinner } from "./Spinner";
 export { default as Stepper } from "./Stepper";
-export { default as Toast } from "./Toast";
-export { default as ToastContainer } from "./ToastContainer";
 export { default as UndoFAB } from "./UndoFAB";

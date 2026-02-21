@@ -6,7 +6,7 @@ import { useCreatePlayer } from "../hooks/useCreatePlayer";
 import { usePlayerGroups } from "../hooks/usePlayerGroups";
 import { usePlayers } from "../hooks/usePlayers";
 import { useUpdatePlayer } from "../hooks/useUpdatePlayer";
-import { useToast } from "../hooks/useToast";
+import { toast } from "sonner";
 import { ApiError } from "../services/api";
 import { formatRelativeDate } from "../services/formatRelativeDate";
 import type { Player } from "../types/api";
@@ -38,8 +38,6 @@ export default function Players() {
   const { groups } = usePlayerGroups();
   const createPlayer = useCreatePlayer();
   const updatePlayer = useUpdatePlayer();
-  const { toast } = useToast();
-
   const openModal = useCallback(() => {
     createPlayer.reset();
     setNewName("");
