@@ -111,6 +111,31 @@ final class ScoreEntryRepository extends ServiceEntityRepository
         return $scoreMap;
     }
 
+    /**
+     * @return array<int, list<int>> playerId => ordered list of game scores
+     */
+    public function getOrderedGameScoresPerPlayerForSession(Session $session): array
+    {
+        /** @var list<array{playerId: int|string, score: int|string}> $results */
+        $results = $this->createQueryBuilder('se')
+            ->select('IDENTITY(se.player) AS playerId', 'se.score AS score')
+            ->join('se.game', 'g')
+            ->andWhere('g.session = :session')
+            ->andWhere('g.status = :status')
+            ->setParameter('session', $session)
+            ->setParameter('status', GameStatus::Completed)
+            ->orderBy('g.position', 'ASC')
+            ->getQuery()
+            ->getResult();
+
+        $map = [];
+        foreach ($results as $row) {
+            $map[(int) $row['playerId']][] = (int) $row['score'];
+        }
+
+        return $map;
+    }
+
     public function getTotalTakerScoreByPlayerForSession(Session $session): ?TotalTakerScoreDto
     {
         /** @var list<TotalTakerScoreDto> $results */
