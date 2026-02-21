@@ -32,7 +32,7 @@ export default function App() {
   return (
     <ErrorBoundary
       FallbackComponent={ErrorFallback}
-      onError={(error) => console.error("ErrorBoundary caught:", error)}
+      onError={(error, info) => console.error("ErrorBoundary caught:", error, info)}
     >
       <ThemeProvider>
         <QueryClientProvider client={queryClient}>
