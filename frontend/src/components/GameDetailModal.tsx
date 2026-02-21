@@ -4,7 +4,7 @@ import type { Game, ScoreEntry } from "../types/api";
 import { ContractBadge, Modal, PlayerAvatar, ScoreDisplay, Spinner } from "./ui";
 
 function formatScoreDiff(points: number, oudlers: number): string {
-  const required = REQUIRED_POINTS[oudlers];
+  const required = REQUIRED_POINTS[oudlers] ?? 56;
   const diff = Math.trunc(points) - required;
   return diff >= 0 ? `+${diff}` : `${diff}`;
 }
@@ -66,11 +66,12 @@ interface Props {
 }
 
 export default function GameDetailModal({ gameId, onClose, open }: Props) {
-  const { data: game, isPending } = useGame(open ? gameId : null);
+  const { data: game, isError, isLoading } = useGame(open ? gameId : null);
 
   return (
     <Modal onClose={onClose} open={open} title="Détail de la donne">
-      {isPending && <div className="flex justify-center py-4"><Spinner /></div>}
+      {isLoading && <div className="flex justify-center py-4"><Spinner /></div>}
+      {isError && <p className="py-4 text-center text-sm text-score-negative">Erreur de chargement</p>}
       {game && <GameDetail game={game} />}
     </Modal>
   );
