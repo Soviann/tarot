@@ -38,6 +38,12 @@ Le toggle est intégré dans le `Layout.tsx` (header, icône Sun/Moon de `lucide
 
 L'application doit être wrappée dans `<ThemeProvider>` (déjà fait dans `App.tsx`).
 
+### Error Boundary
+
+Un `<ErrorBoundary>` global englobe toute l'application dans `App.tsx`. En cas d'erreur de rendu non interceptée, il affiche un écran de repli avec un message et un bouton « Recharger la page » au lieu d'un écran blanc.
+
+**Fichier** : `frontend/src/components/ErrorBoundary.tsx`
+
 ---
 
 ## Types / Enums
