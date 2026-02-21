@@ -1,5 +1,5 @@
-import { useEffect } from "react";
 import { useDeleteGame } from "../hooks/useDeleteGame";
+import { useResetOnOpen } from "../hooks/useResetOnOpen";
 import { useToast } from "../hooks/useToast";
 import type { Game } from "../types/api";
 import { Modal } from "./ui";
@@ -15,9 +15,7 @@ export default function DeleteGameModal({ game, onClose, open, sessionId }: Dele
   const deleteGame = useDeleteGame(game.id, sessionId);
   const { toast } = useToast();
 
-  useEffect(() => {
-    if (open) deleteGame.reset();
-  }, [open]); // eslint-disable-line react-hooks/exhaustive-deps
+  useResetOnOpen(open, () => deleteGame.reset());
 
   function handleConfirm() {
     deleteGame.mutate(undefined, {

@@ -64,7 +64,10 @@ export default function ScoreEvolutionChart({ games, players }: ScoreEvolutionCh
     [players],
   );
 
-  const data = computeScoreEvolution(games, players).slice(-10);
+  const data = useMemo(
+    () => computeScoreEvolution(games, players).slice(-10),
+    [games, players],
+  );
 
   if (data.length < 2) {
     return null;
