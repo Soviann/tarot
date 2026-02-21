@@ -21,6 +21,7 @@ Le format est basé sur [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/)
 
 ### Changed
 
+- **Menu actif** : l'onglet actif dans la barre de navigation basse est désormais souligné par un trait coloré en haut, en plus du texte en gras, pour un repérage visuel immédiat de la page courante.
 - **Nettoyage frontend** : mémoïsation du calcul `computeScoreEvolution`, extraction d'un hook `useResetOnOpen` pour supprimer les `eslint-disable react-hooks/exhaustive-deps` dans 4 modales, et remplacement du `console.error` par un toast d'erreur dans le partage du récap de session.
 - **Accessibilité OverflowMenu** : ajout de `role="menu"` / `role="menuitem"`, `aria-expanded` sur le bouton déclencheur, et navigation clavier fléchée (ArrowUp/ArrowDown) avec saut des items désactivés.
 - **Accessibilité couleurs joueur** : les boutons radio de couleur dans la modale d'édition affichent désormais des noms français (« Rouge », « Bleu », etc.) au lieu de codes hexadécimaux pour les lecteurs d'écran.

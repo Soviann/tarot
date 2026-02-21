@@ -29,10 +29,20 @@ describe("BottomNav", () => {
     expect(screen.getByRole("link", { name: /joueurs/i })).toHaveAttribute("href", "/players");
   });
 
-  it("highlights the active link", () => {
+  it("highlights the active link with font-semibold and its own colored top border", () => {
     renderWithProviders(<BottomNav />);
 
     const homeLink = screen.getByRole("link", { name: /accueil/i });
     expect(homeLink.className).toMatch(/font-semibold/);
+    expect(homeLink.className).toMatch(/border-blue-500/);
+    expect(homeLink.className).toMatch(/text-blue-500/);
+  });
+
+  it("uses transparent top border on inactive links", () => {
+    renderWithProviders(<BottomNav />);
+
+    const statsLink = screen.getByRole("link", { name: /stats/i });
+    expect(statsLink.className).toMatch(/border-transparent/);
+    expect(statsLink.className).toMatch(/text-text-secondary/);
   });
 });
