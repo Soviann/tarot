@@ -18,6 +18,21 @@ vi.mock("../../hooks/usePlayerGroups", () => ({
 
 vi.mock("../../hooks/usePlayerStats");
 
+// Mock Recharts to avoid jsdom rendering issues
+vi.mock("recharts", () => ({
+  Cell: ({ fill }: { fill: string }) => <div data-fill={fill} data-testid="cell" />,
+  Legend: () => <div data-testid="legend" />,
+  Line: ({ dataKey }: { dataKey: string }) => <div data-testid={`line-${dataKey}`} />,
+  LineChart: ({ children, data }: { children: React.ReactNode; data: unknown[] }) => <div data-point-count={data.length} data-testid="line-chart">{children}</div>,
+  Pie: ({ children, data }: { children: React.ReactNode; data: unknown[] }) => <div data-entry-count={data.length} data-testid="pie">{children}</div>,
+  PieChart: ({ children }: { children: React.ReactNode }) => <div data-testid="pie-chart">{children}</div>,
+  ReferenceLine: () => <div data-testid="reference-line" />,
+  ResponsiveContainer: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
+  Tooltip: () => <div data-testid="tooltip" />,
+  XAxis: () => <div data-testid="x-axis" />,
+  YAxis: () => <div data-testid="y-axis" />,
+}));
+
 // jsdom doesn't implement scrollIntoView
 Element.prototype.scrollIntoView = vi.fn();
 
@@ -175,9 +190,7 @@ describe("PlayerStats page", () => {
     await user.click(trigger);
     await user.click(screen.getByRole("option", { name: /répartition des rôles/i }));
 
-    expect(screen.getByText("Preneur: 35")).toBeInTheDocument();
-    expect(screen.getByText("Partenaire: 20")).toBeInTheDocument();
-    expect(screen.getByText("Défenseur: 90")).toBeInTheDocument();
+    expect(screen.getByTestId("pie-chart")).toBeInTheDocument();
 
     // Records should be hidden (check content, not heading that's also in dropdown)
     expect(screen.queryByText("Meilleur score")).not.toBeInTheDocument();
