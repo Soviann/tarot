@@ -8,6 +8,7 @@ import ContractDistributionChart from "../components/ContractDistributionChart";
 import EloEvolutionChart from "../components/EloEvolutionChart";
 import GroupFilter from "../components/GroupFilter";
 import PersonalRecords from "../components/PersonalRecords";
+import RoleDistributionChart from "../components/RoleDistributionChart";
 import ScoreTrendChart from "../components/ScoreTrendChart";
 import { MetricCard, PlayerAvatar, Select, Spinner } from "../components/ui";
 import { useAwardKonamiBadge } from "../hooks/useAwardKonamiBadge";
@@ -177,34 +178,11 @@ export default function PlayerStats() {
           <h2 className="mb-2 text-sm font-semibold text-text-secondary">
             Répartition des rôles
           </h2>
-          <div className="flex h-4 overflow-hidden rounded-full">
-            {stats.gamesAsTaker > 0 && (
-              <div
-                className="bg-accent-400"
-                style={{ width: `${(stats.gamesAsTaker / rolesTotal) * 100}%` }}
-                title={`Preneur: ${stats.gamesAsTaker}`}
-              />
-            )}
-            {stats.gamesAsPartner > 0 && (
-              <div
-                className="bg-accent-200"
-                style={{ width: `${(stats.gamesAsPartner / rolesTotal) * 100}%` }}
-                title={`Partenaire: ${stats.gamesAsPartner}`}
-              />
-            )}
-            {stats.gamesAsDefender > 0 && (
-              <div
-                className="bg-surface-tertiary"
-                style={{ width: `${(stats.gamesAsDefender / rolesTotal) * 100}%` }}
-                title={`Défenseur: ${stats.gamesAsDefender}`}
-              />
-            )}
-          </div>
-          <div className="mt-1 flex justify-between text-xs text-text-muted">
-            <span>Preneur: {stats.gamesAsTaker}</span>
-            <span>Partenaire: {stats.gamesAsPartner}</span>
-            <span>Défenseur: {stats.gamesAsDefender}</span>
-          </div>
+          <RoleDistributionChart
+            gamesAsDefender={stats.gamesAsDefender}
+            gamesAsPartner={stats.gamesAsPartner}
+            gamesAsTaker={stats.gamesAsTaker}
+          />
         </section>
       )}
 

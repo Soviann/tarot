@@ -12,6 +12,7 @@ Le format est basé sur [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/)
 
 ### Changed
 
+- **Diagrammes camembert rôles/contrats** : sur la page stats joueur, les répartitions rôles et contrats sont désormais affichées en diagrammes camembert (pie chart) avec légende et valeurs numériques
 - **Clôture de session irréversible** : une session terminée ne peut plus être réouverte via l'API ni depuis l'interface (le bouton « Réouvrir » a été supprimé)
 - **Erreurs API plus explicites** : les messages d'erreur de `apiFetch` incluent désormais le détail retourné par l'API (`hydra:description`) au lieu d'un simple « API error: 4xx »
 - **MetricCard partagé** : le composant `MetricCard` a été extrait dans `components/ui/` pour réutilisation

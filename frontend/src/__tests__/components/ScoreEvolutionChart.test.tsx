@@ -4,16 +4,7 @@ import { Chelem, Contract, Poignee, Side } from "../../types/enums";
 import type { Game, GamePlayer } from "../../types/api";
 import ScoreEvolutionChart, { computeScoreEvolution } from "../../components/ScoreEvolutionChart";
 
-// Mock Recharts to avoid jsdom rendering issues
-vi.mock("recharts", () => ({
-  Line: ({ dataKey }: { dataKey: string }) => <div data-testid={`line-${dataKey}`} />,
-  LineChart: ({ children, data }: { children: React.ReactNode; data: unknown[] }) => <div data-point-count={data.length} data-testid="line-chart">{children}</div>,
-  ReferenceLine: () => <div data-testid="reference-line" />,
-  ResponsiveContainer: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
-  Tooltip: () => <div data-testid="tooltip" />,
-  XAxis: () => <div data-testid="x-axis" />,
-  YAxis: () => <div data-testid="y-axis" />,
-}));
+vi.mock("recharts", () => import("../mocks/recharts"));
 
 const players: GamePlayer[] = [
   { color: "#ef4444", id: 1, name: "Alice" },

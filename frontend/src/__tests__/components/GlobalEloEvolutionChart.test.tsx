@@ -5,16 +5,7 @@ import GlobalEloEvolutionChart, {
   buildChartData,
 } from "../../components/GlobalEloEvolutionChart";
 
-// Mock Recharts to avoid jsdom rendering issues
-vi.mock("recharts", () => ({
-  Line: ({ dataKey }: { dataKey: string }) => <div data-testid={`line-${dataKey}`} />,
-  LineChart: ({ children }: { children: React.ReactNode }) => <div data-testid="line-chart">{children}</div>,
-  ReferenceLine: () => <div data-testid="reference-line" />,
-  ResponsiveContainer: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
-  Tooltip: () => <div data-testid="tooltip" />,
-  XAxis: () => <div data-testid="x-axis" />,
-  YAxis: () => <div data-testid="y-axis" />,
-}));
+vi.mock("recharts", () => import("../mocks/recharts"));
 
 const sampleData: EloEvolutionPlayer[] = [
   {

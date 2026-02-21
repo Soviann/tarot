@@ -387,8 +387,8 @@ L'écran de détail d'un joueur affiche :
   - **Records personnels** (par défaut) : meilleur score, pire score, série de victoires consécutives (en tant que preneur), meilleure session (total de points dans une session) et plus grand écart (différence entre points réalisés et points requis). Chaque record indique la date, le contrat (si applicable) et un bouton « Voir ». Pour les records liés à une donne (meilleur score, pire score, plus grand écart), le bouton ouvre une modale affichant le détail de la donne (preneur, appelé, scores de chaque joueur). Pour la meilleure session, le bouton redirige vers la page de la session.
   - **Badges** : grille des badges débloqués (verrouillés masqués par défaut, révélables via un bouton)
   - **Étoiles** (masquée si aucune étoile) : nombre total d'étoiles, pénalités, ratio par donne et par session, record en une session et nombre de sessions avec étoiles
-  - **Répartition des rôles** : barre visuelle montrant combien de fois le joueur a été preneur, partenaire ou défenseur
-  - **Contrats** : graphique à barres des contrats joués en tant que preneur
+  - **Répartition des rôles** : diagramme camembert montrant combien de fois le joueur a été preneur, partenaire ou défenseur, avec légende et valeurs numériques
+  - **Contrats** : diagramme camembert des contrats joués en tant que preneur, avec légende et valeurs numériques
   - **Évolution des scores** : graphique linéaire des 50 derniers scores
   - **Évolution ELO** : courbe ELO au fil des donnes
 
