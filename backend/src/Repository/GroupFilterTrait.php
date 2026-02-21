@@ -4,10 +4,28 @@ declare(strict_types=1);
 
 namespace App\Repository;
 
+use App\Dto\DateRange;
 use Doctrine\ORM\QueryBuilder;
 
 trait GroupFilterTrait
 {
+    private function applyDateFilter(QueryBuilder $qb, ?DateRange $dateRange, string $alias, string $field): void
+    {
+        if (null === $dateRange) {
+            return;
+        }
+
+        if (null !== $dateRange->from) {
+            $qb->andWhere($alias.'.'.$field.' >= :dateFrom')
+               ->setParameter('dateFrom', $dateRange->from);
+        }
+
+        if (null !== $dateRange->to) {
+            $qb->andWhere($alias.'.'.$field.' <= :dateTo')
+               ->setParameter('dateTo', $dateRange->to);
+        }
+    }
+
     private function applyGroupFilter(QueryBuilder $qb, ?int $playerGroupId, string $gameAlias = 'g'): void
     {
         if (null !== $playerGroupId) {

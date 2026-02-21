@@ -371,6 +371,7 @@ Accessible via l'onglet **Stats** dans la barre de navigation.
 
 L'écran principal des statistiques affiche :
 
+- **Filtre par tranche de dates** : sous le filtre de groupe, des préréglages rapides (30 jours, 3 mois, 6 mois, 1 an, Tout) et deux champs date (De / À) permettent de restreindre les statistiques à une période donnée. Le classement ELO courant et l'historique des badges ne sont pas affectés par ce filtre.
 - **Métriques** (toujours visibles) : nombre total de donnes, de sessions jouées, **durée moyenne par donne** et **temps de jeu total** (si des donnes avec suivi de durée existent)
 - **Classement** (toujours visible) : tous les joueurs triés par score total décroissant, avec nombre de donnes jouées et taux de victoire en tant que preneur. Limité à 10 joueurs par défaut, avec un bouton « Voir plus » pour afficher les suivants
 - **Menu déroulant de section** : un sélecteur permet de choisir la section affichée parmi :
