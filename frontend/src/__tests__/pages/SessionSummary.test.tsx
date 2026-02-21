@@ -1,5 +1,7 @@
-import { screen } from "@testing-library/react";
+import { screen, waitFor } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import * as useSessionSummaryModule from "../../hooks/useSessionSummary";
+import * as useToastModule from "../../hooks/useToast";
 import SessionSummary from "../../pages/SessionSummary";
 import { renderWithProviders } from "../test-utils";
 
@@ -10,6 +12,10 @@ vi.mock("react-router-dom", async (importOriginal) => ({
 }));
 
 vi.mock("../../hooks/useSessionSummary");
+
+vi.mock("html-to-image", () => ({
+  toPng: vi.fn().mockRejectedValue(new Error("Share failed")),
+}));
 
 const mockSummary = {
   awards: [
@@ -139,5 +145,29 @@ describe("SessionSummary page", () => {
 
     expect(screen.getByText("Partager")).toBeInTheDocument();
     expect(screen.getByText("Retour à la session")).toBeInTheDocument();
+  });
+
+  it("shows error toast when share fails", async () => {
+    vi.mocked(useSessionSummaryModule.useSessionSummary).mockReturnValue({
+      data: mockSummary,
+      isPending: false,
+    } as ReturnType<typeof useSessionSummaryModule.useSessionSummary>);
+
+    const mockToastError = vi.fn();
+    vi.spyOn(useToastModule, "useToast").mockReturnValue({
+      dismiss: vi.fn(),
+      toast: vi.fn(),
+      toastError: mockToastError,
+      toasts: [],
+    });
+
+    const user = userEvent.setup();
+    renderWithProviders(<SessionSummary />);
+
+    await user.click(screen.getByText("Partager"));
+
+    await waitFor(() => {
+      expect(mockToastError).toHaveBeenCalledWith("Échec du partage");
+    });
   });
 });

@@ -480,6 +480,19 @@ Retourne une valeur retardée qui ne se met à jour qu'après un délai sans cha
 const debouncedQuery = useDebounce(searchQuery, 300);
 ```
 
+### `useResetOnOpen`
+
+**Fichier** : `hooks/useResetOnOpen.ts`
+
+Exécute un callback lorsque `open` passe à `true`. Utilisé dans les modales pour réinitialiser l'état local à l'ouverture, sans `eslint-disable react-hooks/exhaustive-deps`.
+
+```ts
+useResetOnOpen(open, () => {
+  setSelectedContract(null);
+  mutation.reset();
+});
+```
+
 ### `useSessionGames`
 
 **Fichier** : `hooks/useSessionGames.ts`
@@ -858,7 +871,7 @@ Page d'aide in-app reprenant le contenu du guide utilisateur (`docs/user-guide.m
 - Partage en image via `html-to-image` + Web Share API (fallback : téléchargement PNG)
 - Lien retour vers la session
 
-**Hooks utilisés** : `useSessionSummary`
+**Hooks utilisés** : `useSessionSummary`, `useToast`
 
 ### Page 404 (`NotFound`)
 

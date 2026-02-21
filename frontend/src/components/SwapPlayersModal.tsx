@@ -1,5 +1,6 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useCreateSession } from "../hooks/useCreateSession";
+import { useResetOnOpen } from "../hooks/useResetOnOpen";
 import { useToast } from "../hooks/useToast";
 import type { Session } from "../types/api";
 import PlayerSelector from "./PlayerSelector";
@@ -22,12 +23,10 @@ export default function SwapPlayersModal({
   const createSession = useCreateSession();
   const { toast } = useToast();
 
-  useEffect(() => {
-    if (open) {
-      setSelectedPlayerIds(currentPlayerIds);
-      createSession.reset();
-    }
-  }, [open]); // eslint-disable-line react-hooks/exhaustive-deps
+  useResetOnOpen(open, () => {
+    setSelectedPlayerIds(currentPlayerIds);
+    createSession.reset();
+  });
 
   function handleConfirm() {
     createSession.mutate(selectedPlayerIds, {

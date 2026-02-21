@@ -1,6 +1,7 @@
 import { ChevronDown } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { useCompleteGame } from "../hooks/useCompleteGame";
+import { useResetOnOpen } from "../hooks/useResetOnOpen";
 import { useToast } from "../hooks/useToast";
 import type { GameContext } from "../services/memeSelector";
 import { calculateScore, REQUIRED_POINTS } from "../services/scoreCalculator";
@@ -55,8 +56,7 @@ export default function CompleteGameModal({ game, onBadgesUnlocked, onClose, onG
   const [points, setPoints] = useState("");
   const [selfCall, setSelfCall] = useState(false);
 
-  useEffect(() => {
-    if (!open) return;
+  useResetOnOpen(open, () => {
     completeGame.reset();
     if (isEditMode) {
       setBonusesOpen(game.chelem !== Chelem.None || game.petitAuBout !== Side.None || game.poignee !== Poignee.None);
@@ -79,7 +79,7 @@ export default function CompleteGameModal({ game, onBadgesUnlocked, onClose, onG
       setPoints("");
       setSelfCall(false);
     }
-  }, [open]); // eslint-disable-line react-hooks/exhaustive-deps
+  });
 
   const pointsNum = points === "" ? null : Number(points);
   const pointsValid = pointsNum !== null && !isNaN(pointsNum) && pointsNum >= 0 && pointsNum <= 91;
