@@ -1,4 +1,4 @@
-import { useAnimatedCounter } from "../../hooks/useAnimatedCounter";
+import CountUp from "react-countup";
 
 interface ScoreDisplayProps {
   animated?: boolean;
@@ -24,13 +24,20 @@ export default function ScoreDisplay({
   duration = 500,
   value,
 }: ScoreDisplayProps) {
-  const displayed = useAnimatedCounter(value, { animated, duration });
-
   return (
     <span
       className={`${getColorClass(value)} tabular-nums font-semibold ${className}`.trim()}
     >
-      {formatScore(displayed)}
+      {animated ? (
+        <CountUp
+          duration={duration / 1000}
+          end={value}
+          formattingFn={formatScore}
+          preserveValue
+        />
+      ) : (
+        formatScore(value)
+      )}
     </span>
   );
 }

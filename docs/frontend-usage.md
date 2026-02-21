@@ -171,19 +171,6 @@ const { dismiss, toast, toastError, toasts } = useToast();
 
 **Prérequis** : composant dans un `<ToastProvider>` (déjà dans `App.tsx`).
 
-### `useAnimatedCounter`
-
-**Fichier** : `hooks/useAnimatedCounter.ts`
-
-Anime un compteur de 0 vers la valeur cible avec easing (`easeOutCubic`).
-
-```ts
-const displayed = useAnimatedCounter(score, {
-  animated: true,   // défaut: true
-  duration: 500,    // défaut: 500ms
-});
-```
-
 ### `usePlayers`
 
 **Fichier** : `hooks/usePlayers.ts`

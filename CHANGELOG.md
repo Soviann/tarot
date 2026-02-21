@@ -9,6 +9,7 @@ Le format est basé sur [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/)
 ### Changed
 
 - **ErrorBoundary** : remplacement du composant custom par `react-error-boundary` avec bouton « Réessayer » (reset sans rechargement de page)
+- **ScoreDisplay** : remplacement du hook custom `useAnimatedCounter` par `react-countup` pour l'animation des scores
 
 ## [1.5.0] - 2026-02-21
 
