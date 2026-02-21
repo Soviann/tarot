@@ -1,6 +1,8 @@
+import { useState } from "react";
 import { Link } from "react-router-dom";
 import type { PersonalRecord } from "../types/api";
 import type { Contract } from "../types/enums";
+import GameDetailModal from "./GameDetailModal";
 import ContractBadge from "./ui/ContractBadge";
 
 const RECORD_CONFIG: Record<string, { icon: string; label: string }> = {
@@ -31,6 +33,8 @@ interface Props {
 }
 
 export default function PersonalRecords({ records }: Props) {
+  const [selectedGameId, setSelectedGameId] = useState<number | null>(null);
+
   if (records.length === 0) return null;
 
   const byType = new Map(records.map((r) => [r.type, r]));
@@ -74,19 +78,32 @@ export default function PersonalRecords({ records }: Props) {
                 <span className={`block text-lg font-bold ${record.type === "worst_score" ? "text-score-negative" : "text-text-primary"}`}>
                   {formatRecordValue(record.type, record.value)}
                 </span>
-                {record.sessionId && (
+                {record.gameId ? (
+                  <button
+                    className="text-xs text-accent-500 hover:underline dark:text-accent-300"
+                    onClick={() => setSelectedGameId(record.gameId)}
+                    type="button"
+                  >
+                    Voir
+                  </button>
+                ) : record.sessionId ? (
                   <Link
                     className="text-xs text-accent-500 hover:underline dark:text-accent-300"
                     to={`/sessions/${record.sessionId}`}
                   >
                     Voir
                   </Link>
-                )}
+                ) : null}
               </div>
             </div>
           );
         })}
       </div>
+      <GameDetailModal
+        gameId={selectedGameId}
+        onClose={() => setSelectedGameId(null)}
+        open={selectedGameId !== null}
+      />
     </section>
   );
 }

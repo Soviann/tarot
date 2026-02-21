@@ -384,7 +384,7 @@ L'écran de détail d'un joueur affiche :
 - **Métriques clés** (toujours visibles) : donnes jouées, taux de victoire (en tant que preneur), score moyen, sessions jouées, **durée moyenne par donne** et **temps de jeu total** (si disponible)
 - **Groupes** (toujours visibles) : badges cliquables vers la page du groupe
 - **Menu déroulant de section** : un sélecteur permet de choisir la section affichée parmi :
-  - **Records personnels** (par défaut) : meilleur score, pire score, série de victoires consécutives (en tant que preneur), meilleure session (total de points dans une session) et plus grand écart (différence entre points réalisés et points requis). Chaque record indique la date, le contrat (si applicable) et un lien vers la session concernée.
+  - **Records personnels** (par défaut) : meilleur score, pire score, série de victoires consécutives (en tant que preneur), meilleure session (total de points dans une session) et plus grand écart (différence entre points réalisés et points requis). Chaque record indique la date, le contrat (si applicable) et un bouton « Voir ». Pour les records liés à une donne (meilleur score, pire score, plus grand écart), le bouton ouvre une modale affichant le détail de la donne (preneur, appelé, scores de chaque joueur). Pour la meilleure session, le bouton redirige vers la page de la session.
   - **Badges** : grille des badges débloqués (verrouillés masqués par défaut, révélables via un bouton)
   - **Étoiles** (masquée si aucune étoile) : nombre total d'étoiles, pénalités, ratio par donne et par session, record en une session et nombre de sessions avec étoiles
   - **Répartition des rôles** : barre visuelle montrant combien de fois le joueur a été preneur, partenaire ou défenseur
