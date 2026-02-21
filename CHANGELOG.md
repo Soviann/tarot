@@ -6,6 +6,8 @@ Le format est basé sur [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/)
 
 ## [Unreleased]
 
+## [1.5.0] - 2026-02-21
+
 ### Added
 
 - **Saisie vocale** : bouton micro dans la modale de complétion de donne permettant de dicter le résultat en français (contrat, points, appelé, bonuses) via la Web Speech API. Parser local regex, dégradation gracieuse si l'API n'est pas supportée. Utilise la bibliothèque `react-speech-recognition`
