@@ -475,20 +475,9 @@ final class GameRepository extends ServiceEntityRepository
             return [];
         }
 
-        /** @var list<array{chelem: string, contract: string, gameId: int|string, oudlers: int|string, partnerId: int|string|null, playerId: int|string, poignee: string, poigneeOwner: string, points: float|int|string, takerScore: int|string}> $results */
-        $results = $this->createQueryBuilder('g')
-            ->select(
-                'g.chelem AS chelem',
-                'g.contract AS contract',
-                'g.id AS gameId',
-                'g.oudlers AS oudlers',
-                'IDENTITY(g.partner) AS partnerId',
-                'IDENTITY(g.taker) AS playerId',
-                'g.poignee AS poignee',
-                'g.poigneeOwner AS poigneeOwner',
-                'g.points AS points',
-                'se.score AS takerScore',
-            )
+        /** @var list<TakerGameDetailDto> $dtos */
+        $dtos = $this->createQueryBuilder('g')
+            ->select('NEW App\Dto\TakerGameDetailDto(g.chelem, g.contract, g.id, g.oudlers, IDENTITY(g.partner), g.poignee, g.poigneeOwner, g.points, IDENTITY(g.taker), se.score)')
             ->join('g.scoreEntries', 'se')
             ->andWhere('g.taker IN (:playerIds)')
             ->andWhere('g.status = :status')
@@ -501,19 +490,8 @@ final class GameRepository extends ServiceEntityRepository
 
         /** @var array<int, list<TakerGameDetailDto>> $map */
         $map = \array_fill_keys($playerIds, []);
-        foreach ($results as $row) {
-            $map[(int) $row['playerId']][] = new TakerGameDetailDto(
-                $row['chelem'],
-                $row['contract'],
-                $row['gameId'],
-                $row['oudlers'],
-                $row['partnerId'],
-                $row['poignee'],
-                $row['poigneeOwner'],
-                $row['points'],
-                (int) $row['playerId'],
-                $row['takerScore'],
-            );
+        foreach ($dtos as $dto) {
+            $map[$dto->takerId][] = $dto;
         }
 
         return $map;

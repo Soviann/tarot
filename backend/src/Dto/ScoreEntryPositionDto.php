@@ -9,8 +9,10 @@ final readonly class ScoreEntryPositionDto
     public int $playerId;
     public int $position;
     public int $score;
+    public int $sessionId;
 
     public function __construct(
+        int|string $sessionId,
         int|string $playerId,
         int|string $position,
         int|string $score,
@@ -18,5 +20,6 @@ final readonly class ScoreEntryPositionDto
         $this->playerId = (int) $playerId;
         $this->position = (int) $position;
         $this->score = (int) $score;
+        $this->sessionId = (int) $sessionId;
     }
 }

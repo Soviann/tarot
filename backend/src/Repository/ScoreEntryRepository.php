@@ -298,9 +298,9 @@ final class ScoreEntryRepository extends ServiceEntityRepository
             return [];
         }
 
-        /** @var list<array{playerId: int|string, position: int|string, score: int|string, sessionId: int|string}> $results */
-        $results = $this->createQueryBuilder('se')
-            ->select('IDENTITY(se.player) AS playerId', 'g.position AS position', 'se.score AS score', 'IDENTITY(g.session) AS sessionId')
+        /** @var list<ScoreEntryPositionDto> $dtos */
+        $dtos = $this->createQueryBuilder('se')
+            ->select('NEW App\Dto\ScoreEntryPositionDto(IDENTITY(g.session), IDENTITY(se.player), g.position, se.score)')
             ->join('se.game', 'g')
             ->andWhere('g.session IN (:sessionIds)')
             ->andWhere('g.status = :status')
@@ -313,12 +313,8 @@ final class ScoreEntryRepository extends ServiceEntityRepository
 
         /** @var array<int, list<ScoreEntryPositionDto>> $map */
         $map = \array_fill_keys($sessionIds, []);
-        foreach ($results as $row) {
-            $map[(int) $row['sessionId']][] = new ScoreEntryPositionDto(
-                (int) $row['playerId'],
-                (int) $row['position'],
-                (int) $row['score'],
-            );
+        foreach ($dtos as $dto) {
+            $map[$dto->sessionId][] = $dto;
         }
 
         return $map;
@@ -335,9 +331,9 @@ final class ScoreEntryRepository extends ServiceEntityRepository
             return [];
         }
 
-        /** @var list<array{playerId: int|string, scoreSum: int|string, sessionId: int|string}> $results */
-        $results = $this->createQueryBuilder('se')
-            ->select('IDENTITY(se.player) AS playerId', 'SUM(se.score) AS scoreSum', 'IDENTITY(g.session) AS sessionId')
+        /** @var list<PlayerScoreSumDto> $dtos */
+        $dtos = $this->createQueryBuilder('se')
+            ->select('NEW App\Dto\PlayerScoreSumDto(IDENTITY(g.session), IDENTITY(se.player), SUM(se.score))')
             ->join('se.game', 'g')
             ->andWhere('g.session IN (:sessionIds)')
             ->andWhere('g.status = :status')
@@ -352,11 +348,8 @@ final class ScoreEntryRepository extends ServiceEntityRepository
 
         /** @var array<int, list<PlayerScoreSumDto>> $map */
         $map = \array_fill_keys($sessionIds, []);
-        foreach ($results as $row) {
-            $map[(int) $row['sessionId']][] = new PlayerScoreSumDto(
-                (int) $row['playerId'],
-                (int) $row['scoreSum'],
-            );
+        foreach ($dtos as $dto) {
+            $map[$dto->sessionId][] = $dto;
         }
 
         return $map;
@@ -455,17 +448,9 @@ final class ScoreEntryRepository extends ServiceEntityRepository
             return [];
         }
 
-        /** @var list<array{gameId: int|string, partnerId: int|string|null, playerId: int|string, poignee: string, poigneeOwner: string, takerId: int|string, takerScore: int|string}> $results */
-        $results = $this->createQueryBuilder('se')
-            ->select(
-                'g.id AS gameId',
-                'IDENTITY(g.partner) AS partnerId',
-                'IDENTITY(se.player) AS playerId',
-                'g.poignee AS poignee',
-                'g.poigneeOwner AS poigneeOwner',
-                'IDENTITY(g.taker) AS takerId',
-                'se2.score AS takerScore',
-            )
+        /** @var list<GameTakerScoreDto> $dtos */
+        $dtos = $this->createQueryBuilder('se')
+            ->select('NEW App\Dto\GameTakerScoreDto(IDENTITY(se.player), g.id, IDENTITY(g.partner), g.poignee, g.poigneeOwner, IDENTITY(g.taker), se2.score)')
             ->join('se.game', 'g')
             ->join('g.scoreEntries', 'se2')
             ->andWhere('se.player IN (:playerIds)')
@@ -479,15 +464,8 @@ final class ScoreEntryRepository extends ServiceEntityRepository
 
         /** @var array<int, list<GameTakerScoreDto>> $map */
         $map = \array_fill_keys($playerIds, []);
-        foreach ($results as $row) {
-            $map[(int) $row['playerId']][] = new GameTakerScoreDto(
-                $row['gameId'],
-                $row['partnerId'],
-                $row['poignee'],
-                $row['poigneeOwner'],
-                $row['takerId'],
-                $row['takerScore'],
-            );
+        foreach ($dtos as $dto) {
+            $map[$dto->playerId][] = $dto;
         }
 
         return $map;
