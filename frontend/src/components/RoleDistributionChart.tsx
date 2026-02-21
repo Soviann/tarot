@@ -50,7 +50,7 @@ export default function RoleDistributionChart({
 
   return (
     <div className="h-52 lg:h-72">
-      <ResponsiveContainer height="100%" width="100%">
+      <ResponsiveContainer height="100%" minWidth={0} width="100%">
         <PieChart>
           <Pie
             cx="50%"
