@@ -272,7 +272,7 @@ final readonly class SessionSummaryService
         }
 
         return [
-            'description' => "A inflig\u{00E9} le plus de points aux d\u{00E9}fenseurs",
+            'description' => 'A infligé le plus de points aux défenseurs',
             'playerColor' => $result->playerColor,
             'playerId' => $result->playerId,
             'playerName' => $result->playerName,
@@ -316,7 +316,7 @@ final readonly class SessionSummaryService
             'playerColor' => $winner->getColor(),
             'playerId' => $winnerId,
             'playerName' => $winner->getName(),
-            'title' => "L'\u{00C9}ternel D\u{00E9}fenseur",
+            'title' => 'L\'Éternel Défenseur',
         ];
     }
 
@@ -339,7 +339,7 @@ final readonly class SessionSummaryService
         }
 
         return [
-            'description' => "A tent\u{00E9} le plus de Garde Sans/Contre",
+            'description' => 'A tenté le plus de Garde Sans/Contre',
             'playerColor' => $result->playerColor,
             'playerId' => $result->playerId,
             'playerName' => $result->playerName,

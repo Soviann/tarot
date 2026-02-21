@@ -15,6 +15,8 @@ use Doctrine\Persistence\ManagerRegistry;
  */
 final class StarEventRepository extends ServiceEntityRepository
 {
+    use GroupFilterTrait;
+
     public function __construct(ManagerRegistry $registry)
     {
         parent::__construct($registry, StarEvent::class);
@@ -38,16 +40,6 @@ final class StarEventRepository extends ServiceEntityRepository
             ->andWhere('se.player = :player')
             ->setParameter('player', $player)
             ->setParameter('session', $session)
-            ->getQuery()
-            ->getSingleScalarResult();
-    }
-
-    public function countByPlayer(Player $player): int
-    {
-        return (int) $this->createQueryBuilder('se')
-            ->select('COUNT(se.id)')
-            ->andWhere('se.player = :player')
-            ->setParameter('player', $player)
             ->getQuery()
             ->getSingleScalarResult();
     }
@@ -124,11 +116,7 @@ final class StarEventRepository extends ServiceEntityRepository
             ->andWhere('se.player = :player')
             ->setParameter('player', $player);
 
-        if (null !== $playerGroupId) {
-            $qb->join('App\Entity\Session', 's_grp', 'WITH', 'se.session = s_grp')
-               ->andWhere('s_grp.playerGroup = :group')
-               ->setParameter('group', $playerGroupId);
-        }
+        $this->applySessionGroupFilter($qb, $playerGroupId, 'se');
 
         return (int) $qb->getQuery()->getSingleScalarResult();
     }
@@ -140,11 +128,7 @@ final class StarEventRepository extends ServiceEntityRepository
             ->andWhere('se.player = :player')
             ->setParameter('player', $player);
 
-        if (null !== $playerGroupId) {
-            $qb->join('App\Entity\Session', 's_grp', 'WITH', 'se.session = s_grp')
-               ->andWhere('s_grp.playerGroup = :group')
-               ->setParameter('group', $playerGroupId);
-        }
+        $this->applySessionGroupFilter($qb, $playerGroupId, 'se');
 
         return (int) $qb->getQuery()->getSingleScalarResult();
     }
@@ -159,11 +143,7 @@ final class StarEventRepository extends ServiceEntityRepository
             ->orderBy('cnt', 'DESC')
             ->setMaxResults(1);
 
-        if (null !== $playerGroupId) {
-            $qb->join('App\Entity\Session', 's_grp', 'WITH', 'se.session = s_grp')
-               ->andWhere('s_grp.playerGroup = :group')
-               ->setParameter('group', $playerGroupId);
-        }
+        $this->applySessionGroupFilter($qb, $playerGroupId, 'se');
 
         /** @var array{cnt: string}|null $result */
         $result = $qb->getQuery()->getOneOrNullResult();
@@ -176,11 +156,7 @@ final class StarEventRepository extends ServiceEntityRepository
         $qb = $this->createQueryBuilder('se')
             ->select('COUNT(se.id)');
 
-        if (null !== $playerGroupId) {
-            $qb->join('App\Entity\Session', 's_grp', 'WITH', 'se.session = s_grp')
-               ->andWhere('s_grp.playerGroup = :group')
-               ->setParameter('group', $playerGroupId);
-        }
+        $this->applySessionGroupFilter($qb, $playerGroupId, 'se');
 
         return (int) $qb->getQuery()->getSingleScalarResult();
     }

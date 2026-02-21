@@ -8,8 +8,6 @@ use App\Entity\Game;
 use App\Entity\Player;
 use App\Entity\ScoreEntry;
 use App\Enum\Chelem;
-use App\Enum\Contract;
-use App\Enum\Poignee;
 use App\Enum\Side;
 
 /**
@@ -45,7 +43,7 @@ final readonly class ScoreCalculator
         $points = $game->getPoints() ?? throw new \InvalidArgumentException('Les points sont requis.');
 
         $contract = $game->getContract();
-        $multiplier = $this->getContractMultiplier($contract);
+        $multiplier = $contract->multiplier();
         $requiredPoints = $this->getRequiredPoints($oudlers);
         $intPoints = (int) $points;
         $attackWins = $intPoints >= $requiredPoints;
@@ -57,7 +55,7 @@ final readonly class ScoreCalculator
         }
 
         // Bonus poignée : toujours au camp gagnant
-        $poigneeBonus = $this->getPoigneeBonus($game->getPoignee());
+        $poigneeBonus = $game->getPoignee()->bonus();
         if (!$attackWins) {
             $poigneeBonus = -$poigneeBonus;
         }
@@ -135,26 +133,6 @@ final readonly class ScoreCalculator
         }
 
         return $entries;
-    }
-
-    private function getContractMultiplier(Contract $contract): int
-    {
-        return match ($contract) {
-            Contract::Garde => 2,
-            Contract::GardeContre => 6,
-            Contract::GardeSans => 4,
-            Contract::Petite => 1,
-        };
-    }
-
-    private function getPoigneeBonus(Poignee $poignee): int
-    {
-        return match ($poignee) {
-            Poignee::Double => 30,
-            Poignee::None => 0,
-            Poignee::Simple => 20,
-            Poignee::Triple => 40,
-        };
     }
 
     private function getRequiredPoints(int $oudlers): int

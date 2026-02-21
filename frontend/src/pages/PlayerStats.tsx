@@ -1,3 +1,4 @@
+import { ArrowLeft } from "lucide-react";
 import { useCallback, useMemo, useState } from "react";
 import { Link, useNavigate, useParams, useSearchParams } from "react-router-dom";
 import NotFound from "./NotFound";
@@ -8,7 +9,7 @@ import EloEvolutionChart from "../components/EloEvolutionChart";
 import GroupFilter from "../components/GroupFilter";
 import PersonalRecords from "../components/PersonalRecords";
 import ScoreTrendChart from "../components/ScoreTrendChart";
-import { PlayerAvatar, Select, Spinner } from "../components/ui";
+import { MetricCard, PlayerAvatar, Select, Spinner } from "../components/ui";
 import { useAwardKonamiBadge } from "../hooks/useAwardKonamiBadge";
 import { useKonamiCode } from "../hooks/useKonamiCode";
 import { usePlayerStats } from "../hooks/usePlayerStats";
@@ -96,19 +97,7 @@ export default function PlayerStats() {
           onClick={() => navigate("/stats")}
           type="button"
         >
-          <svg
-            className="size-6"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth={2}
-            viewBox="0 0 24 24"
-          >
-            <path
-              d="M15 19l-7-7 7-7"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
-          </svg>
+          <ArrowLeft size={24} />
         </button>
         <div onClick={onAvatarClick} role="presentation">
           <PlayerAvatar color={stats.player.color} name={stats.player.name} playerId={stats.player.id} size="lg" />
@@ -254,15 +243,6 @@ export default function PlayerStats() {
           players={[{ color: stats.player.color, id: stats.player.id, name: stats.player.name }]}
         />
       )}
-    </div>
-  );
-}
-
-function MetricCard({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="rounded-xl bg-surface-elevated p-3 text-center">
-      <span className="block text-lg font-bold text-text-primary">{value}</span>
-      <span className="text-xs text-text-muted">{label}</span>
     </div>
   );
 }
