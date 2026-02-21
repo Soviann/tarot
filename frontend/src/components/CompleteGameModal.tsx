@@ -137,6 +137,7 @@ export default function CompleteGameModal({ game, onBadgesUnlocked, onClose, onG
               oudlers,
               petitAuBout,
               points: pointsNum!,
+              takerScore: scoreResult.takerScore,
             });
             onGameSaved?.(game.id);
           }

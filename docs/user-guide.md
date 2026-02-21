@@ -507,6 +507,14 @@ Après la saisie d'une donne, un **mème aléatoire** peut apparaître en plein 
 
 > Référence au *Guide du voyageur galactique* de Douglas Adams — 42 étant la réponse à la grande question sur la vie, l'univers et le reste. Se combine avec les mèmes de victoire ou de défaite dans le pool.
 
+### Easter egg — Score extrême (±200 points)
+
+| Condition | Image | Légende | Poids |
+|-----------|-------|---------|-------|
+| Score individuel ≥ **200** (ou ≤ −200) | Buzz l'Éclair (Toy Story) | *To infinity… and beyond!* | Élevé |
+
+> Se déclenche quand le score calculé du preneur dépasse ±200 points sur une seule donne. Se combine avec les mèmes de victoire ou de défaite dans le pool.
+
 ### Mèmes de victoire
 
 | Condition | Image | Poids |
