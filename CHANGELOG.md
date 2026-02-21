@@ -6,6 +6,8 @@ Le format est basé sur [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/)
 
 ## [Unreleased]
 
+## [1.3.0] - 2026-02-21
+
 ### Added
 
 - **Easter egg "Mind Blown"** : affiche le mème "Mind Blown" (référence au *Guide du voyageur galactique*) lorsque le score saisi vaut exactement 42 points
