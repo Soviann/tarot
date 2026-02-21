@@ -40,9 +40,9 @@ L'application doit être wrappée dans `<ThemeProvider>` (déjà fait dans `App.
 
 ### Error Boundary
 
-Un `<ErrorBoundary>` global englobe toute l'application dans `App.tsx`. En cas d'erreur de rendu non interceptée, il affiche un écran de repli avec un message et un bouton « Recharger la page » au lieu d'un écran blanc.
+Un `<ErrorBoundary>` global (via `react-error-boundary`) englobe toute l'application dans `App.tsx`. En cas d'erreur de rendu non interceptée, il affiche un écran de repli avec un message et un bouton « Réessayer » qui réinitialise l'état d'erreur sans recharger la page.
 
-**Fichier** : `frontend/src/components/ErrorBoundary.tsx`
+**Fichiers** : `react-error-boundary` (lib) + `frontend/src/components/ErrorFallback.tsx` (UI de repli)
 
 ---
 

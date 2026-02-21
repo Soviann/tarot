@@ -1,18 +1,22 @@
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
-import ErrorBoundary from "../../components/ErrorBoundary";
+import App from "../../App";
+
+let shouldThrow = false;
 
 function ThrowingChild() {
-  throw new Error("Test error");
-}
-
-function GoodChild() {
+  if (shouldThrow) {
+    throw new Error("Test error");
+  }
   return <p>Contenu OK</p>;
 }
 
-describe("ErrorBoundary", () => {
-  // Suppress React error boundary console.error noise
+// Minimal test wrapper that imports App's ErrorBoundary setup
+// but we test via the actual App component isn't practical here.
+// Instead, test the fallback render used in App.tsx.
+
+describe("ErrorBoundary (react-error-boundary)", () => {
   const originalError = console.error;
   beforeAll(() => {
     console.error = (...args: unknown[]) => {
@@ -30,18 +34,32 @@ describe("ErrorBoundary", () => {
     console.error = originalError;
   });
 
-  it("renders children when no error", () => {
+  it("renders children when no error", async () => {
+    // We need to test the ErrorBoundary as used in App
+    // Import the fallback component directly
+    const { ErrorFallback } = await import(
+      "../../components/ErrorFallback"
+    );
+    const { ErrorBoundary } = await import("react-error-boundary");
+
+    shouldThrow = false;
     render(
-      <ErrorBoundary>
-        <GoodChild />
+      <ErrorBoundary FallbackComponent={ErrorFallback}>
+        <ThrowingChild />
       </ErrorBoundary>,
     );
     expect(screen.getByText("Contenu OK")).toBeInTheDocument();
   });
 
-  it("renders fallback UI when a child throws", () => {
+  it("renders fallback UI with retry button when a child throws", async () => {
+    const { ErrorFallback } = await import(
+      "../../components/ErrorFallback"
+    );
+    const { ErrorBoundary } = await import("react-error-boundary");
+
+    shouldThrow = true;
     render(
-      <ErrorBoundary>
+      <ErrorBoundary FallbackComponent={ErrorFallback}>
         <ThrowingChild />
       </ErrorBoundary>,
     );
@@ -49,32 +67,60 @@ describe("ErrorBoundary", () => {
       screen.getByText(/une erreur inattendue/i),
     ).toBeInTheDocument();
     expect(
-      screen.getByRole("button", { name: /recharger/i }),
+      screen.getByRole("button", { name: /réessayer/i }),
     ).toBeInTheDocument();
   });
 
-  it("calls window.location.reload when clicking the reload button", async () => {
-    const originalLocation = window.location;
-    const reloadMock = vi.fn();
-    Object.defineProperty(window, "location", {
-      configurable: true,
-      value: { ...window.location, reload: reloadMock },
-    });
+  it("resets error state when clicking retry button", async () => {
+    const { ErrorFallback } = await import(
+      "../../components/ErrorFallback"
+    );
+    const { ErrorBoundary } = await import("react-error-boundary");
 
+    shouldThrow = true;
     render(
-      <ErrorBoundary>
+      <ErrorBoundary FallbackComponent={ErrorFallback}>
         <ThrowingChild />
       </ErrorBoundary>,
     );
 
-    await userEvent.click(
-      screen.getByRole("button", { name: /recharger/i }),
-    );
-    expect(reloadMock).toHaveBeenCalledOnce();
+    // Fallback is shown
+    expect(
+      screen.getByText(/une erreur inattendue/i),
+    ).toBeInTheDocument();
 
-    Object.defineProperty(window, "location", {
-      configurable: true,
-      value: originalLocation,
-    });
+    // Fix the error, then click retry
+    shouldThrow = false;
+    await userEvent.click(
+      screen.getByRole("button", { name: /réessayer/i }),
+    );
+
+    // Children should render again
+    expect(screen.getByText("Contenu OK")).toBeInTheDocument();
+  });
+
+  it("logs errors to console", async () => {
+    const { ErrorFallback } = await import(
+      "../../components/ErrorFallback"
+    );
+    const { ErrorBoundary } = await import("react-error-boundary");
+
+    const errorSpy = vi.spyOn(console, "error").mockImplementation(() => {});
+
+    shouldThrow = true;
+    render(
+      <ErrorBoundary
+        FallbackComponent={ErrorFallback}
+        onError={(error: Error) => console.error("ErrorBoundary caught:", error)}
+      >
+        <ThrowingChild />
+      </ErrorBoundary>,
+    );
+
+    expect(errorSpy).toHaveBeenCalledWith(
+      "ErrorBoundary caught:",
+      expect.any(Error),
+    );
+    errorSpy.mockRestore();
   });
 });
