@@ -454,6 +454,16 @@ const { onClick } = useKonamiCode(() => { /* séquence complète */ });
 return <div onClick={onClick}><Avatar /></div>;
 ```
 
+### `useShake`
+
+**Fichier** : `hooks/useShake.ts`
+
+Hook détectant les secousses du téléphone via l'API `DeviceMotionEvent`. Lorsque l'accélération dépasse un seuil, le callback `onShake` est appelé. Un cooldown de 5 secondes empêche les déclenchements répétés. L'option `enabled` permet de désactiver l'écoute.
+
+```ts
+useShake(() => { /* secoué ! */ }, { enabled: true });
+```
+
 ### `useDebounce`
 
 **Fichier** : `hooks/useDebounce.ts`
@@ -809,8 +819,9 @@ Page d'aide in-app reprenant le contenu du guide utilisateur (`docs/user-guide.m
 - FAB masqué quand la session est clôturée
 - Bouton retour vers l'accueil
 - États : chargement, session introuvable
+- **Easter egg shake** : secouer le téléphone retourne le tableau des scores (rotation 180°) pendant 2 secondes, puis affiche une modale « Eh non, bien essayé 😏 » avec un GIF
 
-**Hooks utilisés** : `useSession`, `useSessionGames`, `useAllSessionGames`, `useAddStar`, `useCloseSession`, `useCreateGame`, `useCreateSession` (via SwapPlayersModal), `useCompleteGame`, `useDeleteGame`, `usePlayerGroups`, `useReorderPlayers`, `useUpdateDealer`, `useUpdateSessionGroup`, `useNavigate`
+**Hooks utilisés** : `useSession`, `useSessionGames`, `useAllSessionGames`, `useAddStar`, `useCloseSession`, `useCreateGame`, `useCreateSession` (via SwapPlayersModal), `useCompleteGame`, `useDeleteGame`, `usePlayerGroups`, `useReorderPlayers`, `useShake`, `useUpdateDealer`, `useUpdateSessionGroup`, `useNavigate`
 
 **Modales** :
 - `AddStarModal` : confirmation avant attribution d'étoile à un joueur

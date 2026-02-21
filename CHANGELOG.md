@@ -16,6 +16,7 @@ Le format est basé sur [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/)
 - **Détail des scores par donne** : au clic sur une donne dans l'historique, un panneau dépliable affiche les scores individuels de chaque joueur (preneur → appelé → défense) avec le nombre de bouts et l'écart par rapport au contrat.
 - **Stats session glissantes** : le graphe d'évolution des scores n'affiche plus que les 10 dernières donnes (fenêtre glissante) pour une meilleure lisibilité sur les longues sessions.
 - **Pagination des classements** : les classements par score et ELO affichent désormais 10 joueurs par défaut avec un bouton « Voir plus » pour charger les suivants.
+- **Easter egg shake** : secouer le téléphone sur une page de session retourne les scores à l'envers pendant 2 secondes, puis affiche une modale « Eh non, bien essayé 😏 » avec un GIF.
 
 ### Changed
 
