@@ -6,6 +6,12 @@ Le format est basé sur [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/)
 
 ## [Unreleased]
 
+## [1.2.1] - 2026-02-21
+
+### Fixed
+
+- **Sécurité npm** : correction de 8 vulnérabilités (ajv ReDoS modéré, minimatch ReDoS élevé) via mise à jour des dépendances et override npm
+
 ## [1.2.0] - 2026-02-21
 
 ### Added
