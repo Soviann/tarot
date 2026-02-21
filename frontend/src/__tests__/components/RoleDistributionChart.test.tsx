@@ -1,20 +1,7 @@
 import { render, screen } from "@testing-library/react";
-
-// Mock Recharts to avoid jsdom rendering issues
-vi.mock("recharts", () => ({
-  Cell: ({ fill }: { fill: string }) => <div data-fill={fill} data-testid="cell" />,
-  Legend: () => <div data-testid="legend" />,
-  Pie: ({ children, data }: { children: React.ReactNode; data: unknown[] }) => (
-    <div data-entry-count={data.length} data-testid="pie">{children}</div>
-  ),
-  PieChart: ({ children }: { children: React.ReactNode }) => (
-    <div data-testid="pie-chart">{children}</div>
-  ),
-  ResponsiveContainer: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
-  Tooltip: () => <div data-testid="tooltip" />,
-}));
-
 import RoleDistributionChart from "../../components/RoleDistributionChart";
+
+vi.mock("recharts", () => import("../mocks/recharts"));
 
 describe("RoleDistributionChart", () => {
   it("renders empty message when all roles are zero", () => {
