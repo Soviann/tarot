@@ -26,7 +26,11 @@ const ReactQueryDevtools = import.meta.env.DEV
     )
   : () => null;
 
-const queryClient = new QueryClient();
+export const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: { staleTime: 30_000 },
+  },
+});
 
 export default function App() {
   return (
