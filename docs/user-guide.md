@@ -18,8 +18,7 @@ Application mobile (PWA) de suivi des scores pour le Tarot à 5 joueurs, conform
 - [Système d'étoiles](#système-détoiles)
 - [Classement ELO](#classement-elo)
 - [Utilisation sur Smart TV](#utilisation-sur-smart-tv)
-- [Mèmes de victoire](#mèmes-de-victoire)
-- [Mèmes de défaite](#mèmes-de-défaite)
+- [Mèmes](#mèmes)
 - [Badges et succès](#badges-et-succès)
 - [Thème sombre](#thème-sombre)
 - [Chargement et états vides](#chargement-et-états-vides)
@@ -490,58 +489,48 @@ Un **anneau bleu** entoure l'élément actuellement focalisé pour indiquer la p
 
 ---
 
-## Mèmes de victoire
+## Mèmes
 
-Quand une donne est gagnée par l'attaque, un **mème aléatoire** peut apparaître en plein écran pendant 3 secondes pour célébrer la victoire.
+Après la saisie d'une donne, un **mème aléatoire** peut apparaître en plein écran pendant 3 secondes. Le système fonctionne en deux étapes :
 
-### Fonctionnement
+1. **40 % de chance** qu'un mème s'affiche (un seul tirage)
+2. Si le tirage passe, un mème est choisi au hasard parmi ceux éligibles, avec un **poids** (les mèmes à poids élevé sont plus probables)
 
-- Le mème s'affiche environ **40 % du temps** lors d'une victoire de l'attaque
-- **Exception** : un petit au bout réussi par l'attaque déclenche **systématiquement** un mème spécial
 - Cliquer ou toucher l'écran permet de **fermer le mème** immédiatement
+- Les mèmes n'apparaissent que lors de la **première saisie** d'une donne, pas lors de la modification
 
-> **Note** : les mèmes n'apparaissent que lors de la **première saisie** d'une donne, pas lors de la modification.
+### Easter egg — Score 42
 
-### Quel mème s'affiche ?
+| Condition | Image | Légende | Poids |
+|-----------|-------|---------|-------|
+| Score saisi = **42** points | Mind Blown | *42 — La réponse à la grande question* | Très élevé |
 
-| Condition | Image | Légende |
-|-----------|-------|---------|
-| Petit au bout attaque (**toujours**) | Success Kid | — |
-| Victoire en solo / appel au roi seul (**toujours**) | Obama se décore | — |
-| Victoire (pool aléatoire) | Borat "Great Success" | — |
-| Victoire (pool aléatoire) | Freddie Mercury Champions | — |
-| Victoire (pool aléatoire) | DiCaprio Toast | — |
-| Victoire (pool aléatoire) | It's Over 9000 | — |
-| Victoire (pool aléatoire) | Pacha (Le point parfait) | — |
+> Référence au *Guide du voyageur galactique* de Douglas Adams — 42 étant la réponse à la grande question sur la vie, l'univers et le reste. Se combine avec les mèmes de victoire ou de défaite dans le pool.
 
-**Ordre de priorité** : petit au bout attaque → victoire en solo → tirage 40 % (sinon rien) → pool aléatoire.
+### Mèmes de victoire
 
----
+| Condition | Image | Poids |
+|-----------|-------|-------|
+| Petit au bout attaque | Success Kid | Élevé |
+| Victoire en solo | Obama se décore | Très élevé |
+| Victoire (pool de base) | Borat "Great Success" | Normal |
+| Victoire (pool de base) | Freddie Mercury Champions | Normal |
+| Victoire (pool de base) | DiCaprio Toast | Normal |
+| Victoire (pool de base) | It's Over 9000 | Normal |
+| Victoire (pool de base) | Pacha (Le point parfait) | Normal |
 
-## Mèmes de défaite
+### Mèmes de défaite
 
-Quand une donne est perdue par l'attaque, un **mème de défaite** peut apparaître en plein écran pendant 3 secondes.
-
-### Fonctionnement
-
-- Le mème s'affiche environ **40 % du temps** lors d'une défaite de l'attaque
-- **Exception** : certaines défaites déclenchent **systématiquement** un mème spécial (voir tableau ci-dessous)
-- Cliquer ou toucher l'écran permet de **fermer le mème** immédiatement
-
-> **Note** : les mèmes n'apparaissent que lors de la **première saisie** d'une donne, pas lors de la modification.
-
-### Quel mème s'affiche ?
-
-| Condition | Image | Légende |
-|-----------|-------|---------|
-| Défaite improbable (**toujours**) : 3 bouts, chelem raté ou garde contre perdue | You Were the Chosen One, Pikachu surpris ou Picard Facepalm (aléatoire) | — |
-| Garde sans perdue (**toujours**) | Crying Michael Jordan | — |
-| Défaite (40 % This is Fine) | This is Fine (chien dans les flammes) | — |
-| Défaite (60 % pool par défaut) | Sad Pablo Escobar | — |
-| Défaite (60 % pool par défaut) | Ah Shit, Here We Go Again (CJ) | — |
-| Défaite (60 % pool par défaut) | Why Are We Still Here? | — |
-
-**Ordre de priorité** : défaite improbable (pikachu/picard) → garde sans (crying jordan) → tirage 40 % (sinon rien) → 40 % This is Fine / 60 % pool aléatoire.
+| Condition | Image | Poids |
+|-----------|-------|-------|
+| 3 bouts, chelem raté ou garde contre perdue | You Were the Chosen One | Très élevé |
+| idem | Picard Facepalm | Élevé |
+| idem | Pikachu surpris | Élevé |
+| Garde sans perdue | Crying Michael Jordan | Élevé |
+| Défaite (pool de base) | This is Fine | Normal |
+| Défaite (pool de base) | Sad Pablo Escobar | Normal |
+| Défaite (pool de base) | Ah Shit, Here We Go Again (CJ) | Normal |
+| Défaite (pool de base) | Why Are We Still Here? | Normal |
 
 ---
 
