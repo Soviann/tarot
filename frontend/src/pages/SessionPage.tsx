@@ -21,7 +21,6 @@ import SwapPlayersModal from "../components/SwapPlayersModal";
 import { FAB, Modal, OverflowMenu, Spinner, UndoFAB } from "../components/ui";
 import type { OverflowMenuItem } from "../components/ui/OverflowMenu";
 import { useAddStar } from "../hooks/useAddStar";
-import { useShake } from "../hooks/useShake";
 import { useAllSessionGames } from "../hooks/useAllSessionGames";
 import { useCloseSession } from "../hooks/useCloseSession";
 import { useCreateGame } from "../hooks/useCreateGame";
@@ -29,9 +28,11 @@ import { usePlayerGroups } from "../hooks/usePlayerGroups";
 import { useReorderPlayers } from "../hooks/useReorderPlayers";
 import { useSession } from "../hooks/useSession";
 import { useSessionGames } from "../hooks/useSessionGames";
+import { useShake } from "../hooks/useShake";
+import { useToast } from "../hooks/useToast";
 import { useUpdateDealer } from "../hooks/useUpdateDealer";
 import { useUpdateSessionGroup } from "../hooks/useUpdateSessionGroup";
-import { useToast } from "../hooks/useToast";
+import { useUpsideDown } from "../hooks/useUpsideDown";
 import { apiFetch } from "../services/api";
 import type { GameContext, MemeConfig } from "../services/memeSelector";
 import { selectMeme } from "../services/memeSelector";
@@ -101,6 +102,9 @@ export default function SessionPage() {
   }, []);
 
   useShake(handleShake, { enabled: !scoresFlipped && !shakeModalOpen });
+
+  // Gyroscope upside-down easter egg
+  const isUpsideDown = useUpsideDown();
 
   const [changeDealerModalOpen, setChangeDealerModalOpen] = useState(false);
   const [changeGroupModalOpen, setChangeGroupModalOpen] = useState(false);
@@ -205,6 +209,7 @@ export default function SessionPage() {
           addStarPending={addStar.isPending}
           cumulativeScores={session.cumulativeScores}
           currentDealerId={session.currentDealer?.id ?? null}
+          isUpsideDown={isUpsideDown}
           onAddStar={(playerId) => {
             setStarPlayerId(playerId);
             addStar.reset();
