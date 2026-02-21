@@ -19,7 +19,9 @@ export const PieChart = ({ children }: { children: React.ReactNode }) => (
   <div data-testid="pie-chart">{children}</div>
 );
 export const ReferenceLine = () => <div data-testid="reference-line" />;
-export const ResponsiveContainer = ({ children }: { children: React.ReactNode }) => <div>{children}</div>;
+export const ResponsiveContainer = ({ children, minWidth }: { children: React.ReactNode; minWidth?: number }) => (
+  <div data-min-width={minWidth} data-testid="responsive-container">{children}</div>
+);
 export const Tooltip = () => <div data-testid="tooltip" />;
 export const XAxis = () => <div data-testid="x-axis" />;
 export const YAxis = () => <div data-testid="y-axis" />;
