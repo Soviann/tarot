@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Service;
 
 use App\Dto\ContractDistributionDto;
+use App\Dto\DateRange;
 use App\Dto\PlayerEloHistoryPointDto;
 use App\Dto\RecentScoreDto;
 use App\Entity\Player;
@@ -51,9 +52,9 @@ final readonly class PlayerStatisticsService
      *
      * @return list<array{date: string, gameId: int, ratingAfter: int, ratingChange: int}>
      */
-    public function getPlayerEloHistory(Player $player, ?int $playerGroupId = null): array
+    public function getPlayerEloHistory(Player $player, ?DateRange $dateRange = null, ?int $playerGroupId = null): array
     {
-        $rows = $this->eloHistoryRepository->getPlayerHistory($player, $playerGroupId);
+        $rows = $this->eloHistoryRepository->getPlayerHistory($player, $dateRange, $playerGroupId);
 
         return \array_map(
             static fn (PlayerEloHistoryPointDto $row) => [
@@ -78,12 +79,12 @@ final readonly class PlayerStatisticsService
      *
      * @return list<array{contract: string|null, date: string, gameId: int|null, sessionId: int|null, type: string, value: int|float}>
      */
-    public function getPlayerRecords(Player $player, ?int $playerGroupId = null): array
+    public function getPlayerRecords(Player $player, ?DateRange $dateRange = null, ?int $playerGroupId = null): array
     {
         $records = [];
 
         // 1. Best score (any role)
-        $bestScore = $this->scoreEntryRepository->getPlayerBestScore($player, $playerGroupId);
+        $bestScore = $this->scoreEntryRepository->getPlayerBestScore($player, $dateRange, $playerGroupId);
         if (null !== $bestScore) {
             $records[] = [
                 'contract' => $bestScore->contract->value,
@@ -96,7 +97,7 @@ final readonly class PlayerStatisticsService
         }
 
         // 2. Worst score (any role)
-        $worstScore = $this->scoreEntryRepository->getPlayerWorstScore($player, $playerGroupId);
+        $worstScore = $this->scoreEntryRepository->getPlayerWorstScore($player, $dateRange, $playerGroupId);
         if (null !== $worstScore) {
             $records[] = [
                 'contract' => $worstScore->contract->value,
@@ -109,7 +110,7 @@ final readonly class PlayerStatisticsService
         }
 
         // 3. Win streak + Biggest diff (as taker)
-        $takerRows = $this->gameRepository->getPlayerTakerGamesForRecords($player, $playerGroupId);
+        $takerRows = $this->gameRepository->getPlayerTakerGamesForRecords($player, $dateRange, $playerGroupId);
 
         if (!empty($takerRows)) {
             // Win streak
@@ -169,7 +170,7 @@ final readonly class PlayerStatisticsService
         }
 
         // 4. Best session total
-        $bestSession = $this->scoreEntryRepository->getPlayerBestSessionTotal($player, $playerGroupId);
+        $bestSession = $this->scoreEntryRepository->getPlayerBestSessionTotal($player, $dateRange, $playerGroupId);
         if (null !== $bestSession) {
             $records[] = [
                 'contract' => null,
@@ -200,22 +201,22 @@ final readonly class PlayerStatisticsService
      *
      * @return array{badges: list<array{description: string, emoji: string, label: string, type: string, unlockedAt: string|null}>, averageGameDurationSeconds: int|null, averageScore: float, bestGameScore: int, contractDistribution: list<array{contract: string, count: int, winRate: float, wins: int}>, eloHistory: list<array{date: string, gameId: int, ratingAfter: int, ratingChange: int}>, eloRating: int, gamesAsDefender: int, gamesAsPartner: int, gamesAsTaker: int, gamesPlayed: int, maxStarsInSession: int, player: array{id: int|null, name: string}, playerGroups: list<array{id: int|null, name: string}>, recentScores: list<array{date: string, gameId: int, score: int, sessionId: int}>, records: list<array{contract: string|null, date: string, sessionId: int|null, type: string, value: int|float}>, sessionsPlayed: int, sessionsWithStars: int, starPenalties: int, starsPerGame: float, starsPerSession: float, totalPlayTimeSeconds: int, totalStars: int, winRateAsTaker: float, worstGameScore: int}
      */
-    public function getPlayerStats(Player $player, ?int $playerGroupId = null): array
+    public function getPlayerStats(Player $player, ?DateRange $dateRange = null, ?int $playerGroupId = null): array
     {
         $playerId = $player->getId();
 
-        $scoreAgg = $this->scoreEntryRepository->getPlayerScoreAggregates($player, $playerGroupId);
+        $scoreAgg = $this->scoreEntryRepository->getPlayerScoreAggregates($player, $dateRange, $playerGroupId);
         $gamesPlayed = $scoreAgg['gamesPlayed'];
 
-        $gamesAsTaker = $this->gameRepository->countPlayerGamesAsTaker($player, $playerGroupId);
-        $gamesAsPartner = $this->gameRepository->countPlayerGamesAsPartner($player, $playerGroupId);
+        $gamesAsTaker = $this->gameRepository->countPlayerGamesAsTaker($player, $dateRange, $playerGroupId);
+        $gamesAsPartner = $this->gameRepository->countPlayerGamesAsPartner($player, $dateRange, $playerGroupId);
         $gamesAsDefender = $gamesPlayed - $gamesAsTaker - $gamesAsPartner;
 
-        $winsAsTaker = $this->gameRepository->countPlayerWinsAsTaker($player, $playerGroupId);
-        $sessionsPlayed = $this->gameRepository->countPlayerDistinctSessions($player, $playerGroupId);
+        $winsAsTaker = $this->gameRepository->countPlayerWinsAsTaker($player, $dateRange, $playerGroupId);
+        $sessionsPlayed = $this->gameRepository->countPlayerDistinctSessions($player, $dateRange, $playerGroupId);
 
-        $contractRows = $this->gameRepository->getPlayerContractDistribution($player, $playerGroupId);
-        $contractWinRows = $this->gameRepository->getPlayerContractWins($player, $playerGroupId);
+        $contractRows = $this->gameRepository->getPlayerContractDistribution($player, $dateRange, $playerGroupId);
+        $contractWinRows = $this->gameRepository->getPlayerContractWins($player, $dateRange, $playerGroupId);
 
         /** @var array<string, int> $contractWins */
         $contractWins = [];
@@ -235,7 +236,7 @@ final readonly class PlayerStatisticsService
             $contractRows,
         );
 
-        $recentScores = $this->scoreEntryRepository->getPlayerRecentScores($player, $playerGroupId, 50);
+        $recentScores = $this->scoreEntryRepository->getPlayerRecentScores($player, $dateRange, $playerGroupId, 50);
         $formattedRecentScores = \array_map(
             static fn (RecentScoreDto $row) => [
                 'date' => $row->date->format(\DateTimeInterface::ATOM),
@@ -246,12 +247,12 @@ final readonly class PlayerStatisticsService
             $recentScores,
         );
 
-        $totalStars = $this->starEventRepository->countByPlayerFiltered($player, $playerGroupId);
+        $totalStars = $this->starEventRepository->countByPlayerFiltered($player, $dateRange, $playerGroupId);
         $starPenalties = (int) \floor($totalStars / 3);
-        $maxStarsInSession = $this->starEventRepository->getMaxStarsInSessionForPlayer($player, $playerGroupId);
-        $sessionsWithStars = $this->starEventRepository->countSessionsWithStarsForPlayer($player, $playerGroupId);
+        $maxStarsInSession = $this->starEventRepository->getMaxStarsInSessionForPlayer($player, $dateRange, $playerGroupId);
+        $sessionsWithStars = $this->starEventRepository->countSessionsWithStarsForPlayer($player, $dateRange, $playerGroupId);
 
-        $durationStats = $this->getPlayerDurationStats($player, $playerGroupId);
+        $durationStats = $this->getPlayerDurationStats($player, $dateRange, $playerGroupId);
 
         return [
             'averageGameDurationSeconds' => $durationStats['averageGameDurationSeconds'],
@@ -259,7 +260,7 @@ final readonly class PlayerStatisticsService
             'badges' => $this->getPlayerBadges($player),
             'bestGameScore' => $scoreAgg['bestGameScore'],
             'contractDistribution' => $contractDistribution,
-            'eloHistory' => $this->getPlayerEloHistory($player, $playerGroupId),
+            'eloHistory' => $this->getPlayerEloHistory($player, $dateRange, $playerGroupId),
             'eloRating' => $player->getEloRating(),
             'gamesAsDefender' => $gamesAsDefender,
             'gamesAsPartner' => $gamesAsPartner,
@@ -272,7 +273,7 @@ final readonly class PlayerStatisticsService
                 $player->getPlayerGroups()->getValues(),
             ),
             'recentScores' => $formattedRecentScores,
-            'records' => $this->getPlayerRecords($player, $playerGroupId),
+            'records' => $this->getPlayerRecords($player, $dateRange, $playerGroupId),
             'sessionsPlayed' => $sessionsPlayed,
             'sessionsWithStars' => $sessionsWithStars,
             'starPenalties' => $starPenalties,
@@ -290,9 +291,9 @@ final readonly class PlayerStatisticsService
      *
      * @return array{averageGameDurationSeconds: int|null, totalPlayTimeSeconds: int}
      */
-    public function getPlayerDurationStats(Player $player, ?int $playerGroupId = null): array
+    public function getPlayerDurationStats(Player $player, ?DateRange $dateRange = null, ?int $playerGroupId = null): array
     {
-        return $this->gameRepository->getPlayerDurationStats($player, $playerGroupId);
+        return $this->gameRepository->getPlayerDurationStats($player, $dateRange, $playerGroupId);
     }
 
     /**

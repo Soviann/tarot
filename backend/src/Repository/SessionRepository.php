@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Repository;
 
+use App\Dto\DateRange;
 use App\Entity\PlayerGroup;
 use App\Entity\Session;
 use App\Enum\GameStatus;
@@ -15,6 +16,8 @@ use Doctrine\Persistence\ManagerRegistry;
  */
 final class SessionRepository extends ServiceEntityRepository
 {
+    use GroupFilterTrait;
+
     public function __construct(ManagerRegistry $registry)
     {
         parent::__construct($registry, Session::class);
@@ -127,10 +130,12 @@ final class SessionRepository extends ServiceEntityRepository
         return $result;
     }
 
-    public function countAll(?int $playerGroupId = null): int
+    public function countAll(?DateRange $dateRange = null, ?int $playerGroupId = null): int
     {
         $qb = $this->createQueryBuilder('s')
             ->select('COUNT(s.id)');
+
+        $this->applyDateFilter($qb, $dateRange, 's', 'createdAt');
 
         if (null !== $playerGroupId) {
             $qb->andWhere('s.playerGroup = :group')

@@ -59,4 +59,49 @@ describe("useGlobalStats", () => {
 
     expect(result.current.stats).toBeNull();
   });
+
+  it("appends from and to query params when provided", async () => {
+    vi.mocked(api.apiFetch).mockResolvedValue(mockStats);
+
+    const { result } = renderHook(
+      () => useGlobalStats(null, "2026-01-01", "2026-02-21"),
+      { wrapper },
+    );
+
+    await waitFor(() => expect(result.current.isSuccess).toBe(true));
+
+    expect(api.apiFetch).toHaveBeenCalledWith(
+      "/statistics?from=2026-01-01&to=2026-02-21",
+    );
+  });
+
+  it("appends from/to together with playerGroup", async () => {
+    vi.mocked(api.apiFetch).mockResolvedValue(mockStats);
+
+    const { result } = renderHook(
+      () => useGlobalStats(5, "2026-01-01", "2026-02-21"),
+      { wrapper },
+    );
+
+    await waitFor(() => expect(result.current.isSuccess).toBe(true));
+
+    expect(api.apiFetch).toHaveBeenCalledWith(
+      "/statistics?from=2026-01-01&playerGroup=5&to=2026-02-21",
+    );
+  });
+
+  it("appends only from when to is null", async () => {
+    vi.mocked(api.apiFetch).mockResolvedValue(mockStats);
+
+    const { result } = renderHook(
+      () => useGlobalStats(null, "2026-01-01", null),
+      { wrapper },
+    );
+
+    await waitFor(() => expect(result.current.isSuccess).toBe(true));
+
+    expect(api.apiFetch).toHaveBeenCalledWith(
+      "/statistics?from=2026-01-01",
+    );
+  });
 });

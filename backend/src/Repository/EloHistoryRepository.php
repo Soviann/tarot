@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Repository;
 
+use App\Dto\DateRange;
 use App\Dto\EloHistoryPointDto;
 use App\Dto\EloRankingEntryDto;
 use App\Dto\PlayerEloHistoryPointDto;
@@ -34,13 +35,14 @@ final class EloHistoryRepository extends ServiceEntityRepository
     /**
      * @return list<EloHistoryPointDto>
      */
-    public function getAllPlayersHistory(?int $playerGroupId = null): array
+    public function getAllPlayersHistory(?DateRange $dateRange = null, ?int $playerGroupId = null): array
     {
         $qb = $this->createQueryBuilder('eh')
             ->select('NEW App\Dto\EloHistoryPointDto(eh.createdAt, IDENTITY(eh.game), p.color, IDENTITY(eh.player), p.name, eh.ratingAfter)')
             ->join('eh.player', 'p')
             ->orderBy('eh.id', 'ASC');
 
+        $this->applyDateFilter($qb, $dateRange, 'eh', 'createdAt');
         $this->applyGroupFilter($qb, $playerGroupId);
 
         /** @var list<EloHistoryPointDto> */
@@ -70,7 +72,7 @@ final class EloHistoryRepository extends ServiceEntityRepository
     /**
      * @return list<PlayerEloHistoryPointDto>
      */
-    public function getPlayerHistory(Player $player, ?int $playerGroupId = null): array
+    public function getPlayerHistory(Player $player, ?DateRange $dateRange = null, ?int $playerGroupId = null): array
     {
         $qb = $this->createQueryBuilder('eh')
             ->select('NEW App\Dto\PlayerEloHistoryPointDto(eh.createdAt, IDENTITY(eh.game), eh.ratingAfter, eh.ratingChange)')
@@ -78,10 +80,28 @@ final class EloHistoryRepository extends ServiceEntityRepository
             ->setParameter('player', $player)
             ->orderBy('eh.id', 'ASC');
 
+        $this->applyDateFilter($qb, $dateRange, 'eh', 'createdAt');
         $this->applyGroupFilter($qb, $playerGroupId);
 
         /** @var list<PlayerEloHistoryPointDto> */
         return $qb->getQuery()->getResult();
+    }
+
+    private function applyDateFilter(\Doctrine\ORM\QueryBuilder $qb, ?DateRange $dateRange, string $alias, string $field): void
+    {
+        if (null === $dateRange) {
+            return;
+        }
+
+        if (null !== $dateRange->from) {
+            $qb->andWhere($alias.'.'.$field.' >= :dateFrom')
+               ->setParameter('dateFrom', $dateRange->from);
+        }
+
+        if (null !== $dateRange->to) {
+            $qb->andWhere($alias.'.'.$field.' <= :dateTo')
+               ->setParameter('dateTo', $dateRange->to);
+        }
     }
 
     private function applyGroupFilter(\Doctrine\ORM\QueryBuilder $qb, ?int $playerGroupId): void
