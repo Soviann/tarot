@@ -31,6 +31,7 @@ Le format est basé sur [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/)
 
 ### Fixed
 
+- **Favicon** : remplacement du favicon manquant (`vite.svg`) par l'image de la carte d'excuse au format PNG 32×32.
 - **Annulation de donne (undo)** : l'annulation d'une donne via le bouton undo n'avait aucune gestion d'erreur. En cas d'échec de l'appel API, un rejet de promesse non capturé était produit silencieusement. Un try/catch avec toast d'erreur a été ajouté.
 - **Boutons de modification de la dernière donne** : les boutons « Modifier » et « Supprimer » restaient visibles et actifs sur une session clôturée. Ils sont désormais masqués lorsque la session est terminée.
 - **Graphe d'évolution des scores** : les scores cumulés étaient calculés uniquement à partir des donnes chargées (10 par page), faussant le graphe pour les sessions de plus de 10 donnes. Le graphe utilise désormais toutes les donnes de la session.
