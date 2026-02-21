@@ -1,6 +1,7 @@
 import { RotateCcw } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import type { useCreateGame } from "../hooks/useCreateGame";
+import { useResetOnOpen } from "../hooks/useResetOnOpen";
 import { useToast } from "../hooks/useToast";
 import type { GamePlayer } from "../types/api";
 import { Contract } from "../types/enums";
@@ -28,13 +29,11 @@ export default function NewGameModal({ createGame, currentDealerName, lastGameCo
   const [selectedTakerId, setSelectedTakerId] = useState<number | null>(null);
   const { toast } = useToast();
 
-  useEffect(() => {
-    if (open) {
-      setSelectedContract(null);
-      setSelectedTakerId(null);
-      createGame.reset();
-    }
-  }, [open]); // eslint-disable-line react-hooks/exhaustive-deps
+  useResetOnOpen(open, () => {
+    setSelectedContract(null);
+    setSelectedTakerId(null);
+    createGame.reset();
+  });
 
   const canSubmit = selectedTakerId !== null && selectedContract !== null && !createGame.isPending;
 
