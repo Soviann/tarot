@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Tests\Api;
 
 use App\Entity\Game;
+use App\Entity\Player;
 use App\Entity\ScoreEntry;
 use App\Enum\Contract;
 use App\Enum\GameStatus;
@@ -482,7 +483,7 @@ class SessionApiTest extends ApiTestCase
     {
         $session = $this->createSessionWithPlayers('Alice', 'Bob', 'Charlie', 'Diana', 'Eve');
         $players = $session->getPlayers()->toArray();
-        $playerIds = \array_map(static fn (\App\Entity\Player $p): ?int => $p->getId(), $players);
+        $playerIds = \array_map(static fn (Player $p): ?int => $p->getId(), $players);
 
         // Custom order: reverse (Eve, Diana, Charlie, Bob, Alice)
         $reversed = \array_reverse($playerIds);
