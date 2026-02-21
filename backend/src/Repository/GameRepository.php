@@ -10,6 +10,7 @@ use App\Dto\ContractWinsByPlayerDto;
 use App\Dto\ContractWinsDto;
 use App\Dto\PlayerCountDto;
 use App\Dto\PlayerWithCountDto;
+use App\Dto\TakerGameDetailDto;
 use App\Dto\TakerGameRecordDto;
 use App\Entity\Game;
 use App\Entity\Player;
@@ -469,6 +470,104 @@ final class GameRepository extends ServiceEntityRepository
         $map = \array_fill_keys($playerIds, []);
         foreach ($results as $row) {
             $map[(int) $row['playerId']][] = (int) $row['score'];
+        }
+
+        return $map;
+    }
+
+    /**
+     * @param list<int>    $playerIds
+     * @param list<Chelem> $chelemValues
+     *
+     * @return array<int, int> playerId => count
+     */
+    public function countByTakerAndAnnouncedChelemForPlayers(array $playerIds, array $chelemValues): array
+    {
+        if ([] === $playerIds) {
+            return [];
+        }
+
+        /** @var list<array{count: int|string, playerId: int|string}> $results */
+        $results = $this->createQueryBuilder('g')
+            ->select('IDENTITY(g.taker) AS playerId', 'COUNT(g.id) AS count')
+            ->andWhere('g.taker IN (:playerIds)')
+            ->andWhere('g.status = :status')
+            ->andWhere('g.chelem IN (:chelemValues)')
+            ->setParameter('chelemValues', $chelemValues)
+            ->setParameter('playerIds', $playerIds)
+            ->setParameter('status', GameStatus::Completed)
+            ->groupBy('g.taker')
+            ->getQuery()
+            ->getResult();
+
+        $map = \array_fill_keys($playerIds, 0);
+        foreach ($results as $row) {
+            $map[(int) $row['playerId']] = (int) $row['count'];
+        }
+
+        return $map;
+    }
+
+    /**
+     * @param list<int> $playerIds
+     *
+     * @return array<int, int> playerId => count of games where chelem = NotAnnouncedWon
+     */
+    public function countSurpriseChelemForPlayers(array $playerIds): array
+    {
+        return $this->countByTakerAndChelemForPlayers($playerIds, Chelem::NotAnnouncedWon);
+    }
+
+    /**
+     * @param list<int> $playerIds
+     *
+     * @return array<int, list<TakerGameDetailDto>> playerId => taker game details
+     */
+    public function getTakerGameDetailsForPlayers(array $playerIds): array
+    {
+        if ([] === $playerIds) {
+            return [];
+        }
+
+        /** @var list<array{chelem: string, contract: string, gameId: int|string, oudlers: int|string, partnerId: int|string|null, playerId: int|string, poignee: string, poigneeOwner: string, points: float|int|string, takerScore: int|string}> $results */
+        $results = $this->createQueryBuilder('g')
+            ->select(
+                'g.chelem AS chelem',
+                'g.contract AS contract',
+                'g.id AS gameId',
+                'g.oudlers AS oudlers',
+                'IDENTITY(g.partner) AS partnerId',
+                'IDENTITY(g.taker) AS playerId',
+                'g.poignee AS poignee',
+                'g.poigneeOwner AS poigneeOwner',
+                'g.points AS points',
+                'se.score AS takerScore',
+            )
+            ->join('g.scoreEntries', 'se')
+            ->andWhere('g.taker IN (:playerIds)')
+            ->andWhere('g.status = :status')
+            ->andWhere('se.player = g.taker')
+            ->setParameter('playerIds', $playerIds)
+            ->setParameter('status', GameStatus::Completed)
+            ->orderBy('g.createdAt', 'ASC')
+            ->getQuery()
+            ->getResult();
+
+        /** @var array<int, list<TakerGameDetailDto>> $map */
+        $map = \array_fill_keys($playerIds, []);
+        foreach ($results as $row) {
+            $map[(int) $row['playerId']][] = new TakerGameDetailDto(
+                $row['chelem'],
+                $row['contract'],
+                $row['gameId'],
+                $row['oudlers'],
+                $row['partnerId'],
+                $row['poignee'],
+                $row['poigneeOwner'],
+                $row['points'],
+                (int) $row['playerId'],
+                $row['takerScore'],
+            );
         }
 
         return $map;

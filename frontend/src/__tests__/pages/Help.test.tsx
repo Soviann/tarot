@@ -90,27 +90,49 @@ describe("Help", () => {
     await user.click(badgesButton);
 
     const expectedBadges = [
+      // Progression
       { emoji: "🎮", label: "Première donne", description: "Jouer sa première donne" },
       { emoji: "💯", label: "Centurion", description: "Jouer 100 donnes" },
       { emoji: "🔟", label: "Habitué", description: "Jouer 10 sessions" },
+      { emoji: null, label: "Attrapez-les tous", description: "Obtenir tous les autres badges" },
+      // Performance
       { emoji: "🔥", label: "Inarrêtable", description: "5 victoires consécutives comme preneur" },
       { emoji: "👑", label: "Premier Chelem", description: "Réussir un Chelem annoncé" },
       { emoji: "⚔️", label: "Kamikaze", description: "Tenter une Garde Contre" },
       { emoji: "🎯", label: "Sans filet", description: "Réussir une Garde Sans" },
       { emoji: "🃏", label: "Petit malin", description: "Réussir 5 Petits au bout" },
       { emoji: "🛡️", label: "Muraille", description: "10 victoires en défense d'affilée" },
+      { emoji: "🎲", label: "Audacieux", description: "Tenter un chelem annoncé" },
+      { emoji: "🏆", label: "Garde contre réussie", description: "Réussir une garde contre" },
+      { emoji: "🎩", label: "Chelem surprise", description: "Réussir un chelem non annoncé" },
+      { emoji: "🤲", label: "Poignée triple", description: "Déclarer une poignée triple" },
+      { emoji: "🤙", label: "Auto-appel", description: "Gagner en s'appelant soi-même" },
+      { emoji: "💪", label: "Confortable +10", description: "Gagner à +10 points du contrat" },
+      { emoji: "🦾", label: "Confortable +20", description: "Gagner à +20 points du contrat" },
+      { emoji: "🔥", label: "Confortable +30", description: "Gagner à +30 points du contrat" },
+      { emoji: "🌋", label: "Confortable +40", description: "Gagner à +40 points du contrat" },
+      { emoji: "☀️", label: "Confortable +50", description: "Gagner à +50 points du contrat" },
+      // Fun
       { emoji: "📈", label: "Comeback", description: "Remonter de dernier à premier en une session" },
       { emoji: "💀", label: "Lanterne rouge", description: "Finir dernier 5 fois" },
       { emoji: "⭐", label: "Collectionneur d'étoiles", description: "Recevoir 10 étoiles" },
+      { emoji: "😓", label: "Si près du but", description: "Perdre à moins de 2 points du contrat" },
+      { emoji: "🤦", label: "3 bouts pour rien", description: "Perdre avec 3 bouts" },
+      { emoji: "📉", label: "Série noire", description: "5 défaites consécutives comme preneur" },
+      { emoji: "🌟", label: "Étoile montante", description: "Recevoir 20 étoiles" },
+      { emoji: "☄️", label: "Pluie d'étoiles", description: "3 étoiles en moins de 2 heures" },
+      // Social
       { emoji: "⏰", label: "Marathon", description: "Jouer une session de plus de 3 heures" },
       { emoji: "🌙", label: "Noctambule", description: "Jouer une donne après minuit" },
       { emoji: "👥", label: "Sociable", description: "Jouer avec 10 joueurs différents" },
     ];
 
     for (const badge of expectedBadges) {
-      expect(screen.getByText(badge.emoji)).toBeInTheDocument();
-      expect(screen.getByText(badge.label)).toBeInTheDocument();
-      expect(screen.getByText(badge.description)).toBeInTheDocument();
+      if (badge.emoji) {
+        expect(screen.getAllByText(badge.emoji).length).toBeGreaterThanOrEqual(1);
+      }
+      expect(screen.getAllByText(badge.label).length).toBeGreaterThanOrEqual(1);
+      expect(screen.getAllByText(badge.description).length).toBeGreaterThanOrEqual(1);
     }
   });
 

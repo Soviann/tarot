@@ -8,6 +8,7 @@ Le format est basé sur [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/)
 
 ### Added
 
+- **18 nouveaux badges** : Garde contre réussie, 3 bouts pour rien, Si près du but, Confortable +10/+20/+30/+40/+50, Étoile montante, Pluie d'étoiles, Chelem surprise, Poignée triple, Zéro bout, Auto-appel, Série noire, Audacieux, Attrapez-les tous, et un badge secret Konami (easter egg sur la page stats joueur).
 - **Numéro de donne** : chaque donne dans l'historique affiche désormais son numéro séquentiel (#1, #2, #3…) pour une identification rapide.
 - **Logs Symfony (Monolog)** : ajout de `symfony/monolog-bundle` avec fichiers rotatifs en production (14 jours de rétention dans `var/log/`), pour diagnostiquer les erreurs 500.
 - **Statistiques d'étoiles** : nouvelle section « Étoiles » sur la page de statistiques joueur, avec nombre total, pénalités, ratio par donne et par session, record en une session et nombre de sessions avec étoiles.

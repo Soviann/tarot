@@ -12,12 +12,14 @@ use App\Entity\Session;
 use App\Enum\BadgeType;
 use App\Enum\Chelem;
 use App\Enum\Contract;
+use App\Enum\Poignee;
 use App\Enum\Side;
 use App\Repository\GameRepository;
 use App\Repository\PlayerBadgeRepository;
 use App\Repository\ScoreEntryRepository;
 use App\Repository\SessionRepository;
 use App\Repository\StarEventRepository;
+use App\Service\Scoring\ScoreCalculator;
 use Doctrine\ORM\EntityManagerInterface;
 
 /**
@@ -82,6 +84,9 @@ final readonly class BadgeChecker
             $newBadges = [];
 
             foreach (BadgeType::cases() as $badgeType) {
+                if (BadgeType::CatchThemAll === $badgeType || BadgeType::Konami === $badgeType) {
+                    continue;
+                }
                 if (\in_array($badgeType, $existing, true)) {
                     continue;
                 }
@@ -91,6 +96,18 @@ final readonly class BadgeChecker
                     $badge->setPlayer($player);
                     $this->em->persist($badge);
                     $newBadges[] = $badgeType;
+                }
+            }
+
+            // CatchThemAll: check after all other badges
+            if (!\in_array(BadgeType::CatchThemAll, $existing, true)) {
+                $allTypes = \array_merge($existing, $newBadges);
+                if ($this->checkCatchThemAll($allTypes)) {
+                    $badge = new PlayerBadge();
+                    $badge->setBadgeType(BadgeType::CatchThemAll);
+                    $badge->setPlayer($player);
+                    $this->em->persist($badge);
+                    $newBadges[] = BadgeType::CatchThemAll;
                 }
             }
 
@@ -123,6 +140,9 @@ final readonly class BadgeChecker
 
         $newBadges = [];
         foreach (BadgeType::cases() as $badgeType) {
+            if (BadgeType::CatchThemAll === $badgeType || BadgeType::Konami === $badgeType) {
+                continue;
+            }
             if (\in_array($badgeType, $existingTypes, true)) {
                 continue;
             }
@@ -132,6 +152,18 @@ final readonly class BadgeChecker
                 $badge->setPlayer($player);
                 $this->em->persist($badge);
                 $newBadges[] = $badgeType;
+            }
+        }
+
+        // CatchThemAll: check after all other badges
+        if (!\in_array(BadgeType::CatchThemAll, $existingTypes, true)) {
+            $allTypes = \array_merge($existingTypes, $newBadges);
+            if ($this->checkCatchThemAll($allTypes)) {
+                $badge = new PlayerBadge();
+                $badge->setBadgeType(BadgeType::CatchThemAll);
+                $badge->setPlayer($player);
+                $this->em->persist($badge);
+                $newBadges[] = BadgeType::CatchThemAll;
             }
         }
 
@@ -151,6 +183,7 @@ final readonly class BadgeChecker
      */
     private function buildContexts(array $playerIds): array
     {
+        $announcedChelemCounts = $this->gameRepository->countByTakerAndAnnouncedChelemForPlayers($playerIds, [Chelem::AnnouncedWon, Chelem::AnnouncedLost]);
         $chelemCounts = $this->gameRepository->countByTakerAndChelemForPlayers($playerIds, Chelem::AnnouncedWon);
         $completedCounts = $this->scoreEntryRepository->countCompletedGameEntriesForPlayers($playerIds);
         $coPlayerCounts = $this->sessionRepository->countDistinctCoPlayersForPlayers($playerIds);
@@ -158,16 +191,21 @@ final readonly class BadgeChecker
         $distinctSessionIds = $this->scoreEntryRepository->getDistinctCompletedSessionIdsForPlayers($playerIds);
         $gardeContreCounts = $this->gameRepository->countByTakerAndContractForPlayers($playerIds, Contract::GardeContre);
         $gamesWithTakerScore = $this->scoreEntryRepository->getGamesWithTakerScoreForPlayers($playerIds);
+        $hasStarShower = $this->starEventRepository->hasStarShowerForPlayers($playerIds);
         $marathonSessionIds = $this->gameRepository->getMarathonSessionsForPlayers($playerIds, 3 * 3600);
         $nightOwlCounts = $this->scoreEntryRepository->countNightOwlGamesForPlayers($playerIds);
         $starEventCounts = $this->starEventRepository->countByPlayers($playerIds);
+        $surpriseChelemCounts = $this->gameRepository->countSurpriseChelemForPlayers($playerIds);
+        $takerGameDetails = $this->gameRepository->getTakerGameDetailsForPlayers($playerIds);
         $takerScores = $this->gameRepository->getTakerScoresForPlayers($playerIds);
+        $wonGardeContreCounts = $this->gameRepository->countWonGamesWithContractForPlayers($playerIds, Contract::GardeContre);
         $wonGardeSansCounts = $this->gameRepository->countWonGamesWithContractForPlayers($playerIds, Contract::GardeSans);
         $wonPetitAuBoutAttackCounts = $this->gameRepository->countWonGamesWithPetitAuBoutForPlayers($playerIds, Side::Attack);
 
         $contexts = [];
         foreach ($playerIds as $playerId) {
             $contexts[$playerId] = new BadgeCheckContext(
+                announcedChelemCount: $announcedChelemCounts[$playerId] ?? 0,
                 chelemAnnouncedWonCount: $chelemCounts[$playerId] ?? 0,
                 coPlayerCount: $coPlayerCounts[$playerId] ?? 0,
                 completedGameCount: $completedCounts[$playerId] ?? 0,
@@ -175,10 +213,14 @@ final readonly class BadgeChecker
                 distinctSessionCount: $distinctSessionCounts[$playerId] ?? 0,
                 gardeContreCount: $gardeContreCounts[$playerId] ?? 0,
                 gamesWithTakerScore: $gamesWithTakerScore[$playerId] ?? [],
+                hasStarShower: $hasStarShower[$playerId] ?? false,
                 marathonSessionIds: $marathonSessionIds[$playerId] ?? [],
                 nightOwlCount: $nightOwlCounts[$playerId] ?? 0,
                 starEventCount: $starEventCounts[$playerId] ?? 0,
+                surpriseChelemCount: $surpriseChelemCounts[$playerId] ?? 0,
+                takerGameDetails: $takerGameDetails[$playerId] ?? [],
                 takerScores: $takerScores[$playerId] ?? [],
+                wonGardeContreCount: $wonGardeContreCounts[$playerId] ?? 0,
                 wonGardeSansCount: $wonGardeSansCounts[$playerId] ?? 0,
                 wonPetitAuBoutAttackCount: $wonPetitAuBoutAttackCounts[$playerId] ?? 0,
             );
@@ -218,22 +260,66 @@ final readonly class BadgeChecker
         array $sessionScoreSums,
     ): bool {
         return match ($badgeType) {
+            BadgeType::Audacious => $this->checkAudacious($context),
+            BadgeType::CatchThemAll, BadgeType::Konami => false,
             BadgeType::Centurion => $this->checkCenturion($context),
             BadgeType::ChampionStreak => $this->checkChampionStreak($context),
+            BadgeType::CloseCall => $this->checkCloseCall($context),
+            BadgeType::Comfortable10 => $this->checkComfortable($context, 10),
+            BadgeType::Comfortable20 => $this->checkComfortable($context, 20),
+            BadgeType::Comfortable30 => $this->checkComfortable($context, 30),
+            BadgeType::Comfortable40 => $this->checkComfortable($context, 40),
+            BadgeType::Comfortable50 => $this->checkComfortable($context, 50),
             BadgeType::Comeback => $this->checkComeback($player, $context, $sessionEntries),
             BadgeType::FirstChelem => $this->checkFirstChelem($context),
             BadgeType::FirstGame => $this->checkFirstGame($context),
+            BadgeType::GardeContreWon => $this->checkGardeContreWon($context),
             BadgeType::Kamikaze => $this->checkKamikaze($context),
             BadgeType::LastPlace => $this->checkLastPlace($player, $context, $sessionScoreSums),
+            BadgeType::LosingStreak => $this->checkLosingStreak($context),
             BadgeType::Marathon => $this->checkMarathon($context),
             BadgeType::NightOwl => $this->checkNightOwl($context),
             BadgeType::NoNet => $this->checkNoNet($context),
             BadgeType::PetitMalin => $this->checkPetitMalin($context),
             BadgeType::Regular => $this->checkRegular($context),
+            BadgeType::RisingStar => $this->checkRisingStar($context),
+            BadgeType::SelfCaller => $this->checkSelfCaller($context),
             BadgeType::Social => $this->checkSocial($context),
             BadgeType::StarCollector => $this->checkStarCollector($context),
+            BadgeType::StarShower => $this->checkStarShower($context),
+            BadgeType::SurpriseChelem => $this->checkSurpriseChelem($context),
+            BadgeType::ThreeOutlersLoss => $this->checkThreeOutlersLoss($context),
+            BadgeType::TriplePoignee => $this->checkTriplePoignee($player, $context),
             BadgeType::Wall => $this->checkWall($player, $context),
+            BadgeType::ZeroBout => $this->checkZeroBout($context),
         };
+    }
+
+    /**
+     * Player attempted an announced chelem (won or lost).
+     */
+    private function checkAudacious(BadgeCheckContext $context): bool
+    {
+        return $context->announcedChelemCount >= 1;
+    }
+
+    /**
+     * Player has all other badges except CatchThemAll.
+     *
+     * @param list<BadgeType> $allTypes
+     */
+    private function checkCatchThemAll(array $allTypes): bool
+    {
+        foreach (BadgeType::cases() as $badgeType) {
+            if (BadgeType::CatchThemAll === $badgeType) {
+                continue;
+            }
+            if (!\in_array($badgeType, $allTypes, true)) {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     /**
@@ -252,6 +338,49 @@ final readonly class BadgeChecker
         $games = \array_map(static fn (int $score): array => ['score' => $score], $context->takerScores);
 
         return $this->maxStreak($games, static fn (array $game): bool => $game['score'] > 0) >= 5;
+    }
+
+    /**
+     * Taker lost by less than 2 points of the required contract.
+     */
+    private function checkCloseCall(BadgeCheckContext $context): bool
+    {
+        foreach ($context->takerGameDetails as $game) {
+            if ($game->takerScore >= 0) {
+                continue;
+            }
+            $required = ScoreCalculator::REQUIRED_POINTS[$game->oudlers] ?? null;
+            if (null === $required) {
+                continue;
+            }
+            $deficit = $required - $game->points;
+            if ($deficit > 0 && $deficit < 2) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * Taker won by more than $threshold points above required.
+     */
+    private function checkComfortable(BadgeCheckContext $context, int $threshold): bool
+    {
+        foreach ($context->takerGameDetails as $game) {
+            if ($game->takerScore <= 0) {
+                continue;
+            }
+            $required = ScoreCalculator::REQUIRED_POINTS[$game->oudlers] ?? null;
+            if (null === $required) {
+                continue;
+            }
+            if (($game->points - $required) > $threshold) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     /**
@@ -343,6 +472,14 @@ final readonly class BadgeChecker
     }
 
     /**
+     * Taker won a GardeContre.
+     */
+    private function checkGardeContreWon(BadgeCheckContext $context): bool
+    {
+        return $context->wonGardeContreCount >= 1;
+    }
+
+    /**
      * Player was taker in a GardeContre game.
      */
     private function checkKamikaze(BadgeCheckContext $context): bool
@@ -377,6 +514,16 @@ final readonly class BadgeChecker
         }
 
         return $scores[0]->playerId === $player->getId();
+    }
+
+    /**
+     * Player had >= 5 consecutive losses as taker.
+     */
+    private function checkLosingStreak(BadgeCheckContext $context): bool
+    {
+        $games = \array_map(static fn (int $score): array => ['score' => $score], $context->takerScores);
+
+        return $this->maxStreak($games, static fn (array $game): bool => $game['score'] < 0) >= 5;
     }
 
     /**
@@ -420,6 +567,28 @@ final readonly class BadgeChecker
     }
 
     /**
+     * Player received >= 20 stars.
+     */
+    private function checkRisingStar(BadgeCheckContext $context): bool
+    {
+        return $context->starEventCount >= 20;
+    }
+
+    /**
+     * Taker won while calling themselves (no partner).
+     */
+    private function checkSelfCaller(BadgeCheckContext $context): bool
+    {
+        foreach ($context->takerGameDetails as $game) {
+            if (null === $game->partnerId && $game->takerScore > 0) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
      * Player played with >= 10 distinct other players (in sessions with completed games).
      */
     private function checkSocial(BadgeCheckContext $context): bool
@@ -433,6 +602,65 @@ final readonly class BadgeChecker
     private function checkStarCollector(BadgeCheckContext $context): bool
     {
         return $context->starEventCount >= 10;
+    }
+
+    /**
+     * Player received 3 stars within a 2-hour window.
+     */
+    private function checkStarShower(BadgeCheckContext $context): bool
+    {
+        return $context->hasStarShower;
+    }
+
+    /**
+     * Taker achieved a non-announced chelem.
+     */
+    private function checkSurpriseChelem(BadgeCheckContext $context): bool
+    {
+        return $context->surpriseChelemCount >= 1;
+    }
+
+    /**
+     * Taker lost with 3 oudlers.
+     */
+    private function checkThreeOutlersLoss(BadgeCheckContext $context): bool
+    {
+        foreach ($context->takerGameDetails as $game) {
+            if (3 === $game->oudlers && $game->takerScore < 0) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * Player declared a triple poignée (as taker or defense).
+     */
+    private function checkTriplePoignee(Player $player, BadgeCheckContext $context): bool
+    {
+        $playerId = $player->getId();
+
+        // Check taker games: player is taker, poignee=Triple, poigneeOwner=Attack
+        foreach ($context->takerGameDetails as $game) {
+            if (Poignee::Triple->value === $game->poignee && Side::Attack->value === $game->poigneeOwner) {
+                return true;
+            }
+        }
+
+        // Check all games (including defense): poignee=Triple, poigneeOwner=Defense, player is on defense
+        foreach ($context->gamesWithTakerScore as $game) {
+            if (Poignee::Triple->value !== $game->poignee || Side::Defense->value !== $game->poigneeOwner) {
+                continue;
+            }
+            $isDefense = $game->takerId !== $playerId
+                && (null === $game->partnerId || $game->partnerId !== $playerId);
+            if ($isDefense) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     /**
@@ -459,6 +687,20 @@ final readonly class BadgeChecker
         }
 
         return $max >= 10;
+    }
+
+    /**
+     * Taker won with 0 oudlers.
+     */
+    private function checkZeroBout(BadgeCheckContext $context): bool
+    {
+        foreach ($context->takerGameDetails as $game) {
+            if (0 === $game->oudlers && $game->takerScore > 0) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     /**
