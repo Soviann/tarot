@@ -1,15 +1,17 @@
 import { ArrowLeft, ChevronDown, ExternalLink } from "lucide-react";
 import { type ReactNode, useId, useState } from "react";
 import { Link } from "react-router-dom";
+import BadgeEmoji from "../components/BadgeEmoji";
 
 // Source : backend/src/Enum/BadgeType.php — mettre à jour si les badges changent.
-const BADGE_CATEGORIES: { category: string; badges: { description: string; emoji: string; label: string }[] }[] = [
+const BADGE_CATEGORIES: { category: string; badges: { description: string; emoji: string; label: string; type?: string }[] }[] = [
   {
     category: "Progression",
     badges: [
       { description: "Jouer sa première donne", emoji: "🎮", label: "Première donne" },
       { description: "Jouer 100 donnes", emoji: "💯", label: "Centurion" },
       { description: "Jouer 10 sessions", emoji: "🔟", label: "Habitué" },
+      { description: "Obtenir tous les autres badges", emoji: "⚾", label: "Attrapez-les tous", type: "catch_them_all" },
     ],
   },
   {
@@ -21,6 +23,17 @@ const BADGE_CATEGORIES: { category: string; badges: { description: string; emoji
       { description: "Réussir une Garde Sans", emoji: "🎯", label: "Sans filet" },
       { description: "Réussir 5 Petits au bout", emoji: "🃏", label: "Petit malin" },
       { description: "10 victoires en défense d'affilée", emoji: "🛡️", label: "Muraille" },
+      { description: "Tenter un chelem annoncé", emoji: "🎲", label: "Audacieux" },
+      { description: "Réussir une garde contre", emoji: "🏆", label: "Garde contre réussie" },
+      { description: "Réussir un chelem non annoncé", emoji: "🎩", label: "Chelem surprise" },
+      { description: "Déclarer une poignée triple", emoji: "🤲", label: "Poignée triple" },
+      { description: "Gagner avec 0 bout", emoji: "🎯", label: "Zéro bout" },
+      { description: "Gagner en s'appelant soi-même", emoji: "🤙", label: "Auto-appel" },
+      { description: "Gagner à +10 points du contrat", emoji: "💪", label: "Confortable +10" },
+      { description: "Gagner à +20 points du contrat", emoji: "🦾", label: "Confortable +20" },
+      { description: "Gagner à +30 points du contrat", emoji: "🔥", label: "Confortable +30" },
+      { description: "Gagner à +40 points du contrat", emoji: "🌋", label: "Confortable +40" },
+      { description: "Gagner à +50 points du contrat", emoji: "☀️", label: "Confortable +50" },
     ],
   },
   {
@@ -29,6 +42,11 @@ const BADGE_CATEGORIES: { category: string; badges: { description: string; emoji
       { description: "Remonter de dernier à premier en une session", emoji: "📈", label: "Comeback" },
       { description: "Finir dernier 5 fois", emoji: "💀", label: "Lanterne rouge" },
       { description: "Recevoir 10 étoiles", emoji: "⭐", label: "Collectionneur d'étoiles" },
+      { description: "Perdre à moins de 2 points du contrat", emoji: "😓", label: "Si près du but" },
+      { description: "Perdre avec 3 bouts", emoji: "🤦", label: "3 bouts pour rien" },
+      { description: "5 défaites consécutives comme preneur", emoji: "📉", label: "Série noire" },
+      { description: "Recevoir 20 étoiles", emoji: "🌟", label: "Étoile montante" },
+      { description: "3 étoiles en moins de 2 heures", emoji: "☄️", label: "Pluie d'étoiles" },
     ],
   },
   {
@@ -390,7 +408,7 @@ export default function Help() {
               <div className="mt-2 space-y-2">
                 {badges.map((badge) => (
                   <div key={badge.label} className="flex items-start gap-3">
-                    <span className="text-xl">{badge.emoji}</span>
+                    <BadgeEmoji className="text-xl" emoji={badge.emoji} type={badge.type ?? ""} />
                     <div>
                       <span className="text-sm font-medium text-text-primary">{badge.label}</span>
                       <p className="text-xs text-text-muted">{badge.description}</p>

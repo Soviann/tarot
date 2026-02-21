@@ -1,15 +1,19 @@
-import { useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { Link, useNavigate, useParams, useSearchParams } from "react-router-dom";
 import NotFound from "./NotFound";
 import BadgeGrid from "../components/BadgeGrid";
+import BadgeUnlockedModal from "../components/BadgeUnlockedModal";
 import ContractDistributionChart from "../components/ContractDistributionChart";
 import EloEvolutionChart from "../components/EloEvolutionChart";
 import GroupFilter from "../components/GroupFilter";
 import PersonalRecords from "../components/PersonalRecords";
 import ScoreTrendChart from "../components/ScoreTrendChart";
 import { PlayerAvatar, Select, Spinner } from "../components/ui";
+import { useAwardKonamiBadge } from "../hooks/useAwardKonamiBadge";
+import { useKonamiCode } from "../hooks/useKonamiCode";
 import { usePlayerStats } from "../hooks/usePlayerStats";
 import { formatDuration } from "../utils/formatDuration";
+import type { Badge } from "../types/api";
 
 type PlayerStatsSection = "badges" | "contracts" | "elo" | "records" | "roles" | "scores" | "stars";
 
@@ -32,6 +36,21 @@ export default function PlayerStats() {
   const [selectedSection, setSelectedSection] = useState<PlayerStatsSection>("records");
   const playerId = Number(id);
   const { isPending, stats } = usePlayerStats(playerId, selectedGroupId);
+  const konamiMutation = useAwardKonamiBadge(playerId);
+  const [konamiBadges, setKonamiBadges] = useState<Badge[] | null>(null);
+
+  const onKonamiComplete = useCallback(() => {
+    konamiMutation.mutate(undefined, {
+      onSuccess: (data) => {
+        if (data?.badge) {
+          const allBadges = [data.badge, ...data.newBadges];
+          setKonamiBadges(allBadges);
+        }
+      },
+    });
+  }, [konamiMutation]);
+
+  const { onClick: onAvatarClick } = useKonamiCode(onKonamiComplete);
 
   const rolesTotal = stats ? stats.gamesAsTaker + stats.gamesAsPartner + stats.gamesAsDefender : 0;
 
@@ -91,7 +110,9 @@ export default function PlayerStats() {
             />
           </svg>
         </button>
-        <PlayerAvatar color={stats.player.color} name={stats.player.name} playerId={stats.player.id} size="lg" />
+        <div onClick={onAvatarClick} role="presentation">
+          <PlayerAvatar color={stats.player.color} name={stats.player.name} playerId={stats.player.id} size="lg" />
+        </div>
         <h1 className="text-xl font-bold text-text-primary">{stats.player.name}</h1>
         <div className="ml-auto">
           <GroupFilter onChange={setSelectedGroupId} value={selectedGroupId} />
@@ -223,6 +244,15 @@ export default function PlayerStats() {
           </h2>
           <EloEvolutionChart data={stats.eloHistory} />
         </section>
+      )}
+
+      {konamiBadges && (
+        <BadgeUnlockedModal
+          newBadges={{ [playerId]: konamiBadges }}
+          onClose={() => setKonamiBadges(null)}
+          open
+          players={[{ color: stats.player.color, id: stats.player.id, name: stats.player.name }]}
+        />
       )}
     </div>
   );

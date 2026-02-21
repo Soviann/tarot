@@ -81,6 +81,42 @@ final class StarEventRepository extends ServiceEntityRepository
         return $result;
     }
 
+    /**
+     * @param list<int> $playerIds
+     *
+     * @return array<int, bool> playerId => has star shower (3 stars within 2 hours)
+     */
+    public function hasStarShowerForPlayers(array $playerIds): array
+    {
+        if ([] === $playerIds) {
+            return [];
+        }
+
+        $conn = $this->getEntityManager()->getConnection();
+
+        $sql = <<<'SQL'
+            SELECT DISTINCT se1.player_id
+            FROM star_event se1
+            INNER JOIN star_event se2 ON se1.player_id = se2.player_id
+                AND se1.id != se2.id
+                AND se2.created_at >= se1.created_at
+                AND TIMESTAMPDIFF(SECOND, se1.created_at, se2.created_at) <= 7200
+            WHERE se1.player_id IN (:playerIds)
+            GROUP BY se1.player_id, se1.id
+            HAVING COUNT(DISTINCT se2.id) >= 2
+            SQL;
+
+        /** @var list<array{player_id: int|string}> $results */
+        $results = $conn->executeQuery($sql, ['playerIds' => $playerIds], ['playerIds' => \Doctrine\DBAL\ArrayParameterType::INTEGER])->fetchAllAssociative();
+
+        $map = \array_fill_keys($playerIds, false);
+        foreach ($results as $row) {
+            $map[(int) $row['player_id']] = true;
+        }
+
+        return $map;
+    }
+
     public function countByPlayerFiltered(Player $player, ?int $playerGroupId = null): int
     {
         $qb = $this->createQueryBuilder('se')
