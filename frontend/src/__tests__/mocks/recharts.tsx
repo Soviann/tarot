@@ -1,0 +1,25 @@
+/**
+ * Shared Recharts mock for jsdom tests.
+ *
+ * Usage in test files:
+ *   vi.mock("recharts", () => import("../mocks/recharts"));
+ *   // or from deeper paths:
+ *   vi.mock("recharts", () => import("../../mocks/recharts"));
+ */
+export const Cell = ({ fill }: { fill: string }) => <div data-fill={fill} data-testid="cell" />;
+export const Legend = () => <div data-testid="legend" />;
+export const Line = ({ dataKey }: { dataKey: string }) => <div data-testid={`line-${dataKey}`} />;
+export const LineChart = ({ children, data }: { children: React.ReactNode; data?: unknown[] }) => (
+  <div data-point-count={data?.length} data-testid="line-chart">{children}</div>
+);
+export const Pie = ({ children, data }: { children: React.ReactNode; data: unknown[] }) => (
+  <div data-entry-count={data.length} data-testid="pie">{children}</div>
+);
+export const PieChart = ({ children }: { children: React.ReactNode }) => (
+  <div data-testid="pie-chart">{children}</div>
+);
+export const ReferenceLine = () => <div data-testid="reference-line" />;
+export const ResponsiveContainer = ({ children }: { children: React.ReactNode }) => <div>{children}</div>;
+export const Tooltip = () => <div data-testid="tooltip" />;
+export const XAxis = () => <div data-testid="x-axis" />;
+export const YAxis = () => <div data-testid="y-axis" />;

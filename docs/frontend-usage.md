@@ -1276,11 +1276,23 @@ Liste classée des joueurs avec rang, avatar, nom, score total, nombre de donnes
 
 **Fichier** : `components/ContractDistributionChart.tsx`
 
-Graphique à barres horizontales (Recharts) affichant la répartition des contrats.
+Diagramme camembert (Recharts `PieChart`) affichant la répartition des contrats avec légende et valeurs numériques.
 
 | Prop | Type | Description |
 |------|------|-------------|
 | `data` | `ContractDistributionEntry[]` | *requis* — données de répartition |
+
+### `RoleDistributionChart`
+
+**Fichier** : `components/RoleDistributionChart.tsx`
+
+Diagramme camembert (Recharts `PieChart`) affichant la répartition des rôles (preneur, partenaire, défenseur) avec légende et valeurs numériques.
+
+| Prop | Type | Description |
+|------|------|-------------|
+| `gamesAsTaker` | `number` | *requis* — nombre de donnes en tant que preneur |
+| `gamesAsPartner` | `number` | *requis* — nombre de donnes en tant que partenaire |
+| `gamesAsDefender` | `number` | *requis* — nombre de donnes en tant que défenseur |
 
 ### `ContractSuccessRateTable`
 

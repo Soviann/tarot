@@ -18,6 +18,8 @@ vi.mock("../../hooks/usePlayerGroups", () => ({
 
 vi.mock("../../hooks/usePlayerStats");
 
+vi.mock("recharts", () => import("../mocks/recharts"));
+
 // jsdom doesn't implement scrollIntoView
 Element.prototype.scrollIntoView = vi.fn();
 
@@ -175,9 +177,7 @@ describe("PlayerStats page", () => {
     await user.click(trigger);
     await user.click(screen.getByRole("option", { name: /répartition des rôles/i }));
 
-    expect(screen.getByText("Preneur: 35")).toBeInTheDocument();
-    expect(screen.getByText("Partenaire: 20")).toBeInTheDocument();
-    expect(screen.getByText("Défenseur: 90")).toBeInTheDocument();
+    expect(screen.getByTestId("pie-chart")).toBeInTheDocument();
 
     // Records should be hidden (check content, not heading that's also in dropdown)
     expect(screen.queryByText("Meilleur score")).not.toBeInTheDocument();
