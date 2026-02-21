@@ -212,6 +212,10 @@ const PARTNER_KEYWORDS = /\b(?:appele[r]?|avec|partenaire|la\s+plaie|la\s+plait)
  * Find a player reference in the text. Returns the matched player name from the list,
  * "__self__" for self-call, or null if not found/ambiguous.
  */
+function stripAccents(text: string): string {
+  return text.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+}
+
 export function extractPlayerReference(
   text: string,
   playerNames: string[],
@@ -224,22 +228,26 @@ export function extractPlayerReference(
 
   const spoken = match[1].toLowerCase();
 
-  // Exact match (case-insensitive)
-  const exact = playerNames.find((name) => name.toLowerCase() === spoken);
-  if (exact) return exact;
+  // Normalize player names (strip accents) for comparison
+  const normalized = playerNames.map((name) => ({
+    key: stripAccents(name.toLowerCase()),
+    original: name,
+  }));
+
+  // Exact match (case-insensitive, accent-insensitive)
+  const exact = normalized.find((n) => n.key === spoken);
+  if (exact) return exact.original;
 
   // Starts-with match
-  const startsWith = playerNames.filter((name) =>
-    name.toLowerCase().startsWith(spoken),
-  );
-  if (startsWith.length === 1) return startsWith[0];
+  const startsWith = normalized.filter((n) => n.key.startsWith(spoken));
+  if (startsWith.length === 1) return startsWith[0].original;
 
   // Fuzzy match: Levenshtein distance ≤ 2 (≤ 1 for short names)
   const maxDist = spoken.length >= 4 ? 2 : 1;
-  const fuzzy = playerNames.filter(
-    (name) => levenshtein(name.toLowerCase(), spoken) <= maxDist,
+  const fuzzy = normalized.filter(
+    (n) => levenshtein(n.key, spoken) <= maxDist,
   );
-  if (fuzzy.length === 1) return fuzzy[0];
+  if (fuzzy.length === 1) return fuzzy[0].original;
 
   return null;
 }

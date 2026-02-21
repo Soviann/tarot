@@ -246,7 +246,7 @@ export default function CompleteGameModal({ game, onBadgesUnlocked, onClose, onG
 
         {/* Saisie vocale */}
         {voice.isSupported && (
-          <div className="flex justify-center">
+          <div aria-live="polite" className="flex justify-center">
             {voice.status === "listening" ? (
               <button
                 aria-label="Arrêter la dictée"
