@@ -12,6 +12,7 @@ Le format est basé sur [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/)
 
 ### Changed
 
+- **PlayerAvatar** : nouvelle palette de 10 couleurs plus distinctives, couleurs désormais en inline style (suppression des tokens CSS `avatar-0` à `avatar-9`)
 - **ErrorBoundary** : remplacement du composant custom par `react-error-boundary` avec bouton « Réessayer » (reset sans rechargement de page)
 - **ScoreDisplay** : remplacement du hook custom `useAnimatedCounter` par `react-countup` pour l'animation des scores
 - **Toast** : remplacement du système custom (`useToast`, `Toast.tsx`, `ToastContainer.tsx`) par `sonner` — meilleure accessibilité (`aria-live`), animations de sortie, API standard
