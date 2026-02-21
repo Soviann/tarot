@@ -8,6 +8,7 @@ Le format est basé sur [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/)
 
 ### Added
 
+- **Easter egg "Mind Blown"** : affiche le mème "Mind Blown" (référence au *Guide du voyageur galactique*) lorsque le score saisi vaut exactement 42 points
 - **Modale donne depuis records personnels** : sur la page stats joueur, les records personnels liés à une donne (meilleur score, pire score, plus grand écart) ouvrent une modale affichant le détail de la donne au lieu de rediriger vers la session
 
 ### Changed

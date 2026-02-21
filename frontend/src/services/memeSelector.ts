@@ -13,105 +13,106 @@ export interface GameContext {
   isSelfCall: boolean;
   oudlers: number;
   petitAuBout: Side;
+  points: number;
 }
 
-// --- Victory memes ---
+export interface WeightedMeme {
+  meme: MemeConfig;
+  weight: number;
+}
 
-const OBAMA_MEDAL: MemeConfig = {
-  caption: "",
-  id: "obama-medal",
-  image: "/memes/obama-medal.webp",
-};
+// --- Meme definitions ---
 
-const SUCCESS_KID: MemeConfig = {
-  caption: "",
-  id: "success-kid",
-  image: "/memes/success-kid.webp",
-};
+// Victory
+const BORAT: MemeConfig = { caption: "", id: "borat", image: "/memes/borat.webp" };
+const CHAMPIONS: MemeConfig = { caption: "", id: "champions", image: "/memes/champions.webp" };
+const DICAPRIO_TOAST: MemeConfig = { caption: "", id: "dicaprio-toast", image: "/memes/dicaprio-toast.webp" };
+const OBAMA_MEDAL: MemeConfig = { caption: "", id: "obama-medal", image: "/memes/obama-medal.webp" };
+const OVER_9000: MemeConfig = { caption: "", id: "over-9000", image: "/memes/over-9000.webp" };
+const PACHA: MemeConfig = { caption: "", id: "pacha", image: "/memes/pacha.webp" };
+const SUCCESS_KID: MemeConfig = { caption: "", id: "success-kid", image: "/memes/success-kid.webp" };
 
-const BASIC_POOL: MemeConfig[] = [
-  { caption: "", id: "borat", image: "/memes/borat.webp" },
-  { caption: "", id: "champions", image: "/memes/champions.webp" },
-  { caption: "", id: "dicaprio-toast", image: "/memes/dicaprio-toast.webp" },
-  { caption: "", id: "over-9000", image: "/memes/over-9000.webp" },
-  { caption: "", id: "pacha", image: "/memes/pacha.webp" },
-];
+// Defeat
+const AH_SHIT: MemeConfig = { caption: "", id: "ah-shit", image: "/memes/ah-shit.webp" };
+const CHOSEN_ONE: MemeConfig = { caption: "", id: "chosen-one", image: "/memes/chosen-one.webp" };
+const CRYING_JORDAN: MemeConfig = { caption: "", id: "crying-jordan", image: "/memes/crying-jordan.webp" };
+const JUST_TO_SUFFER: MemeConfig = { caption: "", id: "just-to-suffer", image: "/memes/just-to-suffer.webp" };
+const PICARD_FACEPALM: MemeConfig = { caption: "", id: "picard-facepalm", image: "/memes/picard-facepalm.webp" };
+const PIKACHU_SURPRISED: MemeConfig = { caption: "", id: "pikachu-surprised", image: "/memes/pikachu-surprised.webp" };
+const SAD_PABLO: MemeConfig = { caption: "", id: "sad-pablo", image: "/memes/sad-pablo.webp" };
+const THIS_IS_FINE: MemeConfig = { caption: "", id: "this-is-fine", image: "/memes/this-is-fine.webp" };
 
-// --- Defeat memes ---
+// Special
+const MIND_BLOWN: MemeConfig = { caption: "42 — La réponse à la grande question", id: "mind-blown", image: "/memes/mind-blown.gif" };
 
-const IMPROBABLE_DEFEAT_POOL: MemeConfig[] = [
-  { caption: "", id: "chosen-one", image: "/memes/chosen-one.webp" },
-  { caption: "", id: "picard-facepalm", image: "/memes/picard-facepalm.webp" },
-  { caption: "", id: "pikachu-surprised", image: "/memes/pikachu-surprised.webp" },
-];
-
-const CRYING_JORDAN: MemeConfig = {
-  caption: "",
-  id: "crying-jordan",
-  image: "/memes/crying-jordan.webp",
-};
-
-const THIS_IS_FINE: MemeConfig = {
-  caption: "",
-  id: "this-is-fine",
-  image: "/memes/this-is-fine.webp",
-};
-
-const DEFEAT_POOL: MemeConfig[] = [
-  { caption: "", id: "ah-shit", image: "/memes/ah-shit.webp" },
-  { caption: "", id: "just-to-suffer", image: "/memes/just-to-suffer.webp" },
-  { caption: "", id: "sad-pablo", image: "/memes/sad-pablo.webp" },
-];
-
-// --- Shared constants ---
+// --- Constants ---
 
 const MEME_CHANCE = 0.4;
-const THIS_IS_FINE_CHANCE = 0.4;
+const BASE_WEIGHT = 1;
 
-// --- Selectors ---
+// --- Pool builder ---
 
-export function selectVictoryMeme(ctx: GameContext): MemeConfig | null {
-  if (!ctx.attackWins) return null;
+export function buildPool(ctx: GameContext): WeightedMeme[] {
+  const pool: WeightedMeme[] = [];
 
-  // Priority 1: Petit au bout by attack — always Success Kid (rare event, always celebrate)
-  if (ctx.petitAuBout === Side.Attack) {
-    return SUCCESS_KID;
+  // Special memes (any result)
+  if (ctx.points === 42) {
+    pool.push({ meme: MIND_BLOWN, weight: 40 });
   }
 
-  // Priority 2: Self-call win — always Obama Medal (taker rewards themselves)
-  if (ctx.isSelfCall) {
-    return OBAMA_MEDAL;
+  if (ctx.attackWins) {
+    // Conditional victory memes
+    if (ctx.petitAuBout === Side.Attack) {
+      pool.push({ meme: SUCCESS_KID, weight: 10 });
+    }
+    if (ctx.isSelfCall) {
+      pool.push({ meme: OBAMA_MEDAL, weight: 40 });
+    }
+    // Base victory pool
+    pool.push({ meme: BORAT, weight: BASE_WEIGHT });
+    pool.push({ meme: CHAMPIONS, weight: BASE_WEIGHT });
+    pool.push({ meme: DICAPRIO_TOAST, weight: BASE_WEIGHT });
+    pool.push({ meme: OVER_9000, weight: BASE_WEIGHT });
+    pool.push({ meme: PACHA, weight: BASE_WEIGHT });
+  } else {
+    // Conditional defeat memes
+    if (ctx.oudlers >= 3 || ctx.chelem === Chelem.AnnouncedLost || ctx.contract === Contract.GardeContre) {
+      pool.push({ meme: CHOSEN_ONE, weight: 30 });
+      pool.push({ meme: PICARD_FACEPALM, weight: 20 });
+      pool.push({ meme: PIKACHU_SURPRISED, weight: 10 });
+    }
+    if (ctx.contract === Contract.GardeSans) {
+      pool.push({ meme: CRYING_JORDAN, weight: 20 });
+    }
+    // Base defeat pool
+    pool.push({ meme: AH_SHIT, weight: BASE_WEIGHT });
+    pool.push({ meme: JUST_TO_SUFFER, weight: BASE_WEIGHT });
+    pool.push({ meme: SAD_PABLO, weight: BASE_WEIGHT });
+    pool.push({ meme: THIS_IS_FINE, weight: BASE_WEIGHT });
   }
 
-  // 40% overall chance of showing a meme
-  if (Math.random() >= MEME_CHANCE) return null;
-
-  // Random from basic pool
-  return BASIC_POOL[Math.floor(Math.random() * BASIC_POOL.length)];
+  return pool;
 }
 
-export function selectDefeatMeme(ctx: GameContext): MemeConfig | null {
-  if (ctx.attackWins) return null;
+// --- Weighted random selection ---
 
-  // Priority 1: improbable defeats — guaranteed meme (random between Pikachu & Picard)
-  // (3 bouts + loss, chelem raté, garde contre perdue)
-  if (ctx.oudlers >= 3 || ctx.chelem === Chelem.AnnouncedLost || ctx.contract === Contract.GardeContre) {
-    return IMPROBABLE_DEFEAT_POOL[Math.floor(Math.random() * IMPROBABLE_DEFEAT_POOL.length)];
+function weightedRandom(pool: WeightedMeme[]): MemeConfig | null {
+  if (pool.length === 0) return null;
+
+  const totalWeight = pool.reduce((sum, item) => sum + item.weight, 0);
+  let roll = Math.random() * totalWeight;
+
+  for (const item of pool) {
+    roll -= item.weight;
+    if (roll < 0) return item.meme;
   }
 
-  // Priority 2: Crying Jordan — guaranteed on garde sans perdue
-  if (ctx.contract === Contract.GardeSans) {
-    return CRYING_JORDAN;
-  }
+  return pool[pool.length - 1].meme;
+}
 
-  // 40% overall chance of showing a meme
+// --- Main selector ---
+
+export function selectMeme(ctx: GameContext): MemeConfig | null {
   if (Math.random() >= MEME_CHANCE) return null;
-
-  // Among shown memes: 40% chance for "This is Fine"
-  if (Math.random() < THIS_IS_FINE_CHANCE) {
-    return THIS_IS_FINE;
-  }
-
-  // Default: random from defeat pool
-  return DEFEAT_POOL[Math.floor(Math.random() * DEFEAT_POOL.length)];
+  return weightedRandom(buildPool(ctx));
 }

@@ -857,6 +857,7 @@ Page d'aide in-app reprenant le contenu du guide utilisateur (`docs/user-guide.m
 - Bouton retour vers l'accueil
 - États : chargement, session introuvable
 - **Easter egg shake** : secouer le téléphone retourne le tableau des scores (rotation 180°) pendant 2 secondes, puis affiche une modale « Eh non, bien essayé 😏 » avec un GIF
+- **Easter egg "Mind Blown"** : saisir exactement 42 points ajoute le mème "Mind Blown" (poids 40) au pool pondéré via `selectMeme`
 
 **Hooks utilisés** : `useSession`, `useSessionGames`, `useAllSessionGames`, `useAddStar`, `useCloseSession`, `useCreateGame`, `useCreateSession` (via SwapPlayersModal), `useCompleteGame`, `useDeleteGame`, `usePlayerGroups`, `useReorderPlayers`, `useShake`, `useUpdateDealer`, `useUpdateSessionGroup`, `useNavigate`
 
@@ -1459,14 +1460,17 @@ result.defenderScore;   // -34
 | `takerScore` | `number` | Score du preneur |
 | `totalPerPlayer` | `number` | Total avant distribution |
 
-### `selectVictoryMeme`
+### `selectMeme`
 
 **Fichier** : `services/memeSelector.ts`
 
-Sélectionne un mème de victoire en fonction du contexte de la donne. Fonction pure, facilement testable.
+Sélectionne un mème en fonction du contexte de la donne. Système unifié à **base pondérée** :
+
+1. **Gate 40 %** — un seul tirage détermine si un mème s'affiche (`Math.random() < 0.4`)
+2. **Pool pondéré** — si le gate passe, tous les mèmes éligibles (selon le contexte) sont rassemblés avec un poids, et un tirage pondéré en sélectionne un
 
 ```ts
-import { selectDefeatMeme, selectVictoryMeme, type GameContext } from "./services/memeSelector";
+import { selectMeme, type GameContext } from "./services/memeSelector";
 
 const ctx: GameContext = {
   attackWins: true,
@@ -1475,9 +1479,10 @@ const ctx: GameContext = {
   isSelfCall: false,
   oudlers: 2,
   petitAuBout: "none",
+  points: 51,
 };
 
-const meme = selectVictoryMeme(ctx) ?? selectDefeatMeme(ctx);
+const meme = selectMeme(ctx);
 
 if (meme) {
   meme.id;      // "champions"
@@ -1496,47 +1501,48 @@ if (meme) {
 | `isSelfCall` | `boolean` | Victoire en solo (appel au roi seul) |
 | `oudlers` | `number` | Nombre de bouts (0-3) |
 | `petitAuBout` | `Side` | Petit au bout (attaque/défense/aucun) |
+| `points` | `number` | Points saisis pour le preneur (0-91) |
 
-**Logique de sélection victoire** (ordre de priorité) :
-
-1. `attackWins === false` → retourne `null`
-2. `petitAuBout === "attack"` → toujours `success-kid` (événement rare, toujours célébré)
-3. `isSelfCall === true` → toujours `obama-medal` (le preneur se décore lui-même)
-4. `Math.random() >= 0.4` → retourne `null` (60 % de chance de ne rien afficher)
-5. Aléatoire dans le pool par défaut :
-
-| ID | Image |
-|----|-------|
-| `borat` | Borat "Great Success" |
-| `champions` | Freddie Mercury |
-| `dicaprio-toast` | DiCaprio toast |
-| `over-9000` | Vegeta Over 9000 |
-| `pacha` | Pacha (le point parfait) |
-
-### `selectDefeatMeme`
+### `buildPool`
 
 **Fichier** : `services/memeSelector.ts`
 
-Sélectionne un mème de défaite en fonction du contexte de la donne. Même probabilité de base (40 %) que pour la victoire, sauf pour les mèmes garantis.
+Construit le pool pondéré de mèmes éligibles pour un contexte donné. Fonction pure, exportée pour les tests.
 
-**Logique de sélection défaite** (ordre de priorité) :
+**Mèmes spéciaux** (tout résultat) :
 
-1. `attackWins === true` → retourne `null`
-2. Défaite « improbable » → toujours un mème garanti (aléatoire entre `chosen-one`, `pikachu-surprised` et `picard-facepalm`) : 3 bouts + défaite, chelem raté (`announced_lost`), ou garde contre perdue
-3. Garde sans perdue → toujours `crying-jordan`
-4. `Math.random() >= 0.4` → retourne `null` (60 % de chance de ne rien afficher)
-5. `Math.random() < 0.4` → `this-is-fine` (chien dans les flammes)
-6. Sinon → aléatoire dans le pool de défaite :
+| ID | Condition | Poids |
+|----|-----------|-------|
+| `mind-blown` | `points === 42` | 40 |
 
-| ID | Image |
-|----|-------|
-| `ah-shit` | CJ (GTA San Andreas) |
-| `just-to-suffer` | Metal Gear Solid V |
-| `sad-pablo` | Pablo Escobar seul |
+**Mèmes de victoire** (`attackWins === true`) :
 
-> **Note** : les mèmes n'ont pas de légende textuelle — seule l'image s'affiche (sauf exceptions).
+| ID | Condition | Poids |
+|----|-----------|-------|
+| `success-kid` | `petitAuBout === "attack"` | 10 |
+| `obama-medal` | `isSelfCall === true` | 40 |
+| `borat` | toujours | 1 |
+| `champions` | toujours | 1 |
+| `dicaprio-toast` | toujours | 1 |
+| `over-9000` | toujours | 1 |
+| `pacha` | toujours | 1 |
 
-**Assets mèmes** : `frontend/public/memes/*.webp` (15 fichiers). Format `.webp`.
+**Mèmes de défaite** (`attackWins === false`) :
+
+| ID | Condition | Poids |
+|----|-----------|-------|
+| `chosen-one` | 3 bouts, chelem raté, ou garde contre perdue | 30 |
+| `picard-facepalm` | idem | 20 |
+| `pikachu-surprised` | idem | 10 |
+| `crying-jordan` | garde sans perdue | 20 |
+| `ah-shit` | toujours | 1 |
+| `just-to-suffer` | toujours | 1 |
+| `sad-pablo` | toujours | 1 |
+| `this-is-fine` | toujours | 1 |
+
+> Les mèmes conditionnels s'ajoutent au pool de base quand leur condition est remplie. Le poids élevé fait qu'ils dominent la sélection sans exclure les mèmes de base.
+
+**Assets mèmes** : `frontend/public/memes/` (16 fichiers). Format `.webp` (sauf `mind-blown.gif` — GIF animé).
 
 ---
 
