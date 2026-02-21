@@ -751,9 +751,10 @@ describe("SessionPage", () => {
     const undoBtn = await screen.findByRole("button", { name: "Annuler la donne" });
     await userEvent.click(undoBtn);
 
-    // Should show toast error
+    // Should show toast error and have called correct endpoint
     await waitFor(() => {
       expect(screen.getByText("Erreur lors de l'annulation de la donne")).toBeInTheDocument();
     });
+    expect(apiModule.apiFetch).toHaveBeenCalledWith("/games/2", { method: "DELETE" });
   });
 });
