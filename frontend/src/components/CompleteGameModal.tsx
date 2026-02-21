@@ -412,19 +412,19 @@ export default function CompleteGameModal({ game, onBadgesUnlocked, onClose, onG
             <div className="flex flex-col gap-1 text-sm">
               <div className="flex items-center justify-between">
                 <span className="text-text-secondary">Preneur</span>
-                <ScoreDisplay animated={false} value={scoreResult.takerScore} />
+                <ScoreDisplay value={scoreResult.takerScore} />
               </div>
               {!selfCall && partnerId !== null && (
                 <div className="flex items-center justify-between">
                   <span className="text-text-secondary">Partenaire</span>
-                  <ScoreDisplay animated={false} value={scoreResult.partnerScore} />
+                  <ScoreDisplay value={scoreResult.partnerScore} />
                 </div>
               )}
               <div className="flex items-center justify-between">
                 <span className="text-text-secondary">
                   Défense ({selfCall ? "\u00d74" : "\u00d73"})
                 </span>
-                <ScoreDisplay animated={false} value={scoreResult.defenderScore} />
+                <ScoreDisplay value={scoreResult.defenderScore} />
               </div>
             </div>
           </div>
