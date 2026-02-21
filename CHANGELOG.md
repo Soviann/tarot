@@ -6,6 +6,10 @@ Le format est basé sur [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/)
 
 ## [Unreleased]
 
+### Added
+
+- **Saisie vocale** : bouton micro dans la modale de complétion de donne permettant de dicter le résultat en français (contrat, points, appelé, bonuses) via la Web Speech API. Parser local regex, dégradation gracieuse si l'API n'est pas supportée. Utilise la bibliothèque `react-speech-recognition`
+
 ### Changed
 
 - **Dépendances npm** : mise à jour de toutes les dépendances (Tailwind CSS 4.2, TanStack Query 5.90, Vite 7.3, jsdom 28.1, lucide-react 0.575, etc.) et ajout d'un override pour `sourcemap-codec` afin d'éliminer le warning de dépréciation

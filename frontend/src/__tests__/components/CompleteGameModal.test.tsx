@@ -2,10 +2,14 @@ import { screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import CompleteGameModal from "../../components/CompleteGameModal";
 import * as useCompleteGameModule from "../../hooks/useCompleteGame";
+import * as useVoiceScoringModule from "../../hooks/useVoiceScoring";
+import type { VoiceStatus } from "../../hooks/useVoiceScoring";
+import type { VoiceScoreResult } from "../../services/voiceScoreParser";
 import type { Game } from "../../types/api";
 import { renderWithProviders } from "../test-utils";
 
 vi.mock("../../hooks/useCompleteGame");
+vi.mock("../../hooks/useVoiceScoring");
 
 const mockPlayers = [
   { id: 1, name: "Alice" },
@@ -57,6 +61,30 @@ const completedGame: Game = {
   taker: { id: 1, name: "Alice" },
 };
 
+function setupVoiceMock(overrides?: {
+  isSupported?: boolean;
+  parsedResult?: VoiceScoreResult;
+  status?: VoiceStatus;
+  transcript?: string;
+}) {
+  const start = vi.fn();
+  const stop = vi.fn();
+  const cancel = vi.fn();
+  const reset = vi.fn();
+  vi.mocked(useVoiceScoringModule.useVoiceScoring).mockReturnValue({
+    cancel,
+    error: null,
+    isSupported: overrides?.isSupported ?? true,
+    parsedResult: overrides?.parsedResult ?? {},
+    reset,
+    start,
+    status: overrides?.status ?? "idle",
+    stop,
+    transcript: overrides?.transcript ?? "",
+  });
+  return { cancel, reset, start, stop };
+}
+
 function setupMock(overrides?: Partial<ReturnType<typeof useCompleteGameModule.useCompleteGame>>) {
   const mutate = vi.fn();
   vi.mocked(useCompleteGameModule.useCompleteGame).mockReturnValue({
@@ -82,6 +110,10 @@ function setupMock(overrides?: Partial<ReturnType<typeof useCompleteGameModule.u
 }
 
 describe("CompleteGameModal", () => {
+  beforeEach(() => {
+    setupVoiceMock();
+  });
+
   afterEach(() => {
     vi.clearAllMocks();
   });
@@ -390,5 +422,156 @@ describe("CompleteGameModal", () => {
     );
 
     expect(screen.queryByText("Compléter la donne")).not.toBeInTheDocument();
+  });
+
+  // Voice scoring integration tests
+  describe("saisie vocale", () => {
+    it("affiche le bouton micro si supporté", () => {
+      setupMock();
+      setupVoiceMock({ isSupported: true });
+      renderWithProviders(
+        <CompleteGameModal game={inProgressGame} onClose={vi.fn()} open players={mockPlayers} sessionId={1} />,
+      );
+
+      expect(screen.getByRole("button", { name: /dicter/i })).toBeInTheDocument();
+    });
+
+    it("masque le bouton micro si non supporté", () => {
+      setupMock();
+      setupVoiceMock({ isSupported: false });
+      renderWithProviders(
+        <CompleteGameModal game={inProgressGame} onClose={vi.fn()} open players={mockPlayers} sessionId={1} />,
+      );
+
+      expect(screen.queryByRole("button", { name: /dicter/i })).not.toBeInTheDocument();
+    });
+
+    it("appelle start() au clic sur le bouton micro", async () => {
+      setupMock();
+      const { start } = setupVoiceMock({ isSupported: true });
+      renderWithProviders(
+        <CompleteGameModal game={inProgressGame} onClose={vi.fn()} open players={mockPlayers} sessionId={1} />,
+      );
+
+      await userEvent.click(screen.getByRole("button", { name: /dicter/i }));
+      expect(start).toHaveBeenCalled();
+    });
+
+    it("affiche un indicateur d'écoute pendant la dictée", () => {
+      setupMock();
+      setupVoiceMock({ isSupported: true, status: "listening" });
+      renderWithProviders(
+        <CompleteGameModal game={inProgressGame} onClose={vi.fn()} open players={mockPlayers} sessionId={1} />,
+      );
+
+      expect(screen.getByRole("button", { name: /arrêter/i })).toBeInTheDocument();
+      expect(screen.getByText("Écoute...")).toBeInTheDocument();
+    });
+
+    it("pré-remplit les points depuis le résultat vocal", () => {
+      setupMock();
+      setupVoiceMock({
+        isSupported: true,
+        parsedResult: { playerName: "Bob", points: 56 },
+        status: "result",
+      });
+      renderWithProviders(
+        <CompleteGameModal game={inProgressGame} onClose={vi.fn()} open players={mockPlayers} sessionId={1} />,
+      );
+
+      expect(screen.getByPlaceholderText("Points")).toHaveValue("56");
+    });
+
+    it("pré-remplit le partenaire depuis le résultat vocal", () => {
+      setupMock();
+      setupVoiceMock({
+        isSupported: true,
+        parsedResult: { playerName: "Bob", points: 56 },
+        status: "result",
+      });
+      renderWithProviders(
+        <CompleteGameModal game={inProgressGame} onClose={vi.fn()} open players={mockPlayers} sessionId={1} />,
+      );
+
+      // Bob's avatar button in partner section should have selection ring
+      const partnerHeading = screen.getByRole("heading", { name: "Partenaire" });
+      const partnerSection = partnerHeading.closest("div")!;
+      expect(partnerSection.querySelector("[role='img'][aria-label='Bob']")!.closest("button")).toHaveClass("ring-2");
+    });
+
+    it("pré-remplit seul depuis __self__", () => {
+      setupMock();
+      setupVoiceMock({
+        isSupported: true,
+        parsedResult: { playerName: "__self__", points: 91 },
+        status: "result",
+      });
+      renderWithProviders(
+        <CompleteGameModal game={inProgressGame} onClose={vi.fn()} open players={mockPlayers} sessionId={1} />,
+      );
+
+      expect(screen.getByRole("button", { name: "Seul" })).toHaveClass("ring-2");
+    });
+
+    it("ne masque pas le bouton micro en mode édition", () => {
+      setupMock();
+      setupVoiceMock({ isSupported: true });
+      renderWithProviders(
+        <CompleteGameModal game={completedGame} onClose={vi.fn()} open players={mockPlayers} sessionId={1} />,
+      );
+
+      expect(screen.getByRole("button", { name: /dicter/i })).toBeInTheDocument();
+    });
+
+    it("met en évidence le champ points pré-rempli par la voix", () => {
+      setupMock();
+      setupVoiceMock({
+        isSupported: true,
+        parsedResult: { points: 56 },
+        status: "result",
+      });
+      renderWithProviders(
+        <CompleteGameModal game={inProgressGame} onClose={vi.fn()} open players={mockPlayers} sessionId={1} />,
+      );
+
+      const pointsInput = screen.getByPlaceholderText("Points");
+      expect(pointsInput.className).toContain("ring-green");
+    });
+
+    it("applique un second résultat vocal après le premier", () => {
+      setupMock();
+      // First voice result
+      setupVoiceMock({
+        isSupported: true,
+        parsedResult: { points: 56 },
+        status: "result",
+      });
+      const { rerender } = renderWithProviders(
+        <CompleteGameModal game={inProgressGame} onClose={vi.fn()} open players={mockPlayers} sessionId={1} />,
+      );
+      expect(screen.getByPlaceholderText("Points")).toHaveValue("56");
+
+      // User retries voice — goes back to listening then new result
+      setupVoiceMock({
+        isSupported: true,
+        status: "listening",
+        transcript: "garde 72 points",
+      });
+      rerender(
+        <CompleteGameModal game={inProgressGame} onClose={vi.fn()} open players={mockPlayers} sessionId={1} />,
+      );
+
+      // Second voice result with different points
+      setupVoiceMock({
+        isSupported: true,
+        parsedResult: { points: 72 },
+        status: "result",
+      });
+      rerender(
+        <CompleteGameModal game={inProgressGame} onClose={vi.fn()} open players={mockPlayers} sessionId={1} />,
+      );
+
+      expect(screen.getByPlaceholderText("Points")).toHaveValue("72");
+    });
   });
 });
