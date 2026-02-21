@@ -136,6 +136,7 @@ export default function CompleteGameModal({ game, onBadgesUnlocked, onClose, onG
               isSelfCall: selfCall,
               oudlers,
               petitAuBout,
+              points: pointsNum!,
             });
             onGameSaved?.(game.id);
           }

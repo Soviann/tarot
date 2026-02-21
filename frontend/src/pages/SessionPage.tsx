@@ -34,7 +34,7 @@ import { useUpdateSessionGroup } from "../hooks/useUpdateSessionGroup";
 import { useToast } from "../hooks/useToast";
 import { apiFetch } from "../services/api";
 import type { GameContext, MemeConfig } from "../services/memeSelector";
-import { selectDefeatMeme, selectVictoryMeme } from "../services/memeSelector";
+import { selectMeme } from "../services/memeSelector";
 import type { Badge } from "../types/api";
 import { GameStatus } from "../types/enums";
 import { sortPlayersByOrder } from "../utils/playerOrder";
@@ -108,7 +108,6 @@ export default function SessionPage() {
   const [completeModalOpen, setCompleteModalOpen] = useState(false);
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [editModalOpen, setEditModalOpen] = useState(false);
-  const [memeLabel, setMemeLabel] = useState<string | undefined>(undefined);
   const [newGameModalOpen, setNewGameModalOpen] = useState(false);
   const [reorderModalOpen, setReorderModalOpen] = useState(false);
   const [shareModalOpen, setShareModalOpen] = useState(false);
@@ -140,16 +139,9 @@ export default function SessionPage() {
   }, [groups.length, inProgressGame, session?.isActive, sessionId]);
 
   const handleGameCompleted = useCallback((ctx: GameContext) => {
-    const victoryMeme = selectVictoryMeme(ctx);
-    if (victoryMeme) {
-      setMemeLabel("Mème de victoire");
-      setActiveMeme(victoryMeme);
-      return;
-    }
-    const defeatMeme = selectDefeatMeme(ctx);
-    if (defeatMeme) {
-      setMemeLabel("Mème de défaite");
-      setActiveMeme(defeatMeme);
+    const meme = selectMeme(ctx);
+    if (meme) {
+      setActiveMeme(meme);
     }
   }, []);
 
@@ -445,7 +437,7 @@ export default function SessionPage() {
         />
       )}
 
-      <MemeOverlay ariaLabel={memeLabel} meme={activeMeme} onDismiss={() => { setActiveMeme(null); setMemeLabel(undefined); }} />
+      <MemeOverlay meme={activeMeme} onDismiss={() => setActiveMeme(null)} />
 
       <Modal onClose={() => setShakeModalOpen(false)} open={shakeModalOpen} title="Eh non, bien essayé 😏">
         <div className="flex flex-col items-center gap-4">
