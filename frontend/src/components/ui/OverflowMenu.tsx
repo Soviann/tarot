@@ -55,7 +55,10 @@ export default function OverflowMenu({ items, label }: OverflowMenuProps) {
 
   const handleMenuKeyDown = useCallback(
     (e: ReactKeyboardEvent) => {
-      const count = items.length;
+      const menu = menuRef.current;
+      if (!menu) return;
+      const count = menu.querySelectorAll('[role="menuitem"]').length;
+      if (count === 0) return;
       if (e.key === "ArrowDown") {
         e.preventDefault();
         const next = focusIndexRef.current === -1 ? 0 : (focusIndexRef.current + 1) % count;
@@ -66,7 +69,7 @@ export default function OverflowMenu({ items, label }: OverflowMenuProps) {
         focusItem(next, -1);
       }
     },
-    [focusItem, items.length],
+    [focusItem],
   );
 
   useEffect(() => {

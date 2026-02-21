@@ -37,29 +37,26 @@ describe("Toast", () => {
 
   it("is focusable via tabIndex", () => {
     const toast: ToastItem = { id: "1", message: "OK", type: "success" };
-    const { container } = render(<Toast toast={toast} onDismiss={() => {}} />);
+    render(<Toast toast={toast} onDismiss={() => {}} />);
 
-    const toastEl = container.firstChild as HTMLElement;
-    expect(toastEl).toHaveAttribute("tabindex", "0");
+    expect(screen.getByRole("status")).toHaveAttribute("tabindex", "0");
   });
 
   it("dismisses on Enter key", () => {
     const onDismiss = vi.fn();
     const toast: ToastItem = { id: "1", message: "OK", type: "success" };
-    const { container } = render(<Toast toast={toast} onDismiss={onDismiss} />);
+    render(<Toast toast={toast} onDismiss={onDismiss} />);
 
-    const toastEl = container.firstChild as HTMLElement;
-    fireEvent.keyDown(toastEl, { key: "Enter" });
+    fireEvent.keyDown(screen.getByRole("status"), { key: "Enter" });
     expect(onDismiss).toHaveBeenCalledWith("1");
   });
 
   it("dismisses on Escape key", () => {
     const onDismiss = vi.fn();
     const toast: ToastItem = { id: "2", message: "Erreur", type: "error" };
-    const { container } = render(<Toast toast={toast} onDismiss={onDismiss} />);
+    render(<Toast toast={toast} onDismiss={onDismiss} />);
 
-    const toastEl = container.firstChild as HTMLElement;
-    fireEvent.keyDown(toastEl, { key: "Escape" });
+    fireEvent.keyDown(screen.getByRole("status"), { key: "Escape" });
     expect(onDismiss).toHaveBeenCalledWith("2");
   });
 });
