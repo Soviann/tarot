@@ -1802,7 +1802,7 @@ Carte compacte affichant une valeur et un libellé, utilisée dans les grilles d
 
 **Fichier** : `components/ui/Modal.tsx`
 
-Dialogue modal en portail avec focus trap et fermeture Escape/backdrop. Plein écran sur mobile, centré sur desktop. Animation slide-up à l'ouverture et slide-down à la fermeture (200 ms ease-out), avec fondu du backdrop.
+Dialogue modal basé sur `@headlessui/react` `Dialog` avec focus trap, fermeture Escape/backdrop. Plein écran sur mobile, centré sur desktop. Transitions CSS via les props `transition` et data-attributes headlessui (`data-closed`).
 
 | Prop | Type | Description |
 |------|------|-------------|
@@ -1897,7 +1897,7 @@ Champ de recherche avec debounce intégré et bouton d'effacement. Supporte `for
 
 **Fichier** : `components/ui/Select.tsx`
 
-Menu déroulant personnalisé remplaçant le `<select>` natif. Affiche un bouton déclencheur avec chevron rotatif, et un panneau déroulant stylisé avec coche sur l'option sélectionnée. Supporte la navigation clavier (flèches, Entrée, Échap) et la fermeture au clic extérieur.
+Menu déroulant basé sur `@headlessui/react` `Listbox`. Affiche un bouton déclencheur avec chevron rotatif, et un panneau déroulant stylisé avec coche sur l'option sélectionnée. Navigation clavier, ARIA et fermeture au clic extérieur gérés par la bibliothèque.
 
 | Prop | Type | Défaut | Description |
 |------|------|--------|-------------|

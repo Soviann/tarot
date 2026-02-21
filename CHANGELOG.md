@@ -11,6 +11,7 @@ Le format est basé sur [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/)
 - **ErrorBoundary** : remplacement du composant custom par `react-error-boundary` avec bouton « Réessayer » (reset sans rechargement de page)
 - **ScoreDisplay** : remplacement du hook custom `useAnimatedCounter` par `react-countup` pour l'animation des scores
 - **Toast** : remplacement du système custom (`useToast`, `Toast.tsx`, `ToastContainer.tsx`) par `sonner` — meilleure accessibilité (`aria-live`), animations de sortie, API standard
+- **Modal & Select** : remplacement des composants custom (`Modal.tsx`, `Select.tsx`) par `@headlessui/react` (`Dialog`, `Listbox`) — focus trap, keyboard navigation et ARIA gérés par la bibliothèque
 
 ## [1.5.0] - 2026-02-21
 
