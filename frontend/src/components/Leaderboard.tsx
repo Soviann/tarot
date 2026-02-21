@@ -1,5 +1,6 @@
+import { useState } from "react";
 import type { LeaderboardEntry } from "../types/api";
-import { PlayerAvatar, ScoreDisplay } from "./ui";
+import { LoadMoreButton, PAGE_SIZE, PlayerAvatar, ScoreDisplay } from "./ui";
 
 interface LeaderboardProps {
   entries: LeaderboardEntry[];
@@ -7,6 +8,8 @@ interface LeaderboardProps {
 }
 
 export default function Leaderboard({ entries, onPlayerClick }: LeaderboardProps) {
+  const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
+
   if (entries.length === 0) {
     return (
       <p className="py-4 text-center text-sm text-text-muted">
@@ -15,9 +18,11 @@ export default function Leaderboard({ entries, onPlayerClick }: LeaderboardProps
     );
   }
 
+  const visibleEntries = entries.slice(0, visibleCount);
+
   return (
     <div className="flex flex-col gap-2">
-      {entries.map((entry, index) => (
+      {visibleEntries.map((entry, index) => (
         <button
           className="flex items-center gap-3 rounded-xl bg-surface-elevated p-3 text-left transition-colors active:bg-surface-tertiary"
           key={entry.playerId}
@@ -39,6 +44,10 @@ export default function Leaderboard({ entries, onPlayerClick }: LeaderboardProps
           <ScoreDisplay animated={false} className="text-base" value={entry.totalScore} />
         </button>
       ))}
+      <LoadMoreButton
+        onClick={() => setVisibleCount((c) => c + PAGE_SIZE)}
+        remainingCount={entries.length - visibleCount}
+      />
     </div>
   );
 }
