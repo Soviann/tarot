@@ -8,6 +8,11 @@ Le format est basé sur [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/)
 
 ### Added
 
+- **Mème Spiderman pointing** : affiche le mème "Spiderman pointing" lors d'une victoire en solo (appel à soi-même), poids 40
+- **Mème Jordan Peele** : affiche le mème "Sweating Jordan Peele" lors d'une victoire serrée (marge ≤ 5 points), poids 20
+- **Mème Chris Pratt "Wow"** : affiche le mème GIF Chris Pratt lors d'une victoire en garde-contre, poids 20
+- **Mème "This is fine" boost** : le mème "This is fine" voit son poids fortement augmenté (20) lors d'une série de 3+ défaites consécutives du preneur
+- **Mème "I'll be back"** : affiche le mème Terminator GIF lors d'une grosse défaite (score ≤ -50) suivant une grosse victoire (score ≥ 50) du preneur, poids 20
 - **Filtre par tranche de dates** : les pages de statistiques globales et par joueur permettent de filtrer les résultats par période (date de début / fin), avec des préréglages rapides (30 jours, 3 mois, 6 mois, 1 an, Tout)
 - **Easter egg gyroscope inversé** : retourner le téléphone à l'envers (détection via l'API DeviceOrientation) inverse les scores affichés (positifs ↔ négatifs) dans le tableau des scores, avec une icône de feedback visuel
 - **Easter egg "To infinity and beyond!"** : affiche le mème Buzz l'Éclair (Toy Story) lorsqu'un score individuel sur une donne dépasse ±200 points
