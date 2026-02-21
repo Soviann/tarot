@@ -6,6 +6,20 @@ Le format est basé sur [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/)
 
 ## [Unreleased]
 
+### Changed
+
+- **Clôture de session irréversible** : une session terminée ne peut plus être réouverte via l'API ni depuis l'interface (le bouton « Réouvrir » a été supprimé)
+- **Erreurs API plus explicites** : les messages d'erreur de `apiFetch` incluent désormais le détail retourné par l'API (`hydra:description`) au lieu d'un simple « API error: 4xx »
+- **MetricCard partagé** : le composant `MetricCard` a été extrait dans `components/ui/` pour réutilisation
+- **Icônes lucide** : remplacement des SVG manuels (flèche retour, bouton +) par des icônes `lucide-react` (`ArrowLeft`, `Plus`)
+
+### Fixed
+
+- **CORS production** : restriction à HTTPS uniquement (suppression du fallback HTTP)
+- **Qualité backend** : suppression de 13 méthodes de repository inutilisées, déduplication des requêtes best/worst, consolidation du `GroupFilterTrait`, extraction d'une méthode `awardBadgesForPlayer` dans `BadgeChecker`, correction du N+1 dans `BadgeChecker` via requêtes batch
+- **Enums enrichis** : ajout de `Contract::multiplier()` et `Poignee::bonus()`, simplification de `ScoreCalculator`
+- **Unicode** : remplacement des séquences d'échappement Unicode par des caractères UTF-8 directs dans `SessionSummaryService`
+
 ## [1.2.1] - 2026-02-21
 
 ### Fixed

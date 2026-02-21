@@ -1,5 +1,5 @@
 import { useQueryClient } from "@tanstack/react-query";
-import { ArrowLeftRight, ArrowUpDown, BarChart3, Lock, LockOpen, QrCode, Users } from "lucide-react";
+import { ArrowLeft, ArrowLeftRight, ArrowUpDown, BarChart3, Lock, Plus, QrCode, Users } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import NotFound from "./NotFound";
@@ -135,11 +135,9 @@ export default function SessionPage() {
         label: "Terminer la session",
         onClick: () => setCloseConfirmOpen(true),
       });
-    } else {
-      items.push({ icon: <LockOpen size={18} />, label: "Réouvrir la session", onClick: () => closeSession.mutate(true, { onSuccess: () => toast("Session rouverte") }) });
     }
     return items;
-  }, [closeSession, groups.length, inProgressGame, session?.isActive, sessionId, toast]);
+  }, [groups.length, inProgressGame, session?.isActive, sessionId]);
 
   const handleGameCompleted = useCallback((ctx: GameContext) => {
     const victoryMeme = selectVictoryMeme(ctx);
@@ -190,19 +188,7 @@ export default function SessionPage() {
           onClick={() => navigate("/")}
           type="button"
         >
-          <svg
-            className="size-6"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth={2}
-            viewBox="0 0 24 24"
-          >
-            <path
-              d="M15 19l-7-7 7-7"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
-          </svg>
+          <ArrowLeft size={24} />
         </button>
         <h1 className="text-lg font-bold text-text-primary">
           Session #{session.id}
@@ -277,21 +263,7 @@ export default function SessionPage() {
         <FAB
           aria-label="Nouvelle donne"
           disabled={!!inProgressGame || createGame.isPending}
-          icon={
-            <svg
-              className="size-6"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth={2}
-              viewBox="0 0 24 24"
-            >
-              <path
-                d="M12 4v16m8-8H4"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-            </svg>
-          }
+          icon={<Plus size={24} />}
           onClick={() => setNewGameModalOpen(true)}
         />
       )}
@@ -429,7 +401,7 @@ export default function SessionPage() {
 
       <Modal onClose={() => setCloseConfirmOpen(false)} open={closeConfirmOpen} title="Terminer la session">
         <p className="mb-4 text-sm text-text-secondary">
-          Voulez-vous terminer cette session ? Vous pourrez la réouvrir plus tard.
+          Voulez-vous terminer cette session ? Cette action est définitive.
         </p>
         <div className="flex gap-3">
           <button

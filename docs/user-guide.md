@@ -186,7 +186,7 @@ La ligne du header de session affiche un bouton **⋮** (trois points verticaux)
 - **Partager (QR)** : affiche un QR code pour partager l'URL de la session
 - **Modifier les joueurs** : change un ou plusieurs joueurs de la session
 - **Changer le groupe** : associe la session à un groupe de joueurs (visible uniquement si des groupes existent)
-- **Terminer la session** / **Réouvrir la session** : clôture ou réouverture de la session
+- **Terminer la session** : clôture définitive de la session (visible uniquement si la session est active)
 
 ### Modifier les joueurs
 
@@ -263,7 +263,7 @@ Pour marquer une session comme terminée (plus de nouvelles donnes possibles) :
 3. La session passe en mode « terminée » et le **récapitulatif** s'affiche automatiquement
 4. Un bandeau ambre « Session terminée » apparaît sur l'écran de session
 
-> **Réouverture** : la clôture n'est pas irréversible. Depuis le menu **⋮**, l'option **Réouvrir la session** permet de reprendre la session.
+> **Note** : la clôture d'une session est définitive. Une fois terminée, la session ne peut plus être réouverte.
 
 ### Récapitulatif de session
 

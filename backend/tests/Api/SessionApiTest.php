@@ -312,20 +312,18 @@ class SessionApiTest extends ApiTestCase
         $this->assertFalse($data['isActive']);
     }
 
-    public function testReopenSession(): void
+    public function testReopenSessionIsPrevented(): void
     {
         $session = $this->createSessionWithPlayers('Alice', 'Bob', 'Charlie', 'Diana', 'Eve');
         $session->setIsActive(false);
         $this->em->flush();
 
-        $response = $this->client->request('PATCH', $this->getIri($session), [
+        $this->client->request('PATCH', $this->getIri($session), [
             'headers' => ['Content-Type' => 'application/merge-patch+json'],
             'json' => ['isActive' => true],
         ]);
 
-        $this->assertResponseIsSuccessful();
-        $data = $response->toArray();
-        $this->assertTrue($data['isActive']);
+        $this->assertResponseStatusCodeSame(422);
     }
 
     public function testGetSessionSummary(): void
