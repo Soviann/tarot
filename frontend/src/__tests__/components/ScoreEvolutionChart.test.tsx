@@ -7,7 +7,7 @@ import ScoreEvolutionChart, { computeScoreEvolution } from "../../components/Sco
 // Mock Recharts to avoid jsdom rendering issues
 vi.mock("recharts", () => ({
   Line: ({ dataKey }: { dataKey: string }) => <div data-testid={`line-${dataKey}`} />,
-  LineChart: ({ children }: { children: React.ReactNode }) => <div data-testid="line-chart">{children}</div>,
+  LineChart: ({ children, data }: { children: React.ReactNode; data: unknown[] }) => <div data-point-count={data.length} data-testid="line-chart">{children}</div>,
   ReferenceLine: () => <div data-testid="reference-line" />,
   ResponsiveContainer: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
   Tooltip: () => <div data-testid="tooltip" />,
@@ -149,5 +149,38 @@ describe("ScoreEvolutionChart", () => {
     const aliceChip = screen.getByText("Alice");
     // Alice has custom color #ef4444
     expect(aliceChip).toHaveStyle({ backgroundColor: "#ef4444" });
+  });
+
+  it("renders only the last 10 data points when more than 10 games", () => {
+    const games = Array.from({ length: 12 }, (_, i) =>
+      makeGame(i + 1, { Alice: 10, Bob: -5, Charlie: -5, Diana: 5, Eve: -5 }),
+    );
+
+    render(<ScoreEvolutionChart games={games} players={players} />);
+
+    const chart = screen.getByTestId("line-chart");
+    expect(chart).toHaveAttribute("data-point-count", "10");
+  });
+
+  it("renders all 10 data points when exactly 10 games", () => {
+    const games = Array.from({ length: 10 }, (_, i) =>
+      makeGame(i + 1, { Alice: 10, Bob: -5, Charlie: -5, Diana: 5, Eve: -5 }),
+    );
+
+    render(<ScoreEvolutionChart games={games} players={players} />);
+
+    const chart = screen.getByTestId("line-chart");
+    expect(chart).toHaveAttribute("data-point-count", "10");
+  });
+
+  it("renders all data points when 10 or fewer games", () => {
+    const games = Array.from({ length: 8 }, (_, i) =>
+      makeGame(i + 1, { Alice: 10, Bob: -5, Charlie: -5, Diana: 5, Eve: -5 }),
+    );
+
+    render(<ScoreEvolutionChart games={games} players={players} />);
+
+    const chart = screen.getByTestId("line-chart");
+    expect(chart).toHaveAttribute("data-point-count", "8");
   });
 });
