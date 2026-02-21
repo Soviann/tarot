@@ -674,7 +674,7 @@ describe("SessionPage", () => {
     });
   });
 
-  it("shows Réouvrir la session for inactive sessions", async () => {
+  it("does not show reopen or close option for inactive sessions", async () => {
     const mockInactiveSession: SessionDetail = { ...mockSession, isActive: false };
     setupMocks({
       useSession: { data: mockInactiveSession, session: mockInactiveSession },
@@ -685,21 +685,8 @@ describe("SessionPage", () => {
     expect(screen.queryByRole("button", { name: "Nouvelle donne" })).not.toBeInTheDocument();
 
     await userEvent.click(screen.getByRole("button", { name: "Actions de session" }));
-    expect(screen.getByText("Réouvrir la session")).toBeInTheDocument();
+    expect(screen.queryByText("Réouvrir la session")).not.toBeInTheDocument();
     expect(screen.queryByText("Terminer la session")).not.toBeInTheDocument();
-  });
-
-  it("calls closeSession.mutate(true) when reopening session", async () => {
-    const mockInactiveSession: SessionDetail = { ...mockSession, isActive: false };
-    const { closeSessionMutate } = setupMocks({
-      useSession: { data: mockInactiveSession, session: mockInactiveSession },
-    });
-    renderWithProviders(<SessionPage />);
-
-    await userEvent.click(screen.getByRole("button", { name: "Actions de session" }));
-    await userEvent.click(screen.getByText("Réouvrir la session"));
-
-    expect(closeSessionMutate).toHaveBeenCalledWith(true, expect.objectContaining({ onSuccess: expect.any(Function) }));
   });
 
   it("shows toast error when undo fails", async () => {

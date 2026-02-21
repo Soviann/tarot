@@ -39,6 +39,8 @@ use Doctrine\ORM\EntityManagerInterface;
  */
 final readonly class BadgeChecker
 {
+    private const int MARATHON_THRESHOLD_SECONDS = 3 * 3600;
+
     public function __construct(
         private EntityManagerInterface $em,
         private GameRepository $gameRepository,
@@ -63,7 +65,6 @@ final readonly class BadgeChecker
         $existingBadges = $this->playerBadgeRepository->getExistingBadgeTypesForPlayers($playerIds);
         $contexts = $this->buildContexts($playerIds);
 
-        // Collect all unique session IDs across all players and pre-fetch session data
         $allSessionIds = [];
         foreach ($contexts as $ctx) {
             foreach ($ctx->distinctSessionIds as $sid) {
@@ -73,43 +74,20 @@ final readonly class BadgeChecker
         /** @var list<int> $allSessionIdList */
         $allSessionIdList = \array_keys($allSessionIds);
 
-        [$sessionEntries, $sessionScoreSums] = $this->fetchSessionData($allSessionIdList);
+        $sessionEntries = $this->scoreEntryRepository->getEntriesForSessionsByPosition($allSessionIdList);
+        $sessionScoreSums = $this->scoreEntryRepository->getScoreSumsByPlayerForSessions($allSessionIdList);
 
         $result = [];
         foreach ($players as $player) {
             /** @var int $playerId */
             $playerId = $player->getId();
-            $existing = $existingBadges[$playerId] ?? [];
-            $context = $contexts[$playerId];
-            $newBadges = [];
-
-            foreach (BadgeType::cases() as $badgeType) {
-                if (BadgeType::CatchThemAll === $badgeType || BadgeType::Konami === $badgeType) {
-                    continue;
-                }
-                if (\in_array($badgeType, $existing, true)) {
-                    continue;
-                }
-                if ($this->checkCondition($badgeType, $player, $context, $sessionEntries, $sessionScoreSums)) {
-                    $badge = new PlayerBadge();
-                    $badge->setBadgeType($badgeType);
-                    $badge->setPlayer($player);
-                    $this->em->persist($badge);
-                    $newBadges[] = $badgeType;
-                }
-            }
-
-            // CatchThemAll: check after all other badges
-            if (!\in_array(BadgeType::CatchThemAll, $existing, true)) {
-                $allTypes = \array_merge($existing, $newBadges);
-                if ($this->checkCatchThemAll($allTypes)) {
-                    $badge = new PlayerBadge();
-                    $badge->setBadgeType(BadgeType::CatchThemAll);
-                    $badge->setPlayer($player);
-                    $this->em->persist($badge);
-                    $newBadges[] = BadgeType::CatchThemAll;
-                }
-            }
+            $newBadges = $this->awardBadgesForPlayer(
+                $player,
+                $existingBadges[$playerId] ?? [],
+                $contexts[$playerId],
+                $sessionEntries,
+                $sessionScoreSums,
+            );
 
             if ([] !== $newBadges) {
                 $result[$playerId] = $newBadges;
@@ -136,9 +114,34 @@ final readonly class BadgeChecker
         $contexts = $this->buildContexts([$playerId]);
         $context = $contexts[$playerId];
 
-        [$sessionEntries, $sessionScoreSums] = $this->fetchSessionData($context->distinctSessionIds);
+        $sessionEntries = $this->scoreEntryRepository->getEntriesForSessionsByPosition($context->distinctSessionIds);
+        $sessionScoreSums = $this->scoreEntryRepository->getScoreSumsByPlayerForSessions($context->distinctSessionIds);
 
+        $newBadges = $this->awardBadgesForPlayer($player, $existingTypes, $context, $sessionEntries, $sessionScoreSums);
+
+        if ($flush && [] !== $newBadges) {
+            $this->em->flush();
+        }
+
+        return $newBadges;
+    }
+
+    /**
+     * @param list<BadgeType>                         $existingTypes
+     * @param array<int, list<ScoreEntryPositionDto>> $sessionEntries
+     * @param array<int, list<PlayerScoreSumDto>>     $sessionScoreSums
+     *
+     * @return list<BadgeType> newly awarded badge types
+     */
+    private function awardBadgesForPlayer(
+        Player $player,
+        array $existingTypes,
+        BadgeCheckContext $context,
+        array $sessionEntries,
+        array $sessionScoreSums,
+    ): array {
         $newBadges = [];
+
         foreach (BadgeType::cases() as $badgeType) {
             if (BadgeType::CatchThemAll === $badgeType || BadgeType::Konami === $badgeType) {
                 continue;
@@ -155,7 +158,6 @@ final readonly class BadgeChecker
             }
         }
 
-        // CatchThemAll: check after all other badges
         if (!\in_array(BadgeType::CatchThemAll, $existingTypes, true)) {
             $allTypes = \array_merge($existingTypes, $newBadges);
             if ($this->checkCatchThemAll($allTypes)) {
@@ -165,10 +167,6 @@ final readonly class BadgeChecker
                 $this->em->persist($badge);
                 $newBadges[] = BadgeType::CatchThemAll;
             }
-        }
-
-        if ($flush && [] !== $newBadges) {
-            $this->em->flush();
         }
 
         return $newBadges;
@@ -192,7 +190,7 @@ final readonly class BadgeChecker
         $gardeContreCounts = $this->gameRepository->countByTakerAndContractForPlayers($playerIds, Contract::GardeContre);
         $gamesWithTakerScore = $this->scoreEntryRepository->getGamesWithTakerScoreForPlayers($playerIds);
         $hasStarShower = $this->starEventRepository->hasStarShowerForPlayers($playerIds);
-        $marathonSessionIds = $this->gameRepository->getMarathonSessionsForPlayers($playerIds, 3 * 3600);
+        $marathonSessionIds = $this->gameRepository->getMarathonSessionsForPlayers($playerIds, self::MARATHON_THRESHOLD_SECONDS);
         $nightOwlCounts = $this->scoreEntryRepository->countNightOwlGamesForPlayers($playerIds);
         $starEventCounts = $this->starEventRepository->countByPlayers($playerIds);
         $surpriseChelemCounts = $this->gameRepository->countSurpriseChelemForPlayers($playerIds);
@@ -227,25 +225,6 @@ final readonly class BadgeChecker
         }
 
         return $contexts;
-    }
-
-    /**
-     * Fetch session entries and score sums for Comeback/LastPlace checks.
-     *
-     * @param list<int> $sessionIds
-     *
-     * @return array{array<int, list<ScoreEntryPositionDto>>, array<int, list<PlayerScoreSumDto>>}
-     */
-    private function fetchSessionData(array $sessionIds): array
-    {
-        $sessionEntries = [];
-        $sessionScoreSums = [];
-        foreach ($sessionIds as $sessionId) {
-            $sessionEntries[$sessionId] = $this->scoreEntryRepository->getEntriesForSessionByPosition($sessionId);
-            $sessionScoreSums[$sessionId] = $this->scoreEntryRepository->getScoreSumsByPlayerForSession($sessionId);
-        }
-
-        return [$sessionEntries, $sessionScoreSums];
     }
 
     /**
@@ -335,9 +314,7 @@ final readonly class BadgeChecker
      */
     private function checkChampionStreak(BadgeCheckContext $context): bool
     {
-        $games = \array_map(static fn (int $score): array => ['score' => $score], $context->takerScores);
-
-        return $this->maxStreak($games, static fn (array $game): bool => $game['score'] > 0) >= 5;
+        return $this->maxStreak($context->takerScores, static fn (int $score): bool => $score > 0) >= 5;
     }
 
     /**
@@ -521,9 +498,7 @@ final readonly class BadgeChecker
      */
     private function checkLosingStreak(BadgeCheckContext $context): bool
     {
-        $games = \array_map(static fn (int $score): array => ['score' => $score], $context->takerScores);
-
-        return $this->maxStreak($games, static fn (array $game): bool => $game['score'] < 0) >= 5;
+        return $this->maxStreak($context->takerScores, static fn (int $score): bool => $score < 0) >= 5;
     }
 
     /**
@@ -704,10 +679,8 @@ final readonly class BadgeChecker
     }
 
     /**
-     * Compute the max consecutive streak matching a condition.
-     *
-     * @param list<array<string, mixed>>           $items
-     * @param callable(array<string, mixed>): bool $condition
+     * @param list<int>           $items
+     * @param callable(int): bool $condition
      */
     private function maxStreak(array $items, callable $condition): int
     {

@@ -27,7 +27,13 @@ export async function apiFetch<T>(
 
   if (!response.ok) {
     const body = await response.json().catch(() => null);
-    throw new ApiError(body, `API error: ${response.status}`, response.status);
+    const detail =
+      (body as Record<string, unknown> | null)?.["hydra:description"] ??
+      (body as Record<string, unknown> | null)?.detail;
+    const message = typeof detail === "string"
+      ? `${response.status}: ${detail}`
+      : `API error: ${response.status}`;
+    throw new ApiError(body, message, response.status);
   }
 
   if (response.status === 204) return undefined as T;

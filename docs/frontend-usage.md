@@ -553,13 +553,14 @@ closeGroupSessions.mutate(groupId);
 
 **Fichier** : `hooks/useCloseSession.ts`
 
-Mutation pour clôturer ou réouvrir une session (PATCH `isActive`). Invalide les caches `["session", id]` et `["sessions"]`.
+Mutation pour clôturer une session (PATCH `isActive: false`). Invalide les caches `["session", id]` et `["sessions"]`.
+
+> **Note** : la réouverture d'une session n'est pas autorisée côté API (le setter ignore `isActive: true` si la session est déjà terminée).
 
 ```ts
 const closeSession = useCloseSession(sessionId);
 
 closeSession.mutate(false); // clôturer
-closeSession.mutate(true);  // réouvrir
 ```
 
 | Retour | Type | Description |
@@ -1502,7 +1503,7 @@ Sélectionne un mème de défaite en fonction du contexte de la donne. Même pro
 Tous les composants sont exportés depuis `components/ui/index.ts` :
 
 ```tsx
-import { ContractBadge, EmptyState, FAB, Modal, OverflowMenu, PlayerAvatar, ScoreDisplay, SearchInput, Select, Spinner, Stepper, Toast, ToastContainer, UndoFAB } from "./components/ui";
+import { ContractBadge, EmptyState, FAB, MetricCard, Modal, OverflowMenu, PlayerAvatar, ScoreDisplay, SearchInput, Select, Spinner, Stepper, Toast, ToastContainer, UndoFAB } from "./components/ui";
 ```
 
 ### `PlayerAvatar`
@@ -1678,6 +1679,21 @@ Chaque item est soit un **bouton** (avec `onClick`), soit un **lien** (avec `hre
   ]}
   label="Actions"
 />
+```
+
+### `MetricCard`
+
+**Fichier** : `components/ui/MetricCard.tsx`
+
+Carte compacte affichant une valeur et un libellé, utilisée dans les grilles de statistiques.
+
+| Prop | Type | Description |
+|------|------|-------------|
+| `label` | `string` | Libellé sous la valeur |
+| `value` | `string` | Valeur affichée en gras |
+
+```tsx
+<MetricCard label="Donnes jouées" value="42" />
 ```
 
 ### `Modal`
