@@ -81,6 +81,7 @@ ddev exec make sf CMD="..."     # Any Symfony console command
 ### Commits
 
 Format: `<type>(scope): description` — Types: `feat`, `fix`, `chore`, `refactor`, `docs`
+**Verbe conjugué** (impératif 3e personne), pas infinitif : `ajoute`, `corrige`, `supprime` (pas `ajouter`, `corriger`, `supprimer`)
 **Always** reference the issue: append `#N` in the message body or use `fixes #N` to auto-close.
 **Before committing**: run PHP CS Fixer on all staged `.php` files to ensure consistent formatting.
 
@@ -177,6 +178,5 @@ Two living docs in `docs/` must be maintained:
 
 ## Language
 
-- **Git commits & PR titles**: English
-- **All other files** (README, CHANGELOG, docs, UI text, comments): French
+- **Git commits, PR titles & all other files** (README, CHANGELOG, docs, UI text, comments): French
 - **Code identifiers** (variables, functions, classes): English
