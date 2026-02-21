@@ -1,4 +1,4 @@
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { QueryClientProvider } from "@tanstack/react-query";
 import { lazy, Suspense } from "react";
 import { BrowserRouter, Route, Routes } from "react-router-dom";
 import ErrorBoundary from "./components/ErrorBoundary";
@@ -6,6 +6,7 @@ import Layout from "./components/Layout";
 import { ThemeProvider } from "./hooks/useTheme";
 import { ToastProvider } from "./hooks/useToast";
 import Home from "./pages/Home";
+import { queryClient } from "./queryClient";
 import ToastContainer from "./components/ui/ToastContainer";
 
 const GroupDetail = lazy(() => import("./pages/GroupDetail"));
@@ -25,8 +26,6 @@ const ReactQueryDevtools = import.meta.env.DEV
       })),
     )
   : () => null;
-
-const queryClient = new QueryClient();
 
 export default function App() {
   return (
