@@ -1,6 +1,6 @@
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 import ErrorBoundary from "../../components/ErrorBoundary";
 
 function ThrowingChild() {
@@ -54,6 +54,7 @@ describe("ErrorBoundary", () => {
   });
 
   it("calls window.location.reload when clicking the reload button", async () => {
+    const originalLocation = window.location;
     const reloadMock = vi.fn();
     Object.defineProperty(window, "location", {
       configurable: true,
@@ -70,5 +71,10 @@ describe("ErrorBoundary", () => {
       screen.getByRole("button", { name: /recharger/i }),
     );
     expect(reloadMock).toHaveBeenCalledOnce();
+
+    Object.defineProperty(window, "location", {
+      configurable: true,
+      value: originalLocation,
+    });
   });
 });
