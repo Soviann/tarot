@@ -28,7 +28,7 @@ Définis dans `frontend/src/index.css` via `@theme`. Utilisables directement com
 | **Texte** | `text-primary`, `text-secondary`, `text-muted`, `text-inverse` | `text-text-primary` |
 | **Score** | `score-positive`, `score-negative` | `text-score-positive` |
 | **Contrat** | `contract-petite`, `contract-garde`, `contract-garde-sans`, `contract-garde-contre` | `bg-contract-garde` |
-| **Avatar** | `avatar-0` à `avatar-9` | `bg-avatar-3` |
+| **Avatar** | — | 10 couleurs en inline style (palette dans `PlayerAvatar.tsx`) |
 
 ### Mode sombre
 
@@ -1612,13 +1612,13 @@ import { ContractBadge, EmptyState, FAB, MetricCard, Modal, OverflowMenu, Player
 
 **Fichier** : `components/ui/PlayerAvatar.tsx`
 
-Affiche un cercle coloré avec les initiales du joueur.
+Affiche un cercle coloré avec les initiales du joueur. Palette de 10 couleurs appliquées en inline style.
 
 | Prop | Type | Défaut | Description |
 |------|------|--------|-------------|
 | `name` | `string` | *requis* | Nom du joueur (initiales = 2 premières lettres) |
 | `playerId` | `number?` | — | Prioritaire pour la couleur palette (`playerId % 10`) |
-| `color` | `string \| null` | — | Couleur personnalisée (hex). Si fournie, remplace la couleur palette par un `backgroundColor` inline. |
+| `color` | `string \| null` | — | Couleur personnalisée (hex). Si fournie, remplace la couleur palette. |
 | `size` | `"sm" \| "md" \| "lg"` | `"md"` | 32px / 40px / 56px |
 | `className` | `string?` | — | Classes CSS supplémentaires |
 
