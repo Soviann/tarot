@@ -133,6 +133,7 @@ export interface PlayerGroupDetail extends PlayerGroup {
 export interface PersonalRecord {
   contract: string | null;
   date: string;
+  gameId: number | null;
   sessionId: number | null;
   type: string;
   value: number;

@@ -14,6 +14,9 @@ use App\Enum\GameStatus;
 
 class StatisticsApiTest extends ApiTestCase
 {
+    /** @var Game[] */
+    private array $games;
+
     /** @var Player[] */
     private array $players;
 
@@ -495,6 +498,7 @@ class StatisticsApiTest extends ApiTestCase
         $this->assertArrayHasKey('best_score', $records);
         $this->assertSame(58, $records['best_score']['value']);
         $this->assertSame('petite', $records['best_score']['contract']);
+        $this->assertSame($this->games['game1']->getId(), $records['best_score']['gameId']);
         $this->assertSame($this->session->getId(), $records['best_score']['sessionId']);
         $this->assertArrayHasKey('date', $records['best_score']);
 
@@ -502,20 +506,24 @@ class StatisticsApiTest extends ApiTestCase
         $this->assertArrayHasKey('worst_score', $records);
         $this->assertSame(-82, $records['worst_score']['value']);
         $this->assertSame('petite', $records['worst_score']['contract']);
+        $this->assertSame($this->games['game3']->getId(), $records['worst_score']['gameId']);
 
         // Win streak as taker: 1 (game1 won, game3 lost — not consecutive)
         $this->assertArrayHasKey('win_streak', $records);
         $this->assertSame(1, $records['win_streak']['value']);
+        $this->assertNull($records['win_streak']['gameId']);
 
         // Best session total: 58 + (-68) + (-82) = -92
         $this->assertArrayHasKey('best_session', $records);
         $this->assertSame(-92, $records['best_session']['value']);
         $this->assertSame($this->session->getId(), $records['best_session']['sessionId']);
+        $this->assertNull($records['best_session']['gameId']);
 
         // Biggest diff as taker: |40 - 56| = 16 (game3, 0 oudlers)
         $this->assertArrayHasKey('biggest_diff', $records);
         $this->assertEqualsWithDelta(16.0, $records['biggest_diff']['value'], 0.01);
         $this->assertSame('petite', $records['biggest_diff']['contract']);
+        $this->assertSame($this->games['game3']->getId(), $records['biggest_diff']['gameId']);
     }
 
     public function testPlayerRecordsEmptyWhenNoGames(): void
@@ -705,7 +713,7 @@ class StatisticsApiTest extends ApiTestCase
 
         // Game 1: Petite, Alice taker, Bob partner, 2 oudlers, 45 pts → wins (45 >= 41)
         // base = (45 - 41 + 25) × 1 = 29, taker ×2=58, partner=29, defenders=-29
-        $this->createCompletedGame(
+        $this->games['game1'] = $this->createCompletedGame(
             contract: Contract::Petite,
             oudlers: 2,
             partner: $this->players['Bob'],
@@ -717,7 +725,7 @@ class StatisticsApiTest extends ApiTestCase
 
         // Game 2: Garde, Charlie taker, Diana partner, 1 oudler, 60 pts → wins (60 >= 51)
         // base = (60 - 51 + 25) × 2 = 68, taker ×2=136, partner=68, defenders=-68
-        $this->createCompletedGame(
+        $this->games['game2'] = $this->createCompletedGame(
             contract: Contract::Garde,
             oudlers: 1,
             partner: $this->players['Diana'],
@@ -729,7 +737,7 @@ class StatisticsApiTest extends ApiTestCase
 
         // Game 3: Petite, Alice taker, Eve partner, 0 oudlers, 40 pts → loses (40 < 56)
         // base = (56 - 40 + 25) × 1 = -41, taker ×2=-82, partner=-41, defenders=41
-        $this->createCompletedGame(
+        $this->games['game3'] = $this->createCompletedGame(
             contract: Contract::Petite,
             oudlers: 0,
             partner: $this->players['Eve'],

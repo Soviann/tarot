@@ -76,7 +76,7 @@ final readonly class PlayerStatisticsService
      * - biggest_diff  : plus grand écart entre points réalisés et points requis (en tant que preneur)
      * - best_session  : meilleur score cumulé sur une session
      *
-     * @return list<array{contract: string|null, date: string, sessionId: int|null, type: string, value: int|float}>
+     * @return list<array{contract: string|null, date: string, gameId: int|null, sessionId: int|null, type: string, value: int|float}>
      */
     public function getPlayerRecords(Player $player, ?int $playerGroupId = null): array
     {
@@ -88,6 +88,7 @@ final readonly class PlayerStatisticsService
             $records[] = [
                 'contract' => $bestScore->contract->value,
                 'date' => $bestScore->date->format(\DateTimeInterface::ATOM),
+                'gameId' => $bestScore->gameId,
                 'sessionId' => $bestScore->sessionId,
                 'type' => 'best_score',
                 'value' => $bestScore->score,
@@ -100,6 +101,7 @@ final readonly class PlayerStatisticsService
             $records[] = [
                 'contract' => $worstScore->contract->value,
                 'date' => $worstScore->date->format(\DateTimeInterface::ATOM),
+                'gameId' => $worstScore->gameId,
                 'sessionId' => $worstScore->sessionId,
                 'type' => 'worst_score',
                 'value' => $worstScore->score,
@@ -131,6 +133,7 @@ final readonly class PlayerStatisticsService
                 $records[] = [
                     'contract' => null,
                     'date' => $maxStreakEndDate->format(\DateTimeInterface::ATOM),
+                    'gameId' => null,
                     'sessionId' => null,
                     'type' => 'win_streak',
                     'value' => $maxStreak,
@@ -157,6 +160,7 @@ final readonly class PlayerStatisticsService
                 $records[] = [
                     'contract' => $maxDiffRow->contract->value,
                     'date' => $maxDiffRow->date->format(\DateTimeInterface::ATOM),
+                    'gameId' => $maxDiffRow->gameId,
                     'sessionId' => $maxDiffRow->sessionId,
                     'type' => 'biggest_diff',
                     'value' => $maxDiff,
@@ -170,6 +174,7 @@ final readonly class PlayerStatisticsService
             $records[] = [
                 'contract' => null,
                 'date' => $bestSession->firstDate->format(\DateTimeInterface::ATOM),
+                'gameId' => null,
                 'sessionId' => $bestSession->sessionId,
                 'type' => 'best_session',
                 'value' => $bestSession->total,

@@ -568,6 +568,23 @@ closeSession.mutate(false); // clôturer
 | `mutate` | `(isActive: boolean) => void` | Lance la modification |
 | `isPending` | `boolean` | `true` pendant la requête |
 
+### `useGame`
+
+**Fichier** : `hooks/useGame.ts`
+
+Récupère le détail d'une donne par son ID via `GET /games/{id}`.
+
+```ts
+const { data: game, isPending } = useGame(gameId);
+```
+
+| Retour | Type | Description |
+|--------|------|-------------|
+| `data` | `Game \| undefined` | Détail de la donne |
+| `isPending` | `boolean` | `true` pendant le chargement initial |
+
+> **Note** : la requête n'est envoyée que si `gameId` n'est pas `null` (`enabled: gameId !== null`).
+
 ### `useSession`
 
 **Fichier** : `hooks/useSession.ts`
@@ -1279,7 +1296,7 @@ Tableau croisé joueurs × contrats. Affiche le taux de réussite (%) et le nomb
 
 **Fichier** : `components/PersonalRecords.tsx`
 
-Affiche les records personnels d'un joueur sous forme de cartes (meilleur score, pire score, série de victoires, meilleure session, plus grand écart). Chaque record affiche l'icône, le libellé, la valeur formatée, la date, le contrat (badge) et un lien vers la session.
+Affiche les records personnels d'un joueur sous forme de cartes (meilleur score, pire score, série de victoires, meilleure session, plus grand écart). Chaque record affiche l'icône, le libellé, la valeur formatée, la date et le contrat (badge).
 
 | Prop | Type | Description |
 |------|------|-------------|
@@ -1289,8 +1306,21 @@ Affiche les records personnels d'un joueur sous forme de cartes (meilleur score,
 - Ordre d'affichage fixe : meilleur score → pire score → série de victoires → meilleure session → plus grand écart
 - Formatage spécifique par type : signe moins typographique (U+2212) pour le pire score, « X donnes » pour la série, « X pts » pour l'écart
 - Badge contrat (`ContractBadge`) si le record est lié à un contrat
-- Lien « Voir » vers la session si `sessionId` est présent
+- Bouton « Voir » ouvrant une `GameDetailModal` si `gameId` est présent (records liés à une donne)
+- Lien « Voir » vers la session si `sessionId` est présent mais pas de `gameId` (meilleure session)
 - Retourne `null` si la liste est vide
+
+### `GameDetailModal`
+
+**Fichier** : `components/GameDetailModal.tsx`
+
+Modale affichant le détail d'une donne : contrat, bouts, écart de points, et scores de chaque joueur (preneur, appelé, défenseurs). Récupère les données via le hook `useGame`.
+
+| Prop | Type | Description |
+|------|------|-------------|
+| `gameId` | `number \| null` | *requis* — ID de la donne à afficher |
+| `onClose` | `() => void` | *requis* — callback de fermeture |
+| `open` | `boolean` | *requis* — état d'ouverture |
 
 ### `ScoreTrendChart`
 

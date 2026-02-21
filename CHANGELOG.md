@@ -6,6 +6,10 @@ Le format est basé sur [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/)
 
 ## [Unreleased]
 
+### Added
+
+- **Modale donne depuis records personnels** : sur la page stats joueur, les records personnels liés à une donne (meilleur score, pire score, plus grand écart) ouvrent une modale affichant le détail de la donne au lieu de rediriger vers la session
+
 ### Changed
 
 - **Clôture de session irréversible** : une session terminée ne peut plus être réouverte via l'API ni depuis l'interface (le bouton « Réouvrir » a été supprimé)

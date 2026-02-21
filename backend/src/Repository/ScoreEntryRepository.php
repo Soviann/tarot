@@ -537,7 +537,7 @@ final class ScoreEntryRepository extends ServiceEntityRepository
     private function getPlayerExtremeScore(Player $player, string $order, ?int $playerGroupId = null): ?PlayerExtremeScoreDto
     {
         $qb = $this->createQueryBuilder('se')
-            ->select('NEW App\Dto\PlayerExtremeScoreDto(g.contract, g.createdAt, se.score, IDENTITY(g.session))')
+            ->select('NEW App\Dto\PlayerExtremeScoreDto(g.contract, g.createdAt, IDENTITY(se.game), se.score, IDENTITY(g.session))')
             ->join('se.game', 'g')
             ->andWhere('se.player = :player')
             ->andWhere('g.status = :status')

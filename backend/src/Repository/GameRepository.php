@@ -709,7 +709,7 @@ final class GameRepository extends ServiceEntityRepository
     public function getPlayerTakerGamesForRecords(Player $player, ?int $playerGroupId = null): array
     {
         $qb = $this->createQueryBuilder('g')
-            ->select('NEW App\Dto\TakerGameRecordDto(g.contract, g.createdAt, g.oudlers, g.points, se.score, IDENTITY(g.session))')
+            ->select('NEW App\Dto\TakerGameRecordDto(g.contract, g.createdAt, g.id, g.oudlers, g.points, se.score, IDENTITY(g.session))')
             ->join('App\Entity\ScoreEntry', 'se', 'WITH', 'se.game = g AND se.player = g.taker')
             ->andWhere('g.taker = :player')
             ->andWhere('g.status = :status')
