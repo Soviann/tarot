@@ -2,10 +2,10 @@ import { QueryClientProvider } from "@tanstack/react-query";
 import { lazy, Suspense } from "react";
 import { ErrorBoundary } from "react-error-boundary";
 import { BrowserRouter, Route, Routes } from "react-router-dom";
+import { Toaster } from "sonner";
 import { ErrorFallback } from "./components/ErrorFallback";
 import Layout from "./components/Layout";
-import { Toaster } from "sonner";
-import { ThemeProvider } from "./hooks/useTheme";
+import { ThemeProvider, useTheme } from "./hooks/useTheme";
 import Home from "./pages/Home";
 import { queryClient } from "./queryClient";
 
@@ -26,6 +26,11 @@ const ReactQueryDevtools = import.meta.env.DEV
       })),
     )
   : () => null;
+
+function ThemedToaster() {
+  const { isDark } = useTheme();
+  return <Toaster position="top-center" richColors theme={isDark ? "dark" : "light"} />;
+}
 
 export default function App() {
   return (
@@ -62,7 +67,7 @@ export default function App() {
               </Routes>
             </Suspense>
           </BrowserRouter>
-          <Toaster position="top-center" richColors />
+          <ThemedToaster />
           {import.meta.env.DEV && (
             <Suspense>
               <ReactQueryDevtools initialIsOpen={false} />
