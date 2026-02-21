@@ -57,7 +57,7 @@ final readonly class PlayerStatisticsService
         $rows = $this->eloHistoryRepository->getPlayerHistory($player, $dateRange, $playerGroupId);
 
         return \array_map(
-            static fn (PlayerEloHistoryPointDto $row) => [
+            static fn (PlayerEloHistoryPointDto $row): array => [
                 'date' => $row->date->format(\DateTimeInterface::ATOM),
                 'gameId' => $row->gameId,
                 'ratingAfter' => $row->ratingAfter,
@@ -225,7 +225,7 @@ final readonly class PlayerStatisticsService
         }
 
         $contractDistribution = \array_map(
-            static fn (ContractDistributionDto $row) => [
+            static fn (ContractDistributionDto $row): array => [
                 'contract' => $row->contract->value,
                 'count' => $row->count,
                 'winRate' => $row->count > 0
@@ -238,7 +238,7 @@ final readonly class PlayerStatisticsService
 
         $recentScores = $this->scoreEntryRepository->getPlayerRecentScores($player, $dateRange, $playerGroupId, 50);
         $formattedRecentScores = \array_map(
-            static fn (RecentScoreDto $row) => [
+            static fn (RecentScoreDto $row): array => [
                 'date' => $row->date->format(\DateTimeInterface::ATOM),
                 'gameId' => $row->gameId,
                 'score' => $row->score,
@@ -269,7 +269,7 @@ final readonly class PlayerStatisticsService
             'maxStarsInSession' => $maxStarsInSession,
             'player' => ['id' => $playerId, 'name' => $player->getName()],
             'playerGroups' => \array_map(
-                static fn (PlayerGroup $pg) => ['id' => $pg->getId(), 'name' => $pg->getName()],
+                static fn (PlayerGroup $pg): array => ['id' => $pg->getId(), 'name' => $pg->getName()],
                 $player->getPlayerGroups()->getValues(),
             ),
             'recentScores' => $formattedRecentScores,

@@ -11,6 +11,7 @@ use App\Repository\PlayerRepository;
 use App\Service\BadgeChecker;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\JsonResponse;
+use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\Routing\Attribute\Route;
 
@@ -35,7 +36,7 @@ readonly class KonamiController
         $existingTypes = $this->playerBadgeRepository->getExistingBadgeTypesForPlayer($player);
 
         if (\in_array(BadgeType::Konami, $existingTypes, true)) {
-            return new JsonResponse(null, 200);
+            return new JsonResponse(null, Response::HTTP_OK);
         }
 
         $badge = new PlayerBadge();

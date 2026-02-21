@@ -24,7 +24,7 @@ class GameApiTest extends ApiTestCase
         $this->em->persist($game);
         $this->em->flush();
 
-        $response = $this->client->request('GET', $this->getIri($session).'/games');
+        $this->client->request('GET', $this->getIri($session).'/games');
 
         $this->assertResponseIsSuccessful();
         $this->assertJsonContains(['totalItems' => 1]);

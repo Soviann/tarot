@@ -128,7 +128,7 @@ class StarEventApiTest extends ApiTestCase
             ]);
         }
 
-        $response = $this->client->request('GET', "/api/sessions/{$sessionId}/star-events");
+        $this->client->request('GET', "/api/sessions/{$sessionId}/star-events");
 
         $this->assertResponseIsSuccessful();
         $this->assertJsonContains(['totalItems' => 2]);
