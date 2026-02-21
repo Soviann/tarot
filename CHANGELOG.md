@@ -6,6 +6,8 @@ Le format est basé sur [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/)
 
 ## [Unreleased]
 
+## [1.2.0] - 2026-02-21
+
 ### Added
 
 - **Error Boundary global** : ajout d'un Error Boundary React englobant toute l'application. En cas d'erreur de rendu, un écran de repli affiche un message et un bouton « Recharger la page » au lieu d'un écran blanc.
