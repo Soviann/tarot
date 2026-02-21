@@ -1507,11 +1507,13 @@ import { selectMeme, type GameContext } from "./services/memeSelector";
 const ctx: GameContext = {
   attackWins: true,
   chelem: "none",
+  consecutiveLosses: 0,
   contract: "garde_contre",
   isSelfCall: false,
   oudlers: 2,
   petitAuBout: "none",
   points: 51,
+  previousScore: null,
   takerScore: 182,
 };
 
@@ -1530,11 +1532,13 @@ if (meme) {
 |-------|------|-------------|
 | `attackWins` | `boolean` | L'attaque a-t-elle gagné |
 | `chelem` | `Chelem` | Type de chelem (pour détecter chelem raté) |
+| `consecutiveLosses` | `number` | Nombre de donnes consécutives avec score négatif pour le joueur (tout rôle, incluant la donne courante) |
 | `contract` | `Contract` | Contrat joué |
 | `isSelfCall` | `boolean` | Victoire en solo (appel au roi seul) |
 | `oudlers` | `number` | Nombre de bouts (0-3) |
 | `petitAuBout` | `Side` | Petit au bout (attaque/défense/aucun) |
 | `points` | `number` | Points saisis pour le preneur (0-91) |
+| `previousScore` | `number \| null` | Score du joueur dans la donne précédente, tout rôle confondu (pour détection swing) |
 | `takerScore` | `number` | Score calculé du preneur (pour détection score extrême) |
 
 ### `buildPool`
@@ -1556,6 +1560,9 @@ Construit le pool pondéré de mèmes éligibles pour un contexte donné. Foncti
 |----|-----------|-------|
 | `success-kid` | `petitAuBout === "attack"` | 10 |
 | `obama-medal` | `isSelfCall === true` | 40 |
+| `spiderman-pointing` | `isSelfCall === true` | 40 |
+| `chris-pratt-wow` | `contract === "garde_contre"` | 20 |
+| `jordan-peele` | victoire serrée (marge 0-5 pts) | 20 |
 | `borat` | toujours | 1 |
 | `champions` | toujours | 1 |
 | `dicaprio-toast` | toujours | 1 |
@@ -1570,14 +1577,17 @@ Construit le pool pondéré de mèmes éligibles pour un contexte donné. Foncti
 | `picard-facepalm` | idem | 20 |
 | `pikachu-surprised` | idem | 10 |
 | `crying-jordan` | garde sans perdue | 20 |
+| `ill-be-back` | grosse défaite (≤ -50) après grosse victoire (≥ 50) | 20 |
 | `ah-shit` | toujours | 1 |
 | `just-to-suffer` | toujours | 1 |
 | `sad-pablo` | toujours | 1 |
-| `this-is-fine` | toujours | 1 |
+| `this-is-fine` | toujours (poids boosté à 20 si 3+ défaites consécutives) | 1 ou 20 |
 
 > Les mèmes conditionnels s'ajoutent au pool de base quand leur condition est remplie. Le poids élevé fait qu'ils dominent la sélection sans exclure les mèmes de base.
+>
+> Les champs `consecutiveLosses` et `previousScore` sont calculés dans `SessionPage.tsx` à partir de l'historique des donnes de la session (`allGames`) avant d'être passés à `selectMeme`.
 
-**Assets mèmes** : `frontend/public/memes/` (17 fichiers). Format `.webp` (sauf `mind-blown.gif` — GIF animé, `infinity-beyond.jpg` — JPEG).
+**Assets mèmes** : `frontend/public/memes/` (21 fichiers). Format `.webp` (sauf `mind-blown.gif`, `chris-pratt-wow.gif`, `ill-be-back.gif` — GIF animés, `infinity-beyond.jpg`, `jordan-peele.jpg` — JPEG).
 
 ---
 
