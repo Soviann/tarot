@@ -1,4 +1,4 @@
-import { screen, within } from "@testing-library/react";
+import { screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import * as useGlobalStatsModule from "../../hooks/useGlobalStats";
 import Stats from "../../pages/Stats";
@@ -11,6 +11,9 @@ vi.mock("react-router-dom", async (importOriginal) => ({
 }));
 
 vi.mock("../../hooks/useGlobalStats");
+
+// jsdom doesn't implement scrollIntoView
+Element.prototype.scrollIntoView = vi.fn();
 
 const mockStats = {
   averageGameDuration: 480,
@@ -105,7 +108,8 @@ describe("Stats page", () => {
     expect(screen.getAllByText("Bob").length).toBeGreaterThanOrEqual(1);
   });
 
-  it("renders a section selector dropdown with available options", () => {
+  it("renders a section selector dropdown with available options", async () => {
+    const user = userEvent.setup();
     const fullStats = {
       ...mockStats,
       contractSuccessRateByPlayer: [{ playerName: "Alice", playerId: 1, contracts: [] }],
@@ -118,10 +122,11 @@ describe("Stats page", () => {
 
     renderWithProviders(<Stats />);
 
-    const selector = screen.getByRole("combobox", { name: "Section" });
-    expect(selector).toBeInTheDocument();
+    // Open custom Select dropdown
+    const trigger = screen.getByRole("button", { name: /classement elo/i });
+    await user.click(trigger);
 
-    const options = within(selector).getAllByRole("option");
+    const options = screen.getAllByRole("option");
     expect(options.map((o) => o.textContent)).toEqual([
       "Classement ELO",
       "Évolution ELO",
@@ -130,7 +135,8 @@ describe("Stats page", () => {
     ]);
   });
 
-  it("filters out empty sections from the dropdown", () => {
+  it("filters out empty sections from the dropdown", async () => {
+    const user = userEvent.setup();
     vi.mocked(useGlobalStatsModule.useGlobalStats).mockReturnValue({
       isPending: false,
       stats: mockStats, // eloEvolution=[], contractSuccessRateByPlayer=[]
@@ -138,8 +144,11 @@ describe("Stats page", () => {
 
     renderWithProviders(<Stats />);
 
-    const selector = screen.getByRole("combobox", { name: "Section" });
-    const options = within(selector).getAllByRole("option");
+    // Open custom Select dropdown
+    const trigger = screen.getByRole("button", { name: /classement elo/i });
+    await user.click(trigger);
+
+    const options = screen.getAllByRole("option");
     expect(options.map((o) => o.textContent)).toEqual([
       "Classement ELO",
       "Répartition des contrats",
@@ -171,8 +180,10 @@ describe("Stats page", () => {
 
     renderWithProviders(<Stats />);
 
-    const selector = screen.getByRole("combobox", { name: "Section" });
-    await user.selectOptions(selector, "contracts");
+    // Open custom Select and pick "Répartition des contrats"
+    const trigger = screen.getByRole("button", { name: /classement elo/i });
+    await user.click(trigger);
+    await user.click(screen.getByRole("option", { name: /répartition des contrats/i }));
 
     // Contracts section visible
     expect(screen.getByRole("heading", { name: "Répartition des contrats" })).toBeInTheDocument();
@@ -190,8 +201,10 @@ describe("Stats page", () => {
 
     renderWithProviders(<Stats />);
 
-    const selector = screen.getByRole("combobox", { name: "Section" });
-    await user.selectOptions(selector, "contracts");
+    // Open custom Select and pick "Répartition des contrats"
+    const trigger = screen.getByRole("button", { name: /classement elo/i });
+    await user.click(trigger);
+    await user.click(screen.getByRole("option", { name: /répartition des contrats/i }));
 
     // Metrics still visible
     expect(screen.getByText("Donnes")).toBeInTheDocument();

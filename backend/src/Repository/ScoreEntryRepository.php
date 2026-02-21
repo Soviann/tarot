@@ -505,7 +505,7 @@ final class ScoreEntryRepository extends ServiceEntityRepository
     {
         /* @var list<GameTakerScoreDto> */
         return $this->createQueryBuilder('se')
-            ->select('NEW App\Dto\GameTakerScoreDto(g.id, IDENTITY(g.partner), IDENTITY(g.taker), se2.score)')
+            ->select('NEW App\Dto\GameTakerScoreDto(g.id, IDENTITY(g.partner), g.poignee, g.poigneeOwner, IDENTITY(g.taker), se2.score)')
             ->join('se.game', 'g')
             ->join('g.scoreEntries', 'se2')
             ->andWhere('se.player = :player')
@@ -529,12 +529,14 @@ final class ScoreEntryRepository extends ServiceEntityRepository
             return [];
         }
 
-        /** @var list<array{gameId: int|string, partnerId: int|string|null, playerId: int|string, takerId: int|string, takerScore: int|string}> $results */
+        /** @var list<array{gameId: int|string, partnerId: int|string|null, playerId: int|string, poignee: string, poigneeOwner: string, takerId: int|string, takerScore: int|string}> $results */
         $results = $this->createQueryBuilder('se')
             ->select(
                 'g.id AS gameId',
                 'IDENTITY(g.partner) AS partnerId',
                 'IDENTITY(se.player) AS playerId',
+                'g.poignee AS poignee',
+                'g.poigneeOwner AS poigneeOwner',
                 'IDENTITY(g.taker) AS takerId',
                 'se2.score AS takerScore',
             )
@@ -555,6 +557,8 @@ final class ScoreEntryRepository extends ServiceEntityRepository
             $map[(int) $row['playerId']][] = new GameTakerScoreDto(
                 $row['gameId'],
                 $row['partnerId'],
+                $row['poignee'],
+                $row['poigneeOwner'],
                 $row['takerId'],
                 $row['takerScore'],
             );

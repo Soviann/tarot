@@ -1,4 +1,4 @@
-import { screen, within } from "@testing-library/react";
+import { screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import * as usePlayerStatsModule from "../../hooks/usePlayerStats";
 import PlayerStats from "../../pages/PlayerStats";
@@ -118,7 +118,8 @@ describe("PlayerStats page", () => {
     expect(screen.getByText("1520")).toBeInTheDocument();
   });
 
-  it("renders a section selector dropdown with all options", () => {
+  it("renders a section selector dropdown with all options", async () => {
+    const user = userEvent.setup();
     vi.mocked(usePlayerStatsModule.usePlayerStats).mockReturnValue({
       isPending: false,
       stats: mockStats,
@@ -126,10 +127,11 @@ describe("PlayerStats page", () => {
 
     renderWithProviders(<PlayerStats />);
 
-    const selector = screen.getByRole("combobox", { name: "Section" });
-    expect(selector).toBeInTheDocument();
+    // Open the custom Select dropdown
+    const trigger = screen.getByRole("button", { name: /records personnels/i });
+    await user.click(trigger);
 
-    const options = within(selector).getAllByRole("option");
+    const options = screen.getAllByRole("option");
     expect(options.map((o) => o.textContent)).toEqual([
       "Records personnels",
       "Badges",
@@ -168,10 +170,10 @@ describe("PlayerStats page", () => {
 
     renderWithProviders(<PlayerStats />);
 
-    const selector = screen.getByRole("combobox", { name: "Section" });
-
-    // Switch to Répartition des rôles
-    await user.selectOptions(selector, "roles");
+    // Open custom Select and pick "Répartition des rôles"
+    const trigger = screen.getByRole("button", { name: /records personnels/i });
+    await user.click(trigger);
+    await user.click(screen.getByRole("option", { name: /répartition des rôles/i }));
 
     expect(screen.getByText("Preneur: 35")).toBeInTheDocument();
     expect(screen.getByText("Partenaire: 20")).toBeInTheDocument();
@@ -190,8 +192,10 @@ describe("PlayerStats page", () => {
 
     renderWithProviders(<PlayerStats />);
 
-    const selector = screen.getByRole("combobox", { name: "Section" });
-    await user.selectOptions(selector, "elo");
+    // Open custom Select and pick "Évolution ELO"
+    const trigger = screen.getByRole("button", { name: /records personnels/i });
+    await user.click(trigger);
+    await user.click(screen.getByRole("option", { name: /évolution elo/i }));
 
     // Metrics still visible
     expect(screen.getByText("145")).toBeInTheDocument();
@@ -208,8 +212,10 @@ describe("PlayerStats page", () => {
 
     renderWithProviders(<PlayerStats />);
 
-    const selector = screen.getByRole("combobox", { name: "Section" });
-    await user.selectOptions(selector, "contracts");
+    // Open custom Select and pick "Contrats"
+    const trigger = screen.getByRole("button", { name: /records personnels/i });
+    await user.click(trigger);
+    await user.click(screen.getByRole("option", { name: /contrats/i }));
 
     // Groups still visible
     expect(screen.getByText("Mardi soir")).toBeInTheDocument();

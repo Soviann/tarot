@@ -1,4 +1,5 @@
 import type { Badge, GamePlayer } from "../types/api";
+import BadgeEmoji from "./BadgeEmoji";
 import { Modal, PlayerAvatar } from "./ui";
 
 interface BadgeUnlockedModalProps {
@@ -32,7 +33,7 @@ export default function BadgeUnlockedModal({ newBadges, onClose, open, players }
               <div className="flex flex-col gap-1 pl-8">
                 {badges.map((badge) => (
                   <div key={badge.type} className="flex items-center gap-2">
-                    <span className="text-xl">{badge.emoji}</span>
+                    <BadgeEmoji className="text-xl" emoji={badge.emoji} type={badge.type} />
                     <div>
                       <span className="text-sm font-medium text-text-primary">{badge.label}</span>
                       <span className="ml-1 text-xs text-text-muted">{badge.description}</span>

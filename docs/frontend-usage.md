@@ -430,6 +430,30 @@ const { isPending, stats } = usePlayerStats(playerId, groupId);    // sessions d
 | `isPending` | `boolean` | `true` pendant le chargement initial |
 | …autres | — | Tous les champs de `UseQueryResult` |
 
+### `useAwardKonamiBadge`
+
+**Fichier** : `hooks/useAwardKonamiBadge.ts`
+
+Mutation pour attribuer manuellement le badge Konami à un joueur (POST `/players/{id}/konami`). Invalide les stats du joueur en cas de succès.
+
+```ts
+const mutation = useAwardKonamiBadge(playerId);
+mutation.mutate(undefined, {
+  onSuccess: (data) => { /* data?.badge, data?.newBadges */ },
+});
+```
+
+### `useKonamiCode`
+
+**Fichier** : `hooks/useKonamiCode.ts`
+
+Hook détectant la séquence Konami via des clics positionnels sur un élément. La direction est déterminée par la zone cliquée (haut/bas/gauche/droite/centre). Séquence : ↑↑↓↓←→←→ centre×2. Réinitialisation sur mauvaise entrée ou timeout de 5 secondes. Retourne un `onClick` à attacher à l'élément cible.
+
+```ts
+const { onClick } = useKonamiCode(() => { /* séquence complète */ });
+return <div onClick={onClick}><Avatar /></div>;
+```
+
 ### `useDebounce`
 
 **Fichier** : `hooks/useDebounce.ts`
@@ -669,7 +693,7 @@ Page d'aide in-app reprenant le contenu du guide utilisateur (`docs/user-guide.m
 
 **Fonctionnalités** :
 - Section « Installation » toujours visible
-- 13 sections en accordéon dépliable (`AccordionSection`, composant local) dont une section « Badges » listant les 15 badges par catégorie (données statiques dans `BADGE_CATEGORIES`)
+- 13 sections en accordéon dépliable (`AccordionSection`, composant local) dont une section « Badges » listant les 32 badges visibles par catégorie (données statiques dans `BADGE_CATEGORIES`, badge Konami exclu)
 - Lien vers le dépôt GitHub en bas de page
 - Bouton retour vers l'accueil
 - Accessible via l'icône `CircleHelp` sur la page d'accueil (`Home.tsx`), à droite du titre « Sessions récentes »
@@ -761,9 +785,10 @@ Page d'aide in-app reprenant le contenu du guide utilisateur (`docs/user-guide.m
 - Groupes du joueur : badges cliquables renvoyant vers `/groups/:id`
 - **Menu déroulant de section** : les sections détaillées sont accessibles via un `<Select>` (une seule visible à la fois) — Records personnels, Badges, Étoiles (masquée si 0 étoiles), Répartition des rôles, Contrats, Évolution des scores, Évolution ELO
 - Bouton retour vers `/stats`
+- **Easter egg Konami** : la séquence Konami (↑↑↓↓←→←→ centre×2) via des clics positionnels sur l'avatar déclenche l'attribution du badge secret 🕹️
 - États : chargement, joueur introuvable
 
-**Hooks utilisés** : `usePlayerStats`, `usePlayerGroups` (via `GroupFilter`), `useNavigate`
+**Hooks utilisés** : `usePlayerStats`, `usePlayerGroups` (via `GroupFilter`), `useNavigate`, `useKonamiCode`, `useAwardKonamiBadge`
 
 ### Session (`SessionPage`)
 
@@ -839,11 +864,11 @@ Page affichée lorsqu'aucune route ne correspond à l'URL demandée (catch-all `
 
 **Fichier** : `components/BadgeGrid.tsx`
 
-Grille affichant les badges d'un joueur. Seuls les badges débloqués sont visibles par défaut ; un bouton toggle permet de révéler/masquer les badges verrouillés. Titre avec compteur (X/Y).
+Grille affichant les badges d'un joueur. Seuls les badges débloqués sont visibles par défaut ; un bouton toggle permet de révéler/masquer les badges verrouillés. Titre avec compteur (X/Y). Le badge Konami (type `"konami"`) est affiché avec « ??? » à la place du label et sans description (mystère préservé).
 
 | Prop | Type | Description |
 |------|------|-------------|
-| `badges` | `Badge[]` | *requis* — liste des 15 badges (avec `unlockedAt` null ou date) |
+| `badges` | `Badge[]` | *requis* — liste des 33 badges (avec `unlockedAt` null ou date) |
 
 **Fonctionnalités** :
 - Header « Badges (X/Y) » avec compteur débloqués/total
