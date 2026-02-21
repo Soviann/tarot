@@ -6,6 +6,10 @@ Le format est basé sur [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/)
 
 ## [Unreleased]
 
+### Changed
+
+- **ErrorBoundary** : remplacement du composant custom par `react-error-boundary` avec bouton « Réessayer » (reset sans rechargement de page)
+
 ## [1.5.0] - 2026-02-21
 
 ### Added
