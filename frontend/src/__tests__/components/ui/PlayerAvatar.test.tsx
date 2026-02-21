@@ -42,8 +42,8 @@ describe("PlayerAvatar", () => {
       <PlayerAvatar name="Different" playerId={3} />,
     );
 
-    const bg1 = c1.querySelector("[role=img]")?.className;
-    const bg2 = c2.querySelector("[role=img]")?.className;
+    const bg1 = c1.querySelector("[role=img]")?.getAttribute("style");
+    const bg2 = c2.querySelector("[role=img]")?.getAttribute("style");
     expect(bg1).toBe(bg2);
   });
 
@@ -55,8 +55,8 @@ describe("PlayerAvatar", () => {
       <PlayerAvatar name="Alice" />,
     );
 
-    const bg1 = c1.querySelector("[role=img]")?.className;
-    const bg2 = c2.querySelector("[role=img]")?.className;
+    const bg1 = c1.querySelector("[role=img]")?.getAttribute("style");
+    const bg2 = c2.querySelector("[role=img]")?.getAttribute("style");
     expect(bg1).toBe(bg2);
   });
 
@@ -86,8 +86,6 @@ describe("PlayerAvatar", () => {
 
     const avatar = screen.getByRole("img", { name: "Alice" });
     expect(avatar.style.backgroundColor).toBe("rgb(239, 68, 68)");
-    // Should NOT have a bg-avatar-* class
-    expect(avatar.className).not.toMatch(/bg-avatar-/);
   });
 
   it("falls back to palette color when color is null", () => {
@@ -96,7 +94,6 @@ describe("PlayerAvatar", () => {
     );
 
     const avatar = screen.getByRole("img", { name: "Alice" });
-    expect(avatar.className).toMatch(/bg-avatar-/);
-    expect(avatar.style.backgroundColor).toBe("");
+    expect(avatar.style.backgroundColor).toBeTruthy();
   });
 });
