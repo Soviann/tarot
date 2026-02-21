@@ -6,13 +6,13 @@ function makeContext(overrides: Partial<GameContext> = {}): GameContext {
   return {
     attackWins: true,
     chelem: Chelem.None,
-    consecutiveTakerLosses: 0,
+    consecutiveLosses: 0,
     contract: Contract.Petite,
     isSelfCall: false,
     oudlers: 0,
     petitAuBout: Side.None,
     points: 51,
-    previousTakerScore: null,
+    previousScore: null,
     takerScore: 50,
     ...overrides,
   };
@@ -266,54 +266,54 @@ describe("buildPool", () => {
     });
 
     it("this-is-fine has weight 1 on 2 consecutive losses", () => {
-      expect(poolWeight(makeContext({ attackWins: false, consecutiveTakerLosses: 2 }), "this-is-fine")).toBe(1);
+      expect(poolWeight(makeContext({ attackWins: false, consecutiveLosses: 2 }), "this-is-fine")).toBe(1);
     });
 
     it("this-is-fine has boosted weight (20) on 3+ consecutive losses", () => {
-      expect(poolWeight(makeContext({ attackWins: false, consecutiveTakerLosses: 3 }), "this-is-fine")).toBe(20);
+      expect(poolWeight(makeContext({ attackWins: false, consecutiveLosses: 3 }), "this-is-fine")).toBe(20);
     });
 
     it("this-is-fine has boosted weight on 5 consecutive losses", () => {
-      expect(poolWeight(makeContext({ attackWins: false, consecutiveTakerLosses: 5 }), "this-is-fine")).toBe(20);
+      expect(poolWeight(makeContext({ attackWins: false, consecutiveLosses: 5 }), "this-is-fine")).toBe(20);
     });
 
     it("does NOT boost this-is-fine on victory (even with streak)", () => {
       // On victory, this-is-fine is not in the pool at all
-      expect(poolIds(makeContext({ consecutiveTakerLosses: 5 }))).not.toContain("this-is-fine");
+      expect(poolIds(makeContext({ consecutiveLosses: 5 }))).not.toContain("this-is-fine");
     });
   });
 
   describe("defeat — ill-be-back (big loss after big win)", () => {
     it("includes ill-be-back (weight 20) on big loss after big win", () => {
       // Previous score >= 50, current takerScore <= -50
-      expect(poolWeight(makeContext({ attackWins: false, previousTakerScore: 50, takerScore: -50 }), "ill-be-back")).toBe(20);
+      expect(poolWeight(makeContext({ attackWins: false, previousScore: 50, takerScore: -50 }), "ill-be-back")).toBe(20);
     });
 
     it("includes ill-be-back on very big swing", () => {
-      expect(poolIds(makeContext({ attackWins: false, previousTakerScore: 200, takerScore: -200 }))).toContain("ill-be-back");
+      expect(poolIds(makeContext({ attackWins: false, previousScore: 200, takerScore: -200 }))).toContain("ill-be-back");
     });
 
     it("does NOT include ill-be-back when previous score < 50", () => {
-      expect(poolIds(makeContext({ attackWins: false, previousTakerScore: 49, takerScore: -50 }))).not.toContain("ill-be-back");
+      expect(poolIds(makeContext({ attackWins: false, previousScore: 49, takerScore: -50 }))).not.toContain("ill-be-back");
     });
 
     it("does NOT include ill-be-back when current takerScore > -50", () => {
-      expect(poolIds(makeContext({ attackWins: false, previousTakerScore: 50, takerScore: -49 }))).not.toContain("ill-be-back");
+      expect(poolIds(makeContext({ attackWins: false, previousScore: 50, takerScore: -49 }))).not.toContain("ill-be-back");
     });
 
-    it("does NOT include ill-be-back when previousTakerScore is null", () => {
-      expect(poolIds(makeContext({ attackWins: false, previousTakerScore: null, takerScore: -100 }))).not.toContain("ill-be-back");
+    it("does NOT include ill-be-back when previousScore is null", () => {
+      expect(poolIds(makeContext({ attackWins: false, previousScore: null, takerScore: -100 }))).not.toContain("ill-be-back");
     });
 
     it("does NOT include ill-be-back on victory", () => {
-      expect(poolIds(makeContext({ previousTakerScore: 50, takerScore: 50 }))).not.toContain("ill-be-back");
+      expect(poolIds(makeContext({ previousScore: 50, takerScore: 50 }))).not.toContain("ill-be-back");
     });
 
     it("ill-be-back coexists with this-is-fine boost on losing streak", () => {
       const ids = poolIds(makeContext({
         attackWins: false,
-        consecutiveTakerLosses: 3,
-        previousTakerScore: 50,
+        consecutiveLosses: 3,
+        previousScore: 50,
         takerScore: -50,
       }));
 

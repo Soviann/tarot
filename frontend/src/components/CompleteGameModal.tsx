@@ -132,13 +132,13 @@ export default function CompleteGameModal({ game, onBadgesUnlocked, onClose, onG
             onGameCompleted?.({
               attackWins: scoreResult.attackWins,
               chelem,
-              consecutiveTakerLosses: 0,
+              consecutiveLosses: 0,
               contract: game.contract,
               isSelfCall: selfCall,
               oudlers,
               petitAuBout,
               points: pointsNum!,
-              previousTakerScore: null,
+              previousScore: null,
               takerScore: scoreResult.takerScore,
             });
             onGameSaved?.(game.id);

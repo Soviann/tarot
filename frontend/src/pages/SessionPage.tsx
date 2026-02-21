@@ -156,12 +156,12 @@ export default function SessionPage() {
           break;
         }
       }
-      ctx = { ...ctx, consecutiveTakerLosses: streak };
+      ctx = { ...ctx, consecutiveLosses: streak };
       // Previous game score for the taker
       if (allGames.length > 0) {
         const prevEntry = allGames[0].scoreEntries.find((e) => e.player.id === takerId);
         if (prevEntry) {
-          ctx = { ...ctx, previousTakerScore: prevEntry.score };
+          ctx = { ...ctx, previousScore: prevEntry.score };
         }
       }
     }

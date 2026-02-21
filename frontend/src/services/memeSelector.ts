@@ -10,13 +10,13 @@ export interface MemeConfig {
 export interface GameContext {
   attackWins: boolean;
   chelem: Chelem;
-  consecutiveTakerLosses: number;
+  consecutiveLosses: number;
   contract: Contract;
   isSelfCall: boolean;
   oudlers: number;
   petitAuBout: Side;
   points: number;
-  previousTakerScore: number | null;
+  previousScore: number | null;
   takerScore: number;
 }
 
@@ -106,14 +106,14 @@ export function buildPool(ctx: GameContext): WeightedMeme[] {
     if (ctx.contract === Contract.GardeSans) {
       pool.push({ meme: CRYING_JORDAN, weight: 20 });
     }
-    if (ctx.previousTakerScore !== null && ctx.previousTakerScore >= 50 && ctx.takerScore <= -50) {
+    if (ctx.previousScore !== null && ctx.previousScore >= 50 && ctx.takerScore <= -50) {
       pool.push({ meme: ILL_BE_BACK, weight: 20 });
     }
     // Base defeat pool
     pool.push({ meme: AH_SHIT, weight: BASE_WEIGHT });
     pool.push({ meme: JUST_TO_SUFFER, weight: BASE_WEIGHT });
     pool.push({ meme: SAD_PABLO, weight: BASE_WEIGHT });
-    pool.push({ meme: THIS_IS_FINE, weight: ctx.consecutiveTakerLosses >= 3 ? 20 : BASE_WEIGHT });
+    pool.push({ meme: THIS_IS_FINE, weight: ctx.consecutiveLosses >= 3 ? 20 : BASE_WEIGHT });
   }
 
   return pool;
