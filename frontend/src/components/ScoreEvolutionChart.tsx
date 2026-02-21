@@ -64,7 +64,7 @@ export default function ScoreEvolutionChart({ games, players }: ScoreEvolutionCh
     [players],
   );
 
-  const data = computeScoreEvolution(games, players);
+  const data = computeScoreEvolution(games, players).slice(-10);
 
   if (data.length < 2) {
     return null;
