@@ -86,14 +86,13 @@ export default function SessionPage() {
   const shakeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const handleShake = useCallback(() => {
-    if (scoresFlipped || shakeModalOpen) return;
     setScoresFlipped(true);
     shakeTimerRef.current = setTimeout(() => {
       setScoresFlipped(false);
       setShakeModalOpen(true);
       shakeTimerRef.current = null;
     }, 2000);
-  }, [scoresFlipped, shakeModalOpen]);
+  }, []);
 
   useEffect(() => {
     return () => {
@@ -102,6 +101,7 @@ export default function SessionPage() {
   }, []);
 
   useShake(handleShake, { enabled: !scoresFlipped && !shakeModalOpen });
+
   const [changeDealerModalOpen, setChangeDealerModalOpen] = useState(false);
   const [changeGroupModalOpen, setChangeGroupModalOpen] = useState(false);
   const [closeConfirmOpen, setCloseConfirmOpen] = useState(false);

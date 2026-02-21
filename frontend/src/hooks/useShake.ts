@@ -19,12 +19,14 @@ export function useShake(onShake: () => void, options?: UseShakeOptions) {
     const acc = e.accelerationIncludingGravity;
     if (!acc || acc.x === null || acc.y === null || acc.z === null) return;
 
-    const { x, y, z } = acc;
+    const x = acc.x;
+    const y = acc.y;
+    const z = acc.z;
 
     if (lastRef.current) {
-      const dx = Math.abs(x! - lastRef.current.x);
-      const dy = Math.abs(y! - lastRef.current.y);
-      const dz = Math.abs(z! - lastRef.current.z);
+      const dx = Math.abs(x - lastRef.current.x);
+      const dy = Math.abs(y - lastRef.current.y);
+      const dz = Math.abs(z - lastRef.current.z);
       const delta = dx + dy + dz;
 
       if (delta > SHAKE_THRESHOLD && !cooldownRef.current) {
@@ -36,7 +38,7 @@ export function useShake(onShake: () => void, options?: UseShakeOptions) {
       }
     }
 
-    lastRef.current = { x: x!, y: y!, z: z! };
+    lastRef.current = { x, y, z };
   }, []);
 
   useEffect(() => {
