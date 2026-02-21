@@ -1,5 +1,6 @@
 import { screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import ToastContainer from "../../components/ui/ToastContainer";
 import SessionPage from "../../pages/SessionPage";
 import * as useAddStarModule from "../../hooks/useAddStar";
 import * as useCloseSessionModule from "../../hooks/useCloseSession";
@@ -14,6 +15,7 @@ import * as useSessionModule from "../../hooks/useSession";
 import * as useSessionGamesModule from "../../hooks/useSessionGames";
 import * as useUpdateDealerModule from "../../hooks/useUpdateDealer";
 import * as useUpdateSessionGroupModule from "../../hooks/useUpdateSessionGroup";
+import * as apiModule from "../../services/api";
 import { renderWithProviders } from "../test-utils";
 import type { Game, SessionDetail } from "../../types/api";
 
@@ -30,6 +32,10 @@ vi.mock("../../hooks/useSession");
 vi.mock("../../hooks/useSessionGames");
 vi.mock("../../hooks/useUpdateDealer");
 vi.mock("../../hooks/useUpdateSessionGroup");
+vi.mock("../../services/api", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("../../services/api")>();
+  return { ...actual, apiFetch: vi.fn() };
+});
 
 const mockNavigate = vi.fn();
 vi.mock("react-router-dom", async (importOriginal) => {
@@ -694,5 +700,61 @@ describe("SessionPage", () => {
     await userEvent.click(screen.getByText("Réouvrir la session"));
 
     expect(closeSessionMutate).toHaveBeenCalledWith(true, expect.objectContaining({ onSuccess: expect.any(Function) }));
+  });
+
+  it("shows toast error when undo fails", async () => {
+    // Make useCompleteGame.mutate call onSuccess immediately to trigger onGameSaved
+    const mockCompleteMutate = vi.fn().mockImplementation(
+      (_payload: unknown, options?: { onSuccess?: (data: { newBadges: Record<string, never> }) => void }) => {
+        options?.onSuccess?.({ newBadges: {} });
+      },
+    );
+
+    setupMocks({
+      useSession: { data: mockSessionWithInProgress, session: mockSessionWithInProgress },
+    });
+
+    vi.mocked(useCompleteGameModule.useCompleteGame).mockReturnValue({
+      context: undefined,
+      data: undefined,
+      error: null,
+      failureCount: 0,
+      failureReason: null,
+      isError: false,
+      isIdle: true,
+      isPaused: false,
+      isPending: false,
+      isSuccess: false,
+      mutate: mockCompleteMutate,
+      mutateAsync: vi.fn(),
+      reset: vi.fn(),
+      status: "idle",
+      submittedAt: 0,
+      variables: undefined,
+    } as unknown as ReturnType<typeof useCompleteGameModule.useCompleteGame>);
+
+    vi.mocked(apiModule.apiFetch).mockRejectedValue(new Error("Erreur réseau"));
+
+    renderWithProviders(<><SessionPage /><ToastContainer /></>);
+
+    // Open CompleteGameModal
+    await userEvent.click(screen.getByRole("button", { name: "Compléter" }));
+
+    // Fill form: select "Seul" as partner, enter points
+    await userEvent.click(screen.getByText("Seul"));
+    await userEvent.type(screen.getByPlaceholderText("Points"), "51");
+
+    // Submit → triggers onGameSaved → UndoFAB appears
+    await userEvent.click(screen.getByRole("button", { name: "Valider" }));
+
+    // Click undo
+    const undoBtn = await screen.findByRole("button", { name: "Annuler la donne" });
+    await userEvent.click(undoBtn);
+
+    // Should show toast error and have called correct endpoint
+    await waitFor(() => {
+      expect(screen.getByText("Erreur lors de l'annulation de la donne")).toBeInTheDocument();
+    });
+    expect(apiModule.apiFetch).toHaveBeenCalledWith("/games/2", { method: "DELETE" });
   });
 });
