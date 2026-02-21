@@ -88,4 +88,47 @@ describe("Scoreboard", () => {
     // The dealer badge should still be visible (as a span with title)
     expect(screen.getByTitle("Donneur")).toBeInTheDocument();
   });
+
+  it("negates scores when isUpsideDown is true", () => {
+    const cumulativeScores = [
+      { playerId: 1, playerName: "Alice", score: 120 },
+      { playerId: 2, playerName: "Bob", score: -30 },
+      { playerId: 3, playerName: "Charlie", score: 0 },
+    ];
+
+    renderWithProviders(
+      <Scoreboard
+        cumulativeScores={cumulativeScores}
+        isUpsideDown
+        players={players}
+      />,
+    );
+
+    // Positive becomes negative and vice versa
+    expect(screen.getByText("-120")).toBeInTheDocument();
+    expect(screen.getByText("+30")).toBeInTheDocument();
+  });
+
+  it("shows upside-down indicator when isUpsideDown is true", () => {
+    renderWithProviders(
+      <Scoreboard
+        cumulativeScores={[]}
+        isUpsideDown
+        players={players}
+      />,
+    );
+
+    expect(screen.getByTitle("Classement inversé")).toBeInTheDocument();
+  });
+
+  it("does not show upside-down indicator when isUpsideDown is false", () => {
+    renderWithProviders(
+      <Scoreboard
+        cumulativeScores={[]}
+        players={players}
+      />,
+    );
+
+    expect(screen.queryByTitle("Classement inversé")).not.toBeInTheDocument();
+  });
 });

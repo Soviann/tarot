@@ -29,6 +29,7 @@ interface ScoreboardProps {
   addStarPending?: boolean;
   cumulativeScores: CumulativeScore[];
   currentDealerId?: number | null;
+  isUpsideDown?: boolean;
   onAddStar?: (playerId: number) => void;
   onDealerChange?: () => void;
   players: GamePlayer[];
@@ -39,13 +40,15 @@ export default function Scoreboard({
   addStarPending = false,
   cumulativeScores,
   currentDealerId,
+  isUpsideDown = false,
   onAddStar,
   onDealerChange,
   players,
   starEvents = [],
 }: ScoreboardProps) {
-  const scoreMap = new Map(
-    cumulativeScores.map((s) => [s.playerId, s.score]),
+  const scoreMap = useMemo(
+    () => new Map(cumulativeScores.map((s) => [s.playerId, s.score])),
+    [cumulativeScores],
   );
 
   const starCountMap = useMemo(() => {
@@ -56,73 +59,92 @@ export default function Scoreboard({
     return map;
   }, [starEvents]);
 
+  const displayScoreMap = useMemo(() => {
+    if (!isUpsideDown) return scoreMap;
+    const negated = new Map<number, number>();
+    for (const [id, score] of scoreMap) {
+      negated.set(id, -score);
+    }
+    return negated;
+  }, [isUpsideDown, scoreMap]);
+
   // Nouveau tirage aléatoire uniquement quand le donneur change
   // eslint-disable-next-line react-hooks/exhaustive-deps
   const suitPath = useMemo(() => pickRandomSuit(), [currentDealerId]);
 
   return (
-    <div className="flex gap-2 lg:justify-center lg:gap-6">
-      {players.map((player) => {
-        const totalStars = starCountMap.get(player.id) ?? 0;
-        const currentStars = totalStars % STARS_PER_PENALTY;
+    <div className="relative">
+      {isUpsideDown && (
+        <div className="absolute -top-5 right-0 flex items-center gap-1 text-xs text-text-muted" title="Classement inversé">
+          <svg className="size-3 animate-spin" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+            <path d="M4 4v5h5M20 20v-5h-5" strokeLinecap="round" strokeLinejoin="round" />
+            <path d="M20.49 9A9 9 0 0 0 5.64 5.64L4 4m16 16-1.64-1.64A9 9 0 0 1 3.51 15" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+        </div>
+      )}
+        <div className="flex gap-2 lg:justify-center lg:gap-6">
+          {players.map((player) => {
+            const totalStars = starCountMap.get(player.id) ?? 0;
+            const currentStars = totalStars % STARS_PER_PENALTY;
 
-        return (
-          <div
-            className="flex min-w-0 flex-1 flex-col items-center gap-1 lg:min-w-24 lg:flex-initial"
-            key={player.id}
-          >
-            <div className="relative">
-              <PlayerAvatar color={player.color} name={player.name} playerId={player.id} size="sm" />
-              {currentDealerId === player.id &&
-                (onDealerChange ? (
+            return (
+              <div
+                className="flex min-w-0 flex-1 flex-col items-center gap-1 lg:min-w-24 lg:flex-initial"
+                key={player.id}
+              >
+                <div className="relative">
+                  <PlayerAvatar color={player.color} name={player.name} playerId={player.id} size="sm" />
+                  {currentDealerId === player.id &&
+                    (onDealerChange ? (
+                      <button
+                        aria-label="Changer le donneur"
+                        className="absolute -bottom-1.5 -right-1.5 flex size-5 items-center justify-center rounded-full bg-accent-500 text-white shadow-sm"
+                        onClick={onDealerChange}
+                        type="button"
+                      >
+                        <svg className="size-3" fill="currentColor" viewBox="0 0 24 24">
+                          <path d={suitPath} />
+                        </svg>
+                      </button>
+                    ) : (
+                      <span
+                        className="absolute -bottom-1.5 -right-1.5 flex size-5 items-center justify-center rounded-full bg-accent-500 text-white shadow-sm"
+                        title="Donneur"
+                      >
+                        <svg className="size-3" fill="currentColor" viewBox="0 0 24 24">
+                          <path d={suitPath} />
+                        </svg>
+                      </span>
+                    ))}
+                </div>
+                <span className="max-w-full truncate text-xs text-text-secondary lg:max-w-24 lg:text-sm">
+                  {player.name}
+                </span>
+                <ScoreDisplay animated={false} value={displayScoreMap.get(player.id) ?? 0} />
+                {onAddStar && (
                   <button
-                    aria-label="Changer le donneur"
-                    className="absolute -bottom-1.5 -right-1.5 flex size-5 items-center justify-center rounded-full bg-accent-500 text-white shadow-sm"
-                    onClick={onDealerChange}
+                    aria-label={`Ajouter une étoile à ${player.name}`}
+                    className="flex min-h-10 min-w-10 items-center justify-center gap-0.5 rounded-md px-1 py-0.5 text-xs transition-colors hover:bg-surface-tertiary disabled:opacity-50"
+                    disabled={addStarPending}
+                    onClick={() => onAddStar(player.id)}
                     type="button"
                   >
-                    <svg className="size-3" fill="currentColor" viewBox="0 0 24 24">
-                      <path d={suitPath} />
-                    </svg>
+                    {Array.from({ length: STARS_PER_PENALTY }, (_, i) => (
+                      <svg
+                        className={`size-3 ${i < currentStars ? "text-yellow-400" : "text-text-muted/30"}`}
+                        fill="currentColor"
+                        key={i}
+                        viewBox="0 0 20 20"
+                      >
+                        <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                      </svg>
+                    ))}
                   </button>
-                ) : (
-                  <span
-                    className="absolute -bottom-1.5 -right-1.5 flex size-5 items-center justify-center rounded-full bg-accent-500 text-white shadow-sm"
-                    title="Donneur"
-                  >
-                    <svg className="size-3" fill="currentColor" viewBox="0 0 24 24">
-                      <path d={suitPath} />
-                    </svg>
-                  </span>
-                ))}
-            </div>
-            <span className="max-w-full truncate text-xs text-text-secondary lg:max-w-24 lg:text-sm">
-              {player.name}
-            </span>
-            <ScoreDisplay animated={false} value={scoreMap.get(player.id) ?? 0} />
-            {onAddStar && (
-              <button
-                aria-label={`Ajouter une étoile à ${player.name}`}
-                className="flex min-h-10 min-w-10 items-center justify-center gap-0.5 rounded-md px-1 py-0.5 text-xs transition-colors hover:bg-surface-tertiary disabled:opacity-50"
-                disabled={addStarPending}
-                onClick={() => onAddStar(player.id)}
-                type="button"
-              >
-                {Array.from({ length: STARS_PER_PENALTY }, (_, i) => (
-                  <svg
-                    className={`size-3 ${i < currentStars ? "text-yellow-400" : "text-text-muted/30"}`}
-                    fill="currentColor"
-                    key={i}
-                    viewBox="0 0 20 20"
-                  >
-                    <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                  </svg>
-                ))}
-              </button>
-            )}
-          </div>
-        );
-      })}
+                )}
+              </div>
+            );
+          })}
+        </div>
     </div>
   );
 }
