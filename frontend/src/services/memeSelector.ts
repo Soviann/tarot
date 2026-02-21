@@ -14,6 +14,7 @@ export interface GameContext {
   oudlers: number;
   petitAuBout: Side;
   points: number;
+  takerScore: number;
 }
 
 export interface WeightedMeme {
@@ -43,6 +44,7 @@ const SAD_PABLO: MemeConfig = { caption: "", id: "sad-pablo", image: "/memes/sad
 const THIS_IS_FINE: MemeConfig = { caption: "", id: "this-is-fine", image: "/memes/this-is-fine.webp" };
 
 // Special
+const INFINITY_BEYOND: MemeConfig = { caption: "To infinity… and beyond!", id: "infinity-beyond", image: "/memes/infinity-beyond.jpg" };
 const MIND_BLOWN: MemeConfig = { caption: "42 — La réponse à la grande question", id: "mind-blown", image: "/memes/mind-blown.gif" };
 
 // --- Constants ---
@@ -56,6 +58,9 @@ export function buildPool(ctx: GameContext): WeightedMeme[] {
   const pool: WeightedMeme[] = [];
 
   // Special memes (any result)
+  if (Math.abs(ctx.takerScore) >= 200) {
+    pool.push({ meme: INFINITY_BEYOND, weight: 30 });
+  }
   if (ctx.points === 42) {
     pool.push({ meme: MIND_BLOWN, weight: 40 });
   }
