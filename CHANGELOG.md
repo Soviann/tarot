@@ -8,6 +8,7 @@ Le format est basé sur [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/)
 
 ### Added
 
+- **Error Boundary global** : ajout d'un Error Boundary React englobant toute l'application. En cas d'erreur de rendu, un écran de repli affiche un message et un bouton « Recharger la page » au lieu d'un écran blanc.
 - **18 nouveaux badges** : Garde contre réussie, 3 bouts pour rien, Si près du but, Confortable +10/+20/+30/+40/+50, Étoile montante, Pluie d'étoiles, Chelem surprise, Poignée triple, Zéro bout, Auto-appel, Série noire, Audacieux, Attrapez-les tous, et un badge secret Konami (easter egg sur la page stats joueur).
 - **Numéro de donne** : chaque donne dans l'historique affiche désormais son numéro séquentiel (#1, #2, #3…) pour une identification rapide.
 - **Logs Symfony (Monolog)** : ajout de `symfony/monolog-bundle` avec fichiers rotatifs en production (14 jours de rétention dans `var/log/`), pour diagnostiquer les erreurs 500.
