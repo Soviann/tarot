@@ -1,6 +1,6 @@
 import { useQueryClient } from "@tanstack/react-query";
 import { ArrowLeftRight, ArrowUpDown, BarChart3, Lock, LockOpen, QrCode, Users } from "lucide-react";
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import NotFound from "./NotFound";
 import AddStarModal from "../components/AddStarModal";
@@ -21,6 +21,7 @@ import SwapPlayersModal from "../components/SwapPlayersModal";
 import { FAB, Modal, OverflowMenu, Spinner, UndoFAB } from "../components/ui";
 import type { OverflowMenuItem } from "../components/ui/OverflowMenu";
 import { useAddStar } from "../hooks/useAddStar";
+import { useShake } from "../hooks/useShake";
 import { useAllSessionGames } from "../hooks/useAllSessionGames";
 import { useCloseSession } from "../hooks/useCloseSession";
 import { useCreateGame } from "../hooks/useCreateGame";
@@ -78,6 +79,29 @@ export default function SessionPage() {
   const queryClient = useQueryClient();
   const [activeMeme, setActiveMeme] = useState<MemeConfig | null>(null);
   const [badgeModalBadges, setBadgeModalBadges] = useState<Record<string, Badge[]> | null>(null);
+
+  // Shake easter egg
+  const [scoresFlipped, setScoresFlipped] = useState(false);
+  const [shakeModalOpen, setShakeModalOpen] = useState(false);
+  const shakeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const handleShake = useCallback(() => {
+    if (scoresFlipped || shakeModalOpen) return;
+    setScoresFlipped(true);
+    shakeTimerRef.current = setTimeout(() => {
+      setScoresFlipped(false);
+      setShakeModalOpen(true);
+      shakeTimerRef.current = null;
+    }, 2000);
+  }, [scoresFlipped, shakeModalOpen]);
+
+  useEffect(() => {
+    return () => {
+      if (shakeTimerRef.current) clearTimeout(shakeTimerRef.current);
+    };
+  }, []);
+
+  useShake(handleShake, { enabled: !scoresFlipped && !shakeModalOpen });
   const [changeDealerModalOpen, setChangeDealerModalOpen] = useState(false);
   const [changeGroupModalOpen, setChangeGroupModalOpen] = useState(false);
   const [closeConfirmOpen, setCloseConfirmOpen] = useState(false);
@@ -194,19 +218,21 @@ export default function SessionPage() {
         </div>
       )}
 
-      <Scoreboard
-        addStarPending={addStar.isPending}
-        cumulativeScores={session.cumulativeScores}
-        currentDealerId={session.currentDealer?.id ?? null}
-        onAddStar={(playerId) => {
-          setStarPlayerId(playerId);
-          addStar.reset();
-          setStarModalOpen(true);
-        }}
-        onDealerChange={() => setChangeDealerModalOpen(true)}
-        players={orderedPlayers}
-        starEvents={session.starEvents}
-      />
+      <div className={`transition-transform duration-500 ${scoresFlipped ? "rotate-180" : ""}`}>
+        <Scoreboard
+          addStarPending={addStar.isPending}
+          cumulativeScores={session.cumulativeScores}
+          currentDealerId={session.currentDealer?.id ?? null}
+          onAddStar={(playerId) => {
+            setStarPlayerId(playerId);
+            addStar.reset();
+            setStarModalOpen(true);
+          }}
+          onDealerChange={() => setChangeDealerModalOpen(true)}
+          players={orderedPlayers}
+          starEvents={session.starEvents}
+        />
+      </div>
 
       {inProgressGame && (
         <InProgressBanner
@@ -444,6 +470,16 @@ export default function SessionPage() {
       )}
 
       <MemeOverlay ariaLabel={memeLabel} meme={activeMeme} onDismiss={() => { setActiveMeme(null); setMemeLabel(undefined); }} />
+
+      <Modal onClose={() => setShakeModalOpen(false)} open={shakeModalOpen} title="Eh non, bien essayé 😏">
+        <div className="flex flex-col items-center gap-4">
+          <img
+            alt="Non non non"
+            className="max-h-[40vh] rounded-xl"
+            src="/easter-eggs/no-no-no.gif"
+          />
+        </div>
+      </Modal>
     </div>
   );
 }
