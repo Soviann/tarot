@@ -52,6 +52,58 @@ final class GameRepository extends ServiceEntityRepository
     }
 
     /**
+     * @return array<int, int> playerId => partner appearance count
+     */
+    public function countPartnerAppearancesPerPlayerForSession(Session $session): array
+    {
+        /** @var list<array{count: int|string, playerId: int|string}> $results */
+        $results = $this->createQueryBuilder('g')
+            ->select('IDENTITY(g.partner) AS playerId', 'COUNT(g.id) AS count')
+            ->andWhere('g.session = :session')
+            ->andWhere('g.status = :status')
+            ->andWhere('g.partner IS NOT NULL')
+            ->setParameter('session', $session)
+            ->setParameter('status', GameStatus::Completed)
+            ->groupBy('g.partner')
+            ->getQuery()
+            ->getResult();
+
+        $countMap = [];
+        foreach ($results as $row) {
+            $countMap[(int) $row['playerId']] = (int) $row['count'];
+        }
+
+        return $countMap;
+    }
+
+    /**
+     * @return array<int, int> playerId => win count as taker
+     */
+    public function countTakerWinsPerPlayerForSession(Session $session): array
+    {
+        /** @var list<array{count: int|string, playerId: int|string}> $results */
+        $results = $this->createQueryBuilder('g')
+            ->select('IDENTITY(g.taker) AS playerId', 'COUNT(g.id) AS count')
+            ->join('g.scoreEntries', 'se')
+            ->andWhere('g.session = :session')
+            ->andWhere('g.status = :status')
+            ->andWhere('se.player = g.taker')
+            ->andWhere('se.score > 0')
+            ->setParameter('session', $session)
+            ->setParameter('status', GameStatus::Completed)
+            ->groupBy('g.taker')
+            ->getQuery()
+            ->getResult();
+
+        $countMap = [];
+        foreach ($results as $row) {
+            $countMap[(int) $row['playerId']] = (int) $row['count'];
+        }
+
+        return $countMap;
+    }
+
+    /**
      * @return array<int, int> playerId => count
      */
     public function countTakerGamesPerPlayerForSession(Session $session): array

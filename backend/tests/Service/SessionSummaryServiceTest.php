@@ -189,6 +189,27 @@ class SessionSummaryServiceTest extends ApiTestCase
         $flambeur = $this->findAwardByTitle($summary['awards'], 'Le Flambeur');
         self::assertNotNull($flambeur);
         self::assertSame($alice->getId(), $flambeur['playerId']);
+
+        // Le Kamikaze: NOT awarded (Alice 2 takes, 2 wins; Bob 1 take only)
+        self::assertNull($this->findAwardByTitle($summary['awards'], 'Le Kamikaze'));
+
+        // Le Solitaire: NOT awarded (no partner calls in any game)
+        self::assertNull($this->findAwardByTitle($summary['awards'], 'Le Solitaire'));
+
+        // Le Paratonnerre: Alice (only player with stars: 1 star)
+        $paratonnerre = $this->findAwardByTitle($summary['awards'], 'Le Paratonnerre');
+        self::assertNotNull($paratonnerre);
+        self::assertSame($alice->getId(), $paratonnerre['playerId']);
+
+        // Le Yo-Yo: Alice (highest score variance — wild swings between taker and defender roles)
+        $yoyo = $this->findAwardByTitle($summary['awards'], 'Le Yo-Yo');
+        self::assertNotNull($yoyo);
+        self::assertSame($alice->getId(), $yoyo['playerId']);
+
+        // Le Régulier: Bob (lowest score variance)
+        $regulier = $this->findAwardByTitle($summary['awards'], 'Le Régulier');
+        self::assertNotNull($regulier);
+        self::assertSame($bob->getId(), $regulier['playerId']);
     }
 
     public function testSummaryWithFewerThanThreeGamesHasNoAwards(): void
@@ -208,6 +229,184 @@ class SessionSummaryServiceTest extends ApiTestCase
 
         self::assertSame([], $summary['awards']);
         self::assertSame(2, $summary['highlights']['totalGames']);
+    }
+
+    public function testKamikazeAwardedToWorstTakerWinRate(): void
+    {
+        $session = $this->createSessionWithPlayers('Alice', 'Bob', 'Charlie', 'Diana', 'Eve');
+        $players = $session->getPlayers()->toArray();
+        /** @var Player $alice */
+        $alice = $players[0];
+        /** @var Player $bob */
+        $bob = $players[1];
+        $calculator = new ScoreCalculator();
+
+        // Alice takes 1 game, wins
+        $this->computeAndPersistScores($calculator, $this->createCompletedGame($session, $alice, null, Contract::Garde, 2, 50));
+
+        // Bob takes 2 games, loses both → 0% win rate
+        $this->computeAndPersistScores($calculator, $this->createCompletedGame($session, $bob, null, Contract::Petite, 0, 40));
+        $this->computeAndPersistScores($calculator, $this->createCompletedGame($session, $bob, null, Contract::Petite, 0, 35));
+
+        $summary = $this->service->getSummary($session);
+
+        $kamikaze = $this->findAwardByTitle($summary['awards'], 'Le Kamikaze');
+        self::assertNotNull($kamikaze);
+        self::assertSame($bob->getId(), $kamikaze['playerId']);
+        self::assertSame('Bob', $kamikaze['playerName']);
+    }
+
+    public function testKamikazeNotAwardedWhenNoPlayerHasTwoTakes(): void
+    {
+        $session = $this->createSessionWithPlayers('Alice', 'Bob', 'Charlie', 'Diana', 'Eve');
+        $players = $session->getPlayers()->toArray();
+        $calculator = new ScoreCalculator();
+
+        // 3 different takers, each takes once
+        $this->computeAndPersistScores($calculator, $this->createCompletedGame($session, $players[0], null, Contract::Garde, 2, 50));
+        $this->computeAndPersistScores($calculator, $this->createCompletedGame($session, $players[1], null, Contract::Petite, 0, 40));
+        $this->computeAndPersistScores($calculator, $this->createCompletedGame($session, $players[2], null, Contract::Petite, 0, 35));
+
+        $summary = $this->service->getSummary($session);
+
+        self::assertNull($this->findAwardByTitle($summary['awards'], 'Le Kamikaze'));
+    }
+
+    public function testSolitaireAwardedToLeastCalledPartner(): void
+    {
+        $session = $this->createSessionWithPlayers('Alice', 'Bob', 'Charlie', 'Diana', 'Eve');
+        $players = $session->getPlayers()->toArray();
+        /** @var Player $alice */
+        $alice = $players[0];
+        /** @var Player $bob */
+        $bob = $players[1];
+        /** @var Player $charlie */
+        $charlie = $players[2];
+        /** @var Player $diana */
+        $diana = $players[3];
+        /** @var Player $eve */
+        $eve = $players[4];
+        $calculator = new ScoreCalculator();
+
+        // Game 1: Alice takes, calls Bob
+        $this->computeAndPersistScores($calculator, $this->createCompletedGame($session, $alice, $bob, Contract::Garde, 2, 50));
+        // Game 2: Charlie takes, calls Diana
+        $this->computeAndPersistScores($calculator, $this->createCompletedGame($session, $charlie, $diana, Contract::Petite, 1, 52));
+        // Game 3: Bob takes, calls Charlie
+        $this->computeAndPersistScores($calculator, $this->createCompletedGame($session, $bob, $charlie, Contract::Garde, 2, 50));
+        // Game 4: Diana takes, calls Alice
+        $this->computeAndPersistScores($calculator, $this->createCompletedGame($session, $diana, $alice, Contract::Petite, 2, 42));
+
+        // Partners: Bob=1, Diana=1, Charlie=1, Alice=1, Eve=0
+        $summary = $this->service->getSummary($session);
+
+        $solitaire = $this->findAwardByTitle($summary['awards'], 'Le Solitaire');
+        self::assertNotNull($solitaire);
+        self::assertSame($eve->getId(), $solitaire['playerId']);
+        self::assertSame('Eve', $solitaire['playerName']);
+    }
+
+    public function testSolitaireNotAwardedWithoutPartners(): void
+    {
+        $session = $this->createSessionWithPlayers('Alice', 'Bob', 'Charlie', 'Diana', 'Eve');
+        $players = $session->getPlayers()->toArray();
+        $calculator = new ScoreCalculator();
+
+        // All games are self-call (no partner)
+        $this->computeAndPersistScores($calculator, $this->createCompletedGame($session, $players[0], null, Contract::Garde, 2, 50));
+        $this->computeAndPersistScores($calculator, $this->createCompletedGame($session, $players[1], null, Contract::Petite, 0, 40));
+        $this->computeAndPersistScores($calculator, $this->createCompletedGame($session, $players[2], null, Contract::Petite, 0, 35));
+
+        $summary = $this->service->getSummary($session);
+
+        self::assertNull($this->findAwardByTitle($summary['awards'], 'Le Solitaire'));
+    }
+
+    public function testParatonnerreAwardedToMostStarredPlayer(): void
+    {
+        $session = $this->createSessionWithPlayers('Alice', 'Bob', 'Charlie', 'Diana', 'Eve');
+        $players = $session->getPlayers()->toArray();
+        /** @var Player $alice */
+        $alice = $players[0];
+        /** @var Player $bob */
+        $bob = $players[1];
+        /** @var Player $eve */
+        $eve = $players[4];
+        $calculator = new ScoreCalculator();
+
+        $this->computeAndPersistScores($calculator, $this->createCompletedGame($session, $alice, null, Contract::Garde, 2, 50));
+        $this->computeAndPersistScores($calculator, $this->createCompletedGame($session, $bob, null, Contract::Petite, 0, 40));
+        $this->computeAndPersistScores($calculator, $this->createCompletedGame($session, $alice, null, Contract::Petite, 1, 52));
+
+        // Eve gets 3 stars, Alice gets 1 star
+        foreach ([$eve, $eve, $eve, $alice] as $player) {
+            $star = new StarEvent();
+            $star->setPlayer($player);
+            $star->setSession($session);
+            $this->em->persist($star);
+        }
+        $this->em->flush();
+
+        $summary = $this->service->getSummary($session);
+
+        $paratonnerre = $this->findAwardByTitle($summary['awards'], 'Le Paratonnerre');
+        self::assertNotNull($paratonnerre);
+        self::assertSame($eve->getId(), $paratonnerre['playerId']);
+    }
+
+    public function testYoYoAndRegulierAwards(): void
+    {
+        $session = $this->createSessionWithPlayers('Alice', 'Bob', 'Charlie', 'Diana', 'Eve');
+        $players = $session->getPlayers()->toArray();
+        /** @var Player $alice */
+        $alice = $players[0];
+        /** @var Player $bob */
+        $bob = $players[1];
+        $calculator = new ScoreCalculator();
+
+        // Game 1: Alice takes Garde, big win (3 oudlers, 60 pts → base=98, taker=392)
+        $this->computeAndPersistScores($calculator, $this->createCompletedGame($session, $alice, null, Contract::Garde, 3, 60));
+        // Game 2: Alice takes Petite, big loss (0 oudlers, 40 pts → base=-41, taker=-164)
+        $this->computeAndPersistScores($calculator, $this->createCompletedGame($session, $alice, null, Contract::Petite, 0, 40));
+        // Game 3: Bob takes Petite, small win (2 oudlers, 42 pts → base=26, taker=104)
+        $this->computeAndPersistScores($calculator, $this->createCompletedGame($session, $bob, null, Contract::Petite, 2, 42));
+
+        // Alice has wild swings [392, -164, -26] → highest variance
+        // Bob: [-98, 41, 104] → moderate variance
+        // Charlie/Diana/Eve: [-98, 41, -26] → lowest variance (pure defenders)
+        $summary = $this->service->getSummary($session);
+
+        $yoyo = $this->findAwardByTitle($summary['awards'], 'Le Yo-Yo');
+        self::assertNotNull($yoyo);
+        self::assertSame($alice->getId(), $yoyo['playerId']);
+
+        // Régulier excludes Yo-Yo winner (Alice), so Bob or a pure defender wins.
+        // Bob stddev ≈ 84.4, defenders stddev ≈ 56.8 → a defender wins
+        $regulier = $this->findAwardByTitle($summary['awards'], 'Le Régulier');
+        self::assertNotNull($regulier);
+        self::assertNotSame($alice->getId(), $regulier['playerId']);
+        // Must be one of Charlie/Diana/Eve (pure defenders, lowest variance)
+        self::assertContains($regulier['playerId'], [
+            $players[2]->getId(),
+            $players[3]->getId(),
+            $players[4]->getId(),
+        ]);
+    }
+
+    public function testYoYoAndRegulierNotAwardedWithFewerThanThreeGames(): void
+    {
+        $session = $this->createSessionWithPlayers('Alice', 'Bob', 'Charlie', 'Diana', 'Eve');
+        $players = $session->getPlayers()->toArray();
+        $calculator = new ScoreCalculator();
+
+        // Only 2 games — below the 3-game threshold for awards
+        $this->computeAndPersistScores($calculator, $this->createCompletedGame($session, $players[0], null, Contract::Garde, 2, 50));
+        $this->computeAndPersistScores($calculator, $this->createCompletedGame($session, $players[1], null, Contract::Petite, 0, 40));
+
+        $summary = $this->service->getSummary($session);
+
+        // Awards empty because < 3 completed games
+        self::assertSame([], $summary['awards']);
     }
 
     private function createCompletedGame(

@@ -21,9 +21,14 @@ use App\Repository\StarEventRepository;
  * - highlights  : faits marquants (MVP, dernier, meilleure/pire donne, contrat favori,
  *                 durée totale, nombre de donnes et d'étoiles)
  * - awards      : récompenses humoristiques attribuées si >= 3 donnes jouées :
- *     • Le Boucher      — preneur ayant infligé le plus de points aux défenseurs
+ *     • Le Boucher          — preneur ayant infligé le plus de points aux défenseurs
  *     • L'Éternel Défenseur — joueur ayant le moins pris
- *     • Le Flambeur      — joueur ayant tenté le plus de Garde Sans / Garde Contre
+ *     • Le Flambeur         — joueur ayant tenté le plus de Garde Sans / Garde Contre
+ *     • Le Kamikaze         — preneur avec le pire taux de réussite (min 2 prises)
+ *     • Le Solitaire        — joueur le moins appelé comme partenaire
+ *     • Le Paratonnerre     — joueur ayant reçu le plus d'étoiles
+ *     • Le Yo-Yo            — joueur avec la plus grande variance de scores
+ *     • Le Régulier         — joueur avec les scores les plus constants
  */
 final readonly class SessionSummaryService
 {
@@ -253,6 +258,35 @@ final readonly class SessionSummaryService
             $awards[] = $flambeur;
         }
 
+        // 4. Le Kamikaze: worst taker win rate (min 2 takes, at least 1 loss)
+        $kamikaze = $this->computeKamikaze($session);
+        if (null !== $kamikaze) {
+            $awards[] = $kamikaze;
+        }
+
+        // 5. Le Solitaire: least called as partner
+        $solitaire = $this->computeSolitaire($session);
+        if (null !== $solitaire) {
+            $awards[] = $solitaire;
+        }
+
+        // 6. Le Paratonnerre: most stars received
+        $paratonnerre = $this->computeParatonnerre($session);
+        if (null !== $paratonnerre) {
+            $awards[] = $paratonnerre;
+        }
+
+        // 7 & 8. Le Yo-Yo + Le Régulier: highest / lowest score variance
+        $scoresMap = $this->scoreEntryRepository->getOrderedGameScoresPerPlayerForSession($session);
+        $yoyo = $this->computeYoYo($session, $scoresMap);
+        if (null !== $yoyo) {
+            $awards[] = $yoyo;
+        }
+        $regulier = $this->computeRegulier($session, $scoresMap, $yoyo['playerId'] ?? null);
+        if (null !== $regulier) {
+            $awards[] = $regulier;
+        }
+
         return $awards;
     }
 
@@ -345,5 +379,253 @@ final readonly class SessionSummaryService
             'playerName' => $result->playerName,
             'title' => 'Le Flambeur',
         ];
+    }
+
+    /**
+     * « Le Kamikaze » : preneur avec le pire taux de réussite (min 2 prises, au moins 1 échec).
+     *
+     * @return array{description: string, playerColor: string|null, playerId: int, playerName: string, title: string}|null
+     */
+    private function computeKamikaze(Session $session): ?array
+    {
+        $takerCounts = $this->gameRepository->countTakerGamesPerPlayerForSession($session);
+        $takerWins = $this->gameRepository->countTakerWinsPerPlayerForSession($session);
+
+        $worstRate = -1.0;
+        $winner = null;
+
+        foreach ($session->getPlayers() as $player) {
+            /** @var int $playerId */
+            $playerId = $player->getId();
+            $takes = $takerCounts[$playerId] ?? 0;
+
+            if ($takes < 2) {
+                continue;
+            }
+
+            $wins = $takerWins[$playerId] ?? 0;
+            $losses = $takes - $wins;
+
+            if (0 === $losses) {
+                continue;
+            }
+
+            $loseRate = $losses / $takes;
+
+            if ($loseRate > $worstRate) {
+                $worstRate = $loseRate;
+                $winner = $player;
+            }
+        }
+
+        if (null === $winner) {
+            return null;
+        }
+
+        /** @var int $winnerId */
+        $winnerId = $winner->getId();
+
+        return [
+            'description' => 'Échoue le plus souvent en tant que preneur',
+            'playerColor' => $winner->getColor(),
+            'playerId' => $winnerId,
+            'playerName' => $winner->getName(),
+            'title' => 'Le Kamikaze',
+        ];
+    }
+
+    /**
+     * « Le Solitaire » : joueur le moins souvent appelé comme partenaire.
+     *
+     * Non attribué si aucune donne avec appel dans la session.
+     *
+     * @return array{description: string, playerColor: string|null, playerId: int, playerName: string, title: string}|null
+     */
+    private function computeSolitaire(Session $session): ?array
+    {
+        $partnerCounts = $this->gameRepository->countPartnerAppearancesPerPlayerForSession($session);
+
+        if ([] === $partnerCounts) {
+            return null;
+        }
+
+        $minCount = \PHP_INT_MAX;
+        $winner = null;
+
+        foreach ($session->getPlayers() as $player) {
+            /** @var int $playerId */
+            $playerId = $player->getId();
+            $count = $partnerCounts[$playerId] ?? 0;
+
+            if ($count < $minCount) {
+                $minCount = $count;
+                $winner = $player;
+            }
+        }
+
+        if (null === $winner) {
+            return null;
+        }
+
+        /** @var int $winnerId */
+        $winnerId = $winner->getId();
+
+        return [
+            'description' => 'Le moins appelé comme partenaire',
+            'playerColor' => $winner->getColor(),
+            'playerId' => $winnerId,
+            'playerName' => $winner->getName(),
+            'title' => 'Le Solitaire',
+        ];
+    }
+
+    /**
+     * « Le Paratonnerre » : joueur ayant reçu le plus d'étoiles dans la session.
+     *
+     * Non attribué si aucune étoile dans la session.
+     *
+     * @return array{description: string, playerColor: string|null, playerId: int, playerName: string, title: string}|null
+     */
+    private function computeParatonnerre(Session $session): ?array
+    {
+        $maxStars = 0;
+        $winner = null;
+
+        foreach ($session->getPlayers() as $player) {
+            $count = $this->starEventRepository->countBySessionAndPlayer($session, $player);
+
+            if ($count > $maxStars) {
+                $maxStars = $count;
+                $winner = $player;
+            }
+        }
+
+        if (null === $winner || 0 === $maxStars) {
+            return null;
+        }
+
+        /** @var int $winnerId */
+        $winnerId = $winner->getId();
+
+        return [
+            'description' => 'A attiré le plus d\'étoiles',
+            'playerColor' => $winner->getColor(),
+            'playerId' => $winnerId,
+            'playerName' => $winner->getName(),
+            'title' => 'Le Paratonnerre',
+        ];
+    }
+
+    /**
+     * « Le Yo-Yo » : joueur avec la plus grande variance de scores.
+     *
+     * @param array<int, list<int>> $scoresMap
+     *
+     * @return array{description: string, playerColor: string|null, playerId: int, playerName: string, title: string}|null
+     */
+    private function computeYoYo(Session $session, array $scoresMap): ?array
+    {
+        $maxVariance = -1.0;
+        $winner = null;
+
+        foreach ($session->getPlayers() as $player) {
+            /** @var int $playerId */
+            $playerId = $player->getId();
+            $scores = $scoresMap[$playerId] ?? [];
+
+            if (\count($scores) < 3) {
+                continue;
+            }
+
+            $variance = $this->computeVariance($scores);
+
+            if ($variance > $maxVariance) {
+                $maxVariance = $variance;
+                $winner = $player;
+            }
+        }
+
+        if (null === $winner) {
+            return null;
+        }
+
+        /** @var int $winnerId */
+        $winnerId = $winner->getId();
+
+        return [
+            'description' => 'Les scores les plus imprévisibles',
+            'playerColor' => $winner->getColor(),
+            'playerId' => $winnerId,
+            'playerName' => $winner->getName(),
+            'title' => 'Le Yo-Yo',
+        ];
+    }
+
+    /**
+     * « Le Régulier » : joueur avec les scores les plus constants (plus petite variance).
+     *
+     * Exclut le gagnant du Yo-Yo pour éviter qu'un même joueur reçoive les deux.
+     *
+     * @param array<int, list<int>> $scoresMap
+     *
+     * @return array{description: string, playerColor: string|null, playerId: int, playerName: string, title: string}|null
+     */
+    private function computeRegulier(Session $session, array $scoresMap, ?int $excludePlayerId): ?array
+    {
+        $minVariance = \PHP_FLOAT_MAX;
+        $winner = null;
+
+        foreach ($session->getPlayers() as $player) {
+            /** @var int $playerId */
+            $playerId = $player->getId();
+
+            if ($playerId === $excludePlayerId) {
+                continue;
+            }
+
+            $scores = $scoresMap[$playerId] ?? [];
+
+            if (\count($scores) < 3) {
+                continue;
+            }
+
+            $variance = $this->computeVariance($scores);
+
+            if ($variance < $minVariance) {
+                $minVariance = $variance;
+                $winner = $player;
+            }
+        }
+
+        if (null === $winner) {
+            return null;
+        }
+
+        /** @var int $winnerId */
+        $winnerId = $winner->getId();
+
+        return [
+            'description' => 'Les scores les plus réguliers',
+            'playerColor' => $winner->getColor(),
+            'playerId' => $winnerId,
+            'playerName' => $winner->getName(),
+            'title' => 'Le Régulier',
+        ];
+    }
+
+    /**
+     * @param list<int> $scores
+     */
+    private function computeVariance(array $scores): float
+    {
+        $n = \count($scores);
+        $mean = \array_sum($scores) / $n;
+        $sumSquares = 0.0;
+
+        foreach ($scores as $score) {
+            $sumSquares += ($score - $mean) ** 2;
+        }
+
+        return $sumSquares / $n;
     }
 }
