@@ -368,9 +368,9 @@ Accessible via l'onglet **Stats** dans la barre de navigation.
 L'écran principal des statistiques affiche :
 
 - **Métriques** (toujours visibles) : nombre total de donnes, de sessions jouées, **durée moyenne par donne** et **temps de jeu total** (si des donnes avec suivi de durée existent)
-- **Classement** (toujours visible) : tous les joueurs triés par score total décroissant, avec nombre de donnes jouées et taux de victoire en tant que preneur
+- **Classement** (toujours visible) : tous les joueurs triés par score total décroissant, avec nombre de donnes jouées et taux de victoire en tant que preneur. Limité à 10 joueurs par défaut, avec un bouton « Voir plus » pour afficher les suivants
 - **Menu déroulant de section** : un sélecteur permet de choisir la section affichée parmi :
-  - **Classement ELO** (par défaut) : joueurs triés par rating décroissant
+  - **Classement ELO** (par défaut) : joueurs triés par rating décroissant, limité à 10 avec « Voir plus »
   - **Évolution ELO** : graphique multi-lignes avec filtrage par joueur
   - **Répartition des contrats** : graphique à barres horizontales par type de contrat
   - **Taux de réussite par contrat** : tableau croisé joueurs × contrats avec code couleur

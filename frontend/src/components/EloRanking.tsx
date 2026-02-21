@@ -1,5 +1,6 @@
+import { useState } from "react";
 import type { EloRankingEntry } from "../types/api";
-import { PlayerAvatar } from "./ui";
+import { LoadMoreButton, PAGE_SIZE, PlayerAvatar } from "./ui";
 
 interface EloRankingProps {
   entries: EloRankingEntry[];
@@ -7,6 +8,8 @@ interface EloRankingProps {
 }
 
 export default function EloRanking({ entries, onPlayerClick }: EloRankingProps) {
+  const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
+
   if (entries.length === 0) {
     return (
       <p className="py-4 text-center text-sm text-text-muted">
@@ -15,9 +18,11 @@ export default function EloRanking({ entries, onPlayerClick }: EloRankingProps) 
     );
   }
 
+  const visibleEntries = entries.slice(0, visibleCount);
+
   return (
     <div className="flex flex-col gap-2">
-      {entries.map((entry, index) => (
+      {visibleEntries.map((entry, index) => (
         <button
           className="flex items-center gap-3 rounded-xl bg-surface-elevated p-3 text-left transition-colors active:bg-surface-tertiary"
           key={entry.playerId}
@@ -49,6 +54,10 @@ export default function EloRanking({ entries, onPlayerClick }: EloRankingProps) 
           </span>
         </button>
       ))}
+      <LoadMoreButton
+        onClick={() => setVisibleCount((c) => c + PAGE_SIZE)}
+        remainingCount={entries.length - visibleCount}
+      />
     </div>
   );
 }

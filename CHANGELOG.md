@@ -15,6 +15,7 @@ Le format est basé sur [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/)
 - **Ordre personnalisé des joueurs** : possibilité de réorganiser l'ordre des joueurs dans une session via le menu ⋮ > « Changer l'ordre ». L'ordre personnalisé s'applique au tableau des scores, au graphe d'évolution, à la sélection preneur/appelé et à la rotation automatique du donneur.
 - **Détail des scores par donne** : au clic sur une donne dans l'historique, un panneau dépliable affiche les scores individuels de chaque joueur (preneur → appelé → défense) avec le nombre de bouts et l'écart par rapport au contrat.
 - **Stats session glissantes** : le graphe d'évolution des scores n'affiche plus que les 10 dernières donnes (fenêtre glissante) pour une meilleure lisibilité sur les longues sessions.
+- **Pagination des classements** : les classements par score et ELO affichent désormais 10 joueurs par défaut avec un bouton « Voir plus » pour charger les suivants.
 
 ### Changed
 

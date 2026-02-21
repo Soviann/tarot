@@ -1217,7 +1217,7 @@ Overlay plein écran affichant un mème (victoire ou défaite) avec animation po
 
 **Fichier** : `components/Leaderboard.tsx`
 
-Liste classée des joueurs avec rang, avatar, nom, score total, nombre de donnes et taux de victoire.
+Liste classée des joueurs avec rang, avatar, nom, score total, nombre de donnes et taux de victoire. Affiche 10 joueurs par défaut avec un bouton « Voir plus » (`LoadMoreButton`) pour charger les suivants par lots de 10.
 
 | Prop | Type | Description |
 |------|------|-------------|
@@ -1275,7 +1275,7 @@ Graphique linéaire (Recharts) affichant l'évolution des scores récents d'un j
 
 **Fichier** : `components/EloRanking.tsx`
 
-Liste classée des joueurs par rating ELO, avec rang, avatar, nom et rating coloré (vert > 1500, rouge < 1500).
+Liste classée des joueurs par rating ELO, avec rang, avatar, nom et rating coloré (vert > 1500, rouge < 1500). Affiche 10 joueurs par défaut avec un bouton « Voir plus » (`LoadMoreButton`) pour charger les suivants par lots de 10.
 
 | Prop | Type | Description |
 |------|------|-------------|
@@ -1569,6 +1569,28 @@ Bouton d'action flottant (Floating Action Button), positionné en bas à droite 
 ```tsx
 import { Plus } from "lucide-react";
 <FAB aria-label="Nouvelle donne" icon={<Plus />} onClick={handleNewGame} />
+```
+
+### `LoadMoreButton`
+
+**Fichier** : `components/ui/Pagination.tsx`
+
+Bouton « Voir plus » pour charger progressivement les éléments d'une liste (par lots de 10). Affiche le nombre d'éléments du prochain lot. Se masque automatiquement quand il ne reste plus d'éléments.
+
+| Prop | Type | Description |
+|------|------|-------------|
+| `onClick` | `() => void` | *requis* — action au clic (typiquement incrémenter le compteur visible) |
+| `remainingCount` | `number` | *requis* — nombre d'éléments restants à afficher |
+
+Exporte aussi `PAGE_SIZE` (constante = 10).
+
+```tsx
+import { LoadMoreButton, PAGE_SIZE } from "./ui";
+
+<LoadMoreButton
+  onClick={() => setVisibleCount((c) => c + PAGE_SIZE)}
+  remainingCount={entries.length - visibleCount}
+/>
 ```
 
 ### `UndoFAB`
