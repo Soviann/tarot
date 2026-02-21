@@ -484,6 +484,29 @@ Hook détectant si le téléphone est retourné à l'envers via l'API `DeviceOri
 const isUpsideDown = useUpsideDown({ enabled: true });
 ```
 
+### `useVoiceScoring`
+
+**Fichier** : `hooks/useVoiceScoring.ts`
+
+Hook encapsulant la saisie vocale pour la complétion de donne. Utilise `react-speech-recognition` pour la transcription et `voiceScoreParser` pour l'extraction des données.
+
+```ts
+const { cancel, error, isSupported, parsedResult, reset, start, status, stop, transcript } = useVoiceScoring(playerNames);
+```
+
+| Retour | Type | Description |
+|--------|------|-------------|
+| `isSupported` | `boolean` | `true` si le navigateur supporte la Web Speech API |
+| `status` | `"idle" \| "listening" \| "result" \| "error"` | État courant |
+| `transcript` | `string` | Transcription en temps réel |
+| `parsedResult` | `VoiceScoreResult` | Résultat parsé (contrat, points, joueur, bonuses) |
+| `start` | `() => void` | Démarrer l'écoute (fr-FR) |
+| `stop` | `() => void` | Arrêter l'écoute |
+| `cancel` | `() => void` | Annuler et réinitialiser |
+| `reset` | `() => void` | Remettre à l'état idle |
+
+**Service associé** : `services/voiceScoreParser.ts` — fonctions pures : `normalizeTranscript`, `frenchWordToNumber`, `extractContrat`, `extractPoints`, `extractPlayerReference`, `extractOudlers`, `extractBonuses`, `levenshtein`, `parseVoiceScore`. Reconnaissance floue des noms de joueurs (distance de Levenshtein ≤ 2) pour gérer les erreurs de transcription vocale.
+
 ### `useDebounce`
 
 **Fichier** : `hooks/useDebounce.ts`
@@ -1267,6 +1290,7 @@ Modal de complétion (étape 2) ou modification d'une donne. Titre dynamique sel
 | `sessionId` | `number` | *requis* — ID de la session |
 
 **Fonctionnalités** :
+- **Saisie vocale** : bouton « Dicter le résultat » (via `useVoiceScoring` + `react-speech-recognition`) qui pré-remplit points, partenaire et bonuses depuis une dictée en français. Dégradation gracieuse (bouton masqué si API non supportée)
 - Bandeau info preneur + contrat (lecture seule), avec affichage dynamique de l'appelé (avatar + nom) ou « Seul » dès la sélection
 - Sélection partenaire ou « Seul » (self-call)
 - Stepper oudlers (0-3) avec indication points requis

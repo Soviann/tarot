@@ -1,8 +1,9 @@
-import { ChevronDown } from "lucide-react";
-import { useMemo, useState } from "react";
+import { ChevronDown, Mic } from "lucide-react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useCompleteGame } from "../hooks/useCompleteGame";
 import { useResetOnOpen } from "../hooks/useResetOnOpen";
 import { useToast } from "../hooks/useToast";
+import { useVoiceScoring } from "../hooks/useVoiceScoring";
 import type { GameContext } from "../services/memeSelector";
 import { calculateScore, REQUIRED_POINTS } from "../services/scoreCalculator";
 import type { Badge, Game, GamePlayer } from "../types/api";
@@ -46,6 +47,11 @@ export default function CompleteGameModal({ game, onBadgesUnlocked, onClose, onG
   const { toast } = useToast();
   const isEditMode = game.status === GameStatus.Completed;
 
+  const playerNames = useMemo(() => players.map((p) => p.name), [players]);
+  const voice = useVoiceScoring(playerNames);
+
+  const [voiceHighlight, setVoiceHighlight] = useState<Set<string>>(new Set());
+
   const [bonusesOpen, setBonusesOpen] = useState(false);
   const [chelem, setChelem] = useState<ChelemType>(Chelem.None);
   const [oudlers, setOudlers] = useState(0);
@@ -56,8 +62,12 @@ export default function CompleteGameModal({ game, onBadgesUnlocked, onClose, onG
   const [points, setPoints] = useState("");
   const [selfCall, setSelfCall] = useState(false);
 
+  const voiceApplied = useRef(false);
+
   useResetOnOpen(open, () => {
     completeGame.reset();
+    voice.reset();
+    voiceApplied.current = false;
     if (isEditMode) {
       setBonusesOpen(game.chelem !== Chelem.None || game.petitAuBout !== Side.None || game.poignee !== Poignee.None);
       setChelem(game.chelem);
@@ -80,6 +90,65 @@ export default function CompleteGameModal({ game, onBadgesUnlocked, onClose, onG
       setSelfCall(false);
     }
   });
+
+  // Reset voice application flag when a new listening session starts
+  useEffect(() => {
+    if (voice.status === "listening") {
+      voiceApplied.current = false;
+    }
+  }, [voice.status]);
+
+  // Apply voice scoring results to form (must run after useResetOnOpen)
+  useEffect(() => {
+    const result = voice.parsedResult;
+    if (voice.status !== "result" || !result || voiceApplied.current) return;
+    if (Object.keys(result).length === 0) return;
+    voiceApplied.current = true;
+    const filled = new Set<string>();
+
+    if (result.points !== undefined) {
+      setPoints(String(result.points));
+      filled.add("points");
+    }
+
+    if (result.playerName === "__self__") {
+      setSelfCall(true);
+      setPartnerId(null);
+      filled.add("partner");
+    } else if (result.playerName) {
+      const matched = players.find(
+        (p) => p.name === result.playerName && p.id !== game.taker.id,
+      );
+      if (matched) {
+        setSelfCall(false);
+        setPartnerId(matched.id);
+        filled.add("partner");
+      }
+    }
+
+    if (result.oudlers !== undefined) {
+      setOudlers(result.oudlers);
+      filled.add("oudlers");
+    }
+
+    if (result.petitAuBout) {
+      setPetitAuBout(Side.Attack);
+      setBonusesOpen(true);
+    }
+    if (result.poignee) {
+      setPoignee(result.poignee);
+      setPoigneeOwner(Side.Attack);
+      setBonusesOpen(true);
+    }
+    if (result.chelem) {
+      setChelem(result.chelem);
+      setBonusesOpen(true);
+    }
+
+    setVoiceHighlight(filled);
+    const timer = setTimeout(() => setVoiceHighlight(new Set()), 3000);
+    return () => clearTimeout(timer);
+  }, [game.taker.id, players, voice.parsedResult, voice.status]);
 
   const pointsNum = points === "" ? null : Number(points);
   const pointsValid = pointsNum !== null && !isNaN(pointsNum) && pointsNum >= 0 && pointsNum <= 91;
@@ -175,6 +244,33 @@ export default function CompleteGameModal({ game, onBadgesUnlocked, onClose, onG
           )}
         </div>
 
+        {/* Saisie vocale */}
+        {voice.isSupported && (
+          <div className="flex justify-center">
+            {voice.status === "listening" ? (
+              <button
+                aria-label="Arrêter la dictée"
+                className="flex items-center gap-2 rounded-xl bg-red-500 px-4 py-2.5 text-sm font-medium text-white transition-colors"
+                onClick={voice.stop}
+                type="button"
+              >
+                <Mic className="size-4 animate-pulse" />
+                Écoute...
+              </button>
+            ) : (
+              <button
+                aria-label="Dicter le résultat"
+                className="flex items-center gap-2 rounded-xl bg-surface-secondary px-4 py-2.5 text-sm font-medium text-text-secondary transition-colors hover:bg-surface-tertiary"
+                onClick={voice.start}
+                type="button"
+              >
+                <Mic className="size-4" />
+                Dicter le résultat
+              </button>
+            )}
+          </div>
+        )}
+
         {/* Partenaire */}
         <div>
           <h3 className="mb-2 text-sm font-medium text-text-secondary">Partenaire</h3>
@@ -214,7 +310,7 @@ export default function CompleteGameModal({ game, onBadgesUnlocked, onClose, onG
         {/* Points */}
         <div>
           <input
-            className="w-full rounded-xl border border-surface-border bg-surface-primary px-4 py-3 text-center text-lg font-semibold tabular-nums text-text-primary placeholder:text-text-muted focus:border-accent-500 focus:outline-none focus:ring-1 focus:ring-accent-500"
+            className={`w-full rounded-xl border border-surface-border bg-surface-primary px-4 py-3 text-center text-lg font-semibold tabular-nums text-text-primary placeholder:text-text-muted focus:border-accent-500 focus:outline-none focus:ring-1 focus:ring-accent-500 ${voiceHighlight.has("points") ? "ring-2 ring-green-500" : ""}`}
             inputMode="numeric"
             onChange={(e) => setPoints(e.target.value)}
             pattern="[0-9]*"
