@@ -4,6 +4,11 @@ import GameList from "../../components/GameList";
 import { renderWithProviders } from "../test-utils";
 import type { Game } from "../../types/api";
 
+vi.mock("react-countup", () => ({
+  default: ({ end, formattingFn }: { end: number; formattingFn?: (n: number) => string }) =>
+    formattingFn ? formattingFn(end) : String(end),
+}));
+
 const baseGame: Game = {
   chelem: "none",
   completedAt: "2025-02-01T14:05:00+00:00",

@@ -36,7 +36,7 @@ function ScoreRow({ entry, role }: { entry: ScoreEntry; role?: string }) {
           <span className="rounded bg-blue-500/15 px-1.5 py-0.5 text-[10px] font-semibold text-blue-400">{role}</span>
         )}
       </div>
-      <ScoreDisplay animated={false} className="text-sm" value={entry.score} />
+      <ScoreDisplay className="text-sm" value={entry.score} />
     </div>
   );
 }
@@ -108,7 +108,7 @@ export default function GameList({
                   )}
                 </div>
                 <div className="flex shrink-0 flex-col items-end">
-                  <ScoreDisplay animated={false} value={takerScore} />
+                  <ScoreDisplay value={takerScore} />
                   {durationSeconds !== null && (
                     <span className="text-xs text-text-muted">
                       {formatDuration(durationSeconds)}

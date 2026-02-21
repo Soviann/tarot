@@ -2,6 +2,11 @@ import { fireEvent, screen } from "@testing-library/react";
 import Scoreboard from "../../components/Scoreboard";
 import { renderWithProviders } from "../test-utils";
 
+vi.mock("react-countup", () => ({
+  default: ({ end, formattingFn }: { end: number; formattingFn?: (n: number) => string }) =>
+    formattingFn ? formattingFn(end) : String(end),
+}));
+
 const players = [
   { id: 1, name: "Alice" },
   { id: 2, name: "Bob" },

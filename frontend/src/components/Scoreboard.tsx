@@ -120,7 +120,7 @@ export default function Scoreboard({
                 <span className="max-w-full truncate text-xs text-text-secondary lg:max-w-24 lg:text-sm">
                   {player.name}
                 </span>
-                <ScoreDisplay animated={false} value={displayScoreMap.get(player.id) ?? 0} />
+                <ScoreDisplay value={displayScoreMap.get(player.id) ?? 0} />
                 {onAddStar && (
                   <button
                     aria-label={`Ajouter une étoile à ${player.name}`}

@@ -2,6 +2,11 @@ import { screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import ToastContainer from "../../components/ui/ToastContainer";
 import SessionPage from "../../pages/SessionPage";
+
+vi.mock("react-countup", () => ({
+  default: ({ end, formattingFn }: { end: number; formattingFn?: (n: number) => string }) =>
+    formattingFn ? formattingFn(end) : String(end),
+}));
 import * as useAddStarModule from "../../hooks/useAddStar";
 import * as useCloseSessionModule from "../../hooks/useCloseSession";
 import * as useCompleteGameModule from "../../hooks/useCompleteGame";

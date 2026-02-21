@@ -52,7 +52,7 @@ function Podium({ ranking }: { ranking: SessionRankingEntry[] }) {
           <span className="mt-1 text-sm font-medium text-text-primary lg:text-base">
             {second.playerName}
           </span>
-          <ScoreDisplay animated={false} value={second.score} />
+          <ScoreDisplay value={second.score} />
           <div
             className="mt-2 w-full rounded-t-lg opacity-30 dark:opacity-50"
             style={{
@@ -75,7 +75,7 @@ function Podium({ ranking }: { ranking: SessionRankingEntry[] }) {
         <span className="mt-1 font-semibold text-text-primary lg:text-lg">
           {first.playerName}
         </span>
-        <ScoreDisplay animated={false} className="text-lg" value={first.score} />
+        <ScoreDisplay className="text-lg" value={first.score} />
         <div
           className="mt-2 w-full rounded-t-lg opacity-30 dark:opacity-50"
           style={{
@@ -98,7 +98,7 @@ function Podium({ ranking }: { ranking: SessionRankingEntry[] }) {
           <span className="mt-1 text-sm font-medium text-text-primary lg:text-base">
             {third.playerName}
           </span>
-          <ScoreDisplay animated={false} value={third.score} />
+          <ScoreDisplay value={third.score} />
           <div
             className="mt-2 w-full rounded-t-lg opacity-30 dark:opacity-50"
             style={{
@@ -144,7 +144,7 @@ function FullRanking({ ranking }: { ranking: SessionRankingEntry[] }) {
             <span className="flex-1 font-medium text-text-primary">
               {entry.playerName}
             </span>
-            <ScoreDisplay animated={false} value={entry.score} />
+            <ScoreDisplay value={entry.score} />
           </div>
         ))}
       </div>

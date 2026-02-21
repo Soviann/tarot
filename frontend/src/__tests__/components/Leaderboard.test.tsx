@@ -4,6 +4,11 @@ import Leaderboard from "../../components/Leaderboard";
 import type { LeaderboardEntry } from "../../types/api";
 import { renderWithProviders } from "../test-utils";
 
+vi.mock("react-countup", () => ({
+  default: ({ end, formattingFn }: { end: number; formattingFn?: (n: number) => string }) =>
+    formattingFn ? formattingFn(end) : String(end),
+}));
+
 const mockEntries: LeaderboardEntry[] = [
   {
     gamesAsTaker: 5,

@@ -41,7 +41,7 @@ export default function Leaderboard({ entries, onPlayerClick }: LeaderboardProps
               {entry.gamesPlayed} donnes · {entry.winRate}% victoires
             </span>
           </div>
-          <ScoreDisplay animated={false} className="text-base" value={entry.totalScore} />
+          <ScoreDisplay className="text-base" value={entry.totalScore} />
         </button>
       ))}
       <LoadMoreButton
