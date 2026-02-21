@@ -1,4 +1,4 @@
-import { render, screen } from "@testing-library/react";
+import { fireEvent, render, screen } from "@testing-library/react";
 import Toast from "../../../components/ui/Toast";
 import type { ToastItem } from "../../../hooks/useToast";
 
@@ -31,5 +31,32 @@ describe("Toast", () => {
 
     const toastEl = container.firstChild as HTMLElement;
     expect(toastEl.className).toContain("text-red");
+  });
+
+  // --- Keyboard accessibility ---
+
+  it("is focusable via tabIndex", () => {
+    const toast: ToastItem = { id: "1", message: "OK", type: "success" };
+    render(<Toast toast={toast} onDismiss={() => {}} />);
+
+    expect(screen.getByRole("status")).toHaveAttribute("tabindex", "0");
+  });
+
+  it("dismisses on Enter key", () => {
+    const onDismiss = vi.fn();
+    const toast: ToastItem = { id: "1", message: "OK", type: "success" };
+    render(<Toast toast={toast} onDismiss={onDismiss} />);
+
+    fireEvent.keyDown(screen.getByRole("status"), { key: "Enter" });
+    expect(onDismiss).toHaveBeenCalledWith("1");
+  });
+
+  it("dismisses on Escape key", () => {
+    const onDismiss = vi.fn();
+    const toast: ToastItem = { id: "2", message: "Erreur", type: "error" };
+    render(<Toast toast={toast} onDismiss={onDismiss} />);
+
+    fireEvent.keyDown(screen.getByRole("status"), { key: "Escape" });
+    expect(onDismiss).toHaveBeenCalledWith("2");
   });
 });

@@ -65,7 +65,7 @@ describe("OverflowMenu", () => {
     ];
     renderWithProviders(<OverflowMenu items={linkItems} label="Actions" />);
     fireEvent.click(screen.getByRole("button", { name: "Actions" }));
-    const link = screen.getByRole("link", { name: /Link Item/ });
+    const link = screen.getByRole("menuitem", { name: /Link Item/ });
     expect(link).toHaveAttribute("href", "/some-page");
   });
 
@@ -75,5 +75,79 @@ describe("OverflowMenu", () => {
     expect(screen.getByText("Action A")).toBeInTheDocument();
     fireEvent.keyDown(document, { key: "Escape" });
     expect(screen.queryByText("Action A")).not.toBeInTheDocument();
+  });
+
+  // --- ARIA menu roles ---
+
+  it("renders dropdown with role=menu", () => {
+    renderWithProviders(<OverflowMenu items={items} label="Actions" />);
+    fireEvent.click(screen.getByRole("button", { name: "Actions" }));
+    expect(screen.getByRole("menu")).toBeInTheDocument();
+  });
+
+  it("renders button items with role=menuitem", () => {
+    renderWithProviders(<OverflowMenu items={items} label="Actions" />);
+    fireEvent.click(screen.getByRole("button", { name: "Actions" }));
+    const menuitems = screen.getAllByRole("menuitem");
+    expect(menuitems).toHaveLength(3);
+  });
+
+  it("renders link items with role=menuitem", () => {
+    const linkItems = [
+      { href: "/page-a", icon: <span>A</span>, label: "Link A" },
+      { href: "/page-b", icon: <span>B</span>, label: "Link B" },
+    ];
+    renderWithProviders(<OverflowMenu items={linkItems} label="Actions" />);
+    fireEvent.click(screen.getByRole("button", { name: "Actions" }));
+    const menuitems = screen.getAllByRole("menuitem");
+    expect(menuitems).toHaveLength(2);
+  });
+
+  it("sets aria-expanded on trigger button", () => {
+    renderWithProviders(<OverflowMenu items={items} label="Actions" />);
+    const trigger = screen.getByRole("button", { name: "Actions" });
+    expect(trigger).toHaveAttribute("aria-expanded", "false");
+    fireEvent.click(trigger);
+    expect(trigger).toHaveAttribute("aria-expanded", "true");
+  });
+
+  // --- Keyboard navigation ---
+
+  it("moves focus with ArrowDown key", () => {
+    renderWithProviders(<OverflowMenu items={items} label="Actions" />);
+    fireEvent.click(screen.getByRole("button", { name: "Actions" }));
+    const menuitems = screen.getAllByRole("menuitem");
+
+    fireEvent.keyDown(screen.getByRole("menu"), { key: "ArrowDown" });
+    expect(document.activeElement).toBe(menuitems[0]);
+
+    fireEvent.keyDown(screen.getByRole("menu"), { key: "ArrowDown" });
+    expect(document.activeElement).toBe(menuitems[1]);
+  });
+
+  it("moves focus with ArrowUp key, skipping disabled items", () => {
+    renderWithProviders(<OverflowMenu items={items} label="Actions" />);
+    fireEvent.click(screen.getByRole("button", { name: "Actions" }));
+    const menuitems = screen.getAllByRole("menuitem");
+
+    // ArrowUp from start should wrap to last non-disabled item (Action B, not disabled Action C)
+    fireEvent.keyDown(screen.getByRole("menu"), { key: "ArrowUp" });
+    expect(document.activeElement).toBe(menuitems[1]);
+  });
+
+  it("wraps focus around with ArrowDown, skipping disabled items", () => {
+    renderWithProviders(<OverflowMenu items={items} label="Actions" />);
+    fireEvent.click(screen.getByRole("button", { name: "Actions" }));
+    const menuitems = screen.getAllByRole("menuitem");
+
+    // 1st ArrowDown → item[0] (Action A)
+    fireEvent.keyDown(screen.getByRole("menu"), { key: "ArrowDown" });
+    expect(document.activeElement).toBe(menuitems[0]);
+    // 2nd ArrowDown → item[1] (Action B)
+    fireEvent.keyDown(screen.getByRole("menu"), { key: "ArrowDown" });
+    expect(document.activeElement).toBe(menuitems[1]);
+    // 3rd ArrowDown → skips disabled item[2], wraps to item[0]
+    fireEvent.keyDown(screen.getByRole("menu"), { key: "ArrowDown" });
+    expect(document.activeElement).toBe(menuitems[0]);
   });
 });

@@ -610,7 +610,7 @@ describe("SessionPage", () => {
     await userEvent.click(screen.getByRole("button", { name: "Actions de session" }));
 
     expect(
-      screen.getByRole("button", { name: "Modifier les joueurs" }),
+      screen.getByRole("menuitem", { name: "Modifier les joueurs" }),
     ).toBeDisabled();
   });
 

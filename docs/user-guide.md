@@ -603,7 +603,7 @@ Chaque action réussie déclenche un **toast de confirmation** — un petit band
 
 Exemples : « Joueur créé », « Donne enregistrée », « Session terminée », « Étoile ajoutée », « Groupe supprimé », etc.
 
-Les toasts s'empilent verticalement (3 maximum) et peuvent être fermés en les touchant.
+Les toasts s'empilent verticalement (3 maximum) et peuvent être fermés en les touchant ou avec les touches Entrée/Échap au clavier.
 
 ---
 
