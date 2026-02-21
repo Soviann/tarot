@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Repository;
 
+use App\Dto\DateRange;
 use App\Entity\Player;
 use App\Entity\Session;
 use App\Entity\StarEvent;
@@ -109,31 +110,33 @@ final class StarEventRepository extends ServiceEntityRepository
         return $map;
     }
 
-    public function countByPlayerFiltered(Player $player, ?int $playerGroupId = null): int
+    public function countByPlayerFiltered(Player $player, ?DateRange $dateRange = null, ?int $playerGroupId = null): int
     {
         $qb = $this->createQueryBuilder('se')
             ->select('COUNT(se.id)')
             ->andWhere('se.player = :player')
             ->setParameter('player', $player);
 
+        $this->applyDateFilter($qb, $dateRange, 'se', 'createdAt');
         $this->applySessionGroupFilter($qb, $playerGroupId, 'se');
 
         return (int) $qb->getQuery()->getSingleScalarResult();
     }
 
-    public function countSessionsWithStarsForPlayer(Player $player, ?int $playerGroupId = null): int
+    public function countSessionsWithStarsForPlayer(Player $player, ?DateRange $dateRange = null, ?int $playerGroupId = null): int
     {
         $qb = $this->createQueryBuilder('se')
             ->select('COUNT(DISTINCT IDENTITY(se.session))')
             ->andWhere('se.player = :player')
             ->setParameter('player', $player);
 
+        $this->applyDateFilter($qb, $dateRange, 'se', 'createdAt');
         $this->applySessionGroupFilter($qb, $playerGroupId, 'se');
 
         return (int) $qb->getQuery()->getSingleScalarResult();
     }
 
-    public function getMaxStarsInSessionForPlayer(Player $player, ?int $playerGroupId = null): int
+    public function getMaxStarsInSessionForPlayer(Player $player, ?DateRange $dateRange = null, ?int $playerGroupId = null): int
     {
         $qb = $this->createQueryBuilder('se')
             ->select('COUNT(se.id) AS cnt')
@@ -143,6 +146,7 @@ final class StarEventRepository extends ServiceEntityRepository
             ->orderBy('cnt', 'DESC')
             ->setMaxResults(1);
 
+        $this->applyDateFilter($qb, $dateRange, 'se', 'createdAt');
         $this->applySessionGroupFilter($qb, $playerGroupId, 'se');
 
         /** @var array{cnt: string}|null $result */
@@ -151,11 +155,12 @@ final class StarEventRepository extends ServiceEntityRepository
         return null !== $result ? (int) $result['cnt'] : 0;
     }
 
-    public function countAll(?int $playerGroupId = null): int
+    public function countAll(?DateRange $dateRange = null, ?int $playerGroupId = null): int
     {
         $qb = $this->createQueryBuilder('se')
             ->select('COUNT(se.id)');
 
+        $this->applyDateFilter($qb, $dateRange, 'se', 'createdAt');
         $this->applySessionGroupFilter($qb, $playerGroupId, 'se');
 
         return (int) $qb->getQuery()->getSingleScalarResult();

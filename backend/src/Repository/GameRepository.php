@@ -8,6 +8,7 @@ use App\Dto\ContractCountByPlayerDto;
 use App\Dto\ContractDistributionDto;
 use App\Dto\ContractWinsByPlayerDto;
 use App\Dto\ContractWinsDto;
+use App\Dto\DateRange;
 use App\Dto\PlayerCountDto;
 use App\Dto\PlayerWithCountDto;
 use App\Dto\TakerGameDetailDto;
@@ -521,7 +522,7 @@ final class GameRepository extends ServiceEntityRepository
     /**
      * @return list<ContractDistributionDto>
      */
-    public function getContractDistribution(?int $playerGroupId = null): array
+    public function getContractDistribution(?DateRange $dateRange = null, ?int $playerGroupId = null): array
     {
         $qb = $this->createQueryBuilder('g')
             ->select('NEW App\Dto\ContractDistributionDto(g.contract, COUNT(g.id))')
@@ -530,6 +531,7 @@ final class GameRepository extends ServiceEntityRepository
             ->groupBy('g.contract')
             ->orderBy('COUNT(g.id)', 'DESC');
 
+        $this->applyDateFilter($qb, $dateRange, 'g', 'completedAt');
         $this->applyGroupFilter($qb, $playerGroupId);
 
         /** @var list<ContractDistributionDto> */
@@ -539,7 +541,7 @@ final class GameRepository extends ServiceEntityRepository
     /**
      * @return list<ContractCountByPlayerDto>
      */
-    public function getContractCountByPlayer(?int $playerGroupId = null): array
+    public function getContractCountByPlayer(?DateRange $dateRange = null, ?int $playerGroupId = null): array
     {
         $qb = $this->createQueryBuilder('g')
             ->select('NEW App\Dto\ContractCountByPlayerDto(g.contract, COUNT(g.id), p.color, IDENTITY(g.taker), p.name)')
@@ -551,6 +553,7 @@ final class GameRepository extends ServiceEntityRepository
             ->addGroupBy('p.name')
             ->addGroupBy('g.contract');
 
+        $this->applyDateFilter($qb, $dateRange, 'g', 'completedAt');
         $this->applyGroupFilter($qb, $playerGroupId);
 
         /** @var list<ContractCountByPlayerDto> */
@@ -560,7 +563,7 @@ final class GameRepository extends ServiceEntityRepository
     /**
      * @return list<ContractWinsByPlayerDto>
      */
-    public function getContractWinsByPlayer(?int $playerGroupId = null): array
+    public function getContractWinsByPlayer(?DateRange $dateRange = null, ?int $playerGroupId = null): array
     {
         $qb = $this->createQueryBuilder('g')
             ->select('NEW App\Dto\ContractWinsByPlayerDto(g.contract, IDENTITY(g.taker), COUNT(g.id))')
@@ -571,25 +574,27 @@ final class GameRepository extends ServiceEntityRepository
             ->groupBy('g.taker')
             ->addGroupBy('g.contract');
 
+        $this->applyDateFilter($qb, $dateRange, 'g', 'completedAt');
         $this->applyGroupFilter($qb, $playerGroupId);
 
         /** @var list<ContractWinsByPlayerDto> */
         return $qb->getQuery()->getResult();
     }
 
-    public function countCompleted(?int $playerGroupId = null): int
+    public function countCompleted(?DateRange $dateRange = null, ?int $playerGroupId = null): int
     {
         $qb = $this->createQueryBuilder('g')
             ->select('COUNT(g.id)')
             ->andWhere('g.status = :status')
             ->setParameter('status', GameStatus::Completed);
 
+        $this->applyDateFilter($qb, $dateRange, 'g', 'completedAt');
         $this->applyGroupFilter($qb, $playerGroupId);
 
         return (int) $qb->getQuery()->getSingleScalarResult();
     }
 
-    public function getAverageDurationSeconds(?int $playerGroupId = null): ?int
+    public function getAverageDurationSeconds(?DateRange $dateRange = null, ?int $playerGroupId = null): ?int
     {
         $qb = $this->createQueryBuilder('g')
             ->select('AVG(TIMESTAMPDIFF(SECOND, g.createdAt, g.completedAt))')
@@ -597,6 +602,7 @@ final class GameRepository extends ServiceEntityRepository
             ->andWhere('g.completedAt IS NOT NULL')
             ->setParameter('status', GameStatus::Completed);
 
+        $this->applyDateFilter($qb, $dateRange, 'g', 'completedAt');
         $this->applyGroupFilter($qb, $playerGroupId);
 
         /** @var string|null $avg */
@@ -605,7 +611,7 @@ final class GameRepository extends ServiceEntityRepository
         return null !== $avg ? (int) \round((float) $avg) : null;
     }
 
-    public function getTotalDurationSeconds(?int $playerGroupId = null): int
+    public function getTotalDurationSeconds(?DateRange $dateRange = null, ?int $playerGroupId = null): int
     {
         $qb = $this->createQueryBuilder('g')
             ->select('SUM(TIMESTAMPDIFF(SECOND, g.createdAt, g.completedAt))')
@@ -613,6 +619,7 @@ final class GameRepository extends ServiceEntityRepository
             ->andWhere('g.completedAt IS NOT NULL')
             ->setParameter('status', GameStatus::Completed);
 
+        $this->applyDateFilter($qb, $dateRange, 'g', 'completedAt');
         $this->applyGroupFilter($qb, $playerGroupId);
 
         /** @var string|null $total */
@@ -624,7 +631,7 @@ final class GameRepository extends ServiceEntityRepository
     /**
      * @return list<PlayerCountDto>
      */
-    public function countTakerGames(?int $playerGroupId = null): array
+    public function countTakerGames(?DateRange $dateRange = null, ?int $playerGroupId = null): array
     {
         $qb = $this->createQueryBuilder('g')
             ->select('NEW App\Dto\PlayerCountDto(COUNT(g.id), IDENTITY(g.taker))')
@@ -632,6 +639,7 @@ final class GameRepository extends ServiceEntityRepository
             ->setParameter('status', GameStatus::Completed)
             ->groupBy('g.taker');
 
+        $this->applyDateFilter($qb, $dateRange, 'g', 'completedAt');
         $this->applyGroupFilter($qb, $playerGroupId);
 
         /** @var list<PlayerCountDto> */
@@ -641,7 +649,7 @@ final class GameRepository extends ServiceEntityRepository
     /**
      * @return list<PlayerCountDto>
      */
-    public function countTakerWins(?int $playerGroupId = null): array
+    public function countTakerWins(?DateRange $dateRange = null, ?int $playerGroupId = null): array
     {
         $qb = $this->createQueryBuilder('g')
             ->select('NEW App\Dto\PlayerCountDto(COUNT(g.id), IDENTITY(g.taker))')
@@ -651,13 +659,14 @@ final class GameRepository extends ServiceEntityRepository
             ->setParameter('status', GameStatus::Completed)
             ->groupBy('g.taker');
 
+        $this->applyDateFilter($qb, $dateRange, 'g', 'completedAt');
         $this->applyGroupFilter($qb, $playerGroupId);
 
         /** @var list<PlayerCountDto> */
         return $qb->getQuery()->getResult();
     }
 
-    public function countPlayerGamesAsTaker(Player $player, ?int $playerGroupId = null): int
+    public function countPlayerGamesAsTaker(Player $player, ?DateRange $dateRange = null, ?int $playerGroupId = null): int
     {
         $qb = $this->createQueryBuilder('g')
             ->select('COUNT(g.id)')
@@ -666,12 +675,13 @@ final class GameRepository extends ServiceEntityRepository
             ->setParameter('player', $player)
             ->setParameter('status', GameStatus::Completed);
 
+        $this->applyDateFilter($qb, $dateRange, 'g', 'completedAt');
         $this->applyGroupFilter($qb, $playerGroupId);
 
         return (int) $qb->getQuery()->getSingleScalarResult();
     }
 
-    public function countPlayerGamesAsPartner(Player $player, ?int $playerGroupId = null): int
+    public function countPlayerGamesAsPartner(Player $player, ?DateRange $dateRange = null, ?int $playerGroupId = null): int
     {
         $qb = $this->createQueryBuilder('g')
             ->select('COUNT(g.id)')
@@ -680,12 +690,13 @@ final class GameRepository extends ServiceEntityRepository
             ->setParameter('player', $player)
             ->setParameter('status', GameStatus::Completed);
 
+        $this->applyDateFilter($qb, $dateRange, 'g', 'completedAt');
         $this->applyGroupFilter($qb, $playerGroupId);
 
         return (int) $qb->getQuery()->getSingleScalarResult();
     }
 
-    public function countPlayerWinsAsTaker(Player $player, ?int $playerGroupId = null): int
+    public function countPlayerWinsAsTaker(Player $player, ?DateRange $dateRange = null, ?int $playerGroupId = null): int
     {
         $qb = $this->createQueryBuilder('g')
             ->select('COUNT(g.id)')
@@ -696,12 +707,13 @@ final class GameRepository extends ServiceEntityRepository
             ->setParameter('player', $player)
             ->setParameter('status', GameStatus::Completed);
 
+        $this->applyDateFilter($qb, $dateRange, 'g', 'completedAt');
         $this->applyGroupFilter($qb, $playerGroupId);
 
         return (int) $qb->getQuery()->getSingleScalarResult();
     }
 
-    public function countPlayerDistinctSessions(Player $player, ?int $playerGroupId = null): int
+    public function countPlayerDistinctSessions(Player $player, ?DateRange $dateRange = null, ?int $playerGroupId = null): int
     {
         $qb = $this->createQueryBuilder('g')
             ->select('COUNT(DISTINCT g.session)')
@@ -710,6 +722,7 @@ final class GameRepository extends ServiceEntityRepository
             ->setParameter('player', $player)
             ->setParameter('status', GameStatus::Completed);
 
+        $this->applyDateFilter($qb, $dateRange, 'g', 'completedAt');
         $this->applyGroupFilter($qb, $playerGroupId);
 
         return (int) $qb->getQuery()->getSingleScalarResult();
@@ -718,7 +731,7 @@ final class GameRepository extends ServiceEntityRepository
     /**
      * @return list<ContractDistributionDto>
      */
-    public function getPlayerContractDistribution(Player $player, ?int $playerGroupId = null): array
+    public function getPlayerContractDistribution(Player $player, ?DateRange $dateRange = null, ?int $playerGroupId = null): array
     {
         $qb = $this->createQueryBuilder('g')
             ->select('NEW App\Dto\ContractDistributionDto(g.contract, COUNT(g.id))')
@@ -728,6 +741,7 @@ final class GameRepository extends ServiceEntityRepository
             ->setParameter('status', GameStatus::Completed)
             ->groupBy('g.contract');
 
+        $this->applyDateFilter($qb, $dateRange, 'g', 'completedAt');
         $this->applyGroupFilter($qb, $playerGroupId);
 
         /** @var list<ContractDistributionDto> */
@@ -737,7 +751,7 @@ final class GameRepository extends ServiceEntityRepository
     /**
      * @return list<ContractWinsDto>
      */
-    public function getPlayerContractWins(Player $player, ?int $playerGroupId = null): array
+    public function getPlayerContractWins(Player $player, ?DateRange $dateRange = null, ?int $playerGroupId = null): array
     {
         $qb = $this->createQueryBuilder('g')
             ->select('NEW App\Dto\ContractWinsDto(g.contract, COUNT(g.id))')
@@ -749,6 +763,7 @@ final class GameRepository extends ServiceEntityRepository
             ->setParameter('status', GameStatus::Completed)
             ->groupBy('g.contract');
 
+        $this->applyDateFilter($qb, $dateRange, 'g', 'completedAt');
         $this->applyGroupFilter($qb, $playerGroupId);
 
         /** @var list<ContractWinsDto> */
@@ -758,7 +773,7 @@ final class GameRepository extends ServiceEntityRepository
     /**
      * @return list<TakerGameRecordDto>
      */
-    public function getPlayerTakerGamesForRecords(Player $player, ?int $playerGroupId = null): array
+    public function getPlayerTakerGamesForRecords(Player $player, ?DateRange $dateRange = null, ?int $playerGroupId = null): array
     {
         $qb = $this->createQueryBuilder('g')
             ->select('NEW App\Dto\TakerGameRecordDto(g.contract, g.createdAt, g.id, g.oudlers, g.points, se.score, IDENTITY(g.session))')
@@ -769,6 +784,7 @@ final class GameRepository extends ServiceEntityRepository
             ->setParameter('status', GameStatus::Completed)
             ->orderBy('g.createdAt', 'ASC');
 
+        $this->applyDateFilter($qb, $dateRange, 'g', 'completedAt');
         $this->applyGroupFilter($qb, $playerGroupId);
 
         /** @var list<TakerGameRecordDto> */
@@ -778,7 +794,7 @@ final class GameRepository extends ServiceEntityRepository
     /**
      * @return array{averageGameDurationSeconds: int|null, totalPlayTimeSeconds: int}
      */
-    public function getPlayerDurationStats(Player $player, ?int $playerGroupId = null): array
+    public function getPlayerDurationStats(Player $player, ?DateRange $dateRange = null, ?int $playerGroupId = null): array
     {
         $qb = $this->createQueryBuilder('g')
             ->select('AVG(TIMESTAMPDIFF(SECOND, g.createdAt, g.completedAt)) AS avg', 'SUM(TIMESTAMPDIFF(SECOND, g.createdAt, g.completedAt)) AS total')
@@ -788,6 +804,7 @@ final class GameRepository extends ServiceEntityRepository
             ->setParameter('player', $player)
             ->setParameter('status', GameStatus::Completed);
 
+        $this->applyDateFilter($qb, $dateRange, 'g', 'completedAt');
         $this->applyGroupFilter($qb, $playerGroupId);
 
         /** @var array{avg: string|null, total: string|null} $result */

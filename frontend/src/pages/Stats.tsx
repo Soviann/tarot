@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import ContractDistributionChart from "../components/ContractDistributionChart";
 import ContractSuccessRateTable from "../components/ContractSuccessRateTable";
+import DateRangeFilter from "../components/DateRangeFilter";
 import EloRanking from "../components/EloRanking";
 import GlobalEloEvolutionChart from "../components/GlobalEloEvolutionChart";
 import GroupFilter from "../components/GroupFilter";
@@ -21,9 +22,11 @@ const ALL_SECTIONS: { label: string; value: GlobalStatsSection }[] = [
 
 export default function Stats() {
   const navigate = useNavigate();
+  const [from, setFrom] = useState<string | null>(null);
   const [groupId, setGroupId] = useState<number | null>(null);
   const [selectedSection, setSelectedSection] = useState<GlobalStatsSection>("elo-ranking");
-  const { isPending, stats } = useGlobalStats(groupId);
+  const [to, setTo] = useState<string | null>(null);
+  const { isPending, stats } = useGlobalStats(groupId, from, to);
 
   if (isPending) {
     return (
@@ -55,6 +58,12 @@ export default function Stats() {
         <h1 className="text-2xl font-bold text-text-primary">Statistiques</h1>
         <GroupFilter onChange={setGroupId} value={groupId} />
       </div>
+
+      <DateRangeFilter
+        from={from}
+        onChange={(f, t) => { setFrom(f); setTo(t); }}
+        to={to}
+      />
 
       <div className="flex gap-4">
         <div className="flex-1 rounded-xl bg-surface-elevated p-3 text-center">

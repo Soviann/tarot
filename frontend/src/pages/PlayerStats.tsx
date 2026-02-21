@@ -5,6 +5,7 @@ import NotFound from "./NotFound";
 import BadgeGrid from "../components/BadgeGrid";
 import BadgeUnlockedModal from "../components/BadgeUnlockedModal";
 import ContractDistributionChart from "../components/ContractDistributionChart";
+import DateRangeFilter from "../components/DateRangeFilter";
 import EloEvolutionChart from "../components/EloEvolutionChart";
 import GroupFilter from "../components/GroupFilter";
 import PersonalRecords from "../components/PersonalRecords";
@@ -34,10 +35,12 @@ export default function PlayerStats() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const initialGroupId = searchParams.get("group") ? Number(searchParams.get("group")) : null;
+  const [from, setFrom] = useState<string | null>(null);
   const [selectedGroupId, setSelectedGroupId] = useState<number | null>(initialGroupId);
   const [selectedSection, setSelectedSection] = useState<PlayerStatsSection>("records");
+  const [to, setTo] = useState<string | null>(null);
   const playerId = Number(id);
-  const { isPending, stats } = usePlayerStats(playerId, selectedGroupId);
+  const { isPending, stats } = usePlayerStats(playerId, selectedGroupId, from, to);
   const konamiMutation = useAwardKonamiBadge(playerId);
   const [konamiBadges, setKonamiBadges] = useState<Badge[] | null>(null);
 
@@ -108,6 +111,12 @@ export default function PlayerStats() {
           <GroupFilter onChange={setSelectedGroupId} value={selectedGroupId} />
         </div>
       </div>
+
+      <DateRangeFilter
+        from={from}
+        onChange={(f, t) => { setFrom(f); setTo(t); }}
+        to={to}
+      />
 
       <div className="grid grid-cols-2 gap-3">
         <MetricCard label="Donnes jouées" value={String(stats.gamesPlayed)} />

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Service;
 
 use App\Dto\ContractDistributionDto;
+use App\Dto\DateRange;
 use App\Dto\EloRankingEntryDto;
 use App\Dto\LeaderboardScoreDto;
 use App\Repository\EloHistoryRepository;
@@ -50,15 +51,15 @@ final readonly class GlobalStatisticsService
      *
      * @return list<array{color: string|null, contracts: list<array{contract: string, count: int, winRate: float, wins: int}>, id: int, name: string}>
      */
-    public function getContractSuccessRateByPlayer(?int $playerGroupId = null): array
+    public function getContractSuccessRateByPlayer(?DateRange $dateRange = null, ?int $playerGroupId = null): array
     {
-        $countRows = $this->gameRepository->getContractCountByPlayer($playerGroupId);
+        $countRows = $this->gameRepository->getContractCountByPlayer($dateRange, $playerGroupId);
 
         if (empty($countRows)) {
             return [];
         }
 
-        $winRows = $this->gameRepository->getContractWinsByPlayer($playerGroupId);
+        $winRows = $this->gameRepository->getContractWinsByPlayer($dateRange, $playerGroupId);
 
         /** @var array<string, int> $winsMap */
         $winsMap = [];
@@ -97,14 +98,14 @@ final readonly class GlobalStatisticsService
      *
      * @return list<array{contract: string, count: int, percentage: float}>
      */
-    public function getContractDistribution(?int $playerGroupId = null): array
+    public function getContractDistribution(?DateRange $dateRange = null, ?int $playerGroupId = null): array
     {
-        $total = $this->getTotalGames($playerGroupId);
+        $total = $this->getTotalGames($dateRange, $playerGroupId);
         if (0 === $total) {
             return [];
         }
 
-        $rows = $this->gameRepository->getContractDistribution($playerGroupId);
+        $rows = $this->gameRepository->getContractDistribution($dateRange, $playerGroupId);
 
         return \array_map(
             static fn (ContractDistributionDto $row) => [
@@ -124,9 +125,9 @@ final readonly class GlobalStatisticsService
      *
      * @return list<array{history: list<array{date: string, gameId: int, ratingAfter: int}>, playerColor: string|null, playerId: int, playerName: string}>
      */
-    public function getAllPlayersEloHistory(?int $playerGroupId = null): array
+    public function getAllPlayersEloHistory(?DateRange $dateRange = null, ?int $playerGroupId = null): array
     {
-        $rows = $this->eloHistoryRepository->getAllPlayersHistory($playerGroupId);
+        $rows = $this->eloHistoryRepository->getAllPlayersHistory($dateRange, $playerGroupId);
 
         /** @var array<int, array{history: list<array{date: string, gameId: int, ratingAfter: int}>, playerColor: string|null, playerId: int, playerName: string}> $grouped */
         $grouped = [];
@@ -186,15 +187,15 @@ final readonly class GlobalStatisticsService
      *
      * @return list<array{gamesAsTaker: int, gamesPlayed: int, playerColor: string|null, playerId: int, playerName: string, totalScore: int, winRate: float, wins: int}>
      */
-    public function getLeaderboard(?int $playerGroupId = null): array
+    public function getLeaderboard(?DateRange $dateRange = null, ?int $playerGroupId = null): array
     {
-        $scoreRows = $this->scoreEntryRepository->getLeaderboardScores($playerGroupId);
+        $scoreRows = $this->scoreEntryRepository->getLeaderboardScores($dateRange, $playerGroupId);
 
         if (empty($scoreRows)) {
             return [];
         }
 
-        $gamesPlayedRows = $this->scoreEntryRepository->countGamesPlayedByPlayer($playerGroupId);
+        $gamesPlayedRows = $this->scoreEntryRepository->countGamesPlayedByPlayer($dateRange, $playerGroupId);
 
         /** @var array<int, int> $gamesPlayed */
         $gamesPlayed = [];
@@ -202,7 +203,7 @@ final readonly class GlobalStatisticsService
             $gamesPlayed[$row->playerId] = $row->gamesPlayed;
         }
 
-        $takerRows = $this->gameRepository->countTakerGames($playerGroupId);
+        $takerRows = $this->gameRepository->countTakerGames($dateRange, $playerGroupId);
 
         /** @var array<int, int> $gamesAsTaker */
         $gamesAsTaker = [];
@@ -210,7 +211,7 @@ final readonly class GlobalStatisticsService
             $gamesAsTaker[$row->playerId] = $row->count;
         }
 
-        $winRows = $this->gameRepository->countTakerWins($playerGroupId);
+        $winRows = $this->gameRepository->countTakerWins($dateRange, $playerGroupId);
 
         /** @var array<int, int> $wins */
         $wins = [];
@@ -238,34 +239,34 @@ final readonly class GlobalStatisticsService
     /**
      * Durée moyenne d'une donne en secondes (entre createdAt et completedAt).
      */
-    public function getAverageGameDurationSeconds(?int $playerGroupId = null): ?int
+    public function getAverageGameDurationSeconds(?DateRange $dateRange = null, ?int $playerGroupId = null): ?int
     {
-        return $this->gameRepository->getAverageDurationSeconds($playerGroupId);
+        return $this->gameRepository->getAverageDurationSeconds($dateRange, $playerGroupId);
     }
 
     /**
      * Temps de jeu total cumulé en secondes (somme des durées de toutes les donnes).
      */
-    public function getTotalPlayTimeSeconds(?int $playerGroupId = null): int
+    public function getTotalPlayTimeSeconds(?DateRange $dateRange = null, ?int $playerGroupId = null): int
     {
-        return $this->gameRepository->getTotalDurationSeconds($playerGroupId);
+        return $this->gameRepository->getTotalDurationSeconds($dateRange, $playerGroupId);
     }
 
     /** Nombre total d'étoiles (StarEvent) attribuées. */
-    public function getTotalStars(?int $playerGroupId = null): int
+    public function getTotalStars(?DateRange $dateRange = null, ?int $playerGroupId = null): int
     {
-        return $this->starEventRepository->countAll($playerGroupId);
+        return $this->starEventRepository->countAll($dateRange, $playerGroupId);
     }
 
     /** Nombre total de donnes terminées (status = Completed). */
-    public function getTotalGames(?int $playerGroupId = null): int
+    public function getTotalGames(?DateRange $dateRange = null, ?int $playerGroupId = null): int
     {
-        return $this->gameRepository->countCompleted($playerGroupId);
+        return $this->gameRepository->countCompleted($dateRange, $playerGroupId);
     }
 
     /** Nombre total de sessions créées. */
-    public function getTotalSessions(?int $playerGroupId = null): int
+    public function getTotalSessions(?DateRange $dateRange = null, ?int $playerGroupId = null): int
     {
-        return $this->sessionRepository->countAll($playerGroupId);
+        return $this->sessionRepository->countAll($dateRange, $playerGroupId);
     }
 }

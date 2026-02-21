@@ -6,6 +6,7 @@ namespace App\Repository;
 
 use App\Dto\BestSessionTotalDto;
 use App\Dto\CumulativeScoreDto;
+use App\Dto\DateRange;
 use App\Dto\GamesPlayedCountDto;
 use App\Dto\GameTakerScoreDto;
 use App\Dto\LeaderboardScoreDto;
@@ -364,7 +365,7 @@ final class ScoreEntryRepository extends ServiceEntityRepository
     /**
      * @return array{averageScore: float, bestGameScore: int, gamesPlayed: int, totalScore: int, worstGameScore: int}
      */
-    public function getPlayerScoreAggregates(Player $player, ?int $playerGroupId = null): array
+    public function getPlayerScoreAggregates(Player $player, ?DateRange $dateRange = null, ?int $playerGroupId = null): array
     {
         $qb = $this->createQueryBuilder('se')
             ->select('COUNT(se.id) AS gamesPlayed', 'SUM(se.score) AS totalScore', 'AVG(se.score) AS averageScore', 'MAX(se.score) AS bestGameScore', 'MIN(se.score) AS worstGameScore')
@@ -374,6 +375,7 @@ final class ScoreEntryRepository extends ServiceEntityRepository
             ->setParameter('player', $player)
             ->setParameter('status', GameStatus::Completed);
 
+        $this->applyDateFilter($qb, $dateRange, 'g', 'completedAt');
         $this->applyGroupFilter($qb, $playerGroupId);
 
         /** @var array{averageScore: float|string|null, bestGameScore: int|string|null, gamesPlayed: int|string, totalScore: int|string|null, worstGameScore: int|string|null} $result */
@@ -391,7 +393,7 @@ final class ScoreEntryRepository extends ServiceEntityRepository
     /**
      * @return list<RecentScoreDto>
      */
-    public function getPlayerRecentScores(Player $player, ?int $playerGroupId = null, int $limit = 50): array
+    public function getPlayerRecentScores(Player $player, ?DateRange $dateRange = null, ?int $playerGroupId = null, int $limit = 50): array
     {
         $qb = $this->createQueryBuilder('se')
             ->select('NEW App\Dto\RecentScoreDto(g.createdAt, g.id, se.score, IDENTITY(g.session))')
@@ -403,23 +405,24 @@ final class ScoreEntryRepository extends ServiceEntityRepository
             ->orderBy('g.createdAt', 'DESC')
             ->setMaxResults($limit);
 
+        $this->applyDateFilter($qb, $dateRange, 'g', 'completedAt');
         $this->applyGroupFilter($qb, $playerGroupId);
 
         /** @var list<RecentScoreDto> */
         return $qb->getQuery()->getResult();
     }
 
-    public function getPlayerBestScore(Player $player, ?int $playerGroupId = null): ?PlayerExtremeScoreDto
+    public function getPlayerBestScore(Player $player, ?DateRange $dateRange = null, ?int $playerGroupId = null): ?PlayerExtremeScoreDto
     {
-        return $this->getPlayerExtremeScore($player, 'DESC', $playerGroupId);
+        return $this->getPlayerExtremeScore($player, 'DESC', $dateRange, $playerGroupId);
     }
 
-    public function getPlayerWorstScore(Player $player, ?int $playerGroupId = null): ?PlayerExtremeScoreDto
+    public function getPlayerWorstScore(Player $player, ?DateRange $dateRange = null, ?int $playerGroupId = null): ?PlayerExtremeScoreDto
     {
-        return $this->getPlayerExtremeScore($player, 'ASC', $playerGroupId);
+        return $this->getPlayerExtremeScore($player, 'ASC', $dateRange, $playerGroupId);
     }
 
-    public function getPlayerBestSessionTotal(Player $player, ?int $playerGroupId = null): ?BestSessionTotalDto
+    public function getPlayerBestSessionTotal(Player $player, ?DateRange $dateRange = null, ?int $playerGroupId = null): ?BestSessionTotalDto
     {
         $qb = $this->createQueryBuilder('se')
             ->select('NEW App\Dto\BestSessionTotalDto(MIN(g.createdAt), IDENTITY(g.session), SUM(se.score))')
@@ -432,6 +435,7 @@ final class ScoreEntryRepository extends ServiceEntityRepository
             ->orderBy('SUM(se.score)', 'DESC')
             ->setMaxResults(1);
 
+        $this->applyDateFilter($qb, $dateRange, 'g', 'completedAt');
         $this->applyGroupFilter($qb, $playerGroupId);
 
         /** @var list<BestSessionTotalDto> $results */
@@ -492,7 +496,7 @@ final class ScoreEntryRepository extends ServiceEntityRepository
     /**
      * @return list<LeaderboardScoreDto>
      */
-    public function getLeaderboardScores(?int $playerGroupId = null): array
+    public function getLeaderboardScores(?DateRange $dateRange = null, ?int $playerGroupId = null): array
     {
         $qb = $this->createQueryBuilder('se')
             ->select('NEW App\Dto\LeaderboardScoreDto(p.color, IDENTITY(se.player), p.name, SUM(se.score))')
@@ -503,15 +507,37 @@ final class ScoreEntryRepository extends ServiceEntityRepository
             ->addGroupBy('p.name')
             ->orderBy('SUM(se.score)', 'DESC');
 
-        if (null !== $playerGroupId) {
+        if (null !== $playerGroupId || null !== $dateRange) {
             $qb->leftJoin('g.session', 's_game_grp')
-               ->leftJoin('se.session', 's_star_grp')
-               ->andWhere(
-                   '(g IS NOT NULL AND g.status = :status AND s_game_grp.playerGroup = :group) OR '.
-                   '(se.game IS NULL AND s_star_grp.playerGroup = :group)',
-               )
-               ->setParameter('status', GameStatus::Completed)
-               ->setParameter('group', $playerGroupId);
+               ->leftJoin('se.session', 's_star_grp');
+
+            $gameConditions = ['g IS NOT NULL', 'g.status = :status'];
+            $starConditions = ['se.game IS NULL'];
+            $qb->setParameter('status', GameStatus::Completed);
+
+            if (null !== $playerGroupId) {
+                $gameConditions[] = 's_game_grp.playerGroup = :group';
+                $starConditions[] = 's_star_grp.playerGroup = :group';
+                $qb->setParameter('group', $playerGroupId);
+            }
+
+            if (null !== $dateRange) {
+                if (null !== $dateRange->from) {
+                    $gameConditions[] = 'g.completedAt >= :dateFrom';
+                    $starConditions[] = 's_star_grp.createdAt >= :dateFrom';
+                    $qb->setParameter('dateFrom', $dateRange->from);
+                }
+
+                if (null !== $dateRange->to) {
+                    $gameConditions[] = 'g.completedAt <= :dateTo';
+                    $starConditions[] = 's_star_grp.createdAt <= :dateTo';
+                    $qb->setParameter('dateTo', $dateRange->to);
+                }
+            }
+
+            $qb->andWhere(
+                '('.\implode(' AND ', $gameConditions).') OR ('.\implode(' AND ', $starConditions).')',
+            );
         } else {
             $qb->andWhere('(g IS NOT NULL AND g.status = :status) OR se.game IS NULL')
                ->setParameter('status', GameStatus::Completed);
@@ -524,7 +550,7 @@ final class ScoreEntryRepository extends ServiceEntityRepository
     /**
      * @return list<GamesPlayedCountDto>
      */
-    public function countGamesPlayedByPlayer(?int $playerGroupId = null): array
+    public function countGamesPlayedByPlayer(?DateRange $dateRange = null, ?int $playerGroupId = null): array
     {
         $qb = $this->createQueryBuilder('se')
             ->select('NEW App\Dto\GamesPlayedCountDto(COUNT(DISTINCT se.game), IDENTITY(se.player))')
@@ -533,6 +559,7 @@ final class ScoreEntryRepository extends ServiceEntityRepository
             ->setParameter('status', GameStatus::Completed)
             ->groupBy('se.player');
 
+        $this->applyDateFilter($qb, $dateRange, 'g', 'completedAt');
         $this->applyGroupFilter($qb, $playerGroupId);
 
         /** @var list<GamesPlayedCountDto> */
@@ -559,7 +586,7 @@ final class ScoreEntryRepository extends ServiceEntityRepository
         return $results[0] ?? null;
     }
 
-    private function getPlayerExtremeScore(Player $player, string $order, ?int $playerGroupId = null): ?PlayerExtremeScoreDto
+    private function getPlayerExtremeScore(Player $player, string $order, ?DateRange $dateRange = null, ?int $playerGroupId = null): ?PlayerExtremeScoreDto
     {
         $qb = $this->createQueryBuilder('se')
             ->select('NEW App\Dto\PlayerExtremeScoreDto(g.contract, g.createdAt, IDENTITY(se.game), se.score, IDENTITY(g.session))')
@@ -571,6 +598,7 @@ final class ScoreEntryRepository extends ServiceEntityRepository
             ->orderBy('se.score', $order)
             ->setMaxResults(1);
 
+        $this->applyDateFilter($qb, $dateRange, 'g', 'completedAt');
         $this->applyGroupFilter($qb, $playerGroupId);
 
         /** @var list<PlayerExtremeScoreDto> $results */

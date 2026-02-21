@@ -406,11 +406,13 @@ reorderPlayers.mutate([3, 1, 5, 2, 4], {
 
 **Fichier** : `hooks/useGlobalStats.ts`
 
-Récupère les statistiques globales (classement, répartition des contrats, totaux) via l'API. Accepte un ID de groupe optionnel pour filtrer.
+Récupère les statistiques globales (classement, répartition des contrats, totaux) via l'API. Accepte un ID de groupe et une tranche de dates optionnels pour filtrer.
 
 ```ts
-const { isPending, stats } = useGlobalStats();          // toutes les sessions
-const { isPending, stats } = useGlobalStats(groupId);   // sessions du groupe
+const { isPending, stats } = useGlobalStats();                        // toutes les sessions
+const { isPending, stats } = useGlobalStats(groupId);                 // sessions du groupe
+const { isPending, stats } = useGlobalStats(groupId, from, to);      // groupe + tranche de dates
+const { isPending, stats } = useGlobalStats(null, "2026-01-01", "2026-01-31"); // dates seules
 ```
 
 | Retour | Type | Description |
@@ -423,11 +425,13 @@ const { isPending, stats } = useGlobalStats(groupId);   // sessions du groupe
 
 **Fichier** : `hooks/usePlayerStats.ts`
 
-Récupère les statistiques détaillées d'un joueur via l'API. Accepte un ID de groupe optionnel pour filtrer.
+Récupère les statistiques détaillées d'un joueur via l'API. Accepte un ID de groupe et une tranche de dates optionnels pour filtrer.
 
 ```ts
-const { isPending, stats } = usePlayerStats(playerId);             // toutes les sessions
-const { isPending, stats } = usePlayerStats(playerId, groupId);    // sessions du groupe
+const { isPending, stats } = usePlayerStats(playerId);                          // toutes les sessions
+const { isPending, stats } = usePlayerStats(playerId, groupId);                 // sessions du groupe
+const { isPending, stats } = usePlayerStats(playerId, groupId, from, to);       // groupe + dates
+const { isPending, stats } = usePlayerStats(playerId, null, "2026-01-01", "2026-01-31"); // dates seules
 ```
 
 | Retour | Type | Description |
@@ -819,6 +823,7 @@ Page d'aide in-app reprenant le contenu du guide utilisateur (`docs/user-guide.m
 
 **Fonctionnalités** :
 - Filtre par groupe (`GroupFilter`) — filtre toutes les statistiques par groupe de joueurs
+- Filtre par tranche de dates (`DateRangeFilter`) — préréglages (30j, 3 mois, 6 mois, 1 an, Tout) + champs date personnalisés
 - Métriques clés : total de donnes, de sessions, durée moyenne par donne et temps de jeu total (si disponible)
 - Classement (`Leaderboard`) trié par score total décroissant
 - **Menu déroulant de section** : les sections détaillées sont accessibles via un `<select>` (une seule visible à la fois) — Classement ELO, Évolution ELO, Répartition des contrats, Taux de réussite par contrat
@@ -838,6 +843,7 @@ Page d'aide in-app reprenant le contenu du guide utilisateur (`docs/user-guide.m
 **Fonctionnalités** :
 - Avatar, nom du joueur
 - Filtre par groupe (`GroupFilter`) — filtre les statistiques par groupe (initialisation depuis `?group=`)
+- Filtre par tranche de dates (`DateRangeFilter`) — préréglages + champs date personnalisés
 - Métriques clés : donnes jouées, taux de victoire, score moyen, ELO, sessions, durée moyenne par donne et temps de jeu total (si disponible)
 - Groupes du joueur : badges cliquables renvoyant vers `/groups/:id`
 - **Menu déroulant de section** : les sections détaillées sont accessibles via un `<Select>` (une seule visible à la fois) — Records personnels, Badges, Étoiles (masquée si 0 étoiles), Répartition des rôles, Contrats, Évolution des scores, Évolution ELO
@@ -1190,6 +1196,20 @@ Sélecteur de groupe partagé pour filtrer les statistiques. Utilise le composan
 | `value` | `number \| null` | *requis* — ID du groupe sélectionné (`null` = tous) |
 
 **Hooks utilisés** : `usePlayerGroups`
+
+### `DateRangeFilter`
+
+**Fichier** : `components/DateRangeFilter.tsx`
+
+Filtre par tranche de dates partagé entre les pages de statistiques. Affiche des préréglages rapides (30j, 3 mois, 6 mois, 1 an, Tout) et deux champs date natifs (De / À).
+
+| Prop | Type | Description |
+|------|------|-------------|
+| `from` | `string \| null` | *requis* — date de début (`YYYY-MM-DD`) ou `null` |
+| `onChange` | `(from: string \| null, to: string \| null) => void` | *requis* — callback de changement |
+| `to` | `string \| null` | *requis* — date de fin (`YYYY-MM-DD`) ou `null` |
+
+Le préréglage actif est mis en surbrillance (accent). « Tout » (from/to à `null`) est le défaut.
 
 ### `ChangeGroupModal`
 

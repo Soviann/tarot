@@ -8,6 +8,7 @@ Le format est basé sur [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/)
 
 ### Added
 
+- **Filtre par tranche de dates** : les pages de statistiques globales et par joueur permettent de filtrer les résultats par période (date de début / fin), avec des préréglages rapides (30 jours, 3 mois, 6 mois, 1 an, Tout)
 - **Easter egg gyroscope inversé** : retourner le téléphone à l'envers (détection via l'API DeviceOrientation) inverse les scores affichés (positifs ↔ négatifs) dans le tableau des scores, avec une icône de feedback visuel
 - **Easter egg "To infinity and beyond!"** : affiche le mème Buzz l'Éclair (Toy Story) lorsqu'un score individuel sur une donne dépasse ±200 points
 - **Distinctions récap session** : 5 nouvelles distinctions humoristiques sur la page récapitulatif de session — Le Kamikaze (pire winrate preneur), Le Solitaire (moins appelé comme partenaire), Le Paratonnerre (plus d'étoiles reçues), Le Yo-Yo (scores les plus imprévisibles), Le Régulier (scores les plus constants)
