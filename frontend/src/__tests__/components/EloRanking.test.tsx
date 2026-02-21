@@ -1,90 +1,33 @@
 import { screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import Leaderboard from "../../components/Leaderboard";
-import type { LeaderboardEntry } from "../../types/api";
+import EloRanking from "../../components/EloRanking";
+import type { EloRankingEntry } from "../../types/api";
 import { renderWithProviders } from "../test-utils";
 
-const mockEntries: LeaderboardEntry[] = [
-  {
-    gamesAsTaker: 5,
-    gamesPlayed: 20,
-    playerColor: null,
-    playerId: 1,
-    playerName: "Alice",
-    totalScore: 500,
-    winRate: 60.0,
-    wins: 3,
-  },
-  {
-    gamesAsTaker: 3,
-    gamesPlayed: 20,
-    playerColor: null,
-    playerId: 2,
-    playerName: "Bob",
-    totalScore: 200,
-    winRate: 33.3,
-    wins: 1,
-  },
-];
-
-function generateEntries(count: number): LeaderboardEntry[] {
+function generateEntries(count: number): EloRankingEntry[] {
   return Array.from({ length: count }, (_, i) => ({
-    gamesAsTaker: 5,
+    eloRating: 1600 - i * 10,
     gamesPlayed: 20,
     playerColor: null,
     playerId: i + 1,
     playerName: `Player ${i + 1}`,
-    totalScore: 1000 - i * 10,
-    winRate: 50,
-    wins: 10,
   }));
 }
 
-describe("Leaderboard", () => {
-  it("renders player names and scores", () => {
+describe("EloRanking", () => {
+  it("renders player names and elo ratings", () => {
+    const entries = generateEntries(3);
     renderWithProviders(
-      <Leaderboard entries={mockEntries} onPlayerClick={() => {}} />,
+      <EloRanking entries={entries} onPlayerClick={() => {}} />,
     );
 
-    expect(screen.getByText("Alice")).toBeInTheDocument();
-    expect(screen.getByText("Bob")).toBeInTheDocument();
-    expect(screen.getByText("+500")).toBeInTheDocument();
-    expect(screen.getByText("+200")).toBeInTheDocument();
-  });
-
-  it("renders rank numbers", () => {
-    renderWithProviders(
-      <Leaderboard entries={mockEntries} onPlayerClick={() => {}} />,
-    );
-
-    expect(screen.getByText("1")).toBeInTheDocument();
-    expect(screen.getByText("2")).toBeInTheDocument();
-  });
-
-  it("renders games played and win rate", () => {
-    renderWithProviders(
-      <Leaderboard entries={mockEntries} onPlayerClick={() => {}} />,
-    );
-
-    expect(screen.getByText("20 donnes · 60% victoires")).toBeInTheDocument();
-    expect(screen.getByText("20 donnes · 33.3% victoires")).toBeInTheDocument();
-  });
-
-  it("calls onPlayerClick when a row is tapped", async () => {
-    const user = userEvent.setup();
-    const onClick = vi.fn();
-    renderWithProviders(
-      <Leaderboard entries={mockEntries} onPlayerClick={onClick} />,
-    );
-
-    await user.click(screen.getByText("Alice"));
-
-    expect(onClick).toHaveBeenCalledWith(1);
+    expect(screen.getByText("Player 1")).toBeInTheDocument();
+    expect(screen.getByText("1600")).toBeInTheDocument();
   });
 
   it("renders empty message when no entries", () => {
     renderWithProviders(
-      <Leaderboard entries={[]} onPlayerClick={() => {}} />,
+      <EloRanking entries={[]} onPlayerClick={() => {}} />,
     );
 
     expect(screen.getByText("Aucune donnée disponible")).toBeInTheDocument();
@@ -94,7 +37,7 @@ describe("Leaderboard", () => {
     it("shows only 10 entries initially", () => {
       const entries = generateEntries(15);
       renderWithProviders(
-        <Leaderboard entries={entries} onPlayerClick={() => {}} />,
+        <EloRanking entries={entries} onPlayerClick={() => {}} />,
       );
 
       expect(screen.getByText("Player 1")).toBeInTheDocument();
@@ -105,7 +48,7 @@ describe("Leaderboard", () => {
     it("does not show load more button when 10 or fewer entries", () => {
       const entries = generateEntries(10);
       renderWithProviders(
-        <Leaderboard entries={entries} onPlayerClick={() => {}} />,
+        <EloRanking entries={entries} onPlayerClick={() => {}} />,
       );
 
       expect(screen.queryByRole("button", { name: /voir plus/i })).not.toBeInTheDocument();
@@ -114,7 +57,7 @@ describe("Leaderboard", () => {
     it("shows load more button with remaining count", () => {
       const entries = generateEntries(11);
       renderWithProviders(
-        <Leaderboard entries={entries} onPlayerClick={() => {}} />,
+        <EloRanking entries={entries} onPlayerClick={() => {}} />,
       );
 
       expect(screen.getByRole("button", { name: /voir plus/i })).toHaveTextContent("Voir plus (1)");
@@ -124,7 +67,7 @@ describe("Leaderboard", () => {
       const user = userEvent.setup();
       const entries = generateEntries(25);
       renderWithProviders(
-        <Leaderboard entries={entries} onPlayerClick={() => {}} />,
+        <EloRanking entries={entries} onPlayerClick={() => {}} />,
       );
 
       expect(screen.queryByText("Player 11")).not.toBeInTheDocument();
@@ -140,7 +83,7 @@ describe("Leaderboard", () => {
       const user = userEvent.setup();
       const entries = generateEntries(15);
       renderWithProviders(
-        <Leaderboard entries={entries} onPlayerClick={() => {}} />,
+        <EloRanking entries={entries} onPlayerClick={() => {}} />,
       );
 
       await user.click(screen.getByRole("button", { name: /voir plus/i }));
