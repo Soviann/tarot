@@ -868,6 +868,7 @@ Page d'aide in-app reprenant le contenu du guide utilisateur (`docs/user-guide.m
 - États : chargement, session introuvable
 - **Easter egg shake** : secouer le téléphone retourne le tableau des scores (rotation 180°) pendant 2 secondes, puis affiche une modale « Eh non, bien essayé 😏 » avec un GIF
 - **Easter egg "Mind Blown"** : saisir exactement 42 points ajoute le mème "Mind Blown" (poids 40) au pool pondéré via `selectMeme`
+- **Easter egg "To infinity and beyond!"** : score individuel du preneur ≥ ±200 points ajoute le mème Buzz l'Éclair (poids 30) au pool pondéré via `selectMeme`
 - **Easter egg gyroscope inversé** : retourner le téléphone à l'envers (API DeviceOrientation, beta < -60°) inverse les scores affichés (positifs ↔ négatifs) dans le Scoreboard avec une icône de feedback visuel ; hysteresis à -30° pour éviter le clignotement
 
 **Hooks utilisés** : `useSession`, `useSessionGames`, `useAllSessionGames`, `useAddStar`, `useCloseSession`, `useCreateGame`, `useCreateSession` (via SwapPlayersModal), `useCompleteGame`, `useDeleteGame`, `usePlayerGroups`, `useReorderPlayers`, `useShake`, `useUpsideDown`, `useUpdateDealer`, `useUpdateSessionGroup`, `useNavigate`
@@ -1491,6 +1492,7 @@ const ctx: GameContext = {
   oudlers: 2,
   petitAuBout: "none",
   points: 51,
+  takerScore: 182,
 };
 
 const meme = selectMeme(ctx);
@@ -1513,6 +1515,7 @@ if (meme) {
 | `oudlers` | `number` | Nombre de bouts (0-3) |
 | `petitAuBout` | `Side` | Petit au bout (attaque/défense/aucun) |
 | `points` | `number` | Points saisis pour le preneur (0-91) |
+| `takerScore` | `number` | Score calculé du preneur (pour détection score extrême) |
 
 ### `buildPool`
 
@@ -1524,6 +1527,7 @@ Construit le pool pondéré de mèmes éligibles pour un contexte donné. Foncti
 
 | ID | Condition | Poids |
 |----|-----------|-------|
+| `infinity-beyond` | `abs(takerScore) >= 200` | 30 |
 | `mind-blown` | `points === 42` | 40 |
 
 **Mèmes de victoire** (`attackWins === true`) :
@@ -1553,7 +1557,7 @@ Construit le pool pondéré de mèmes éligibles pour un contexte donné. Foncti
 
 > Les mèmes conditionnels s'ajoutent au pool de base quand leur condition est remplie. Le poids élevé fait qu'ils dominent la sélection sans exclure les mèmes de base.
 
-**Assets mèmes** : `frontend/public/memes/` (16 fichiers). Format `.webp` (sauf `mind-blown.gif` — GIF animé).
+**Assets mèmes** : `frontend/public/memes/` (17 fichiers). Format `.webp` (sauf `mind-blown.gif` — GIF animé, `infinity-beyond.jpg` — JPEG).
 
 ---
 

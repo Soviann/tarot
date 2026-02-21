@@ -9,6 +9,7 @@ Le format est basé sur [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/)
 ### Added
 
 - **Easter egg gyroscope inversé** : retourner le téléphone à l'envers (détection via l'API DeviceOrientation) inverse les scores affichés (positifs ↔ négatifs) dans le tableau des scores, avec une icône de feedback visuel
+- **Easter egg "To infinity and beyond!"** : affiche le mème Buzz l'Éclair (Toy Story) lorsqu'un score individuel sur une donne dépasse ±200 points
 
 ## [1.3.0] - 2026-02-21
 

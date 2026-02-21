@@ -11,6 +11,7 @@ function makeContext(overrides: Partial<GameContext> = {}): GameContext {
     oudlers: 0,
     petitAuBout: Side.None,
     points: 51,
+    takerScore: 50,
     ...overrides,
   };
 }
@@ -149,6 +150,46 @@ describe("buildPool", () => {
       expect(poolIds(makeContext({ points: 0 }))).not.toContain("mind-blown");
     });
   });
+
+  describe("special — infinity-beyond (extreme score ±200)", () => {
+    it("includes infinity-beyond (weight 30) when takerScore >= 200", () => {
+      expect(poolWeight(makeContext({ takerScore: 200 }), "infinity-beyond")).toBe(30);
+    });
+
+    it("includes infinity-beyond when takerScore <= -200", () => {
+      expect(poolIds(makeContext({ attackWins: false, takerScore: -200 }))).toContain("infinity-beyond");
+    });
+
+    it("includes infinity-beyond for very high score (500)", () => {
+      expect(poolIds(makeContext({ takerScore: 500 }))).toContain("infinity-beyond");
+    });
+
+    it("does NOT include infinity-beyond when |takerScore| < 200", () => {
+      expect(poolIds(makeContext({ takerScore: 199 }))).not.toContain("infinity-beyond");
+      expect(poolIds(makeContext({ attackWins: false, takerScore: -199 }))).not.toContain("infinity-beyond");
+    });
+
+    it("infinity-beyond coexists with victory memes", () => {
+      const ids = poolIds(makeContext({ takerScore: 250 }));
+
+      expect(ids).toContain("infinity-beyond");
+      expect(ids).toContain("borat");
+    });
+
+    it("infinity-beyond coexists with defeat memes", () => {
+      const ids = poolIds(makeContext({ attackWins: false, takerScore: -250 }));
+
+      expect(ids).toContain("infinity-beyond");
+      expect(ids).toContain("ah-shit");
+    });
+
+    it("infinity-beyond coexists with mind-blown when both conditions met", () => {
+      const ids = poolIds(makeContext({ points: 42, takerScore: 200 }));
+
+      expect(ids).toContain("infinity-beyond");
+      expect(ids).toContain("mind-blown");
+    });
+  });
 });
 
 // --- selectMeme ---
@@ -180,7 +221,7 @@ describe("selectMeme", () => {
     const result = selectMeme(makeContext());
 
     expect(result!.id).toBeTruthy();
-    expect(result!.image).toMatch(/^\/memes\/.+\.(webp|gif)$/);
+    expect(result!.image).toMatch(/^\/memes\/.+\.(webp|gif|jpg)$/);
   });
 
   it("weighted selection favors high-weight memes", () => {
