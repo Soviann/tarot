@@ -35,25 +35,6 @@ trait GroupFilterTrait
         }
     }
 
-    private function applySessionDateFilter(QueryBuilder $qb, ?DateRange $dateRange, string $entityAlias, string $sessionRelation = 'session'): void
-    {
-        if (null === $dateRange) {
-            return;
-        }
-
-        $qb->join('App\Entity\Session', 's_date', 'WITH', $entityAlias.'.'.$sessionRelation.' = s_date');
-
-        if (null !== $dateRange->from) {
-            $qb->andWhere('s_date.createdAt >= :dateFrom')
-               ->setParameter('dateFrom', $dateRange->from);
-        }
-
-        if (null !== $dateRange->to) {
-            $qb->andWhere('s_date.createdAt <= :dateTo')
-               ->setParameter('dateTo', $dateRange->to);
-        }
-    }
-
     private function applySessionGroupFilter(QueryBuilder $qb, ?int $playerGroupId, string $entityAlias, string $sessionRelation = 'session'): void
     {
         if (null !== $playerGroupId) {

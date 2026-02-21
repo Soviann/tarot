@@ -19,6 +19,10 @@ use Doctrine\Persistence\ManagerRegistry;
  */
 final class EloHistoryRepository extends ServiceEntityRepository
 {
+    use GroupFilterTrait {
+        GroupFilterTrait::applyGroupFilter as applyTraitGroupFilter;
+    }
+
     public function __construct(ManagerRegistry $registry)
     {
         parent::__construct($registry, EloHistory::class);
@@ -85,23 +89,6 @@ final class EloHistoryRepository extends ServiceEntityRepository
 
         /** @var list<PlayerEloHistoryPointDto> */
         return $qb->getQuery()->getResult();
-    }
-
-    private function applyDateFilter(\Doctrine\ORM\QueryBuilder $qb, ?DateRange $dateRange, string $alias, string $field): void
-    {
-        if (null === $dateRange) {
-            return;
-        }
-
-        if (null !== $dateRange->from) {
-            $qb->andWhere($alias.'.'.$field.' >= :dateFrom')
-               ->setParameter('dateFrom', $dateRange->from);
-        }
-
-        if (null !== $dateRange->to) {
-            $qb->andWhere($alias.'.'.$field.' <= :dateTo')
-               ->setParameter('dateTo', $dateRange->to);
-        }
     }
 
     private function applyGroupFilter(\Doctrine\ORM\QueryBuilder $qb, ?int $playerGroupId): void
