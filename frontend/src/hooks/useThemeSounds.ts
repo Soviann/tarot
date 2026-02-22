@@ -1,11 +1,20 @@
 import { useCallback } from "react";
 import { useTheme } from "next-themes";
 import type { GameCompletedEvent } from "../services/gameEvents";
-import { getThemeConfig } from "../services/themeRegistry";
+import { getThemeConfig, type SoundEffect } from "../services/themeRegistry";
 import { useGameEventListener } from "./useGameEventListener";
 
 function play(src: string): void {
   new Audio(src).play().catch(() => {});
+}
+
+function playSoundEffect(effect: SoundEffect): void {
+  play(effect.src);
+  const count = effect.repeatCount ?? 1;
+  const delay = effect.repeatDelay ?? 300;
+  for (let i = 1; i < count; i++) {
+    setTimeout(() => play(effect.src), delay * i);
+  }
 }
 
 export function useThemeSounds(): { playActivation: (themeName: string) => void } {
@@ -16,17 +25,8 @@ export function useThemeSounds(): { playActivation: (themeName: string) => void 
       const themeConfig = getThemeConfig(resolvedTheme);
       if (!themeConfig) return;
 
-      const sound = themeConfig.selectSound(event);
-      if (!sound) return;
-
-      const klaxonSound = themeConfig.sounds["klaxon"];
-      if (klaxonSound && sound === klaxonSound) {
-        play(sound);
-        setTimeout(() => play(sound), 300);
-        setTimeout(() => play(sound), 600);
-      } else {
-        play(sound);
-      }
+      const effect = themeConfig.selectSound(event);
+      if (effect) playSoundEffect(effect);
     },
     [resolvedTheme],
   );

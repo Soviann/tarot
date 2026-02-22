@@ -46,6 +46,6 @@ describe("themeRegistry", () => {
       previousCumulativeScores: [],
     });
 
-    expect(sound).toBe("/sounds/doom/pistol.wav");
+    expect(sound).toEqual({ src: "/sounds/doom/pistol.wav" });
   });
 });

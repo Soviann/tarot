@@ -6,6 +6,12 @@ interface ThemeAvatarConfig {
   initialsPosition: "below" | "hidden" | "inside";
 }
 
+export interface SoundEffect {
+  repeatCount?: number;
+  repeatDelay?: number;
+  src: string;
+}
+
 export interface ThemeConfig {
   activationSound: string;
   avatars: ThemeAvatarConfig;
@@ -14,9 +20,8 @@ export interface ThemeConfig {
   logo: string;
   name: string;
   normalizeText?: boolean;
-  selectSound: (event: GameCompletedEvent) => string | null;
+  selectSound: (event: GameCompletedEvent) => SoundEffect | null;
   sonnerTheme: "dark" | "light";
-  sounds: Record<string, string>;
   splashImage: string;
   starIcons: string[];
   toastMessage: string;
@@ -51,17 +56,17 @@ function hasCrossedThreshold(
   return false;
 }
 
-function doomSelectSound(event: GameCompletedEvent): string | null {
+function doomSelectSound(event: GameCompletedEvent): SoundEffect | null {
   const { context: ctx, cumulativeScores, previousCumulativeScores } = event;
 
   if (hasCrossedThreshold(cumulativeScores, previousCumulativeScores)) {
-    return DOOM_SOUNDS.klaxon;
+    return { repeatCount: 3, repeatDelay: 300, src: DOOM_SOUNDS.klaxon };
   }
-  if (ctx.isSelfCall && ctx.attackWins) return DOOM_SOUNDS.chainsawUp;
-  if (ctx.attackWins && ctx.takerScore >= 200) return DOOM_SOUNDS.shotgun;
-  if (ctx.attackWins) return DOOM_SOUNDS.pistol;
-  if (!ctx.attackWins && ctx.takerScore <= -200) return DOOM_SOUNDS.playerPain;
-  return DOOM_SOUNDS.playerUmf;
+  if (ctx.isSelfCall && ctx.attackWins) return { src: DOOM_SOUNDS.chainsawUp };
+  if (ctx.attackWins && ctx.takerScore >= 200) return { src: DOOM_SOUNDS.shotgun };
+  if (ctx.attackWins) return { src: DOOM_SOUNDS.pistol };
+  if (!ctx.attackWins && ctx.takerScore <= -200) return { src: DOOM_SOUNDS.playerPain };
+  return { src: DOOM_SOUNDS.playerUmf };
 }
 
 // --- Registry ---
@@ -89,7 +94,6 @@ export const CUSTOM_THEMES: Record<string, ThemeConfig> = {
     normalizeText: true,
     selectSound: doomSelectSound,
     sonnerTheme: "dark",
-    sounds: DOOM_SOUNDS,
     splashImage: "/images/doom/doom-logo.png",
     starIcons: [
       "/images/doom/doom-demon-32x32.png",

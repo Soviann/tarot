@@ -33,7 +33,7 @@ export default function ThemeSplash({ imageSrc, onDone, visible }: ThemeSplashPr
   return createPortal(
     <div
       className={`fixed inset-0 z-[9999] flex items-center justify-center bg-black ${
-        phase === "in" ? "animate-doom-fade-in" : "animate-doom-fade-out"
+        phase === "in" ? "animate-theme-splash-fade-in" : "animate-theme-splash-fade-out"
       }`}
     >
       <img
