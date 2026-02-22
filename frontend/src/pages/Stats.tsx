@@ -54,7 +54,7 @@ export default function Stats() {
 
   return (
     <div className="flex flex-col gap-6 p-4 lg:p-8">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-wrap items-center justify-between gap-2">
         <h1 className="text-2xl font-bold text-text-primary">Statistiques</h1>
         <GroupFilter onChange={setGroupId} value={groupId} />
       </div>
