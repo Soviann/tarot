@@ -13,6 +13,7 @@ Le format est basé sur [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/)
 ### Changed
 
 - **ThemeProvider** : remplacement du hook custom `useTheme` par `next-themes` (gestion FOUC, localStorage, system preference, support multi-thèmes futur)
+- **BadgeChecker** : refactorisation de `checkWall()` pour réutiliser `maxStreak()` au lieu d'un calcul inline dupliqué ; généralisation de `maxStreak()` avec template PHPDoc
 - **Repositories** : standardisation du mapping DTO sur `SELECT NEW` en DQL pour 4 méthodes (suppression du mapping manuel scalaire + `foreach`)
 - **PlayerAvatar** : nouvelle palette de 10 couleurs plus distinctives, couleurs désormais en inline style (suppression des tokens CSS `avatar-0` à `avatar-9`)
 - **ErrorBoundary** : remplacement du composant custom par `react-error-boundary` avec bouton « Réessayer » (reset sans rechargement de page)
