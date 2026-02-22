@@ -407,6 +407,60 @@ class BadgeCheckerTest extends ApiTestCase
         self::assertNotContains(BadgeType::Konami, $takerBadges);
     }
 
+    public function testWallBadge(): void
+    {
+        $session = $this->createSessionWithPlayers('Alice', 'Bob', 'Charlie', 'Diana', 'Eve');
+        $players = $session->getPlayers()->toArray();
+        $defender = $players[1]; // Bob will be on defense for all games
+
+        // 10 consecutive defense wins: taker loses each time, defender is never taker/partner
+        for ($i = 0; $i < 10; ++$i) {
+            $this->completeGame($session, $players[0], points: 30, takerScore: -100);
+        }
+
+        $result = $this->checker->checkAndAward($session);
+
+        self::assertContains(BadgeType::Wall, $result[$defender->getId()]);
+    }
+
+    public function testWallBadgeNotAwardedUnder10(): void
+    {
+        $session = $this->createSessionWithPlayers('Alice', 'Bob', 'Charlie', 'Diana', 'Eve');
+        $players = $session->getPlayers()->toArray();
+        $defender = $players[1];
+
+        // Only 9 consecutive defense wins
+        for ($i = 0; $i < 9; ++$i) {
+            $this->completeGame($session, $players[0], points: 30, takerScore: -100);
+        }
+
+        $result = $this->checker->checkAndAward($session);
+
+        $defenderBadges = $result[$defender->getId()] ?? [];
+        self::assertNotContains(BadgeType::Wall, $defenderBadges);
+    }
+
+    public function testWallBadgeStreakBrokenByTakerWin(): void
+    {
+        $session = $this->createSessionWithPlayers('Alice', 'Bob', 'Charlie', 'Diana', 'Eve');
+        $players = $session->getPlayers()->toArray();
+        $defender = $players[1];
+
+        // 5 defense wins, then a taker win (breaks streak), then 5 more
+        for ($i = 0; $i < 5; ++$i) {
+            $this->completeGame($session, $players[0], points: 30, takerScore: -100);
+        }
+        $this->completeGame($session, $players[0], points: 56); // taker wins → defense loses
+        for ($i = 0; $i < 5; ++$i) {
+            $this->completeGame($session, $players[0], points: 30, takerScore: -100);
+        }
+
+        $result = $this->checker->checkAndAward($session);
+
+        $defenderBadges = $result[$defender->getId()] ?? [];
+        self::assertNotContains(BadgeType::Wall, $defenderBadges);
+    }
+
     public function testCatchThemAllBadge(): void
     {
         $session = $this->createSessionWithPlayers('Alice', 'Bob', 'Charlie', 'Diana', 'Eve');
