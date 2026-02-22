@@ -1,8 +1,8 @@
 import { render, screen } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import DoomSplash from "../../components/DoomSplash";
+import ThemeSplash from "../../components/ThemeSplash";
 
-describe("DoomSplash", () => {
+describe("ThemeSplash", () => {
   beforeEach(() => {
     vi.useFakeTimers();
   });
@@ -11,21 +11,22 @@ describe("DoomSplash", () => {
     vi.useRealTimers();
   });
 
-  it("renders logo when visible", () => {
-    render(<DoomSplash onDone={vi.fn()} visible />);
+  it("renders image when visible", () => {
+    render(<ThemeSplash imageSrc="/images/test-splash.png" onDone={vi.fn()} visible />);
 
-    expect(screen.getByAltText("DOOM")).toBeInTheDocument();
+    expect(screen.getByAltText("Theme splash")).toBeInTheDocument();
+    expect(screen.getByAltText("Theme splash")).toHaveAttribute("src", "/images/test-splash.png");
   });
 
   it("renders nothing when not visible", () => {
-    const { container } = render(<DoomSplash onDone={vi.fn()} visible={false} />);
+    const { container } = render(<ThemeSplash imageSrc="/images/test-splash.png" onDone={vi.fn()} visible={false} />);
 
     expect(container).toBeEmptyDOMElement();
   });
 
   it("calls onDone after ~3s", () => {
     const onDone = vi.fn();
-    render(<DoomSplash onDone={onDone} visible />);
+    render(<ThemeSplash imageSrc="/images/test-splash.png" onDone={onDone} visible />);
 
     expect(onDone).not.toHaveBeenCalled();
 
@@ -36,7 +37,7 @@ describe("DoomSplash", () => {
 
   it("does not call onDone if unmounted before timeout", () => {
     const onDone = vi.fn();
-    const { unmount } = render(<DoomSplash onDone={onDone} visible />);
+    const { unmount } = render(<ThemeSplash imageSrc="/images/test-splash.png" onDone={onDone} visible />);
 
     vi.advanceTimersByTime(1000);
     unmount();

@@ -1,17 +1,8 @@
 import { useMemo } from "react";
 import { useTheme } from "next-themes";
+import { getThemeConfig } from "../services/themeRegistry";
 import type { CumulativeScore, GamePlayer, StarEvent } from "../types/api";
 import { PlayerAvatar, ScoreDisplay } from "./ui";
-
-const DOOM_ICONS = [
-  "/images/doom/doom-demon-32x32.png",
-  "/images/doom/doom-demon-2-32x32.png",
-  "/images/doom/doom-demon-green-32x32.png",
-  "/images/doom/doom-demon-red-32x32.png",
-  "/images/doom/doom-marine-32x32.png",
-  "/images/doom/doom-marine-2-32x32.png",
-  "/images/doom/doom-bleeding-32x32.png",
-] as const;
 
 // ♠ Pique, ♣ Trèfle, ♥ Coeur, ♦ Carreau (poids 2 chacun) + 🃏 Joker (poids 1)
 // → ~22% par couleur, ~11% pour le joker
@@ -58,7 +49,7 @@ export default function Scoreboard({
   starEvents = [],
 }: ScoreboardProps) {
   const { resolvedTheme } = useTheme();
-  const isDoom = resolvedTheme === "doom";
+  const themeConfig = getThemeConfig(resolvedTheme);
 
   const scoreMap = useMemo(
     () => new Map(cumulativeScores.map((s) => [s.playerId, s.score])),
@@ -116,8 +107,8 @@ export default function Scoreboard({
                         onClick={onDealerChange}
                         type="button"
                       >
-                        {isDoom ? (
-                          <img alt="" className="size-5 rounded-full" src="/images/doom/doomguy-face-512.png" />
+                        {themeConfig ? (
+                          <img alt="" className="size-5 rounded-full" src={themeConfig.dealerIcon} />
                         ) : (
                           <svg className="size-3" fill="currentColor" viewBox="0 0 24 24">
                             <path d={suitPath} />
@@ -129,8 +120,8 @@ export default function Scoreboard({
                         className="absolute -bottom-1.5 -right-1.5 flex size-5 items-center justify-center rounded-full bg-accent-500 text-white shadow-sm"
                         title="Donneur"
                       >
-                        {isDoom ? (
-                          <img alt="" className="size-5 rounded-full" src="/images/doom/doomguy-face-512.png" />
+                        {themeConfig ? (
+                          <img alt="" className="size-5 rounded-full" src={themeConfig.dealerIcon} />
                         ) : (
                           <svg className="size-3" fill="currentColor" viewBox="0 0 24 24">
                             <path d={suitPath} />
@@ -152,12 +143,12 @@ export default function Scoreboard({
                     type="button"
                   >
                     {Array.from({ length: STARS_PER_PENALTY }, (_, i) =>
-                      isDoom ? (
+                      themeConfig?.starIcons ? (
                         <img
                           alt=""
                           className={`size-3 ${i < currentStars ? "opacity-100" : "opacity-20"}`}
                           key={i}
-                          src={DOOM_ICONS[Math.floor(Math.random() * DOOM_ICONS.length)]}
+                          src={themeConfig.starIcons[Math.floor(Math.random() * themeConfig.starIcons.length)]}
                         />
                       ) : (
                         <svg

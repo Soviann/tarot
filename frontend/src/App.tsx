@@ -4,14 +4,15 @@ import { ThemeProvider, useTheme } from "next-themes";
 import { ErrorBoundary } from "react-error-boundary";
 import { BrowserRouter, Route, Routes } from "react-router-dom";
 import { toast, Toaster } from "sonner";
-import DoomSplash from "./components/DoomSplash";
 import { ErrorFallback } from "./components/ErrorFallback";
 import Layout from "./components/Layout";
+import ThemeSplash from "./components/ThemeSplash";
 import { useCheatCode } from "./hooks/useCheatCode";
-import { useDoomSounds } from "./hooks/useDoomSounds";
-import { useDoomTextNormalizer } from "./hooks/useDoomTextNormalizer";
+import { useTextNormalizer } from "./hooks/useTextNormalizer";
+import { useThemeSounds } from "./hooks/useThemeSounds";
 import Home from "./pages/Home";
 import { queryClient } from "./queryClient";
+import { CUSTOM_THEME_NAMES, CUSTOM_THEMES, type ThemeConfig } from "./services/themeRegistry";
 
 const GroupDetail = lazy(() => import("./pages/GroupDetail"));
 const Groups = lazy(() => import("./pages/Groups"));
@@ -31,38 +32,43 @@ const ReactQueryDevtools = import.meta.env.DEV
     )
   : () => null;
 
-function DoomEasterEgg() {
+function ThemeCheatCodeHandler({ config }: { config: ThemeConfig }) {
   const { setTheme } = useTheme();
-  const { playActivation } = useDoomSounds();
+  const { playActivation } = useThemeSounds();
   const [showSplash, setShowSplash] = useState(false);
 
   const handleActivate = useCallback(() => {
     setShowSplash(true);
-    playActivation();
-  }, [playActivation]);
+    playActivation(config.name);
+  }, [config.name, playActivation]);
 
   const handleSplashDone = useCallback(() => {
     setShowSplash(false);
-    setTheme("doom");
-    toast("GOD MODE ACTIVATED", {
-      style: {
-        background: "#1a0000",
-        border: "1px solid #4a0000",
-        color: "#ff4444",
-        fontWeight: "bold",
-      },
-    });
-  }, [setTheme]);
+    setTheme(config.name);
+    toast(config.toastMessage, { style: config.toastStyle });
+  }, [config, setTheme]);
 
-  useCheatCode("iddqd", handleActivate);
-  useDoomTextNormalizer();
+  useCheatCode(config.cheatCode, handleActivate);
 
-  return <DoomSplash onDone={handleSplashDone} visible={showSplash} />;
+  return <ThemeSplash imageSrc={config.splashImage} onDone={handleSplashDone} visible={showSplash} />;
+}
+
+function ThemeEasterEgg() {
+  useTextNormalizer();
+
+  return (
+    <>
+      {Object.values(CUSTOM_THEMES).map((config) => (
+        <ThemeCheatCodeHandler config={config} key={config.name} />
+      ))}
+    </>
+  );
 }
 
 function ThemedToaster() {
   const { resolvedTheme } = useTheme();
-  const sonnerTheme = resolvedTheme === "doom" ? "dark" : (resolvedTheme as "dark" | "light");
+  const themeConfig = resolvedTheme ? CUSTOM_THEMES[resolvedTheme] : undefined;
+  const sonnerTheme = themeConfig?.sonnerTheme ?? (resolvedTheme as "dark" | "light");
   return <Toaster position="top-center" richColors theme={sonnerTheme} />;
 }
 
@@ -72,7 +78,7 @@ export default function App() {
       FallbackComponent={ErrorFallback}
       onError={(error, info) => console.error("ErrorBoundary caught:", error, info)}
     >
-      <ThemeProvider attribute="class" defaultTheme="system" storageKey="theme" themes={["light", "dark", "doom"]}>
+      <ThemeProvider attribute="class" defaultTheme="system" storageKey="theme" themes={["light", "dark", ...CUSTOM_THEME_NAMES]}>
         <QueryClientProvider client={queryClient}>
           <BrowserRouter>
             <Suspense>
@@ -101,7 +107,7 @@ export default function App() {
               </Routes>
             </Suspense>
           </BrowserRouter>
-          <DoomEasterEgg />
+          <ThemeEasterEgg />
           <ThemedToaster />
           {import.meta.env.DEV && (
             <Suspense>

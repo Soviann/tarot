@@ -17,6 +17,7 @@ Le format est basé sur [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/)
 
 ### Changed
 
+- **Registre de thèmes** : extraction de toute la config du thème Doom dans un registre centralisé `themeRegistry.ts` — les composants utilisent `getThemeConfig()` au lieu de hardcoder `=== "doom"`, facilitant l'ajout de futurs thèmes custom
 - **ThemeProvider** : remplacement du hook custom `useTheme` par `next-themes` (gestion FOUC, localStorage, system preference, support multi-thèmes futur)
 - **BadgeChecker** : refactorisation de `checkWall()` pour réutiliser `maxStreak()` au lieu d'un calcul inline dupliqué ; généralisation de `maxStreak()` avec template PHPDoc
 - **Repositories** : standardisation du mapping DTO sur `SELECT NEW` en DQL pour 4 méthodes (suppression du mapping manuel scalaire + `foreach`)

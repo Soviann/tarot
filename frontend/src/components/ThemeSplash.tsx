@@ -1,12 +1,13 @@
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 
-interface DoomSplashProps {
+interface ThemeSplashProps {
+  imageSrc: string;
   onDone: () => void;
   visible: boolean;
 }
 
-export default function DoomSplash({ onDone, visible }: DoomSplashProps) {
+export default function ThemeSplash({ imageSrc, onDone, visible }: ThemeSplashProps) {
   const [phase, setPhase] = useState<"in" | "out">("in");
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -36,9 +37,9 @@ export default function DoomSplash({ onDone, visible }: DoomSplashProps) {
       }`}
     >
       <img
-        alt="DOOM"
+        alt="Theme splash"
         className="max-h-[50vh] max-w-[80vw] object-contain"
-        src="/images/doom/doom-logo.png"
+        src={imageSrc}
       />
     </div>,
     document.body,

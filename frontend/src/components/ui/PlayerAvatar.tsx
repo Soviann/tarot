@@ -1,4 +1,5 @@
 import { useTheme } from "next-themes";
+import { getThemeConfig } from "../../services/themeRegistry";
 
 interface PlayerAvatarProps {
   className?: string;
@@ -13,27 +14,6 @@ const sizeClasses = {
   md: "size-10 text-sm",
   sm: "size-8 text-xs",
 } as const;
-
-interface ThemeAvatarConfig {
-  icons: readonly string[];
-  initialsPosition: "hidden" | "inside" | "below";
-}
-
-const THEME_AVATARS: Record<string, ThemeAvatarConfig> = {
-  doom: {
-    icons: [
-      "/images/doom/doom-bleeding-256x256.png",
-      "/images/doom/doom-d-256x256.png",
-      "/images/doom/doom-demon-2-256x256.png",
-      "/images/doom/doom-demon-256x256.png",
-      "/images/doom/doom-demon-green-256x256.png",
-      "/images/doom/doom-demon-red-256x256.png",
-      "/images/doom/doom-marine-256x256.png",
-      "/images/doom/doomguy-face-512.png",
-    ],
-    initialsPosition: "hidden",
-  },
-};
 
 const palette = [
   "#264653",
@@ -71,10 +51,11 @@ export default function PlayerAvatar({
   size = "md",
 }: PlayerAvatarProps) {
   const { resolvedTheme } = useTheme();
-  const themeConfig = resolvedTheme ? THEME_AVATARS[resolvedTheme] : undefined;
+  const themeConfig = getThemeConfig(resolvedTheme);
 
   if (themeConfig) {
-    const iconIndex = playerId !== undefined ? playerId % themeConfig.icons.length : hashCode(name) % themeConfig.icons.length;
+    const { avatars } = themeConfig;
+    const iconIndex = playerId !== undefined ? playerId % avatars.icons.length : hashCode(name) % avatars.icons.length;
     const sizeClass = sizeClasses[size].split(" ")[0];
     const initials = getInitials(name);
 
@@ -83,9 +64,9 @@ export default function PlayerAvatar({
         <img
           alt=""
           className={`${sizeClass} rounded-full object-cover`}
-          src={themeConfig.icons[iconIndex]}
+          src={avatars.icons[iconIndex]}
         />
-        {themeConfig.initialsPosition === "below" && (
+        {avatars.initialsPosition === "below" && (
           <span className="text-[0.6rem] font-bold leading-none text-text-secondary">
             {initials}
           </span>

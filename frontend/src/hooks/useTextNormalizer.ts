@@ -1,5 +1,6 @@
 import { useEffect } from "react";
 import { useTheme } from "next-themes";
+import { getThemeConfig } from "../services/themeRegistry";
 
 function stripAccents(text: string): string {
   return text.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
@@ -17,14 +18,15 @@ function normalizeTextNodes(root: Node): void {
 }
 
 /**
- * When the doom theme is active, strips accents from all visible text
- * so the AmazDoom font (ASCII-only) can render everything.
+ * When a custom theme with normalizeText is active, strips accents from all
+ * visible text so ASCII-only fonts can render everything.
  */
-export function useDoomTextNormalizer(): void {
+export function useTextNormalizer(): void {
   const { resolvedTheme } = useTheme();
 
   useEffect(() => {
-    if (resolvedTheme !== "doom") return;
+    const themeConfig = getThemeConfig(resolvedTheme);
+    if (!themeConfig?.normalizeText) return;
 
     // Initial pass
     normalizeTextNodes(document.body);

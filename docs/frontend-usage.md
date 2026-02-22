@@ -38,6 +38,17 @@ Le toggle est intégré dans `Home.tsx` (icône Sun/Moon de `lucide-react`). Il 
 
 L'application est wrappée dans `<ThemeProvider>` de `next-themes` (dans `App.tsx`) avec `attribute="class"`, `defaultTheme="system"`, et support du `prefers-color-scheme` système.
 
+### Registre de thèmes custom
+
+**Fichier** : `frontend/src/services/themeRegistry.ts`
+
+Toute la configuration d'un thème custom (avatars, sons, icônes, splash, cheat code, style toast, etc.) est centralisée dans un registre `CUSTOM_THEMES: Record<string, ThemeConfig>`. Les composants consomment ce registre via `getThemeConfig(resolvedTheme)` au lieu de hardcoder des checks `=== "doom"`.
+
+Pour ajouter un nouveau thème custom :
+1. Ajouter une entrée dans `CUSTOM_THEMES` avec toute la `ThemeConfig`
+2. Ajouter les CSS variables et la classe du thème dans `index.css`
+3. Le cheat code, les sons, le splash, le toggle et les avatars fonctionnent automatiquement
+
 ### Error Boundary
 
 Un `<ErrorBoundary>` global (via `react-error-boundary`) englobe toute l'application dans `App.tsx`. En cas d'erreur de rendu non interceptée, il affiche un écran de repli avec un message et un bouton « Réessayer » qui réinitialise l'état d'erreur sans recharger la page.
@@ -453,29 +464,24 @@ Hook générique détectant une séquence de touches clavier sur `document`. Ré
 useCheatCode("iddqd", () => { /* séquence complète */ });
 ```
 
-### `useDoomSounds`
+### `useThemeSounds`
 
-**Fichier** : `hooks/useDoomSounds.ts`
+**Fichier** : `hooks/useThemeSounds.ts`
 
-Hook s'abonnant à l'événement `game:completed` de l'event bus et jouant des sons Doom quand le thème doom est actif. Retourne `playActivation()` pour le son d'activation (porte Doom).
+Hook s'abonnant à l'événement `game:completed` de l'event bus et jouant des sons contextuels quand un thème custom est actif. Retourne `playActivation(themeName)` pour le son d'activation du thème.
 
-Sons contextuels par priorité :
-1. Joueur franchit ±1000 cumulés → `klaxon.wav` ×3
-2. Self-call victoire → `chainsaw-up.wav`
-3. Victoire ≥ 200 → `shotgun.wav`
-4. Victoire → `pistol.wav`
-5. Défaite ≤ -200 → `player-pain.wav`
-6. Défaite → `player-umf.wav`
+La logique de sélection de son est définie dans le registre de thèmes (`services/themeRegistry.ts`) via la fonction `selectSound` de chaque `ThemeConfig`.
 
 ```ts
-const { playActivation } = useDoomSounds();
+const { playActivation } = useThemeSounds();
+playActivation("doom");
 ```
 
 ### `useGameEventListener`
 
 **Fichier** : `hooks/useGameEventListener.ts`
 
-Hook s'abonnant proprement (avec cleanup) à un événement de l'event bus `gameEvents`. Utilisé par `useDoomSounds` et le listener mème dans `SessionPage`.
+Hook s'abonnant proprement (avec cleanup) à un événement de l'event bus `gameEvents`. Utilisé par `useThemeSounds` et le listener mème dans `SessionPage`.
 
 ```ts
 useGameEventListener("game:completed", (event) => { /* ... */ });
@@ -1328,14 +1334,15 @@ Modal de complétion (étape 2) ou modification d'une donne. Titre dynamique sel
 - Pré-remplissage automatique en mode édition (donne complétée)
 - Callback `onGameCompleted` appelé uniquement lors de la première complétion (pas en mode édition), avec le contexte complet (victoire ou défaite)
 
-### `DoomSplash`
+### `ThemeSplash`
 
-**Fichier** : `components/DoomSplash.tsx`
+**Fichier** : `components/ThemeSplash.tsx`
 
-Overlay plein écran affiché lors de l'activation du cheat code IDDQD. Fond noir, logo Doom centré, animation fade-in 200ms → affichage 2.7s → fade-out 300ms. Rendu via `createPortal` dans `document.body`.
+Overlay plein écran générique affiché lors de l'activation d'un cheat code de thème. Fond noir, image centrée, animation fade-in 200ms → affichage 2.7s → fade-out 300ms. Rendu via `createPortal` dans `document.body`.
 
 | Prop | Type | Description |
 |------|------|-------------|
+| `imageSrc` | `string` | Chemin de l'image splash à afficher |
 | `onDone` | `() => void` | Callback appelé à la fin de l'animation |
 | `visible` | `boolean` | Afficher/masquer le splash |
 

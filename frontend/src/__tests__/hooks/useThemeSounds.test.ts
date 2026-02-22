@@ -1,6 +1,6 @@
 import { renderHook } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { useDoomSounds } from "../../hooks/useDoomSounds";
+import { useThemeSounds } from "../../hooks/useThemeSounds";
 import { gameEvents, type GameCompletedEvent } from "../../services/gameEvents";
 import { Chelem, Contract, Side } from "../../types/enums";
 
@@ -57,10 +57,10 @@ function makeEvent(overrides?: Partial<GameCompletedEvent>): GameCompletedEvent 
   };
 }
 
-describe("useDoomSounds", () => {
-  it("plays nothing when theme is not doom", () => {
+describe("useThemeSounds", () => {
+  it("plays nothing when theme has no config", () => {
     mockResolvedTheme = "light";
-    renderHook(() => useDoomSounds());
+    renderHook(() => useThemeSounds());
 
     gameEvents.emit("game:completed", makeEvent());
 
@@ -68,7 +68,7 @@ describe("useDoomSounds", () => {
   });
 
   it("plays pistol on basic victory", () => {
-    renderHook(() => useDoomSounds());
+    renderHook(() => useThemeSounds());
 
     gameEvents.emit("game:completed", makeEvent({ context: { ...makeEvent().context, attackWins: true, takerScore: 30 } }));
 
@@ -77,7 +77,7 @@ describe("useDoomSounds", () => {
   });
 
   it("plays shotgun on big victory (>= 200)", () => {
-    renderHook(() => useDoomSounds());
+    renderHook(() => useThemeSounds());
 
     gameEvents.emit("game:completed", makeEvent({ context: { ...makeEvent().context, attackWins: true, takerScore: 200 } }));
 
@@ -86,7 +86,7 @@ describe("useDoomSounds", () => {
   });
 
   it("plays chainsaw on self-call victory", () => {
-    renderHook(() => useDoomSounds());
+    renderHook(() => useThemeSounds());
 
     gameEvents.emit("game:completed", makeEvent({ context: { ...makeEvent().context, attackWins: true, isSelfCall: true } }));
 
@@ -95,7 +95,7 @@ describe("useDoomSounds", () => {
   });
 
   it("plays player-umf on basic defeat", () => {
-    renderHook(() => useDoomSounds());
+    renderHook(() => useThemeSounds());
 
     gameEvents.emit("game:completed", makeEvent({ context: { ...makeEvent().context, attackWins: false, takerScore: -30 } }));
 
@@ -104,7 +104,7 @@ describe("useDoomSounds", () => {
   });
 
   it("plays player-pain on big defeat (<= -200)", () => {
-    renderHook(() => useDoomSounds());
+    renderHook(() => useThemeSounds());
 
     gameEvents.emit("game:completed", makeEvent({ context: { ...makeEvent().context, attackWins: false, takerScore: -200 } }));
 
@@ -113,7 +113,7 @@ describe("useDoomSounds", () => {
   });
 
   it("plays klaxon 3x when a player crosses ±1000", () => {
-    renderHook(() => useDoomSounds());
+    renderHook(() => useThemeSounds());
 
     gameEvents.emit("game:completed", makeEvent({
       context: { ...makeEvent().context, attackWins: true, takerScore: 50 },
@@ -135,7 +135,7 @@ describe("useDoomSounds", () => {
   });
 
   it("plays klaxon when a player crosses -1000", () => {
-    renderHook(() => useDoomSounds());
+    renderHook(() => useThemeSounds());
 
     gameEvents.emit("game:completed", makeEvent({
       context: { ...makeEvent().context, attackWins: false, takerScore: -50 },
@@ -146,12 +146,20 @@ describe("useDoomSounds", () => {
     expect(mockAudioInstances[0].src).toBe("/sounds/doom/klaxon.wav");
   });
 
-  it("exposes playActivation that plays door-open sound", () => {
-    const { result } = renderHook(() => useDoomSounds());
+  it("exposes playActivation that plays the theme activation sound", () => {
+    const { result } = renderHook(() => useThemeSounds());
 
-    result.current.playActivation();
+    result.current.playActivation("doom");
 
     expect(mockAudioInstances).toHaveLength(1);
     expect(mockAudioInstances[0].src).toBe("/sounds/doom/door-open.wav");
+  });
+
+  it("playActivation does nothing for unknown theme", () => {
+    const { result } = renderHook(() => useThemeSounds());
+
+    result.current.playActivation("nonexistent");
+
+    expect(mockAudioInstances).toHaveLength(0);
   });
 });
