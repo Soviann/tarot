@@ -6,6 +6,8 @@ Le format est basé sur [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/)
 
 ## [Unreleased]
 
+## [1.6.0] - 2026-02-22
+
 ### Added
 
 - **Thème Doom** : thème caché activé par le cheat code IDDQD — palette rouge/noir, police AmazDooMLeft sur les titres, sons Doom contextuels à chaque donne (pistolet, fusil, tronçonneuse, klaxon ±1000), splash logo + toast "GOD MODE ACTIVATED"
