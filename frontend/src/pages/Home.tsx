@@ -53,10 +53,12 @@ export default function Home() {
             <button
               aria-label="Changer de thème"
               className="rounded-lg p-1.5 text-text-secondary hover:bg-surface-tertiary"
-              onClick={() => setTheme(resolvedTheme === "dark" ? "light" : "dark")}
+              onClick={() => setTheme(resolvedTheme === "doom" ? "light" : resolvedTheme === "dark" ? "light" : "dark")}
               type="button"
             >
-              {resolvedTheme === "dark" ? (
+              {resolvedTheme === "doom" ? (
+                <img alt="Doom" className="size-5 lg:size-6" src="/images/doom/doom-logo-256x256.png" />
+              ) : resolvedTheme === "dark" ? (
                 <Sun className="size-5 lg:size-6" />
               ) : (
                 <Moon className="size-5 lg:size-6" />

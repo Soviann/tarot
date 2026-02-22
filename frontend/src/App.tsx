@@ -1,11 +1,15 @@
 import { QueryClientProvider } from "@tanstack/react-query";
-import { lazy, Suspense } from "react";
+import { lazy, Suspense, useCallback, useState } from "react";
 import { ThemeProvider, useTheme } from "next-themes";
 import { ErrorBoundary } from "react-error-boundary";
 import { BrowserRouter, Route, Routes } from "react-router-dom";
-import { Toaster } from "sonner";
+import { toast, Toaster } from "sonner";
+import DoomSplash from "./components/DoomSplash";
 import { ErrorFallback } from "./components/ErrorFallback";
 import Layout from "./components/Layout";
+import { useCheatCode } from "./hooks/useCheatCode";
+import { useDoomSounds } from "./hooks/useDoomSounds";
+import { useDoomTextNormalizer } from "./hooks/useDoomTextNormalizer";
 import Home from "./pages/Home";
 import { queryClient } from "./queryClient";
 
@@ -27,9 +31,39 @@ const ReactQueryDevtools = import.meta.env.DEV
     )
   : () => null;
 
+function DoomEasterEgg() {
+  const { setTheme } = useTheme();
+  const { playActivation } = useDoomSounds();
+  const [showSplash, setShowSplash] = useState(false);
+
+  const handleActivate = useCallback(() => {
+    setShowSplash(true);
+    playActivation();
+  }, [playActivation]);
+
+  const handleSplashDone = useCallback(() => {
+    setShowSplash(false);
+    setTheme("doom");
+    toast("GOD MODE ACTIVATED", {
+      style: {
+        background: "#1a0000",
+        border: "1px solid #4a0000",
+        color: "#ff4444",
+        fontWeight: "bold",
+      },
+    });
+  }, [setTheme]);
+
+  useCheatCode("iddqd", handleActivate);
+  useDoomTextNormalizer();
+
+  return <DoomSplash onDone={handleSplashDone} visible={showSplash} />;
+}
+
 function ThemedToaster() {
   const { resolvedTheme } = useTheme();
-  return <Toaster position="top-center" richColors theme={resolvedTheme as "dark" | "light"} />;
+  const sonnerTheme = resolvedTheme === "doom" ? "dark" : (resolvedTheme as "dark" | "light");
+  return <Toaster position="top-center" richColors theme={sonnerTheme} />;
 }
 
 export default function App() {
@@ -38,7 +72,7 @@ export default function App() {
       FallbackComponent={ErrorFallback}
       onError={(error, info) => console.error("ErrorBoundary caught:", error, info)}
     >
-      <ThemeProvider attribute="class" defaultTheme="system" storageKey="theme" themes={["light", "dark"]}>
+      <ThemeProvider attribute="class" defaultTheme="system" storageKey="theme" themes={["light", "dark", "doom"]}>
         <QueryClientProvider client={queryClient}>
           <BrowserRouter>
             <Suspense>
@@ -67,6 +101,7 @@ export default function App() {
               </Routes>
             </Suspense>
           </BrowserRouter>
+          <DoomEasterEgg />
           <ThemedToaster />
           {import.meta.env.DEV && (
             <Suspense>

@@ -153,11 +153,13 @@ import { useTheme } from "next-themes";
 const { resolvedTheme, setTheme, themes } = useTheme();
 ```
 
-- `resolvedTheme` : `string` — thème effectif (`"light"` ou `"dark"`, résout `"system"`)
+- `resolvedTheme` : `string` — thème effectif (`"light"`, `"dark"` ou `"doom"`, résout `"system"`)
 - `setTheme(name)` — change le thème, persiste dans `localStorage("theme")`
-- `themes` : `string[]` — liste des thèmes disponibles
+- `themes` : `string[]` — liste des thèmes disponibles (`["light", "dark", "doom"]`)
 
 **Prérequis** : composant dans un `<ThemeProvider>` (configuré dans `App.tsx`).
+
+**Thème Doom** : thème caché activé par le cheat code IDDQD. Palette rouge/noir, police AmazDooMLeft sur les titres, sons Doom contextuels. Les CSS custom properties sont définies dans le bloc `.doom` de `index.css`. Le variant Tailwind `doom:` permet de cibler ce thème.
 
 ### Toasts (sonner)
 
@@ -439,6 +441,44 @@ const mutation = useAwardKonamiBadge(playerId);
 mutation.mutate(undefined, {
   onSuccess: (data) => { /* data?.badge, data?.newBadges */ },
 });
+```
+
+### `useCheatCode`
+
+**Fichier** : `hooks/useCheatCode.ts`
+
+Hook générique détectant une séquence de touches clavier sur `document`. Réinitialisation sur mauvaise touche ou timeout de 3 secondes. Case-insensitive.
+
+```ts
+useCheatCode("iddqd", () => { /* séquence complète */ });
+```
+
+### `useDoomSounds`
+
+**Fichier** : `hooks/useDoomSounds.ts`
+
+Hook s'abonnant à l'événement `game:completed` de l'event bus et jouant des sons Doom quand le thème doom est actif. Retourne `playActivation()` pour le son d'activation (porte Doom).
+
+Sons contextuels par priorité :
+1. Joueur franchit ±1000 cumulés → `klaxon.wav` ×3
+2. Self-call victoire → `chainsaw-up.wav`
+3. Victoire ≥ 200 → `shotgun.wav`
+4. Victoire → `pistol.wav`
+5. Défaite ≤ -200 → `player-pain.wav`
+6. Défaite → `player-umf.wav`
+
+```ts
+const { playActivation } = useDoomSounds();
+```
+
+### `useGameEventListener`
+
+**Fichier** : `hooks/useGameEventListener.ts`
+
+Hook s'abonnant proprement (avec cleanup) à un événement de l'event bus `gameEvents`. Utilisé par `useDoomSounds` et le listener mème dans `SessionPage`.
+
+```ts
+useGameEventListener("game:completed", (event) => { /* ... */ });
 ```
 
 ### `useKonamiCode`
@@ -1288,6 +1328,17 @@ Modal de complétion (étape 2) ou modification d'une donne. Titre dynamique sel
 - Pré-remplissage automatique en mode édition (donne complétée)
 - Callback `onGameCompleted` appelé uniquement lors de la première complétion (pas en mode édition), avec le contexte complet (victoire ou défaite)
 
+### `DoomSplash`
+
+**Fichier** : `components/DoomSplash.tsx`
+
+Overlay plein écran affiché lors de l'activation du cheat code IDDQD. Fond noir, logo Doom centré, animation fade-in 200ms → affichage 2.7s → fade-out 300ms. Rendu via `createPortal` dans `document.body`.
+
+| Prop | Type | Description |
+|------|------|-------------|
+| `onDone` | `() => void` | Callback appelé à la fin de l'animation |
+| `visible` | `boolean` | Afficher/masquer le splash |
+
 ### `MemeOverlay`
 
 **Fichier** : `components/MemeOverlay.tsx`
@@ -1503,6 +1554,22 @@ result.defenderScore;   // -34
 | `poigneeBonus` | `number` | Bonus poignée |
 | `takerScore` | `number` | Score du preneur |
 | `totalPerPlayer` | `number` | Total avant distribution |
+
+### `gameEvents`
+
+**Fichier** : `services/gameEvents.ts`
+
+Bus d'événements frontend basé sur [`mitt`](https://github.com/developit/mitt). Découple `SessionPage` des effets (mèmes, sons Doom). Événement unique `game:completed` émis à chaque complétion de donne.
+
+```ts
+import { gameEvents, type GameCompletedEvent } from "./services/gameEvents";
+
+// Émettre
+gameEvents.emit("game:completed", { context, cumulativeScores, previousCumulativeScores });
+
+// Écouter (préférer useGameEventListener dans les composants React)
+gameEvents.on("game:completed", (event) => { /* ... */ });
+```
 
 ### `selectMeme`
 

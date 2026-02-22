@@ -6,6 +6,11 @@ Le format est basé sur [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/)
 
 ## [Unreleased]
 
+### Added
+
+- **Thème Doom** : thème caché activé par le cheat code IDDQD — palette rouge/noir, police AmazDooMLeft sur les titres, sons Doom contextuels à chaque donne (pistolet, fusil, tronçonneuse, klaxon ±1000), splash logo + toast "GOD MODE ACTIVATED"
+- **Event bus frontend** : bus d'événements `gameEvents` (basé sur `mitt`) avec événement `game:completed` découplant SessionPage des effets (mèmes, sons)
+
 ### Fixed
 
 - **ScoreEvolutionChart** : ajout de `minWidth={0}` sur tous les `ResponsiveContainer` Recharts pour supprimer le warning de dimensions négatives au premier rendu
