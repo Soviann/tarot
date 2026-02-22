@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Service;
 
+use App\Dto\GameTakerScoreDto;
 use App\Dto\PlayerScoreSumDto;
 use App\Dto\ScoreEntryPositionDto;
 use App\Entity\Player;
@@ -645,23 +646,16 @@ final readonly class BadgeChecker
     private function checkWall(Player $player, BadgeCheckContext $context): bool
     {
         $playerId = $player->getId();
-        $max = 0;
-        $current = 0;
 
-        foreach ($context->gamesWithTakerScore as $game) {
-            $isDefense = $game->takerId !== $playerId
-                && (null === $game->partnerId || $game->partnerId !== $playerId);
-            $defenseWin = $isDefense && $game->takerScore < 0;
+        return $this->maxStreak(
+            $context->gamesWithTakerScore,
+            static function (GameTakerScoreDto $game) use ($playerId): bool {
+                $isDefense = $game->takerId !== $playerId
+                    && (null === $game->partnerId || $game->partnerId !== $playerId);
 
-            if ($defenseWin) {
-                ++$current;
-                $max = \max($max, $current);
-            } else {
-                $current = 0;
-            }
-        }
-
-        return $max >= 10;
+                return $isDefense && $game->takerScore < 0;
+            },
+        ) >= 10;
     }
 
     /**
@@ -679,8 +673,10 @@ final readonly class BadgeChecker
     }
 
     /**
-     * @param list<int>           $items
-     * @param callable(int): bool $condition
+     * @template T
+     *
+     * @param list<T>           $items
+     * @param callable(T): bool $condition
      */
     private function maxStreak(array $items, callable $condition): int
     {
