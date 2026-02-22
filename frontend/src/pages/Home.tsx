@@ -6,9 +6,31 @@ import SessionList from "../components/SessionList";
 import { useCreateSession } from "../hooks/useCreateSession";
 import { useTheme } from "next-themes";
 import { toast } from "sonner";
+import { getThemeConfig } from "../services/themeRegistry";
 import type { Session } from "../types/api";
 
 const REQUIRED_PLAYERS = 5;
+
+function ThemeToggle({ resolvedTheme, setTheme }: { resolvedTheme?: string; setTheme: (t: string) => void }) {
+  const customTheme = getThemeConfig(resolvedTheme);
+
+  return (
+    <button
+      aria-label="Changer de thème"
+      className="rounded-lg p-1.5 text-text-secondary hover:bg-surface-tertiary"
+      onClick={() => setTheme(customTheme ? "light" : resolvedTheme === "dark" ? "light" : "dark")}
+      type="button"
+    >
+      {customTheme ? (
+        <img alt={customTheme.name} className="size-5 lg:size-6" src={customTheme.logo} />
+      ) : resolvedTheme === "dark" ? (
+        <Sun className="size-5 lg:size-6" />
+      ) : (
+        <Moon className="size-5 lg:size-6" />
+      )}
+    </button>
+  );
+}
 
 export const MOTIVATIONAL_MESSAGES = [
   "Les cartes n'attendent que vous !",
@@ -50,18 +72,7 @@ export default function Home() {
             Sessions récentes
           </h2>
           <div className="flex gap-1">
-            <button
-              aria-label="Changer de thème"
-              className="rounded-lg p-1.5 text-text-secondary hover:bg-surface-tertiary"
-              onClick={() => setTheme(resolvedTheme === "dark" ? "light" : "dark")}
-              type="button"
-            >
-              {resolvedTheme === "dark" ? (
-                <Sun className="size-5 lg:size-6" />
-              ) : (
-                <Moon className="size-5 lg:size-6" />
-              )}
-            </button>
+            <ThemeToggle resolvedTheme={resolvedTheme} setTheme={setTheme} />
             <Link
               aria-label="Aide"
               className="rounded-lg p-1.5 text-text-secondary hover:bg-surface-tertiary"

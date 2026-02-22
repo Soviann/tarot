@@ -32,8 +32,10 @@ import { useShake } from "../hooks/useShake";
 import { toast } from "sonner";
 import { useUpdateDealer } from "../hooks/useUpdateDealer";
 import { useUpdateSessionGroup } from "../hooks/useUpdateSessionGroup";
+import { useGameEventListener } from "../hooks/useGameEventListener";
 import { useUpsideDown } from "../hooks/useUpsideDown";
 import { apiFetch } from "../services/api";
+import { gameEvents } from "../services/gameEvents";
 import type { GameContext, MemeConfig } from "../services/memeSelector";
 import { selectMeme } from "../services/memeSelector";
 import type { Badge } from "../types/api";
@@ -141,6 +143,15 @@ export default function SessionPage() {
     return items;
   }, [groups.length, inProgressGame, session?.isActive, sessionId]);
 
+  // Meme listener via event bus
+  const handleMemeEvent = useCallback((e: { context: GameContext }) => {
+    const meme = selectMeme(e.context);
+    if (meme) {
+      setActiveMeme(meme);
+    }
+  }, []);
+  useGameEventListener("game:completed", handleMemeEvent);
+
   const handleGameCompleted = useCallback((ctx: GameContext) => {
     // Enrich context with session history for contextual memes
     if (!ctx.attackWins && inProgressGame && allGames) {
@@ -164,11 +175,12 @@ export default function SessionPage() {
         }
       }
     }
-    const meme = selectMeme(ctx);
-    if (meme) {
-      setActiveMeme(meme);
-    }
-  }, [allGames, inProgressGame]);
+    gameEvents.emit("game:completed", {
+      context: ctx,
+      cumulativeScores: session?.cumulativeScores ?? [],
+      previousCumulativeScores: session?.cumulativeScores ?? [],
+    });
+  }, [allGames, inProgressGame, session?.cumulativeScores]);
 
   const handleGameSaved = useCallback((gameId: number) => {
     setUndoGameId(gameId);

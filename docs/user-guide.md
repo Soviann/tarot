@@ -559,6 +559,10 @@ Retourner votre téléphone **à l'envers** (écran face à vous, tête en bas) 
 
 > Fonctionne uniquement sur les appareils disposant d'un gyroscope (smartphones, tablettes).
 
+### Easter egg — Thème secret
+
+Un thème caché existe dans l'application. Si vous connaissez le bon code, l'interface se transforme radicalement avec une ambiance très différente, des effets sonores contextuels à chaque donne, et un splash animé à l'activation. Le bouton de changement de thème permet ensuite de revenir au mode normal.
+
 ---
 
 ## Badges et succès

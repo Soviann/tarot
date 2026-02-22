@@ -99,7 +99,7 @@ export default function DateRangeFilter({ from, onChange, to }: DateRangeFilterP
           Tout
         </button>
       </div>
-      <div className="flex items-center justify-center gap-3">
+      <div className="flex flex-wrap items-center justify-center gap-3">
         <label className="flex items-center gap-2 text-sm font-medium text-text-secondary" htmlFor="date-from">
           De
           <input

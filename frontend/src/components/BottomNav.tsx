@@ -8,10 +8,10 @@ const tabs: ReadonlyArray<{
   label: string;
   to: string;
 }> = [
-  { Icon: Home, activeClass: "border-blue-500 text-blue-500 dark:border-blue-400 dark:text-blue-400", label: "Accueil", to: "/" },
-  { Icon: BarChart3, activeClass: "border-emerald-500 text-emerald-500 dark:border-emerald-400 dark:text-emerald-400", label: "Stats", to: "/stats" },
-  { Icon: UsersRound, activeClass: "border-violet-500 text-violet-500 dark:border-violet-400 dark:text-violet-400", label: "Groupes", to: "/groups" },
-  { Icon: Users, activeClass: "border-amber-500 text-amber-500 dark:border-amber-400 dark:text-amber-400", label: "Joueurs", to: "/players" },
+  { Icon: Home, activeClass: "border-blue-500 text-blue-500 dark:border-blue-400 dark:text-blue-400 doom:border-red-600 doom:text-red-500", label: "Accueil", to: "/" },
+  { Icon: BarChart3, activeClass: "border-emerald-500 text-emerald-500 dark:border-emerald-400 dark:text-emerald-400 doom:border-orange-600 doom:text-orange-500", label: "Stats", to: "/stats" },
+  { Icon: UsersRound, activeClass: "border-violet-500 text-violet-500 dark:border-violet-400 dark:text-violet-400 doom:border-red-800 doom:text-red-400", label: "Groupes", to: "/groups" },
+  { Icon: Users, activeClass: "border-amber-500 text-amber-500 dark:border-amber-400 dark:text-amber-400 doom:border-yellow-700 doom:text-yellow-600", label: "Joueurs", to: "/players" },
 ];
 
 export default function BottomNav() {

@@ -38,6 +38,17 @@ Le toggle est intégré dans `Home.tsx` (icône Sun/Moon de `lucide-react`). Il 
 
 L'application est wrappée dans `<ThemeProvider>` de `next-themes` (dans `App.tsx`) avec `attribute="class"`, `defaultTheme="system"`, et support du `prefers-color-scheme` système.
 
+### Registre de thèmes custom
+
+**Fichier** : `frontend/src/services/themeRegistry.ts`
+
+Toute la configuration d'un thème custom (avatars, sons, icônes, splash, cheat code, style toast, etc.) est centralisée dans un registre `CUSTOM_THEMES: Record<string, ThemeConfig>`. Les composants consomment ce registre via `getThemeConfig(resolvedTheme)` au lieu de hardcoder des checks `=== "doom"`.
+
+Pour ajouter un nouveau thème custom :
+1. Ajouter une entrée dans `CUSTOM_THEMES` avec toute la `ThemeConfig`
+2. Ajouter les CSS variables et la classe du thème dans `index.css`
+3. Le cheat code, les sons, le splash, le toggle et les avatars fonctionnent automatiquement
+
 ### Error Boundary
 
 Un `<ErrorBoundary>` global (via `react-error-boundary`) englobe toute l'application dans `App.tsx`. En cas d'erreur de rendu non interceptée, il affiche un écran de repli avec un message et un bouton « Réessayer » qui réinitialise l'état d'erreur sans recharger la page.
@@ -153,11 +164,13 @@ import { useTheme } from "next-themes";
 const { resolvedTheme, setTheme, themes } = useTheme();
 ```
 
-- `resolvedTheme` : `string` — thème effectif (`"light"` ou `"dark"`, résout `"system"`)
+- `resolvedTheme` : `string` — thème effectif (`"light"`, `"dark"` ou `"doom"`, résout `"system"`)
 - `setTheme(name)` — change le thème, persiste dans `localStorage("theme")`
-- `themes` : `string[]` — liste des thèmes disponibles
+- `themes` : `string[]` — liste des thèmes disponibles (`["light", "dark", "doom"]`)
 
 **Prérequis** : composant dans un `<ThemeProvider>` (configuré dans `App.tsx`).
+
+**Thème Doom** : thème caché activé par le cheat code IDDQD. Palette rouge/noir, police AmazDooMLeft sur les titres, sons Doom contextuels. Les CSS custom properties sont définies dans le bloc `.doom` de `index.css`. Le variant Tailwind `doom:` permet de cibler ce thème.
 
 ### Toasts (sonner)
 
@@ -439,6 +452,39 @@ const mutation = useAwardKonamiBadge(playerId);
 mutation.mutate(undefined, {
   onSuccess: (data) => { /* data?.badge, data?.newBadges */ },
 });
+```
+
+### `useCheatCode`
+
+**Fichier** : `hooks/useCheatCode.ts`
+
+Hook générique détectant une séquence de touches clavier sur `document`. Réinitialisation sur mauvaise touche ou timeout de 3 secondes. Case-insensitive.
+
+```ts
+useCheatCode("iddqd", () => { /* séquence complète */ });
+```
+
+### `useThemeSounds`
+
+**Fichier** : `hooks/useThemeSounds.ts`
+
+Hook s'abonnant à l'événement `game:completed` de l'event bus et jouant des sons contextuels quand un thème custom est actif. Retourne `playActivation(themeName)` pour le son d'activation du thème.
+
+La logique de sélection de son est définie dans le registre de thèmes (`services/themeRegistry.ts`) via la fonction `selectSound` de chaque `ThemeConfig`.
+
+```ts
+const { playActivation } = useThemeSounds();
+playActivation("doom");
+```
+
+### `useGameEventListener`
+
+**Fichier** : `hooks/useGameEventListener.ts`
+
+Hook s'abonnant proprement (avec cleanup) à un événement de l'event bus `gameEvents`. Utilisé par `useThemeSounds` et le listener mème dans `SessionPage`.
+
+```ts
+useGameEventListener("game:completed", (event) => { /* ... */ });
 ```
 
 ### `useKonamiCode`
@@ -1288,6 +1334,18 @@ Modal de complétion (étape 2) ou modification d'une donne. Titre dynamique sel
 - Pré-remplissage automatique en mode édition (donne complétée)
 - Callback `onGameCompleted` appelé uniquement lors de la première complétion (pas en mode édition), avec le contexte complet (victoire ou défaite)
 
+### `ThemeSplash`
+
+**Fichier** : `components/ThemeSplash.tsx`
+
+Overlay plein écran générique affiché lors de l'activation d'un cheat code de thème. Fond noir, image centrée, animation fade-in 200ms → affichage 2.7s → fade-out 300ms. Rendu via `createPortal` dans `document.body`.
+
+| Prop | Type | Description |
+|------|------|-------------|
+| `imageSrc` | `string` | Chemin de l'image splash à afficher |
+| `onDone` | `() => void` | Callback appelé à la fin de l'animation |
+| `visible` | `boolean` | Afficher/masquer le splash |
+
 ### `MemeOverlay`
 
 **Fichier** : `components/MemeOverlay.tsx`
@@ -1503,6 +1561,22 @@ result.defenderScore;   // -34
 | `poigneeBonus` | `number` | Bonus poignée |
 | `takerScore` | `number` | Score du preneur |
 | `totalPerPlayer` | `number` | Total avant distribution |
+
+### `gameEvents`
+
+**Fichier** : `services/gameEvents.ts`
+
+Bus d'événements frontend basé sur [`mitt`](https://github.com/developit/mitt). Découple `SessionPage` des effets (mèmes, sons Doom). Événement unique `game:completed` émis à chaque complétion de donne.
+
+```ts
+import { gameEvents, type GameCompletedEvent } from "./services/gameEvents";
+
+// Émettre
+gameEvents.emit("game:completed", { context, cumulativeScores, previousCumulativeScores });
+
+// Écouter (préférer useGameEventListener dans les composants React)
+gameEvents.on("game:completed", (event) => { /* ... */ });
+```
 
 ### `selectMeme`
 
