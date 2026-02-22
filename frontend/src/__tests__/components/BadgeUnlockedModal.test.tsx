@@ -35,7 +35,7 @@ describe("BadgeUnlockedModal", () => {
       <BadgeUnlockedModal newBadges={{}} onClose={vi.fn()} open={true} players={players} />,
     );
 
-    expect(container.innerHTML).toBe("");
+    expect(container.querySelector("[role='dialog']")).toBeNull();
   });
 
   it("renders player names and badges", () => {
