@@ -1,3 +1,6 @@
+import { useTheme } from "next-themes";
+import { getThemeConfig } from "../../services/themeRegistry";
+
 interface PlayerAvatarProps {
   className?: string;
   color?: string | null;
@@ -47,6 +50,31 @@ export default function PlayerAvatar({
   playerId,
   size = "md",
 }: PlayerAvatarProps) {
+  const { resolvedTheme } = useTheme();
+  const themeConfig = getThemeConfig(resolvedTheme);
+
+  if (themeConfig) {
+    const { avatars } = themeConfig;
+    const iconIndex = playerId !== undefined ? playerId % avatars.icons.length : hashCode(name) % avatars.icons.length;
+    const sizeClass = sizeClasses[size].split(" ")[0];
+    const initials = getInitials(name);
+
+    return (
+      <div className={`inline-flex flex-col items-center gap-0.5 ${className}`.trim()} role="img" aria-label={name}>
+        <img
+          alt=""
+          className={`${sizeClass} rounded-full object-cover`}
+          src={avatars.icons[iconIndex]}
+        />
+        {avatars.initialsPosition === "below" && (
+          <span className="text-[0.6rem] font-bold leading-none text-text-secondary">
+            {initials}
+          </span>
+        )}
+      </div>
+    );
+  }
+
   const useCustomColor = !!color;
   const colorIndex =
     playerId !== undefined ? playerId % palette.length : hashCode(name) % palette.length;

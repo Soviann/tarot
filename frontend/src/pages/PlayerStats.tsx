@@ -94,7 +94,7 @@ export default function PlayerStats() {
 
   return (
     <div className="flex flex-col gap-6 p-4 lg:p-8">
-      <div className="flex items-center gap-3">
+      <div className="flex flex-wrap items-center gap-3">
         <button
           aria-label="Retour"
           className="rounded-lg p-1 text-text-secondary lg:p-2"
@@ -107,7 +107,7 @@ export default function PlayerStats() {
           <PlayerAvatar color={stats.player.color} name={stats.player.name} playerId={stats.player.id} size="lg" />
         </div>
         <h1 className="text-xl font-bold text-text-primary">{stats.player.name}</h1>
-        <div className="ml-auto">
+        <div className="ml-auto doom:ml-0 doom:w-full">
           <GroupFilter onChange={setSelectedGroupId} value={selectedGroupId} />
         </div>
       </div>
