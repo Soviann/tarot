@@ -12,7 +12,7 @@ describe("Layout", () => {
   it("renders with theme surface classes", () => {
     const { container } = renderWithProviders(<Layout />);
 
-    const wrapper = container.firstElementChild;
+    const wrapper = container.querySelector("div");
     expect(wrapper?.className).toMatch(/bg-surface-secondary/);
   });
 

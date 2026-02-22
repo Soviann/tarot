@@ -34,9 +34,9 @@ Définis dans `frontend/src/index.css` via `@theme`. Utilisables directement com
 
 Le mode sombre est géré via la classe `.dark` sur `<html>`. Les tokens de surface, texte et score sont automatiquement redéfinis.
 
-Le toggle est intégré dans le `Layout.tsx` (header, icône Sun/Moon de `lucide-react`). Il appelle `useTheme().toggle()`.
+Le toggle est intégré dans `Home.tsx` (icône Sun/Moon de `lucide-react`). Il appelle `setTheme()` via le hook `useTheme` de `next-themes`.
 
-L'application doit être wrappée dans `<ThemeProvider>` (déjà fait dans `App.tsx`).
+L'application est wrappée dans `<ThemeProvider>` de `next-themes` (dans `App.tsx`) avec `attribute="class"`, `defaultTheme="system"`, et support du `prefers-color-scheme` système.
 
 ### Error Boundary
 
@@ -143,18 +143,21 @@ function foo(contract: ContractType) { ... }
 
 ## Hooks
 
-### `useTheme`
+### `useTheme` (next-themes)
 
-**Fichier** : `hooks/useTheme.ts`
+**Bibliothèque** : [`next-themes`](https://github.com/pacocoursey/next-themes)
 
 ```ts
-const { isDark, toggle } = useTheme();
+import { useTheme } from "next-themes";
+
+const { resolvedTheme, setTheme, themes } = useTheme();
 ```
 
-- `isDark` : `boolean` — état courant du thème
-- `toggle()` — bascule light/dark, persiste dans `localStorage("theme")`
+- `resolvedTheme` : `string` — thème effectif (`"light"` ou `"dark"`, résout `"system"`)
+- `setTheme(name)` — change le thème, persiste dans `localStorage("theme")`
+- `themes` : `string[]` — liste des thèmes disponibles
 
-**Prérequis** : composant dans un `<ThemeProvider>`.
+**Prérequis** : composant dans un `<ThemeProvider>` (configuré dans `App.tsx`).
 
 ### Toasts (sonner)
 

@@ -232,6 +232,6 @@ describe("SwapPlayersModal", () => {
       />,
     );
 
-    expect(container.innerHTML).toBe("");
+    expect(container.querySelector("[role='dialog']")).toBeNull();
   });
 });

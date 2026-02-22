@@ -1,11 +1,11 @@
 import { QueryClientProvider } from "@tanstack/react-query";
 import { lazy, Suspense } from "react";
+import { ThemeProvider, useTheme } from "next-themes";
 import { ErrorBoundary } from "react-error-boundary";
 import { BrowserRouter, Route, Routes } from "react-router-dom";
 import { Toaster } from "sonner";
 import { ErrorFallback } from "./components/ErrorFallback";
 import Layout from "./components/Layout";
-import { ThemeProvider, useTheme } from "./hooks/useTheme";
 import Home from "./pages/Home";
 import { queryClient } from "./queryClient";
 
@@ -28,8 +28,8 @@ const ReactQueryDevtools = import.meta.env.DEV
   : () => null;
 
 function ThemedToaster() {
-  const { isDark } = useTheme();
-  return <Toaster position="top-center" richColors theme={isDark ? "dark" : "light"} />;
+  const { resolvedTheme } = useTheme();
+  return <Toaster position="top-center" richColors theme={resolvedTheme as "dark" | "light"} />;
 }
 
 export default function App() {
@@ -38,7 +38,7 @@ export default function App() {
       FallbackComponent={ErrorFallback}
       onError={(error, info) => console.error("ErrorBoundary caught:", error, info)}
     >
-      <ThemeProvider>
+      <ThemeProvider attribute="class" defaultTheme="system" storageKey="theme" themes={["light", "dark"]}>
         <QueryClientProvider client={queryClient}>
           <BrowserRouter>
             <Suspense>

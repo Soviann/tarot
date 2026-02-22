@@ -4,7 +4,7 @@ import { Link, useNavigate } from "react-router-dom";
 import PlayerSelector from "../components/PlayerSelector";
 import SessionList from "../components/SessionList";
 import { useCreateSession } from "../hooks/useCreateSession";
-import { useTheme } from "../hooks/useTheme";
+import { useTheme } from "next-themes";
 import { toast } from "sonner";
 import type { Session } from "../types/api";
 
@@ -23,7 +23,7 @@ export default function Home() {
   const [selectedPlayerIds, setSelectedPlayerIds] = useState<number[]>([]);
   const createSession = useCreateSession();
   const navigate = useNavigate();
-  const { isDark, toggle } = useTheme();
+  const { resolvedTheme, setTheme } = useTheme();
   const motivationalMessage = useMemo(
     () => MOTIVATIONAL_MESSAGES[Math.floor(Math.random() * MOTIVATIONAL_MESSAGES.length)],
     [],
@@ -53,10 +53,10 @@ export default function Home() {
             <button
               aria-label="Changer de thème"
               className="rounded-lg p-1.5 text-text-secondary hover:bg-surface-tertiary"
-              onClick={toggle}
+              onClick={() => setTheme(resolvedTheme === "dark" ? "light" : "dark")}
               type="button"
             >
-              {isDark ? (
+              {resolvedTheme === "dark" ? (
                 <Sun className="size-5 lg:size-6" />
               ) : (
                 <Moon className="size-5 lg:size-6" />
