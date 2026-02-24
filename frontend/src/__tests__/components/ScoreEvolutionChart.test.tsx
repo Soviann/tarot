@@ -102,11 +102,12 @@ describe("ScoreEvolutionChart", () => {
     expect(container.innerHTML).toBe("");
   });
 
-  it("sets minWidth={0} on ResponsiveContainer to prevent negative dimension warning", () => {
+  it("sets minWidth={0} and minHeight={0} on ResponsiveContainer", () => {
     render(<ScoreEvolutionChart games={twoGames} players={players} />);
 
     const container = screen.getByTestId("responsive-container");
     expect(container).toHaveAttribute("data-min-width", "0");
+    expect(container).toHaveAttribute("data-min-height", "0");
   });
 
   it("renders chart with all player lines by default", () => {
@@ -115,6 +116,16 @@ describe("ScoreEvolutionChart", () => {
     expect(screen.getByTestId("line-chart")).toBeInTheDocument();
     expect(screen.getByTestId("line-Alice")).toBeInTheDocument();
     expect(screen.getByTestId("line-Bob")).toBeInTheDocument();
+  });
+
+  it("uses hex colors for line strokes, not CSS variables", () => {
+    render(<ScoreEvolutionChart games={twoGames} players={players} />);
+
+    for (const player of players) {
+      const line = screen.getByTestId(`line-${player.name}`);
+      const stroke = line.getAttribute("data-stroke");
+      expect(stroke).toMatch(/^#[0-9a-fA-F]{6}$/);
+    }
   });
 
   it("renders player filter chips", () => {
