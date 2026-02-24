@@ -6,6 +6,10 @@ Le format est basé sur [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/)
 
 ## [Unreleased]
 
+### Fixed
+
+- **Thème Doom mobile** : le cheat code IDDQD (keydown) ne fonctionnait pas sur smartphone ; remplacé par la détection du nom « Doomguy » ou « Doom Guy » dans les champs joueur (recherche/création)
+
 ## [1.6.0] - 2026-02-22
 
 ### Added

@@ -1,79 +1,82 @@
 import { renderHook } from "@testing-library/react";
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { useCheatCode } from "../../hooks/useCheatCode";
 
-function pressKey(key: string) {
-  document.dispatchEvent(new KeyboardEvent("keydown", { key }));
+function simulateInput(value: string, hasAttribute = true) {
+  const input = document.createElement("input");
+  if (hasAttribute) input.setAttribute("data-cheat-target", "");
+  document.body.appendChild(input);
+  input.value = value;
+  input.dispatchEvent(new Event("input", { bubbles: true }));
+  document.body.removeChild(input);
 }
 
 describe("useCheatCode", () => {
-  beforeEach(() => {
-    vi.useFakeTimers();
-  });
-
   afterEach(() => {
-    vi.useRealTimers();
+    vi.clearAllMocks();
   });
 
-  it("detects the sequence 'iddqd'", () => {
+  it("active quand la valeur correspond à un trigger name", () => {
     const onActivate = vi.fn();
-    renderHook(() => useCheatCode("iddqd", onActivate));
+    renderHook(() => useCheatCode(["doomguy"], onActivate));
 
-    for (const key of ["i", "d", "d", "q", "d"]) {
-      pressKey(key);
-    }
+    simulateInput("Doomguy");
 
     expect(onActivate).toHaveBeenCalledOnce();
   });
 
-  it("is case-insensitive", () => {
+  it("est insensible à la casse", () => {
     const onActivate = vi.fn();
-    renderHook(() => useCheatCode("iddqd", onActivate));
+    renderHook(() => useCheatCode(["doomguy"], onActivate));
 
-    for (const key of ["I", "D", "D", "Q", "D"]) {
-      pressKey(key);
-    }
+    simulateInput("DOOMGUY");
 
     expect(onActivate).toHaveBeenCalledOnce();
   });
 
-  it("resets after a wrong key", () => {
+  it("ignore les espaces autour de la valeur", () => {
     const onActivate = vi.fn();
-    renderHook(() => useCheatCode("iddqd", onActivate));
+    renderHook(() => useCheatCode(["doomguy"], onActivate));
 
-    pressKey("i");
-    pressKey("d");
-    pressKey("x"); // wrong key
-    pressKey("d");
-    pressKey("q");
-    pressKey("d");
+    simulateInput("  Doomguy  ");
+
+    expect(onActivate).toHaveBeenCalledOnce();
+  });
+
+  it("matche n'importe quel trigger name de la liste", () => {
+    const onActivate = vi.fn();
+    renderHook(() => useCheatCode(["doomguy", "doom guy"], onActivate));
+
+    simulateInput("Doom Guy");
+
+    expect(onActivate).toHaveBeenCalledOnce();
+  });
+
+  it("ne se déclenche pas sur un match partiel", () => {
+    const onActivate = vi.fn();
+    renderHook(() => useCheatCode(["doomguy"], onActivate));
+
+    simulateInput("doom");
 
     expect(onActivate).not.toHaveBeenCalled();
   });
 
-  it("resets after 3s timeout between keypresses", () => {
+  it("ignore les inputs sans data-cheat-target", () => {
     const onActivate = vi.fn();
-    renderHook(() => useCheatCode("iddqd", onActivate));
+    renderHook(() => useCheatCode(["doomguy"], onActivate));
 
-    pressKey("i");
-    pressKey("d");
-    vi.advanceTimersByTime(3001);
-    pressKey("d");
-    pressKey("q");
-    pressKey("d");
+    simulateInput("Doomguy", false);
 
     expect(onActivate).not.toHaveBeenCalled();
   });
 
-  it("cleans up on unmount", () => {
+  it("nettoie le listener au démontage", () => {
     const onActivate = vi.fn();
-    const { unmount } = renderHook(() => useCheatCode("iddqd", onActivate));
+    const { unmount } = renderHook(() => useCheatCode(["doomguy"], onActivate));
 
     unmount();
 
-    for (const key of ["i", "d", "d", "q", "d"]) {
-      pressKey(key);
-    }
+    simulateInput("Doomguy");
 
     expect(onActivate).not.toHaveBeenCalled();
   });

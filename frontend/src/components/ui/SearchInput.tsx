@@ -6,7 +6,7 @@ interface SearchInputProps {
   className?: string;
   clearKey?: number;
   debounceMs?: number;
-  inputProps?: React.InputHTMLAttributes<HTMLInputElement>;
+  inputProps?: React.InputHTMLAttributes<HTMLInputElement> & Record<`data-${string}`, string>;
   onKeyDown?: (e: React.KeyboardEvent<HTMLInputElement>) => void;
   onSearch: (value: string) => void;
   placeholder?: string;
