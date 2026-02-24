@@ -160,16 +160,6 @@
   }
 
   .doom {
-    --color-avatar-0: #ff4444;
-    --color-avatar-1: #ff8800;
-    --color-avatar-2: #ffcc00;
-    --color-avatar-3: #44ff44;
-    --color-avatar-4: #4488ff;
-    --color-avatar-5: #ff44ff;
-    --color-avatar-6: #00cccc;
-    --color-avatar-7: #ff6644;
-    --color-avatar-8: #88ff44;
-    --color-avatar-9: #cc88ff;
     font-family: "DoomBigfont", sans-serif;
     font-size: 0.85em;
   }

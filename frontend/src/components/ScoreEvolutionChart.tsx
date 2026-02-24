@@ -10,24 +10,12 @@ import {
 } from "recharts";
 import type { Game, GamePlayer } from "../types/api";
 import { GameStatus } from "../types/enums";
+import { PLAYER_PALETTE } from "./ui/PlayerAvatar";
 
 interface ScoreEvolutionChartProps {
   games: Game[];
   players: GamePlayer[];
 }
-
-const avatarColors = [
-  "var(--color-avatar-0)",
-  "var(--color-avatar-1)",
-  "var(--color-avatar-2)",
-  "var(--color-avatar-3)",
-  "var(--color-avatar-4)",
-  "var(--color-avatar-5)",
-  "var(--color-avatar-6)",
-  "var(--color-avatar-7)",
-  "var(--color-avatar-8)",
-  "var(--color-avatar-9)",
-];
 
 export function computeScoreEvolution(
   games: Game[],
@@ -58,7 +46,7 @@ export default function ScoreEvolutionChart({ games, players }: ScoreEvolutionCh
       new Map(
         players.map((p) => [
           p.id,
-          p.color ?? avatarColors[p.id % avatarColors.length],
+          p.color ?? PLAYER_PALETTE[p.id % PLAYER_PALETTE.length],
         ]),
       ),
     [players],
@@ -113,7 +101,7 @@ export default function ScoreEvolutionChart({ games, players }: ScoreEvolutionCh
         })}
       </div>
       <div className="h-64 lg:h-96">
-        <ResponsiveContainer height="100%" minWidth={0} width="100%">
+        <ResponsiveContainer height="100%" minHeight={0} minWidth={0} width="100%">
           <LineChart data={data} margin={{ bottom: 0, left: 0, right: 16, top: 8 }}>
             <XAxis
               dataKey="position"

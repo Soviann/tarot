@@ -15,7 +15,7 @@ const sizeClasses = {
   sm: "size-8 text-xs",
 } as const;
 
-const palette = [
+export const PLAYER_PALETTE = [
   "#264653",
   "#2a9d8f",
   "#e9c46a",
@@ -77,8 +77,8 @@ export default function PlayerAvatar({
 
   const useCustomColor = !!color;
   const colorIndex =
-    playerId !== undefined ? playerId % palette.length : hashCode(name) % palette.length;
-  const backgroundColor = useCustomColor ? color : palette[colorIndex];
+    playerId !== undefined ? playerId % PLAYER_PALETTE.length : hashCode(name) % PLAYER_PALETTE.length;
+  const backgroundColor = useCustomColor ? color : PLAYER_PALETTE[colorIndex];
 
   return (
     <div

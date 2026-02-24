@@ -66,4 +66,18 @@ describe("RoleDistributionChart", () => {
 
     expect(screen.getByTestId("legend")).toBeInTheDocument();
   });
+
+  it("sets minWidth={0} and minHeight={0} on ResponsiveContainer", () => {
+    render(
+      <RoleDistributionChart
+        gamesAsDefender={10}
+        gamesAsPartner={5}
+        gamesAsTaker={8}
+      />,
+    );
+
+    const container = screen.getByTestId("responsive-container");
+    expect(container).toHaveAttribute("data-min-width", "0");
+    expect(container).toHaveAttribute("data-min-height", "0");
+  });
 });

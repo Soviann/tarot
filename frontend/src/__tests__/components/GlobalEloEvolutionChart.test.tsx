@@ -140,4 +140,22 @@ describe("GlobalEloEvolutionChart", () => {
     const aliceIndicator = screen.getByTestId("color-indicator-Alice");
     expect(aliceIndicator).toHaveStyle({ backgroundColor: "#ef4444" });
   });
+
+  it("uses hex colors for line strokes, not CSS variables", () => {
+    render(<GlobalEloEvolutionChart data={sampleData} />);
+
+    for (const player of sampleData) {
+      const line = screen.getByTestId(`line-${player.playerName}`);
+      const stroke = line.getAttribute("data-stroke");
+      expect(stroke).toMatch(/^#[0-9a-fA-F]{6}$/);
+    }
+  });
+
+  it("sets minWidth={0} and minHeight={0} on ResponsiveContainer", () => {
+    render(<GlobalEloEvolutionChart data={sampleData} />);
+
+    const container = screen.getByTestId("responsive-container");
+    expect(container).toHaveAttribute("data-min-width", "0");
+    expect(container).toHaveAttribute("data-min-height", "0");
+  });
 });

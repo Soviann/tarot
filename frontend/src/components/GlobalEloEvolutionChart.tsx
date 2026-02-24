@@ -10,19 +10,7 @@ import {
   YAxis,
 } from "recharts";
 import type { EloEvolutionPlayer } from "../types/api";
-
-const avatarColors = [
-  "var(--color-avatar-0)",
-  "var(--color-avatar-1)",
-  "var(--color-avatar-2)",
-  "var(--color-avatar-3)",
-  "var(--color-avatar-4)",
-  "var(--color-avatar-5)",
-  "var(--color-avatar-6)",
-  "var(--color-avatar-7)",
-  "var(--color-avatar-8)",
-  "var(--color-avatar-9)",
-];
+import { PLAYER_PALETTE } from "./ui/PlayerAvatar";
 
 interface GlobalEloEvolutionChartProps {
   data: EloEvolutionPlayer[];
@@ -102,7 +90,7 @@ export default function GlobalEloEvolutionChart({
       new Map(
         data.map((p) => [
           p.playerId,
-          p.playerColor ?? avatarColors[p.playerId % avatarColors.length],
+          p.playerColor ?? PLAYER_PALETTE[p.playerId % PLAYER_PALETTE.length],
         ]),
       ),
     [data],
@@ -166,7 +154,7 @@ export default function GlobalEloEvolutionChart({
         )}
       </div>
       <div className="h-64 lg:h-96">
-        <ResponsiveContainer height="100%" minWidth={0} width="100%">
+        <ResponsiveContainer height="100%" minHeight={0} minWidth={0} width="100%">
           <LineChart
             data={chartData}
             margin={{ bottom: 0, left: 0, right: 16, top: 8 }}
