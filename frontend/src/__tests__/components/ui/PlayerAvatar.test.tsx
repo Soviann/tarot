@@ -1,6 +1,33 @@
 import { screen } from "@testing-library/react";
+import { useTheme } from "next-themes";
+import type { Mock } from "vitest";
 import PlayerAvatar from "../../../components/ui/PlayerAvatar";
 import { renderWithProviders } from "../../test-utils";
+
+vi.mock("next-themes", async () => {
+  const actual = await vi.importActual("next-themes");
+  return {
+    ...actual,
+    useTheme: vi.fn().mockReturnValue({
+      forcedTheme: undefined,
+      resolvedTheme: "light",
+      setTheme: vi.fn(),
+      systemTheme: undefined,
+      theme: "light",
+      themes: ["light", "dark", "doom"],
+    }),
+  };
+});
+
+vi.mock("../../../services/themeRegistry", async () => {
+  const actual = await vi.importActual("../../../services/themeRegistry");
+  return {
+    ...actual,
+    getThemeConfig: vi.fn((...args: unknown[]) =>
+      (actual as Record<string, (...args: unknown[]) => unknown>).getThemeConfig(...args),
+    ),
+  };
+});
 
 describe("PlayerAvatar", () => {
   it("displays the first two letters of the name in uppercase", () => {
@@ -95,5 +122,70 @@ describe("PlayerAvatar", () => {
 
     const avatar = screen.getByRole("img", { name: "Alice" });
     expect(avatar.style.backgroundColor).toBeTruthy();
+  });
+
+  describe("themed rendering (doom)", () => {
+    const mockUseTheme = useTheme as Mock;
+
+    beforeEach(() => {
+      mockUseTheme.mockReturnValue({
+        forcedTheme: undefined,
+        resolvedTheme: "doom",
+        setTheme: vi.fn(),
+        systemTheme: undefined,
+        theme: "doom",
+        themes: ["light", "dark", "doom"],
+      });
+    });
+
+    afterEach(() => {
+      mockUseTheme.mockReturnValue({
+        forcedTheme: undefined,
+        resolvedTheme: "light",
+        setTheme: vi.fn(),
+        systemTheme: undefined,
+        theme: "light",
+        themes: ["light", "dark", "doom"],
+      });
+    });
+
+    it("renders themed avatar with img tag when theme has config", () => {
+      renderWithProviders(<PlayerAvatar name="Alice" playerId={0} />);
+
+      const avatar = screen.getByRole("img", { name: "Alice" });
+      expect(avatar).toBeInTheDocument();
+      const img = avatar.querySelector("img");
+      expect(img).toBeInTheDocument();
+      expect(img).toHaveAttribute(
+        "src",
+        "/images/doom/doom-bleeding-256x256.png",
+      );
+    });
+
+    it("uses name hash for icon index when playerId is absent in themed mode", () => {
+      renderWithProviders(<PlayerAvatar name="Alice" />);
+
+      const avatar = screen.getByRole("img", { name: "Alice" });
+      const img = avatar.querySelector("img");
+      expect(img).toBeInTheDocument();
+      expect(img).toHaveAttribute("src", expect.stringContaining("/images/doom/"));
+    });
+
+    it("shows initials below when theme has initialsPosition below", async () => {
+      const { getThemeConfig } = await import("../../../services/themeRegistry") as { getThemeConfig: Mock };
+      getThemeConfig.mockReturnValue({
+        avatars: {
+          icons: ["/images/test/icon.png"],
+          initialsPosition: "below",
+        },
+      });
+
+      renderWithProviders(<PlayerAvatar name="Alice" playerId={0} />);
+
+      const avatar = screen.getByRole("img", { name: "Alice" });
+      const initialsSpan = avatar.querySelector("span.text-\\[0\\.6rem\\]");
+      expect(initialsSpan).toBeInTheDocument();
+      expect(initialsSpan).toHaveTextContent("AL");
+    });
   });
 });

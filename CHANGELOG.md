@@ -8,6 +8,7 @@ Le format est basé sur [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/)
 
 ### Added
 
+- **Tests phase 3** : ~43 tests — 16 tests DTO mapping/sérialisation (coercion string→int, BackedEnum→value, DateTimeImmutable), 10 tests edge cases ScoreCalculator (points exacts par oudler, scores extrêmes, exceptions null), 5 tests CompletedGamesExtension (filtre automatique parties en cours), 5 tests branches PlayerStats (métriques conditionnelles, sections filtrées), 5 tests branches SessionSummary (podium 1-2 joueurs, highlights optionnels, awards vides), 3 tests PlayerAvatar rendu thématique (Doom icons, initialsPosition)
 - **Tests phase 2** : ~92 tests backend — unit tests processeurs (EloRevertHelper, GameCreate/Complete/Delete, SessionCreate/Patch, StarEventCreate, providers), unit tests GlobalStatisticsService, tests intégration repositories (GameRepository, ScoreEntryRepository, SessionRepository). Extraction `completeGame()` dans `ApiTestCase`.
 - **Tests phase 1** : 8 tests `api.ts` (fetch mock, ApiError, headers, 204, erreurs), 11 tests validators backend (PlayersBelongToSession, DealerBelongsToSession, OnlyLastGameEditable), 13 tests formatters charts (Tooltip/Legend), 15 tests `GroupDetail` (CRUD, modales, édition nom), 12 tests `SessionPage` (memes, graphe, overflow, pagination, close session)
 

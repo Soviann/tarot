@@ -307,4 +307,74 @@ describe("PlayerStats page", () => {
 
     expect(mockNavigate).toHaveBeenCalledWith("/stats");
   });
+
+  it("hides duration metrics when averageGameDurationSeconds is null", () => {
+    vi.mocked(usePlayerStatsModule.usePlayerStats).mockReturnValue({
+      isPending: false,
+      stats: { ...mockStats, averageGameDurationSeconds: null },
+    } as ReturnType<typeof usePlayerStatsModule.usePlayerStats>);
+
+    renderWithProviders(<PlayerStats />);
+
+    expect(screen.queryByText("Durée moy. / donne")).not.toBeInTheDocument();
+  });
+
+  it("hides total play time when totalPlayTimeSeconds is 0", () => {
+    vi.mocked(usePlayerStatsModule.usePlayerStats).mockReturnValue({
+      isPending: false,
+      stats: { ...mockStats, totalPlayTimeSeconds: 0 },
+    } as ReturnType<typeof usePlayerStatsModule.usePlayerStats>);
+
+    renderWithProviders(<PlayerStats />);
+
+    expect(screen.queryByText("Temps de jeu total")).not.toBeInTheDocument();
+  });
+
+  it("hides groups section when playerGroups is empty", () => {
+    vi.mocked(usePlayerStatsModule.usePlayerStats).mockReturnValue({
+      isPending: false,
+      stats: { ...mockStats, playerGroups: [] },
+    } as ReturnType<typeof usePlayerStatsModule.usePlayerStats>);
+
+    renderWithProviders(<PlayerStats />);
+
+    expect(screen.queryByRole("heading", { name: /groupes/i })).not.toBeInTheDocument();
+    expect(screen.queryByText("Mardi soir")).not.toBeInTheDocument();
+  });
+
+  it("filters out sections without data from dropdown", async () => {
+    const user = userEvent.setup();
+    vi.mocked(usePlayerStatsModule.usePlayerStats).mockReturnValue({
+      isPending: false,
+      stats: { ...mockStats, contractDistribution: [], eloHistory: [], recentScores: [] },
+    } as ReturnType<typeof usePlayerStatsModule.usePlayerStats>);
+
+    renderWithProviders(<PlayerStats />);
+
+    const trigger = screen.getByRole("button", { name: /records personnels/i });
+    await user.click(trigger);
+
+    const options = screen.getAllByRole("option");
+    expect(options.map((o) => o.textContent)).toEqual([
+      "Records personnels",
+      "Badges",
+      "Répartition des rôles",
+    ]);
+  });
+
+  it("filters out roles section when no games in any role", async () => {
+    const user = userEvent.setup();
+    vi.mocked(usePlayerStatsModule.usePlayerStats).mockReturnValue({
+      isPending: false,
+      stats: { ...mockStats, gamesAsDefender: 0, gamesAsPartner: 0, gamesAsTaker: 0 },
+    } as ReturnType<typeof usePlayerStatsModule.usePlayerStats>);
+
+    renderWithProviders(<PlayerStats />);
+
+    const trigger = screen.getByRole("button", { name: /records personnels/i });
+    await user.click(trigger);
+
+    const options = screen.getAllByRole("option");
+    expect(options.map((o) => o.textContent)).not.toContain("Répartition des rôles");
+  });
 });

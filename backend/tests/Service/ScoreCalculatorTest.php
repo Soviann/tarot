@@ -244,18 +244,8 @@ class ScoreCalculatorTest extends TestCase
     public function testPetitAuBoutDefenseAttaquePerdue(): void
     {
         // Petit au bout joué par la défense, attaque perd
-        // → +10 × multiplier pour la défense (positif pour défense = négatif pour attaque... non)
-        // La défense joue le petit au bout ET gagne → bonus positif pour la défense
-        // Du point de vue attaque : base=-41, petit au bout=+10×1=+10 (au bénéfice de la défense = -10 pour attaque)
-        // Attends, reformulons : petit au bout = 10 × multiplier, signé selon que le camp qui l'a joué gagne ou non
-        // Défense l'a joué, défense gagne → bonus positif pour la défense = négatif pour l'attaque
-        // base=-41, petit au bout ajouté au total = -10×1, total=-51
-        // Non, c'est le même signe : si la défense joue et gagne, c'est négatif pour le preneur
+        // Défense joue et gagne → bonus négatif pour l'attaque : -10×mult
         // Petite, base=-41, petit au bout=-10×1=-10, total=-51
-        // Hmm, attendons : Defense joue le petit au bout, attaque perd
-        // → le camp qui a joué le petit au bout GAGNE → +10×mult pour ce camp
-        // → Pour l'attaque c'est négatif : -10×mult
-        // total = -41 + (-10) = -51
         $game = $this->createGame(
             contract: Contract::Petite,
             oudlers: 0,
@@ -520,6 +510,159 @@ class ScoreCalculatorTest extends TestCase
             oudlers: 5,
             points: 45,
         );
+
+        $this->expectException(\InvalidArgumentException::class);
+        $this->calculator->compute($game);
+    }
+
+    // ---------------------------------------------------------------
+    // Edge cases
+    // ---------------------------------------------------------------
+
+    public function testPointsExactsZeroOudlers(): void
+    {
+        // 0 oudlers, 56 pts exactement → requis=56, base=(0+25)×1=25 (Petite gagnée)
+        $game = $this->createGame(
+            contract: Contract::Petite,
+            oudlers: 0,
+            points: 56,
+        );
+
+        $entries = $this->calculator->compute($game);
+
+        $this->assertTakerScore(25, $entries);
+    }
+
+    public function testPointsExactsUnOudler(): void
+    {
+        // 1 oudler, 51 pts exactement → requis=51, base=(0+25)×1=25 (Petite gagnée)
+        $game = $this->createGame(
+            contract: Contract::Petite,
+            oudlers: 1,
+            points: 51,
+        );
+
+        $entries = $this->calculator->compute($game);
+
+        $this->assertTakerScore(25, $entries);
+    }
+
+    public function testPointsExactsTroisOudlers(): void
+    {
+        // 3 oudlers, 36 pts exactement → requis=36, base=(0+25)×1=25 (Petite gagnée)
+        $game = $this->createGame(
+            contract: Contract::Petite,
+            oudlers: 3,
+            points: 36,
+        );
+
+        $entries = $this->calculator->compute($game);
+
+        $this->assertTakerScore(25, $entries);
+    }
+
+    public function testPointsAZero(): void
+    {
+        // Petite, 0 oudlers, 0 pts → requis=56, base=-(56-0+25)×1=-81
+        $game = $this->createGame(
+            contract: Contract::Petite,
+            oudlers: 0,
+            points: 0,
+        );
+
+        $entries = $this->calculator->compute($game);
+
+        $this->assertTakerScore(-81, $entries);
+    }
+
+    public function testGardeContrePerduPointsMinimaux(): void
+    {
+        // GardeContre, 0 oudlers, 0 pts → requis=56, base=-(56-0+25)×6=-486
+        $game = $this->createGame(
+            contract: Contract::GardeContre,
+            oudlers: 0,
+            points: 0,
+        );
+
+        $entries = $this->calculator->compute($game);
+
+        $this->assertTakerScore(-486, $entries);
+    }
+
+    public function testTousLesMultiplicateursGardeContre(): void
+    {
+        // GardeContre gagnée, 3 oudlers, 50 pts → requis=36, base=(50-36+25)×6=234
+        $game = $this->createGame(
+            contract: Contract::GardeContre,
+            oudlers: 3,
+            points: 50,
+        );
+
+        $entries = $this->calculator->compute($game);
+
+        $this->assertTakerScore(234, $entries);
+    }
+
+    public function testPoigneeTripleAttaquePerdue(): void
+    {
+        // Petite perdue, 0 oudlers, 40 pts + poignée triple montrée par l'attaque
+        // base=-(56-40+25)×1=-41, poignée=-40 (camp gagnant=défense), total=-81
+        $game = $this->createGame(
+            contract: Contract::Petite,
+            oudlers: 0,
+            points: 40,
+            poignee: Poignee::Triple,
+            poigneeOwner: Side::Attack,
+        );
+
+        $entries = $this->calculator->compute($game);
+
+        $this->assertTakerScore(-81, $entries);
+    }
+
+    public function testChelemEtPoigneeCombines(): void
+    {
+        // GardeSans, 3 oudlers, 91 pts, chelem annoncé gagné + poignée triple
+        // base=(91-36+25)×4=320, poignée=+40, chelem=+400, total=760
+        $game = $this->createGame(
+            contract: Contract::GardeSans,
+            oudlers: 3,
+            points: 91,
+            chelem: Chelem::AnnouncedWon,
+            poignee: Poignee::Triple,
+            poigneeOwner: Side::Attack,
+        );
+
+        $entries = $this->calculator->compute($game);
+
+        $this->assertTakerScore(760, $entries);
+    }
+
+    public function testOudlersNullThrowsException(): void
+    {
+        $game = new Game();
+        $game->setContract(Contract::Petite);
+        $game->setSession($this->session);
+        $game->setTaker($this->players[0]);
+        $game->setPartner($this->players[1]);
+        $game->setPoints(45);
+        $game->setPosition(1);
+        // Don't set oudlers
+
+        $this->expectException(\InvalidArgumentException::class);
+        $this->calculator->compute($game);
+    }
+
+    public function testPointsNullThrowsException(): void
+    {
+        $game = new Game();
+        $game->setContract(Contract::Petite);
+        $game->setSession($this->session);
+        $game->setTaker($this->players[0]);
+        $game->setPartner($this->players[1]);
+        $game->setOudlers(2);
+        $game->setPosition(1);
+        // Don't set points
 
         $this->expectException(\InvalidArgumentException::class);
         $this->calculator->compute($game);
