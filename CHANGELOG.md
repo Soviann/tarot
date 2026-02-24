@@ -6,6 +6,10 @@ Le format est basé sur [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/)
 
 ## [Unreleased]
 
+### Added
+
+- **Tests phase 1** : 8 tests `api.ts` (fetch mock, ApiError, headers, 204, erreurs), 11 tests validators backend (PlayersBelongToSession, DealerBelongsToSession, OnlyLastGameEditable), 13 tests formatters charts (Tooltip/Legend), 15 tests `GroupDetail` (CRUD, modales, édition nom), 12 tests `SessionPage` (memes, graphe, overflow, pagination, close session)
+
 ### Fixed
 
 - **Thème Doom mobile** : le cheat code IDDQD (keydown) ne fonctionnait pas sur smartphone ; remplacé par la détection du nom « Doomguy » ou « Doom Guy » dans les champs joueur (recherche/création)
