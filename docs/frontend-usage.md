@@ -518,6 +518,31 @@ Hook détectant si le téléphone est retourné à l'envers via l'API `DeviceOri
 const isUpsideDown = useUpsideDown({ enabled: true });
 ```
 
+### `usePinchZoom`
+
+**Fichier** : `hooks/usePinchZoom.ts`
+
+Hook gérant le zoom et le scroll horizontal sur un conteneur HTML : molette (desktop), pinch-to-zoom (mobile), drag/swipe pour naviguer, Shift+molette pour scroller, double-clic/tap pour réinitialiser. Retourne un callback ref à poser sur le conteneur, un domain `[min, max]` pour l'axe X Recharts, et le niveau de zoom.
+
+```ts
+const { chartRef, domain, resetZoom, zoomLevel } = usePinchZoom({
+  dataLength: chartData.length,
+  enabled: true,
+});
+```
+
+| Option | Type | Description |
+|--------|------|-------------|
+| `dataLength` | `number` | Nombre de points sur l'axe X |
+| `enabled` | `boolean` | Activer/désactiver les listeners (défaut `true`) |
+
+| Retour | Type | Description |
+|--------|------|-------------|
+| `chartRef` | `(node: HTMLDivElement \| null) => void` | Callback ref pour le conteneur |
+| `domain` | `[number, number]` | Bornes `[min, max]` pour `XAxis domain` |
+| `resetZoom` | `() => void` | Réinitialiser le zoom à 1 |
+| `zoomLevel` | `number` | Niveau de zoom courant (1 = pas de zoom, max 20) |
+
 ### `useVoiceScoring`
 
 **Fichier** : `hooks/useVoiceScoring.ts`

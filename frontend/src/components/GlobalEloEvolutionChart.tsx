@@ -9,6 +9,7 @@ import {
   XAxis,
   YAxis,
 } from "recharts";
+import { usePinchZoom } from "../hooks/usePinchZoom";
 import type { EloEvolutionPlayer } from "../types/api";
 import { PLAYER_PALETTE } from "./ui/PlayerAvatar";
 
@@ -98,6 +99,11 @@ export default function GlobalEloEvolutionChart({
 
   const chartData = useMemo(() => buildChartData(data), [data]);
 
+  const { chartRef, domain, zoomLevel } = usePinchZoom({
+    dataLength: chartData.length,
+    enabled: chartData.length > 0,
+  });
+
   if (data.length === 0) return null;
 
   const visiblePlayers = data.filter((p) => !hiddenPlayers.has(p.playerId));
@@ -153,15 +159,27 @@ export default function GlobalEloEvolutionChart({
           </div>
         )}
       </div>
-      <div className="h-64 lg:h-96">
+      <div
+        className="h-64 touch-none lg:h-96"
+        data-testid="zoom-container"
+        ref={chartRef}
+      >
+        {zoomLevel > 1 && (
+          <p className="mb-1 text-center text-xs text-text-muted">
+            Zoom {zoomLevel.toFixed(1)}x — double-clic pour réinitialiser
+          </p>
+        )}
         <ResponsiveContainer height="100%" minHeight={0} minWidth={0} width="100%">
           <LineChart
             data={chartData}
             margin={{ bottom: 0, left: 0, right: 16, top: 8 }}
           >
             <XAxis
+              allowDataOverflow
               dataKey="gameIndex"
+              domain={domain}
               tick={{ fill: "var(--color-text-muted)", fontSize: 11 }}
+              type="number"
             />
             <YAxis
               domain={["dataMin - 50", "dataMax + 50"]}

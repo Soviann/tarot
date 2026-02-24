@@ -1,9 +1,10 @@
-import { render, screen } from "@testing-library/react";
+import { act, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import type { EloEvolutionPlayer } from "../../types/api";
 import GlobalEloEvolutionChart, {
   buildChartData,
 } from "../../components/GlobalEloEvolutionChart";
+import { resetCapturedProps, xAxisProps } from "../mocks/recharts";
 
 vi.mock("recharts", () => import("../mocks/recharts"));
 
@@ -81,6 +82,10 @@ describe("buildChartData", () => {
 });
 
 describe("GlobalEloEvolutionChart", () => {
+  beforeEach(() => {
+    resetCapturedProps();
+  });
+
   it("renders chart with player lines", () => {
     render(<GlobalEloEvolutionChart data={sampleData} />);
 
@@ -157,5 +162,77 @@ describe("GlobalEloEvolutionChart", () => {
     const container = screen.getByTestId("responsive-container");
     expect(container).toHaveAttribute("data-min-width", "0");
     expect(container).toHaveAttribute("data-min-height", "0");
+  });
+
+  it("passes XAxis domain from zoom hook", () => {
+    render(<GlobalEloEvolutionChart data={sampleData} />);
+
+    // Initial domain = full range
+    expect(xAxisProps.domain).toEqual([1, 2]);
+    expect(xAxisProps.type).toBe("number");
+    expect(xAxisProps.allowDataOverflow).toBe(true);
+  });
+
+  it("changes XAxis domain on wheel zoom", () => {
+    const manyPointsData: EloEvolutionPlayer[] = [
+      {
+        history: Array.from({ length: 20 }, (_, i) => ({
+          date: `2026-01-${String(i + 1).padStart(2, "0")}T12:00:00+00:00`,
+          gameId: i + 1,
+          ratingAfter: 1500 + i * 10,
+        })),
+        playerColor: "#ef4444",
+        playerId: 1,
+        playerName: "Alice",
+      },
+    ];
+
+    render(<GlobalEloEvolutionChart data={manyPointsData} />);
+
+    expect(xAxisProps.domain).toEqual([1, 20]);
+
+    const chartWrapper = screen.getByTestId("zoom-container");
+    act(() => {
+      chartWrapper.dispatchEvent(
+        new WheelEvent("wheel", { bubbles: true, deltaY: -100 }),
+      );
+    });
+
+    // Domain should be narrower after zoom in
+    const [min, max] = xAxisProps.domain as [number, number];
+    expect(max - min).toBeLessThan(19);
+  });
+
+  it("resets zoom on double-click", () => {
+    const manyPointsData: EloEvolutionPlayer[] = [
+      {
+        history: Array.from({ length: 20 }, (_, i) => ({
+          date: `2026-01-${String(i + 1).padStart(2, "0")}T12:00:00+00:00`,
+          gameId: i + 1,
+          ratingAfter: 1500 + i * 10,
+        })),
+        playerColor: "#ef4444",
+        playerId: 1,
+        playerName: "Alice",
+      },
+    ];
+
+    render(<GlobalEloEvolutionChart data={manyPointsData} />);
+
+    const chartWrapper = screen.getByTestId("zoom-container");
+
+    // Zoom in
+    act(() => {
+      chartWrapper.dispatchEvent(
+        new WheelEvent("wheel", { bubbles: true, deltaY: -100 }),
+      );
+    });
+
+    // Double-click to reset
+    act(() => {
+      chartWrapper.dispatchEvent(new MouseEvent("dblclick", { bubbles: true }));
+    });
+
+    expect(xAxisProps.domain).toEqual([1, 20]);
   });
 });
