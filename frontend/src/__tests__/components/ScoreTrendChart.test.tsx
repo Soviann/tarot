@@ -1,6 +1,7 @@
 import { render, screen } from "@testing-library/react";
 import ScoreTrendChart from "../../components/ScoreTrendChart";
 import type { RecentScoreEntry } from "../../types/api";
+import { resetCapturedProps, tooltipProps } from "../mocks/recharts";
 
 vi.mock("recharts", () => import("../mocks/recharts"));
 
@@ -11,6 +12,10 @@ const sampleData: RecentScoreEntry[] = [
 ];
 
 describe("ScoreTrendChart", () => {
+  beforeEach(() => {
+    resetCapturedProps();
+  });
+
   it("renders empty message when data is empty", () => {
     render(<ScoreTrendChart data={[]} />);
 
@@ -43,5 +48,19 @@ describe("ScoreTrendChart", () => {
     render(<ScoreTrendChart data={sampleData} />);
 
     expect(screen.getByTestId("reference-line")).toBeInTheDocument();
+  });
+
+  it("tooltip formatter returns [String(value), 'Score']", () => {
+    render(<ScoreTrendChart data={sampleData} />);
+
+    const formatter = tooltipProps.formatter as (value: number) => [string, string];
+    expect(formatter(120)).toEqual(["120", "Score"]);
+  });
+
+  it("tooltip labelFormatter returns 'Donne <label>'", () => {
+    render(<ScoreTrendChart data={sampleData} />);
+
+    const labelFormatter = tooltipProps.labelFormatter as (label: number) => string;
+    expect(labelFormatter(3)).toBe("Donne 3");
   });
 });

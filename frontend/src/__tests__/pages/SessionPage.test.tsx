@@ -1,4 +1,4 @@
-import { screen, waitFor } from "@testing-library/react";
+import { act, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { toast } from "sonner";
 import SessionPage from "../../pages/SessionPage";
@@ -8,21 +8,27 @@ vi.mock("react-countup", () => ({
     formattingFn ? formattingFn(end) : String(end),
 }));
 import * as useAddStarModule from "../../hooks/useAddStar";
+import * as useAllSessionGamesModule from "../../hooks/useAllSessionGames";
 import * as useCloseSessionModule from "../../hooks/useCloseSession";
 import * as useCompleteGameModule from "../../hooks/useCompleteGame";
 import * as useCreateGameModule from "../../hooks/useCreateGame";
 import * as useCreatePlayerModule from "../../hooks/useCreatePlayer";
 import * as useCreateSessionModule from "../../hooks/useCreateSession";
 import * as useDeleteGameModule from "../../hooks/useDeleteGame";
+import * as useGameEventListenerModule from "../../hooks/useGameEventListener";
 import * as usePlayerGroupsModule from "../../hooks/usePlayerGroups";
 import * as usePlayersModule from "../../hooks/usePlayers";
+import * as useReorderPlayersModule from "../../hooks/useReorderPlayers";
 import * as useSessionModule from "../../hooks/useSession";
 import * as useSessionGamesModule from "../../hooks/useSessionGames";
+import * as useShakeModule from "../../hooks/useShake";
 import * as useUpdateDealerModule from "../../hooks/useUpdateDealer";
 import * as useUpdateSessionGroupModule from "../../hooks/useUpdateSessionGroup";
+import * as useUpsideDownModule from "../../hooks/useUpsideDown";
 import * as apiModule from "../../services/api";
+import { selectMeme } from "../../services/memeSelector";
 import { renderWithProviders } from "../test-utils";
-import type { Game, SessionDetail } from "../../types/api";
+import type { Game, PlayerGroupDetail, SessionDetail } from "../../types/api";
 
 vi.mock("sonner", () => ({
   toast: Object.assign(vi.fn(), {
@@ -42,7 +48,18 @@ vi.mock("../../hooks/usePlayers");
 vi.mock("../../hooks/useSession");
 vi.mock("../../hooks/useSessionGames");
 vi.mock("../../hooks/useUpdateDealer");
+vi.mock("../../hooks/useAllSessionGames");
+vi.mock("../../hooks/useGameEventListener");
+vi.mock("../../hooks/useReorderPlayers");
+vi.mock("../../hooks/useShake");
 vi.mock("../../hooks/useUpdateSessionGroup");
+vi.mock("../../hooks/useUpsideDown");
+vi.mock("../../services/gameEvents", () => ({
+  gameEvents: { emit: vi.fn(), off: vi.fn(), on: vi.fn() },
+}));
+vi.mock("../../services/memeSelector", () => ({
+  selectMeme: vi.fn(),
+}));
 vi.mock("../../services/api", async (importOriginal) => {
   const actual = await importOriginal<typeof import("../../services/api")>();
   return { ...actual, apiFetch: vi.fn() };
@@ -110,14 +127,42 @@ const mockInProgressGame: Game = {
   taker: { id: 3, name: "Charlie" },
 };
 
+const mockCompletedGame2: Game = {
+  chelem: "none",
+  completedAt: "2025-02-01T14:15:00+00:00",
+  contract: "petite",
+  createdAt: "2025-02-01T14:12:00+00:00",
+  dealer: null,
+  id: 3,
+  oudlers: 1,
+  partner: { color: null, id: 3, name: "Charlie" },
+  petitAuBout: "none",
+  poignee: "none",
+  poigneeOwner: "none",
+  points: 40,
+  position: 2,
+  scoreEntries: [
+    { id: 6, player: { color: null, id: 2, name: "Bob" }, score: 60 },
+    { id: 7, player: { color: null, id: 3, name: "Charlie" }, score: 60 },
+    { id: 8, player: { color: null, id: 1, name: "Alice" }, score: -40 },
+    { id: 9, player: { color: null, id: 4, name: "Diana" }, score: -40 },
+    { id: 10, player: { color: null, id: 5, name: "Eve" }, score: -40 },
+  ],
+  status: "completed",
+  taker: { color: null, id: 2, name: "Bob" },
+};
+
 const mockSession: SessionDetail = {
   createdAt: "2025-02-01T14:00:00+00:00",
   cumulativeScores: [
     { playerId: 1, playerName: "Alice", score: 120 },
     { playerId: 2, playerName: "Bob", score: -30 },
   ],
+  currentDealer: null,
   id: 1,
   isActive: true,
+  playerGroup: null,
+  playerOrder: null,
   players: mockPlayers,
   starEvents: [],
 };
@@ -133,12 +178,16 @@ const mockGamesPage = {
 };
 
 function setupMocks(overrides?: {
+  allGames?: Game[];
   createGame?: Partial<ReturnType<typeof useCreateGameModule.useCreateGame>>;
+  groups?: PlayerGroupDetail[];
   useSession?: Partial<ReturnType<typeof useSessionModule.useSession>>;
   useSessionGames?: Partial<ReturnType<typeof useSessionGamesModule.useSessionGames>>;
 }) {
   const closeSessionMutate = vi.fn();
   const createGameMutate = vi.fn();
+  const fetchNextPage = vi.fn();
+  const reorderMutate = vi.fn();
 
   vi.mocked(useAddStarModule.useAddStar).mockReturnValue({
     context: undefined,
@@ -158,6 +207,34 @@ function setupMocks(overrides?: {
     submittedAt: 0,
     variables: undefined,
   } as unknown as ReturnType<typeof useAddStarModule.useAddStar>);
+
+  vi.mocked(useAllSessionGamesModule.useAllSessionGames).mockReturnValue({
+    data: overrides?.allGames ?? [mockCompletedGame],
+    dataUpdatedAt: 0,
+    error: null,
+    errorUpdateCount: 0,
+    errorUpdatedAt: 0,
+    failureCount: 0,
+    failureReason: null,
+    fetchStatus: "idle",
+    isError: false,
+    isFetched: true,
+    isFetchedAfterMount: true,
+    isFetching: false,
+    isInitialLoading: false,
+    isLoading: false,
+    isLoadingError: false,
+    isPaused: false,
+    isPending: false,
+    isPlaceholderData: false,
+    isRefetchError: false,
+    isRefetching: false,
+    isStale: false,
+    isSuccess: true,
+    promise: Promise.resolve(overrides?.allGames ?? [mockCompletedGame]),
+    refetch: vi.fn(),
+    status: "success",
+  } as unknown as ReturnType<typeof useAllSessionGamesModule.useAllSessionGames>);
 
   vi.mocked(useCloseSessionModule.useCloseSession).mockReturnValue({
     context: undefined,
@@ -216,7 +293,7 @@ function setupMocks(overrides?: {
     errorUpdatedAt: 0,
     failureCount: 0,
     failureReason: null,
-    fetchNextPage: vi.fn(),
+    fetchNextPage,
     fetchPreviousPage: vi.fn(),
     fetchStatus: "idle",
     hasNextPage: false,
@@ -368,8 +445,10 @@ function setupMocks(overrides?: {
     variables: undefined,
   } as unknown as ReturnType<typeof useCreatePlayerModule.useCreatePlayer>);
 
+  vi.mocked(useGameEventListenerModule.useGameEventListener).mockImplementation(() => {});
+
   vi.mocked(usePlayerGroupsModule.usePlayerGroups).mockReturnValue({
-    data: [],
+    data: overrides?.groups ?? [],
     dataUpdatedAt: 0,
     error: null,
     errorUpdateCount: 0,
@@ -377,7 +456,7 @@ function setupMocks(overrides?: {
     failureCount: 0,
     failureReason: null,
     fetchStatus: "idle",
-    groups: [],
+    groups: overrides?.groups ?? [],
     isError: false,
     isFetched: true,
     isFetchedAfterMount: true,
@@ -392,7 +471,7 @@ function setupMocks(overrides?: {
     isRefetching: false,
     isStale: false,
     isSuccess: true,
-    promise: Promise.resolve([]),
+    promise: Promise.resolve(overrides?.groups ?? []),
     refetch: vi.fn(),
     status: "success",
   } as unknown as ReturnType<typeof usePlayerGroupsModule.usePlayerGroups>);
@@ -416,6 +495,29 @@ function setupMocks(overrides?: {
     variables: undefined,
   } as unknown as ReturnType<typeof useUpdateSessionGroupModule.useUpdateSessionGroup>);
 
+  vi.mocked(useReorderPlayersModule.useReorderPlayers).mockReturnValue({
+    context: undefined,
+    data: undefined,
+    error: null,
+    failureCount: 0,
+    failureReason: null,
+    isError: false,
+    isIdle: true,
+    isPaused: false,
+    isPending: false,
+    isSuccess: false,
+    mutate: reorderMutate,
+    mutateAsync: vi.fn(),
+    reset: vi.fn(),
+    status: "idle",
+    submittedAt: 0,
+    variables: undefined,
+  } as unknown as ReturnType<typeof useReorderPlayersModule.useReorderPlayers>);
+
+  vi.mocked(useShakeModule.useShake).mockImplementation(() => {});
+  vi.mocked(useUpsideDownModule.useUpsideDown).mockReturnValue(false);
+  vi.mocked(selectMeme).mockReturnValue(null);
+
   vi.mocked(useUpdateDealerModule.useUpdateDealer).mockReturnValue({
     context: undefined,
     data: undefined,
@@ -435,7 +537,7 @@ function setupMocks(overrides?: {
     variables: undefined,
   } as unknown as ReturnType<typeof useUpdateDealerModule.useUpdateDealer>);
 
-  return { closeSessionMutate, createGameMutate };
+  return { closeSessionMutate, createGameMutate, fetchNextPage, reorderMutate };
 }
 
 describe("SessionPage", () => {
@@ -754,5 +856,202 @@ describe("SessionPage", () => {
       expect(toast.error).toHaveBeenCalledWith("Erreur lors de l'annulation de la donne");
     });
     expect(apiModule.apiFetch).toHaveBeenCalledWith("/games/2", { method: "DELETE" });
+  });
+
+  it("shows ScoreEvolutionChart when at least 2 completed games", () => {
+    setupMocks({
+      allGames: [mockCompletedGame, mockCompletedGame2],
+    });
+    renderWithProviders(<SessionPage />);
+
+    expect(screen.getByText("Évolution des scores")).toBeInTheDocument();
+  });
+
+  it("hides ScoreEvolutionChart when fewer than 2 completed games", () => {
+    setupMocks({
+      allGames: [mockCompletedGame],
+    });
+    renderWithProviders(<SessionPage />);
+
+    expect(screen.queryByText("Évolution des scores")).not.toBeInTheDocument();
+  });
+
+  it("opens ReorderPlayersModal from overflow menu", async () => {
+    setupMocks();
+    renderWithProviders(<SessionPage />);
+
+    await userEvent.click(screen.getByRole("button", { name: "Actions de session" }));
+    await userEvent.click(screen.getByText("Changer l'ordre"));
+
+    expect(screen.getByText("Changer l'ordre", { selector: "h2" })).toBeInTheDocument();
+  });
+
+  it("shows 'Changer le groupe' in overflow menu when groups exist", async () => {
+    setupMocks({
+      groups: [{ createdAt: "2025-01-01", id: 10, name: "Groupe A", players: [{ color: null, id: 1, name: "Alice" }] }],
+    });
+    renderWithProviders(<SessionPage />);
+
+    await userEvent.click(screen.getByRole("button", { name: "Actions de session" }));
+
+    expect(screen.getByText("Changer le groupe")).toBeInTheDocument();
+  });
+
+  it("hides 'Changer le groupe' in overflow menu when no groups", async () => {
+    setupMocks();
+    renderWithProviders(<SessionPage />);
+
+    await userEvent.click(screen.getByRole("button", { name: "Actions de session" }));
+
+    expect(screen.queryByText("Changer le groupe")).not.toBeInTheDocument();
+  });
+
+  it("calls fetchNextPage when 'Voir plus' is clicked", async () => {
+    const { fetchNextPage } = setupMocks({
+      useSessionGames: { hasNextPage: true },
+    });
+    renderWithProviders(<SessionPage />);
+
+    const loadMoreBtn = screen.getByRole("button", { name: "Voir plus" });
+    await userEvent.click(loadMoreBtn);
+
+    expect(fetchNextPage).toHaveBeenCalled();
+  });
+
+  it("does not show 'Voir plus' when hasNextPage is false", () => {
+    setupMocks({
+      useSessionGames: { hasNextPage: false },
+    });
+    renderWithProviders(<SessionPage />);
+
+    expect(screen.queryByRole("button", { name: "Voir plus" })).not.toBeInTheDocument();
+  });
+
+  it("has a link to session summary in overflow menu", async () => {
+    setupMocks();
+    renderWithProviders(<SessionPage />);
+
+    await userEvent.click(screen.getByRole("button", { name: "Actions de session" }));
+
+    const link = screen.getByText("Récap de session").closest("a");
+    expect(link).toHaveAttribute("href", "/sessions/1/summary");
+  });
+
+  it("redirects to summary after confirming close session", async () => {
+    const closeSessionMutateWithSuccess = vi.fn().mockImplementation(
+      (_val: unknown, opts?: { onSuccess?: () => void }) => {
+        opts?.onSuccess?.();
+      },
+    );
+
+    setupMocks();
+
+    vi.mocked(useCloseSessionModule.useCloseSession).mockReturnValue({
+      context: undefined,
+      data: undefined,
+      error: null,
+      failureCount: 0,
+      failureReason: null,
+      isError: false,
+      isIdle: true,
+      isPaused: false,
+      isPending: false,
+      isSuccess: false,
+      mutate: closeSessionMutateWithSuccess,
+      mutateAsync: vi.fn(),
+      reset: vi.fn(),
+      status: "idle",
+      submittedAt: 0,
+      variables: undefined,
+    } as unknown as ReturnType<typeof useCloseSessionModule.useCloseSession>);
+
+    renderWithProviders(<SessionPage />);
+
+    await userEvent.click(screen.getByRole("button", { name: "Actions de session" }));
+    await userEvent.click(screen.getByText("Terminer la session"));
+    await userEvent.click(screen.getByRole("button", { name: "Terminer" }));
+
+    expect(mockNavigate).toHaveBeenCalledWith("/sessions/1/summary");
+  });
+
+  it("shows MemeOverlay when selectMeme returns a meme after game event", () => {
+    setupMocks();
+
+    let capturedHandler: ((payload: unknown) => void) | null = null;
+    vi.mocked(useGameEventListenerModule.useGameEventListener).mockImplementation(
+      ((_event: string, handler: (payload: unknown) => void) => {
+        capturedHandler = handler;
+      }) as typeof useGameEventListenerModule.useGameEventListener,
+    );
+    vi.mocked(selectMeme).mockReturnValue({
+      caption: "Test meme",
+      id: "test-meme",
+      image: "/memes/test.webp",
+    });
+
+    renderWithProviders(<SessionPage />);
+
+    act(() => {
+      capturedHandler?.({
+        context: {
+          attackWins: true,
+          chelem: "none",
+          consecutiveLosses: 0,
+          contract: "garde",
+          isSelfCall: false,
+          oudlers: 2,
+          petitAuBout: "none",
+          points: 56,
+          previousScore: null,
+          takerScore: 120,
+        },
+      });
+    });
+
+    expect(screen.getByRole("dialog", { name: "Mème" })).toBeInTheDocument();
+    expect(screen.getByAltText("Test meme")).toBeInTheDocument();
+  });
+
+  it("dismisses MemeOverlay on click", async () => {
+    setupMocks();
+
+    let capturedHandler: ((payload: unknown) => void) | null = null;
+    vi.mocked(useGameEventListenerModule.useGameEventListener).mockImplementation(
+      ((_event: string, handler: (payload: unknown) => void) => {
+        capturedHandler = handler;
+      }) as typeof useGameEventListenerModule.useGameEventListener,
+    );
+    vi.mocked(selectMeme).mockReturnValue({
+      caption: "Test meme",
+      id: "test-meme",
+      image: "/memes/test.webp",
+    });
+
+    renderWithProviders(<SessionPage />);
+
+    act(() => {
+      capturedHandler?.({
+        context: {
+          attackWins: true,
+          chelem: "none",
+          consecutiveLosses: 0,
+          contract: "garde",
+          isSelfCall: false,
+          oudlers: 2,
+          petitAuBout: "none",
+          points: 56,
+          previousScore: null,
+          takerScore: 120,
+        },
+      });
+    });
+
+    expect(screen.getByRole("dialog", { name: "Mème" })).toBeInTheDocument();
+
+    await userEvent.click(screen.getByRole("dialog", { name: "Mème" }));
+
+    await waitFor(() => {
+      expect(screen.queryByRole("dialog", { name: "Mème" })).not.toBeInTheDocument();
+    });
   });
 });
