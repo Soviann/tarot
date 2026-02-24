@@ -45,7 +45,7 @@ export default function ContractDistributionChart({ data }: ContractDistribution
 
   return (
     <div className="h-52 lg:h-72">
-      <ResponsiveContainer height="100%" minWidth={0} width="100%">
+      <ResponsiveContainer height="100%" minHeight={0} minWidth={0} width="100%">
         <PieChart>
           <Pie
             cx="50%"

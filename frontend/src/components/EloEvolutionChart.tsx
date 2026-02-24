@@ -30,7 +30,7 @@ export default function EloEvolutionChart({ data }: EloEvolutionChartProps) {
 
   return (
     <div className="h-52 lg:h-96">
-      <ResponsiveContainer height="100%" minWidth={0} width="100%">
+      <ResponsiveContainer height="100%" minHeight={0} minWidth={0} width="100%">
         <LineChart data={chartData} margin={{ bottom: 0, left: 0, right: 16, top: 8 }}>
           <XAxis
             dataKey="index"
