@@ -48,7 +48,7 @@ function ThemeCheatCodeHandler({ config }: { config: ThemeConfig }) {
     toast(config.toastMessage, { style: config.toastStyle });
   }, [config, setTheme]);
 
-  useCheatCode(config.cheatCode, handleActivate);
+  useCheatCode(config.triggerNames, handleActivate);
 
   return <ThemeSplash imageSrc={config.splashImage} onDone={handleSplashDone} visible={showSplash} />;
 }

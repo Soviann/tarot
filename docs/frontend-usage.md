@@ -42,12 +42,12 @@ L'application est wrappée dans `<ThemeProvider>` de `next-themes` (dans `App.ts
 
 **Fichier** : `frontend/src/services/themeRegistry.ts`
 
-Toute la configuration d'un thème custom (avatars, sons, icônes, splash, cheat code, style toast, etc.) est centralisée dans un registre `CUSTOM_THEMES: Record<string, ThemeConfig>`. Les composants consomment ce registre via `getThemeConfig(resolvedTheme)` au lieu de hardcoder des checks `=== "doom"`.
+Toute la configuration d'un thème custom (avatars, sons, icônes, splash, trigger names, style toast, etc.) est centralisée dans un registre `CUSTOM_THEMES: Record<string, ThemeConfig>`. Les composants consomment ce registre via `getThemeConfig(resolvedTheme)` au lieu de hardcoder des checks `=== "doom"`.
 
 Pour ajouter un nouveau thème custom :
 1. Ajouter une entrée dans `CUSTOM_THEMES` avec toute la `ThemeConfig`
 2. Ajouter les CSS variables et la classe du thème dans `index.css`
-3. Le cheat code, les sons, le splash, le toggle et les avatars fonctionnent automatiquement
+3. Les trigger names (noms de joueur déclencheurs), les sons, le splash, le toggle et les avatars fonctionnent automatiquement
 
 ### Error Boundary
 
@@ -170,7 +170,7 @@ const { resolvedTheme, setTheme, themes } = useTheme();
 
 **Prérequis** : composant dans un `<ThemeProvider>` (configuré dans `App.tsx`).
 
-**Thème Doom** : thème caché activé par le cheat code IDDQD. Palette rouge/noir, police AmazDooMLeft sur les titres, sons Doom contextuels. Les CSS custom properties sont définies dans le bloc `.doom` de `index.css`. Le variant Tailwind `doom:` permet de cibler ce thème.
+**Thème Doom** : thème caché activé en tapant « Doomguy » ou « Doom Guy » dans un champ joueur (recherche ou création). Palette rouge/noir, police AmazDooMLeft sur les titres, sons Doom contextuels. Les CSS custom properties sont définies dans le bloc `.doom` de `index.css`. Le variant Tailwind `doom:` permet de cibler ce thème.
 
 ### Toasts (sonner)
 
@@ -458,10 +458,10 @@ mutation.mutate(undefined, {
 
 **Fichier** : `hooks/useCheatCode.ts`
 
-Hook générique détectant une séquence de touches clavier sur `document`. Réinitialisation sur mauvaise touche ou timeout de 3 secondes. Case-insensitive.
+Hook détectant des noms déclencheurs dans les champs `<input>` marqués `data-cheat-target`. Écoute les événements `input` sur `document`, comparaison case-insensitive avec trim.
 
 ```ts
-useCheatCode("iddqd", () => { /* séquence complète */ });
+useCheatCode(["doomguy", "doom guy"], () => { /* nom détecté */ });
 ```
 
 ### `useThemeSounds`

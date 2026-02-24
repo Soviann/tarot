@@ -137,6 +137,7 @@ export default function Players() {
       </header>
 
       <SearchInput
+        inputProps={{ "data-cheat-target": "" }}
         onSearch={setSearch}
         placeholder="Rechercher un joueur…"
       />
@@ -216,6 +217,7 @@ export default function Players() {
           <div>
             <input
               className="w-full rounded-lg border border-surface-border bg-surface-primary px-3 py-2 text-text-primary placeholder:text-text-muted focus:border-accent-400 focus:outline-none focus:ring-1 focus:ring-accent-400"
+              data-cheat-target=""
               onChange={(e) => setNewName(e.target.value)}
               placeholder="Nom du joueur"
               required
