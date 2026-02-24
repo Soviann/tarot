@@ -7,13 +7,15 @@
  *   vi.mock("recharts", () => import("../../mocks/recharts"));
  */
 
-/** Captured props from Tooltip / Legend — tests can read formatter functions from these. */
+/** Captured props from Tooltip / Legend / XAxis — tests can read formatter functions from these. */
 export const tooltipProps: Record<string, unknown> = {};
 export const legendProps: Record<string, unknown> = {};
+export const xAxisProps: Record<string, unknown> = {};
 
 export function resetCapturedProps(): void {
   for (const k of Object.keys(tooltipProps)) delete tooltipProps[k];
   for (const k of Object.keys(legendProps)) delete legendProps[k];
+  for (const k of Object.keys(xAxisProps)) delete xAxisProps[k];
 }
 
 export const Cell = ({ fill }: { fill: string }) => <div data-fill={fill} data-testid="cell" />;
@@ -39,5 +41,8 @@ export const Tooltip = (props: Record<string, unknown>) => {
   Object.assign(tooltipProps, props);
   return <div data-testid="tooltip" />;
 };
-export const XAxis = () => <div data-testid="x-axis" />;
+export const XAxis = (props: Record<string, unknown>) => {
+  Object.assign(xAxisProps, props);
+  return <div data-testid="x-axis" />;
+};
 export const YAxis = () => <div data-testid="y-axis" />;

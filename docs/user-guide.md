@@ -463,7 +463,7 @@ où **K** règle la vitesse à laquelle le rating évolue (plus K est grand, plu
 
 ### Où le trouver
 
-- **Page Statistiques** : une section **« Classement ELO »** affiche tous les joueurs triés par rating décroissant, avec un code couleur (vert > 1500, rouge < 1500). En dessous, un graphique **« Évolution ELO »** montre les courbes de tous les joueurs sur un même graphique, avec un menu déroulant « Joueurs » pour masquer/afficher chaque joueur. La ligne de référence à 1500 sert de repère.
+- **Page Statistiques** : une section **« Classement ELO »** affiche tous les joueurs triés par rating décroissant, avec un code couleur (vert > 1500, rouge < 1500). En dessous, un graphique **« Évolution ELO »** montre les courbes de tous les joueurs sur un même graphique, avec un menu déroulant « Joueurs » pour masquer/afficher chaque joueur. La ligne de référence à 1500 sert de repère. Le graphique supporte le **zoom** (molette ou pinch) et le **scroll horizontal** (Shift+molette, drag ou swipe) pour naviguer dans les données. Double-clic ou double-tap pour réinitialiser.
 - **Statistiques d'un joueur** : la carte « ELO » affiche le rating actuel, et un graphique **« Évolution ELO »** montre la courbe au fil des donnes
 
 ### Recalcul et suppression

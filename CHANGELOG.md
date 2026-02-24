@@ -6,6 +6,10 @@ Le format est basé sur [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/)
 
 ## [Unreleased]
 
+### Added
+
+- **Zoom graphe Elo** : zoom et scroll horizontal sur le graphe d'évolution Elo global (molette, pinch-to-zoom, drag/swipe pour naviguer), double-clic/tap pour réinitialiser
+
 ## [1.6.1] - 2026-02-24
 
 ### Added
