@@ -2,6 +2,7 @@ import { render, screen } from "@testing-library/react";
 import ContractDistributionChart from "../../components/ContractDistributionChart";
 import { Contract } from "../../types/enums";
 import type { ContractDistributionEntry } from "../../types/api";
+import { legendProps, tooltipProps } from "../mocks/recharts";
 
 vi.mock("recharts", () => import("../mocks/recharts"));
 
@@ -13,6 +14,11 @@ const sampleData: ContractDistributionEntry[] = [
 ];
 
 describe("ContractDistributionChart", () => {
+  beforeEach(() => {
+    Object.keys(tooltipProps).forEach((k) => delete tooltipProps[k]);
+    Object.keys(legendProps).forEach((k) => delete legendProps[k]);
+  });
+
   it("renders empty message when data is empty", () => {
     render(<ContractDistributionChart data={[]} />);
 
@@ -55,5 +61,51 @@ describe("ContractDistributionChart", () => {
     const container = screen.getByTestId("responsive-container");
     expect(container).toHaveAttribute("data-min-width", "0");
     expect(container).toHaveAttribute("data-min-height", "0");
+  });
+
+  it("tooltip formatter displays percentage", () => {
+    render(<ContractDistributionChart data={sampleData} />);
+
+    const formatter = tooltipProps.formatter as (
+      value: number,
+      name: string,
+      props: { payload: { percentage: number } },
+    ) => [string, string];
+    const result = formatter(12, "Petite", { payload: { percentage: 40 } });
+    expect(result).toEqual(["12 (40%)", "Donnes"]);
+  });
+
+  it("legend formatter displays count", () => {
+    render(<ContractDistributionChart data={sampleData} />);
+
+    const formatter = legendProps.formatter as (
+      value: string,
+      entry: { payload?: { value?: number } },
+    ) => React.ReactNode;
+    const result = formatter("Petite", { payload: { value: 12 } });
+    const { getByText } = render(<>{result}</>);
+    expect(getByText("Petite (12)")).toBeInTheDocument();
+  });
+
+  it("uses fallback label for unknown contract", () => {
+    const unknownData: ContractDistributionEntry[] = [
+      { contract: "unknown_contract" as Contract, count: 5, percentage: 100 },
+    ];
+    render(<ContractDistributionChart data={unknownData} />);
+
+    // The fallback label is the raw contract string — it appears in the Pie data
+    // Cell is rendered with the name as key
+    const pie = screen.getByTestId("pie");
+    expect(pie).toHaveAttribute("data-entry-count", "1");
+  });
+
+  it("uses fallback color for unknown contract", () => {
+    const unknownData: ContractDistributionEntry[] = [
+      { contract: "unknown_contract" as Contract, count: 5, percentage: 100 },
+    ];
+    render(<ContractDistributionChart data={unknownData} />);
+
+    const cell = screen.getByTestId("cell");
+    expect(cell).toHaveAttribute("data-fill", "var(--color-accent-400)");
   });
 });

@@ -3,6 +3,8 @@ import userEvent from "@testing-library/user-event";
 import { Chelem, Contract, Poignee, Side } from "../../types/enums";
 import type { Game, GamePlayer } from "../../types/api";
 import ScoreEvolutionChart, { computeScoreEvolution } from "../../components/ScoreEvolutionChart";
+import { PLAYER_PALETTE } from "../../components/ui/PlayerAvatar";
+import { tooltipProps } from "../mocks/recharts";
 
 vi.mock("recharts", () => import("../mocks/recharts"));
 
@@ -94,6 +96,10 @@ describe("computeScoreEvolution", () => {
 });
 
 describe("ScoreEvolutionChart", () => {
+  beforeEach(() => {
+    Object.keys(tooltipProps).forEach((k) => delete tooltipProps[k]);
+  });
+
   it("renders nothing when fewer than 2 games", () => {
     const { container } = render(
       <ScoreEvolutionChart games={[twoGames[0]]} players={players} />,
@@ -191,5 +197,40 @@ describe("ScoreEvolutionChart", () => {
 
     const chart = screen.getByTestId("line-chart");
     expect(chart).toHaveAttribute("data-point-count", "8");
+  });
+
+  it("hidden chip has opacity-40 class", async () => {
+    const user = userEvent.setup();
+    render(<ScoreEvolutionChart games={twoGames} players={players} />);
+
+    const aliceChip = screen.getByText("Alice");
+    await user.click(aliceChip);
+
+    expect(aliceChip).toHaveClass("opacity-40");
+  });
+
+  it("hidden chip has no background color", async () => {
+    const user = userEvent.setup();
+    render(<ScoreEvolutionChart games={twoGames} players={players} />);
+
+    const aliceChip = screen.getByText("Alice");
+    await user.click(aliceChip);
+
+    expect(aliceChip.style.backgroundColor).toBe("");
+  });
+
+  it("uses PLAYER_PALETTE fallback for player without custom color", () => {
+    render(<ScoreEvolutionChart games={twoGames} players={players} />);
+
+    // Bob has id=2, color=null → fallback is PLAYER_PALETTE[2 % 10] = "#e9c46a"
+    const bobChip = screen.getByText("Bob");
+    expect(bobChip).toHaveStyle({ backgroundColor: PLAYER_PALETTE[2 % PLAYER_PALETTE.length] });
+  });
+
+  it("tooltip labelFormatter returns 'Donne <label>'", () => {
+    render(<ScoreEvolutionChart games={twoGames} players={players} />);
+
+    const labelFormatter = tooltipProps.labelFormatter as (label: number) => string;
+    expect(labelFormatter(5)).toBe("Donne 5");
   });
 });
