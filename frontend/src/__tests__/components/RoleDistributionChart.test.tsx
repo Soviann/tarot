@@ -1,13 +1,12 @@
 import { render, screen } from "@testing-library/react";
 import RoleDistributionChart from "../../components/RoleDistributionChart";
-import { legendProps, tooltipProps } from "../mocks/recharts";
+import { legendProps, resetCapturedProps, tooltipProps } from "../mocks/recharts";
 
 vi.mock("recharts", () => import("../mocks/recharts"));
 
 describe("RoleDistributionChart", () => {
   beforeEach(() => {
-    Object.keys(tooltipProps).forEach((k) => delete tooltipProps[k]);
-    Object.keys(legendProps).forEach((k) => delete legendProps[k]);
+    resetCapturedProps();
   });
 
   it("renders empty message when all roles are zero", () => {

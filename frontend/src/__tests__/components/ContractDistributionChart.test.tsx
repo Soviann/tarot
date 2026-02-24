@@ -2,7 +2,7 @@ import { render, screen } from "@testing-library/react";
 import ContractDistributionChart from "../../components/ContractDistributionChart";
 import { Contract } from "../../types/enums";
 import type { ContractDistributionEntry } from "../../types/api";
-import { legendProps, tooltipProps } from "../mocks/recharts";
+import { legendProps, resetCapturedProps, tooltipProps } from "../mocks/recharts";
 
 vi.mock("recharts", () => import("../mocks/recharts"));
 
@@ -15,8 +15,7 @@ const sampleData: ContractDistributionEntry[] = [
 
 describe("ContractDistributionChart", () => {
   beforeEach(() => {
-    Object.keys(tooltipProps).forEach((k) => delete tooltipProps[k]);
-    Object.keys(legendProps).forEach((k) => delete legendProps[k]);
+    resetCapturedProps();
   });
 
   it("renders empty message when data is empty", () => {

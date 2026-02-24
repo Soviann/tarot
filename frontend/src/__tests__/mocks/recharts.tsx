@@ -11,6 +11,11 @@
 export const tooltipProps: Record<string, unknown> = {};
 export const legendProps: Record<string, unknown> = {};
 
+export function resetCapturedProps(): void {
+  for (const k of Object.keys(tooltipProps)) delete tooltipProps[k];
+  for (const k of Object.keys(legendProps)) delete legendProps[k];
+}
+
 export const Cell = ({ fill }: { fill: string }) => <div data-fill={fill} data-testid="cell" />;
 export const Legend = (props: Record<string, unknown>) => {
   Object.assign(legendProps, props);

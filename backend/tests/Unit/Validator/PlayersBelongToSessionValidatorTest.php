@@ -53,6 +53,23 @@ class PlayersBelongToSessionValidatorTest extends ConstraintValidatorTestCase
             ->assertRaised();
     }
 
+    public function testNullPartnerIsValid(): void
+    {
+        $taker = $this->createPlayer(1, 'Alice');
+        $session = new Session();
+        $session->addPlayer($taker);
+
+        $game = new Game();
+        $game->setContract(Contract::Petite);
+        $game->setPartner(null);
+        $game->setSession($session);
+        $game->setTaker($taker);
+
+        $this->validator->validate($game, new PlayersBelongToSession());
+
+        $this->assertNoViolation();
+    }
+
     public function testPartnerInSessionIsValid(): void
     {
         $partner = $this->createPlayer(2, 'Bob');

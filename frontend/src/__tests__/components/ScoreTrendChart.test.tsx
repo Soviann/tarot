@@ -1,7 +1,7 @@
 import { render, screen } from "@testing-library/react";
 import ScoreTrendChart from "../../components/ScoreTrendChart";
 import type { RecentScoreEntry } from "../../types/api";
-import { tooltipProps } from "../mocks/recharts";
+import { resetCapturedProps, tooltipProps } from "../mocks/recharts";
 
 vi.mock("recharts", () => import("../mocks/recharts"));
 
@@ -13,7 +13,7 @@ const sampleData: RecentScoreEntry[] = [
 
 describe("ScoreTrendChart", () => {
   beforeEach(() => {
-    Object.keys(tooltipProps).forEach((k) => delete tooltipProps[k]);
+    resetCapturedProps();
   });
 
   it("renders empty message when data is empty", () => {

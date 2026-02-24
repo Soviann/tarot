@@ -4,7 +4,7 @@ import { Chelem, Contract, Poignee, Side } from "../../types/enums";
 import type { Game, GamePlayer } from "../../types/api";
 import ScoreEvolutionChart, { computeScoreEvolution } from "../../components/ScoreEvolutionChart";
 import { PLAYER_PALETTE } from "../../components/ui/PlayerAvatar";
-import { tooltipProps } from "../mocks/recharts";
+import { resetCapturedProps, tooltipProps } from "../mocks/recharts";
 
 vi.mock("recharts", () => import("../mocks/recharts"));
 
@@ -97,7 +97,7 @@ describe("computeScoreEvolution", () => {
 
 describe("ScoreEvolutionChart", () => {
   beforeEach(() => {
-    Object.keys(tooltipProps).forEach((k) => delete tooltipProps[k]);
+    resetCapturedProps();
   });
 
   it("renders nothing when fewer than 2 games", () => {
