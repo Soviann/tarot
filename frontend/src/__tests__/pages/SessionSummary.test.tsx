@@ -169,4 +169,135 @@ describe("SessionSummary page", () => {
       expect(toast.error).toHaveBeenCalledWith("Échec du partage");
     });
   });
+
+  it("renders podium with only one player", () => {
+    const customSummary = {
+      ...mockSummary,
+      ranking: [
+        {
+          playerColor: null,
+          playerId: 1,
+          playerName: "Alice",
+          position: 1,
+          score: 200,
+        },
+      ],
+    };
+
+    vi.mocked(useSessionSummaryModule.useSessionSummary).mockReturnValue({
+      data: customSummary,
+      isPending: false,
+    } as ReturnType<typeof useSessionSummaryModule.useSessionSummary>);
+
+    renderWithProviders(<SessionSummary />);
+
+    expect(screen.getAllByText("Alice").length).toBeGreaterThanOrEqual(1);
+    expect(screen.queryByText("🥈")).not.toBeInTheDocument();
+    expect(screen.queryByText("🥉")).not.toBeInTheDocument();
+  });
+
+  it("renders podium with two players", () => {
+    const customSummary = {
+      ...mockSummary,
+      ranking: [
+        {
+          playerColor: null,
+          playerId: 1,
+          playerName: "Alice",
+          position: 1,
+          score: 200,
+        },
+        {
+          playerColor: null,
+          playerId: 2,
+          playerName: "Bob",
+          position: 2,
+          score: 50,
+        },
+      ],
+    };
+
+    vi.mocked(useSessionSummaryModule.useSessionSummary).mockReturnValue({
+      data: customSummary,
+      isPending: false,
+    } as ReturnType<typeof useSessionSummaryModule.useSessionSummary>);
+
+    renderWithProviders(<SessionSummary />);
+
+    expect(screen.getByText("🥇")).toBeInTheDocument();
+    expect(screen.getByText("🥈")).toBeInTheDocument();
+    expect(screen.queryByText("🥉")).not.toBeInTheDocument();
+  });
+
+  it("shows empty ranking message when no games", () => {
+    const customSummary = {
+      ...mockSummary,
+      ranking: [],
+      highlights: {
+        ...mockSummary.highlights,
+        totalGames: 0,
+      },
+    };
+
+    vi.mocked(useSessionSummaryModule.useSessionSummary).mockReturnValue({
+      data: customSummary,
+      isPending: false,
+    } as ReturnType<typeof useSessionSummaryModule.useSessionSummary>);
+
+    renderWithProviders(<SessionSummary />);
+
+    expect(
+      screen.getByText("Aucune donne enregistrée"),
+    ).toBeInTheDocument();
+    expect(screen.queryByText("🥇")).not.toBeInTheDocument();
+  });
+
+  it("hides awards section when awards are empty", () => {
+    const customSummary = {
+      ...mockSummary,
+      awards: [],
+    };
+
+    vi.mocked(useSessionSummaryModule.useSessionSummary).mockReturnValue({
+      data: customSummary,
+      isPending: false,
+    } as ReturnType<typeof useSessionSummaryModule.useSessionSummary>);
+
+    renderWithProviders(<SessionSummary />);
+
+    expect(screen.queryByText("Distinctions")).not.toBeInTheDocument();
+  });
+
+  it("renders highlights without optional fields", () => {
+    const customSummary = {
+      ...mockSummary,
+      highlights: {
+        bestGame: null,
+        duration: 1800,
+        lastPlace: null,
+        mostPlayedContract: null,
+        mvp: null,
+        totalGames: 5,
+        totalStars: 0,
+        worstGame: null,
+      },
+    };
+
+    vi.mocked(useSessionSummaryModule.useSessionSummary).mockReturnValue({
+      data: customSummary,
+      isPending: false,
+    } as ReturnType<typeof useSessionSummaryModule.useSessionSummary>);
+
+    renderWithProviders(<SessionSummary />);
+
+    expect(screen.getByText("Faits marquants")).toBeInTheDocument();
+    expect(screen.queryByText("MVP")).not.toBeInTheDocument();
+    expect(screen.queryByText("Lanterne rouge")).not.toBeInTheDocument();
+    expect(screen.queryByText("Meilleure donne")).not.toBeInTheDocument();
+    expect(screen.queryByText("Pire donne")).not.toBeInTheDocument();
+    expect(screen.queryByText("Contrat favori")).not.toBeInTheDocument();
+    expect(screen.getByText("Durée")).toBeInTheDocument();
+    expect(screen.getByText("Donnes jouées")).toBeInTheDocument();
+    expect(screen.getByText("Étoiles")).toBeInTheDocument();
+  });
 });
