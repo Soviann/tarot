@@ -15,7 +15,7 @@ export interface SoundEffect {
 export interface ThemeConfig {
   activationSound: string;
   avatars: ThemeAvatarConfig;
-  cheatCode: string;
+  triggerNames: string[];
   dealerIcon: string;
   logo: string;
   name: string;
@@ -87,7 +87,7 @@ export const CUSTOM_THEMES: Record<string, ThemeConfig> = {
       ],
       initialsPosition: "hidden",
     },
-    cheatCode: "iddqd",
+    triggerNames: ["doomguy", "doom guy"],
     dealerIcon: "/images/doom/doomguy-face-512.png",
     logo: "/images/doom/doom-logo-256x256.png",
     name: "doom",

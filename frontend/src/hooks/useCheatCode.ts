@@ -1,36 +1,21 @@
-import { useEffect, useRef } from "react";
+import { useEffect } from "react";
 
-export function useCheatCode(code: string, onActivate: () => void): void {
-  const indexRef = useRef(0);
-  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const chars = code.toLowerCase().split("");
-
+export function useCheatCode(triggerNames: string[], onActivate: () => void): void {
   useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (timerRef.current) {
-        clearTimeout(timerRef.current);
-        timerRef.current = null;
-      }
+    const normalized = triggerNames.map((n) => n.toLowerCase().trim());
 
-      if (e.key.toLowerCase() === chars[indexRef.current]) {
-        indexRef.current++;
-        if (indexRef.current === chars.length) {
-          indexRef.current = 0;
-          onActivate();
-          return;
-        }
-        timerRef.current = setTimeout(() => {
-          indexRef.current = 0;
-        }, 3000);
-      } else {
-        indexRef.current = 0;
+    const handleInput = (e: Event) => {
+      const target = e.target;
+      if (!(target instanceof HTMLInputElement)) return;
+      if (!target.hasAttribute("data-cheat-target")) return;
+
+      const value = target.value.toLowerCase().trim();
+      if (normalized.includes(value)) {
+        onActivate();
       }
     };
 
-    document.addEventListener("keydown", handleKeyDown);
-    return () => {
-      document.removeEventListener("keydown", handleKeyDown);
-      if (timerRef.current) clearTimeout(timerRef.current);
-    };
-  }, [chars, onActivate]);
+    document.addEventListener("input", handleInput);
+    return () => document.removeEventListener("input", handleInput);
+  }, [triggerNames, onActivate]);
 }

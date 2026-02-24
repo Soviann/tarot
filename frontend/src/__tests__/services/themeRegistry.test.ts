@@ -7,7 +7,7 @@ describe("themeRegistry", () => {
 
     expect(config).toBeDefined();
     expect(config?.name).toBe("doom");
-    expect(config?.cheatCode).toBe("iddqd");
+    expect(config?.triggerNames).toEqual(["doomguy", "doom guy"]);
     expect(config?.starIcons.length).toBeGreaterThan(0);
     expect(config?.avatars.icons.length).toBeGreaterThan(0);
   });
