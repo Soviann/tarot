@@ -8,6 +8,7 @@ Le format est basé sur [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/)
 
 ### Added
 
+- **Tests phase 2** : ~92 tests backend — unit tests processeurs (EloRevertHelper, GameCreate/Complete/Delete, SessionCreate/Patch, StarEventCreate, providers), unit tests GlobalStatisticsService, tests intégration repositories (GameRepository, ScoreEntryRepository, SessionRepository). Extraction `completeGame()` dans `ApiTestCase`.
 - **Tests phase 1** : 8 tests `api.ts` (fetch mock, ApiError, headers, 204, erreurs), 11 tests validators backend (PlayersBelongToSession, DealerBelongsToSession, OnlyLastGameEditable), 13 tests formatters charts (Tooltip/Legend), 15 tests `GroupDetail` (CRUD, modales, édition nom), 12 tests `SessionPage` (memes, graphe, overflow, pagination, close session)
 
 ### Fixed
