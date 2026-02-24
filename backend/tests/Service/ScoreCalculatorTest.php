@@ -244,18 +244,8 @@ class ScoreCalculatorTest extends TestCase
     public function testPetitAuBoutDefenseAttaquePerdue(): void
     {
         // Petit au bout joué par la défense, attaque perd
-        // → +10 × multiplier pour la défense (positif pour défense = négatif pour attaque... non)
-        // La défense joue le petit au bout ET gagne → bonus positif pour la défense
-        // Du point de vue attaque : base=-41, petit au bout=+10×1=+10 (au bénéfice de la défense = -10 pour attaque)
-        // Attends, reformulons : petit au bout = 10 × multiplier, signé selon que le camp qui l'a joué gagne ou non
-        // Défense l'a joué, défense gagne → bonus positif pour la défense = négatif pour l'attaque
-        // base=-41, petit au bout ajouté au total = -10×1, total=-51
-        // Non, c'est le même signe : si la défense joue et gagne, c'est négatif pour le preneur
+        // Défense joue et gagne → bonus négatif pour l'attaque : -10×mult
         // Petite, base=-41, petit au bout=-10×1=-10, total=-51
-        // Hmm, attendons : Defense joue le petit au bout, attaque perd
-        // → le camp qui a joué le petit au bout GAGNE → +10×mult pour ce camp
-        // → Pour l'attaque c'est négatif : -10×mult
-        // total = -41 + (-10) = -51
         $game = $this->createGame(
             contract: Contract::Petite,
             oudlers: 0,
