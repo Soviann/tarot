@@ -6,6 +6,8 @@ Le format est basé sur [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/)
 
 ## [Unreleased]
 
+## [1.6.1] - 2026-02-24
+
 ### Added
 
 - **Tests phase 3** : ~43 tests — 16 tests DTO mapping/sérialisation (coercion string→int, BackedEnum→value, DateTimeImmutable), 10 tests edge cases ScoreCalculator (points exacts par oudler, scores extrêmes, exceptions null), 5 tests CompletedGamesExtension (filtre automatique parties en cours), 5 tests branches PlayerStats (métriques conditionnelles, sections filtrées), 5 tests branches SessionSummary (podium 1-2 joueurs, highlights optionnels, awards vides), 3 tests PlayerAvatar rendu thématique (Doom icons, initialsPosition)
