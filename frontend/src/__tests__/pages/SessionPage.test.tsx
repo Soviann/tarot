@@ -24,7 +24,6 @@ import * as useSessionGamesModule from "../../hooks/useSessionGames";
 import * as useShakeModule from "../../hooks/useShake";
 import * as useUpdateDealerModule from "../../hooks/useUpdateDealer";
 import * as useUpdateSessionGroupModule from "../../hooks/useUpdateSessionGroup";
-import * as useUpsideDownModule from "../../hooks/useUpsideDown";
 import * as apiModule from "../../services/api";
 import { selectMeme } from "../../services/memeSelector";
 import { renderWithProviders } from "../test-utils";
@@ -53,7 +52,6 @@ vi.mock("../../hooks/useGameEventListener");
 vi.mock("../../hooks/useReorderPlayers");
 vi.mock("../../hooks/useShake");
 vi.mock("../../hooks/useUpdateSessionGroup");
-vi.mock("../../hooks/useUpsideDown");
 vi.mock("../../services/gameEvents", () => ({
   gameEvents: { emit: vi.fn(), off: vi.fn(), on: vi.fn() },
 }));
@@ -515,7 +513,6 @@ function setupMocks(overrides?: {
   } as unknown as ReturnType<typeof useReorderPlayersModule.useReorderPlayers>);
 
   vi.mocked(useShakeModule.useShake).mockImplementation(() => {});
-  vi.mocked(useUpsideDownModule.useUpsideDown).mockReturnValue(false);
   vi.mocked(selectMeme).mockReturnValue(null);
 
   vi.mocked(useUpdateDealerModule.useUpdateDealer).mockReturnValue({
@@ -1053,5 +1050,35 @@ describe("SessionPage", () => {
     await waitFor(() => {
       expect(screen.queryByRole("dialog", { name: "Mème" })).not.toBeInTheDocument();
     });
+  });
+
+  it("inverts scores on shake then shows modal after delay", () => {
+    vi.useFakeTimers();
+    setupMocks();
+
+    let capturedOnShake: (() => void) | null = null;
+    vi.mocked(useShakeModule.useShake).mockImplementation((onShake) => {
+      capturedOnShake = onShake;
+    });
+
+    renderWithProviders(<SessionPage />);
+
+    // Initially no inverted indicator
+    expect(screen.queryByTitle("Classement inversé")).not.toBeInTheDocument();
+
+    // Shake → scores inverted
+    act(() => {
+      capturedOnShake?.();
+    });
+    expect(screen.getByTitle("Classement inversé")).toBeInTheDocument();
+
+    // After 12s delay → inversion removed and modal shown
+    act(() => {
+      vi.advanceTimersByTime(12000);
+    });
+    expect(screen.queryByTitle("Classement inversé")).not.toBeInTheDocument();
+    expect(screen.getByText("Eh non, bien essayé 😏")).toBeInTheDocument();
+
+    vi.useRealTimers();
   });
 });

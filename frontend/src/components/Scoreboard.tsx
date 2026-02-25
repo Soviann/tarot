@@ -31,7 +31,7 @@ interface ScoreboardProps {
   addStarPending?: boolean;
   cumulativeScores: CumulativeScore[];
   currentDealerId?: number | null;
-  isUpsideDown?: boolean;
+  isScoreInverted?: boolean;
   onAddStar?: (playerId: number) => void;
   onDealerChange?: () => void;
   players: GamePlayer[];
@@ -42,7 +42,7 @@ export default function Scoreboard({
   addStarPending = false,
   cumulativeScores,
   currentDealerId,
-  isUpsideDown = false,
+  isScoreInverted = false,
   onAddStar,
   onDealerChange,
   players,
@@ -65,13 +65,13 @@ export default function Scoreboard({
   }, [starEvents]);
 
   const displayScoreMap = useMemo(() => {
-    if (!isUpsideDown) return scoreMap;
+    if (!isScoreInverted) return scoreMap;
     const negated = new Map<number, number>();
     for (const [id, score] of scoreMap) {
       negated.set(id, -score);
     }
     return negated;
-  }, [isUpsideDown, scoreMap]);
+  }, [isScoreInverted, scoreMap]);
 
   // Nouveau tirage aléatoire uniquement quand le donneur change
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -79,7 +79,7 @@ export default function Scoreboard({
 
   return (
     <div className="relative">
-      {isUpsideDown && (
+      {isScoreInverted && (
         <div className="absolute -top-5 right-0 flex items-center gap-1 text-xs text-text-muted" title="Classement inversé">
           <svg className="size-3 animate-spin" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
             <path d="M4 4v5h5M20 20v-5h-5" strokeLinecap="round" strokeLinejoin="round" />
