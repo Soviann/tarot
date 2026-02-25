@@ -508,16 +508,6 @@ Hook détectant les secousses du téléphone via l'API `DeviceMotionEvent`. Lors
 useShake(() => { /* secoué ! */ }, { enabled: true });
 ```
 
-### `useUpsideDown`
-
-**Fichier** : `hooks/useUpsideDown.ts`
-
-Hook détectant si le téléphone est retourné à l'envers via l'API `DeviceOrientationEvent`. Retourne `true` lorsque `beta < -60°` (entrée) et repasse à `false` lorsque `beta > -30°` (sortie) — hysteresis pour éviter le clignotement. L'option `enabled` permet de désactiver l'écoute.
-
-```ts
-const isUpsideDown = useUpsideDown({ enabled: true });
-```
-
 ### `usePinchZoom`
 
 **Fichier** : `hooks/usePinchZoom.ts`
@@ -954,12 +944,11 @@ Page d'aide in-app reprenant le contenu du guide utilisateur (`docs/user-guide.m
 - FAB masqué quand la session est clôturée
 - Bouton retour vers l'accueil
 - États : chargement, session introuvable
-- **Easter egg shake** : secouer le téléphone retourne le tableau des scores (rotation 180°) pendant 2 secondes, puis affiche une modale « Eh non, bien essayé 😏 » avec un GIF
+- **Easter egg shake** : secouer le téléphone inverse les scores affichés (×-1, positifs ↔ négatifs) pendant 12 secondes avec une icône de feedback visuel, puis affiche une modale « Eh non, bien essayé 😏 » avec un GIF
 - **Easter egg "Mind Blown"** : saisir exactement 42 points ajoute le mème "Mind Blown" (poids 40) au pool pondéré via `selectMeme`
 - **Easter egg "To infinity and beyond!"** : score individuel du preneur ≥ ±200 points ajoute le mème Buzz l'Éclair (poids 30) au pool pondéré via `selectMeme`
-- **Easter egg gyroscope inversé** : retourner le téléphone à l'envers (API DeviceOrientation, beta < -60°) inverse les scores affichés (positifs ↔ négatifs) dans le Scoreboard avec une icône de feedback visuel ; hysteresis à -30° pour éviter le clignotement
 
-**Hooks utilisés** : `useSession`, `useSessionGames`, `useAllSessionGames`, `useAddStar`, `useCloseSession`, `useCreateGame`, `useCreateSession` (via SwapPlayersModal), `useCompleteGame`, `useDeleteGame`, `usePlayerGroups`, `useReorderPlayers`, `useShake`, `useUpsideDown`, `useUpdateDealer`, `useUpdateSessionGroup`, `useNavigate`
+**Hooks utilisés** : `useSession`, `useSessionGames`, `useAllSessionGames`, `useAddStar`, `useCloseSession`, `useCreateGame`, `useCreateSession` (via SwapPlayersModal), `useCompleteGame`, `useDeleteGame`, `usePlayerGroups`, `useReorderPlayers`, `useShake`, `useUpdateDealer`, `useUpdateSessionGroup`, `useNavigate`
 
 **Modales** :
 - `AddStarModal` : confirmation avant attribution d'étoile à un joueur

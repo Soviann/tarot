@@ -33,7 +33,6 @@ import { toast } from "sonner";
 import { useUpdateDealer } from "../hooks/useUpdateDealer";
 import { useUpdateSessionGroup } from "../hooks/useUpdateSessionGroup";
 import { useGameEventListener } from "../hooks/useGameEventListener";
-import { useUpsideDown } from "../hooks/useUpsideDown";
 import { apiFetch } from "../services/api";
 import { gameEvents } from "../services/gameEvents";
 import type { GameContext, MemeConfig } from "../services/memeSelector";
@@ -82,18 +81,18 @@ export default function SessionPage() {
   const [activeMeme, setActiveMeme] = useState<MemeConfig | null>(null);
   const [badgeModalBadges, setBadgeModalBadges] = useState<Record<string, Badge[]> | null>(null);
 
-  // Shake easter egg
-  const [scoresFlipped, setScoresFlipped] = useState(false);
+  // Shake easter egg — inverts scores for 12s then shows a modal
+  const [scoresInverted, setScoresInverted] = useState(false);
   const [shakeModalOpen, setShakeModalOpen] = useState(false);
   const shakeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const handleShake = useCallback(() => {
-    setScoresFlipped(true);
+    setScoresInverted(true);
     shakeTimerRef.current = setTimeout(() => {
-      setScoresFlipped(false);
+      setScoresInverted(false);
       setShakeModalOpen(true);
       shakeTimerRef.current = null;
-    }, 2000);
+    }, 12000);
   }, []);
 
   useEffect(() => {
@@ -102,10 +101,7 @@ export default function SessionPage() {
     };
   }, []);
 
-  useShake(handleShake, { enabled: !scoresFlipped && !shakeModalOpen });
-
-  // Gyroscope upside-down easter egg
-  const isUpsideDown = useUpsideDown();
+  useShake(handleShake, { enabled: !scoresInverted && !shakeModalOpen });
 
   const [changeDealerModalOpen, setChangeDealerModalOpen] = useState(false);
   const [changeGroupModalOpen, setChangeGroupModalOpen] = useState(false);
@@ -237,22 +233,20 @@ export default function SessionPage() {
         </div>
       )}
 
-      <div className={`transition-transform duration-500 ${scoresFlipped ? "rotate-180" : ""}`}>
-        <Scoreboard
-          addStarPending={addStar.isPending}
-          cumulativeScores={session.cumulativeScores}
-          currentDealerId={session.currentDealer?.id ?? null}
-          isUpsideDown={isUpsideDown}
-          onAddStar={(playerId) => {
-            setStarPlayerId(playerId);
-            addStar.reset();
-            setStarModalOpen(true);
-          }}
-          onDealerChange={() => setChangeDealerModalOpen(true)}
-          players={orderedPlayers}
-          starEvents={session.starEvents}
-        />
-      </div>
+      <Scoreboard
+        addStarPending={addStar.isPending}
+        cumulativeScores={session.cumulativeScores}
+        currentDealerId={session.currentDealer?.id ?? null}
+        isScoreInverted={scoresInverted}
+        onAddStar={(playerId) => {
+          setStarPlayerId(playerId);
+          addStar.reset();
+          setStarModalOpen(true);
+        }}
+        onDealerChange={() => setChangeDealerModalOpen(true)}
+        players={orderedPlayers}
+        starEvents={session.starEvents}
+      />
 
       {inProgressGame && (
         <InProgressBanner
