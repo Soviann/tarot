@@ -94,7 +94,7 @@ describe("Scoreboard", () => {
     expect(screen.getByTitle("Donneur")).toBeInTheDocument();
   });
 
-  it("negates scores when isUpsideDown is true", () => {
+  it("negates scores when isScoreInverted is true", () => {
     const cumulativeScores = [
       { playerId: 1, playerName: "Alice", score: 120 },
       { playerId: 2, playerName: "Bob", score: -30 },
@@ -104,7 +104,7 @@ describe("Scoreboard", () => {
     renderWithProviders(
       <Scoreboard
         cumulativeScores={cumulativeScores}
-        isUpsideDown
+        isScoreInverted
         players={players}
       />,
     );
@@ -114,11 +114,11 @@ describe("Scoreboard", () => {
     expect(screen.getByText("+30")).toBeInTheDocument();
   });
 
-  it("shows upside-down indicator when isUpsideDown is true", () => {
+  it("shows inverted indicator when isScoreInverted is true", () => {
     renderWithProviders(
       <Scoreboard
         cumulativeScores={[]}
-        isUpsideDown
+        isScoreInverted
         players={players}
       />,
     );
@@ -126,7 +126,7 @@ describe("Scoreboard", () => {
     expect(screen.getByTitle("Classement inversé")).toBeInTheDocument();
   });
 
-  it("does not show upside-down indicator when isUpsideDown is false", () => {
+  it("does not show inverted indicator when isScoreInverted is false", () => {
     renderWithProviders(
       <Scoreboard
         cumulativeScores={[]}

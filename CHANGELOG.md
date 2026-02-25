@@ -10,6 +10,14 @@ Le format est basé sur [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/)
 
 - **Zoom graphe Elo** : zoom et scroll horizontal sur le graphe d'évolution Elo global (molette, pinch-to-zoom, drag/swipe pour naviguer), double-clic/tap pour réinitialiser
 
+### Changed
+
+- **Easter egg shake** : secouer le téléphone inverse les scores (×-1) pendant 12 secondes avant d'afficher la modale « Eh non, bien essayé 😏 » (remplace l'ancienne rotation 180°)
+
+### Removed
+
+- **Easter egg gyroscope inversé** : retourner le téléphone ne déclenche plus rien (le comportement d'inversion des scores est désormais sur le shake)
+
 ## [1.6.1] - 2026-02-24
 
 ### Added

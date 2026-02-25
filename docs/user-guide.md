@@ -553,11 +553,11 @@ Après la saisie d'une donne, un **mème aléatoire** peut apparaître en plein 
 | Défaite (pool de base) | Ah Shit, Here We Go Again (CJ) | Normal |
 | Défaite (pool de base) | Why Are We Still Here? | Normal |
 
-### Easter egg — Gyroscope inversé
+### Easter egg — Shake inversé
 
-Retourner votre téléphone **à l'envers** (écran face à vous, tête en bas) inverse les scores affichés : les positifs deviennent négatifs et vice versa. Les derniers se retrouvent premiers ! Une petite icône 🔄 apparaît pour signaler l'inversion. Remettez le téléphone à l'endroit pour rétablir les scores normaux.
+**Secouez votre téléphone** pendant une session pour inverser les scores affichés : les positifs deviennent négatifs et vice versa. Les derniers se retrouvent premiers ! Une petite icône 🔄 apparaît pour signaler l'inversion. Au bout de 12 secondes, les scores reviennent à la normale et une modale « Eh non, bien essayé 😏 » s'affiche.
 
-> Fonctionne uniquement sur les appareils disposant d'un gyroscope (smartphones, tablettes).
+> Fonctionne uniquement sur les appareils disposant d'un accéléromètre (smartphones, tablettes).
 
 ### Easter egg — Thème secret
 
