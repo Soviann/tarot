@@ -6,12 +6,12 @@ interface UseShakeOptions {
 }
 
 const SHAKE_THRESHOLD = 25;
-const COOLDOWN_MS = 5000;
+const COOLDOWN_MS = 30_000;
 
 export function useShake(onShake: () => void, options?: UseShakeOptions) {
   const enabled = options?.enabled ?? true;
   const lastRef = useRef<{ x: number; y: number; z: number } | null>(null);
-  const cooldownRef = useRef(false);
+  const lastTriggerRef = useRef(0);
   const onShakeRef = useRef(onShake);
   onShakeRef.current = onShake;
 
@@ -29,12 +29,9 @@ export function useShake(onShake: () => void, options?: UseShakeOptions) {
       const dz = Math.abs(z - lastRef.current.z);
       const delta = dx + dy + dz;
 
-      if (delta > SHAKE_THRESHOLD && !cooldownRef.current) {
-        cooldownRef.current = true;
+      if (delta > SHAKE_THRESHOLD && Date.now() - lastTriggerRef.current >= COOLDOWN_MS) {
+        lastTriggerRef.current = Date.now();
         onShakeRef.current();
-        setTimeout(() => {
-          cooldownRef.current = false;
-        }, COOLDOWN_MS);
       }
     }
 
@@ -43,6 +40,9 @@ export function useShake(onShake: () => void, options?: UseShakeOptions) {
 
   useEffect(() => {
     if (!enabled) return;
+
+    // Reset baseline to prevent stale data from triggering a false shake
+    lastRef.current = null;
 
     window.addEventListener("devicemotion", handleMotion as EventListener);
     return () => {
