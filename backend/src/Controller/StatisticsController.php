@@ -7,9 +7,11 @@ namespace App\Controller;
 use App\Dto\DateRange;
 use App\Repository\PlayerRepository;
 use App\Service\GlobalStatisticsService;
+use App\Service\HeadToHeadService;
 use App\Service\PlayerStatisticsService;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\Routing\Attribute\Route;
 
@@ -40,6 +42,41 @@ readonly class StatisticsController
             'totalSessions' => $globalStatisticsService->getTotalSessions($dateRange, $playerGroupId),
             'totalStars' => $globalStatisticsService->getTotalStars($dateRange, $playerGroupId),
         ]);
+    }
+
+    #[Route('/api/statistics/head-to-head', methods: ['GET'])]
+    public function headToHead(Request $request, HeadToHeadService $headToHeadService): JsonResponse
+    {
+        $player1Id = $request->query->get('player1');
+        $player2Id = $request->query->get('player2');
+
+        if (null === $player1Id || null === $player2Id) {
+            throw new BadRequestHttpException('Les paramètres player1 et player2 sont requis.');
+        }
+
+        $player1Id = (int) $player1Id;
+        $player2Id = (int) $player2Id;
+
+        if ($player1Id === $player2Id) {
+            throw new BadRequestHttpException('Les deux joueurs doivent être différents.');
+        }
+
+        $player1 = $this->playerRepository->find($player1Id);
+        if (null === $player1) {
+            throw new NotFoundHttpException('Joueur 1 introuvable.');
+        }
+
+        $player2 = $this->playerRepository->find($player2Id);
+        if (null === $player2) {
+            throw new NotFoundHttpException('Joueur 2 introuvable.');
+        }
+
+        $dateRange = $this->parseDateRange($request);
+        $playerGroupId = $request->query->has('playerGroup')
+            ? (int) $request->query->get('playerGroup')
+            : null;
+
+        return new JsonResponse($headToHeadService->getHeadToHead($player1, $player2, $dateRange, $playerGroupId));
     }
 
     #[Route('/api/statistics/players/{id}', methods: ['GET'])]
