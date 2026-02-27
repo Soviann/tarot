@@ -47,6 +47,7 @@ const BADGE_CATEGORIES: { category: string; badges: { description: string; emoji
       { description: "5 défaites consécutives comme preneur", emoji: "📉", label: "Série noire" },
       { description: "Recevoir 20 étoiles", emoji: "🌟", label: "Étoile montante" },
       { description: "3 étoiles en moins de 2 heures", emoji: "☄️", label: "Pluie d'étoiles" },
+      { description: "???", emoji: "🕹️", label: "???", type: "konami" },
     ],
   },
   {
@@ -210,6 +211,24 @@ export default function Help() {
           Chaque joueur possède un avatar coloré généré automatiquement à
           partir de ses initiales.
         </p>
+        <h3 className="mt-3 font-medium text-text-primary">
+          Modifier un joueur
+        </h3>
+        <p className="mt-1">
+          Appuyer sur un joueur dans la liste pour ouvrir sa fiche. Il est
+          possible de :
+        </p>
+        <ul className="mt-1 list-inside list-disc">
+          <li>Renommer le joueur</li>
+          <li>
+            Choisir la couleur de l'avatar (automatique, 10 couleurs prédéfinies
+            ou couleur personnalisée)
+          </li>
+          <li>
+            Activer / désactiver le joueur (un joueur inactif n'apparaît plus
+            dans les sélections)
+          </li>
+        </ul>
         <h3 className="mt-3 font-medium text-text-primary">Rechercher</h3>
         <p className="mt-1">
           Utiliser la barre de recherche en haut de la liste pour filtrer par
@@ -282,14 +301,17 @@ export default function Help() {
 
         <h3 className="mt-3 font-medium text-text-primary">Donne en cours</h3>
         <p className="mt-1">
-          Si une donne est en cours, un bandeau indique le preneur et le
-          contrat avec un bouton « Compléter ».
+          Si une donne est en cours, un bandeau indique le preneur, le
+          contrat et un chronomètre du temps écoulé, avec un bouton
+          « Compléter ».
         </p>
 
         <h3 className="mt-3 font-medium text-text-primary">Historique</h3>
         <p className="mt-1">
-          Liste des donnes jouées montrant le preneur, le partenaire, le
-          contrat et le résultat.
+          Liste des donnes jouées montrant le numéro, le preneur, le
+          partenaire, le contrat et le résultat. Appuyer sur une donne pour
+          voir le détail : nombre de bouts, écart au contrat et score de
+          chaque joueur.
         </p>
 
         <h3 className="mt-3 font-medium text-text-primary">
@@ -298,6 +320,47 @@ export default function Help() {
         <p className="mt-1">
           Bouton ⇄ pour changer un ou plusieurs joueurs sans repasser par
           l'accueil. Désactivé tant qu'une donne est en cours.
+        </p>
+
+        <h3 className="mt-3 font-medium text-text-primary">
+          Réordonner les joueurs
+        </h3>
+        <p className="mt-1">
+          Via le menu (trois points) → <strong>« Changer l'ordre »</strong>.
+          Les flèches haut/bas permettent de réorganiser les joueurs autour de
+          la table. L'ordre affecte le tableau des scores, le graphique
+          d'évolution et la rotation du donneur.
+        </p>
+
+        <h3 className="mt-3 font-medium text-text-primary">
+          Partager (QR code)
+        </h3>
+        <p className="mt-1">
+          Via le menu → <strong>« Partager (QR) »</strong>. Un QR code
+          s'affiche avec l'URL de la session. Un mode plein écran facilite le
+          scan depuis un autre téléphone ou une TV.
+        </p>
+
+        <h3 className="mt-3 font-medium text-text-primary">
+          Récapitulatif de session
+        </h3>
+        <p className="mt-1">
+          Via le menu → <strong>« Récap »</strong>. Affiche un podium, le
+          classement complet, les faits marquants (MVP, lanterne rouge,
+          meilleur/pire score, contrat le plus joué, durée, nombre de donnes)
+          et des distinctions humoristiques attribuées aux joueurs. Un bouton
+          « Partager » permet de générer une image PNG du récapitulatif.
+        </p>
+
+        <h3 className="mt-3 font-medium text-text-primary">
+          Clôturer une session
+        </h3>
+        <p className="mt-1">
+          Via le menu → <strong>« Terminer la session »</strong>. Après
+          confirmation, la session est clôturée : un bandeau « Session
+          terminée » s'affiche et plus aucune donne ne peut être ajoutée. Il
+          est aussi possible de clôturer toutes les sessions d'un groupe depuis
+          la page du groupe.
         </p>
       </AccordionSection>
 
@@ -327,6 +390,25 @@ export default function Help() {
         </ol>
 
         <h3 className="mt-3 font-medium text-text-primary">
+          Saisie vocale
+        </h3>
+        <p className="mt-1">
+          À l'étape 2, un bouton <strong>microphone</strong> permet de dicter
+          le résultat en français (ex : « cinquante-six points, appelé Pierre,
+          petit au bout »). Les champs sont pré-remplis automatiquement.
+          Disponible sur Chrome, Edge et Safari.
+        </p>
+
+        <h3 className="mt-3 font-medium text-text-primary">
+          Annulation rapide
+        </h3>
+        <p className="mt-1">
+          Après validation d'une donne, un bouton flottant{" "}
+          <strong>« Annuler »</strong> apparaît pendant 5 secondes. Appuyer
+          dessus supprime immédiatement la donne sans confirmation.
+        </p>
+
+        <h3 className="mt-3 font-medium text-text-primary">
           Modifier / Supprimer
         </h3>
         <p className="mt-1">
@@ -338,8 +420,17 @@ export default function Help() {
       <AccordionSection title="Consulter les statistiques">
         <h3 className="font-medium text-text-primary">Classement global</h3>
         <p className="mt-1">
-          Métriques (total donnes/sessions), classement par score total et
-          répartition des contrats.
+          Métriques (total donnes/sessions, durée moyenne par donne, temps de
+          jeu total), classement par score total et répartition des contrats.
+        </p>
+
+        <h3 className="mt-3 font-medium text-text-primary">
+          Filtrer par dates
+        </h3>
+        <p className="mt-1">
+          Des raccourcis (30 j, 3 mois, 6 mois, 1 an, Tout) et deux champs de
+          date permettent de restreindre les statistiques à une période
+          donnée. Disponible sur les statistiques globales et par joueur.
         </p>
 
         <h3 className="mt-3 font-medium text-text-primary">
