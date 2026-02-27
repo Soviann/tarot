@@ -75,6 +75,26 @@ export interface GamePlayer {
   name: string;
 }
 
+export interface HeadToHeadPlayerStats {
+  averageScore: number;
+  calledOtherAsPartner: number;
+  gamesAsTaker: number;
+  gamesAsTakerVsOtherAsDefender: number;
+  playerColor: string | null;
+  playerId: number;
+  playerName: string;
+  totalScore: number;
+  winsAsTaker: number;
+  winsAsTakerVsOtherAsDefender: number;
+}
+
+export interface HeadToHeadStats {
+  player1: HeadToHeadPlayerStats;
+  player2: HeadToHeadPlayerStats;
+  sharedGames: number;
+  sharedSessions: number;
+}
+
 export interface GlobalStatistics {
   averageGameDuration: number | null;
   contractDistribution: ContractDistributionEntry[];
