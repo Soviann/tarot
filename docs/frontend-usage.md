@@ -441,6 +441,24 @@ const { isPending, stats } = usePlayerStats(playerId, null, "2026-01-01", "2026-
 | `isPending` | `boolean` | `true` pendant le chargement initial |
 | …autres | — | Tous les champs de `UseQueryResult` |
 
+### `useHeadToHead`
+
+**Fichier** : `hooks/useHeadToHead.ts`
+
+Récupère les statistiques de comparaison face à face entre deux joueurs. La requête est désactivée si un des deux IDs est manquant ou s'ils sont identiques.
+
+```ts
+const { isPending, stats } = useHeadToHead(player1Id, player2Id);                          // toutes les sessions
+const { isPending, stats } = useHeadToHead(player1Id, player2Id, groupId);                 // sessions du groupe
+const { isPending, stats } = useHeadToHead(player1Id, player2Id, groupId, from, to);       // groupe + dates
+```
+
+| Retour | Type | Description |
+|--------|------|-------------|
+| `stats` | `HeadToHeadStats \| null` | Statistiques H2H (`null` pendant le chargement ou si désactivé) |
+| `isPending` | `boolean` | `true` pendant le chargement initial |
+| …autres | — | Tous les champs de `UseQueryResult` |
+
 ### `useAwardKonamiBadge`
 
 **Fichier** : `hooks/useAwardKonamiBadge.ts`
@@ -903,6 +921,24 @@ Page d'aide in-app reprenant le contenu du guide utilisateur (`docs/user-guide.m
 - États : chargement, erreur
 
 **Hooks utilisés** : `useGlobalStats`, `usePlayerGroups` (via `GroupFilter`), `useNavigate`
+
+### Comparaison face à face (`HeadToHead`)
+
+**Fichier** : `pages/HeadToHead.tsx`
+
+Écran de comparaison VS entre deux joueurs sur leurs sessions communes.
+
+**Route** : `/stats/h2h` (query params `?p1={id}&p2={id}`)
+
+**Fonctionnalités** :
+- Sélection de deux joueurs via `Select`
+- Filtre par groupe (`GroupFilter`) et par tranche de dates (`DateRangeFilter`)
+- Layout VS : avatars, badge VS central, sessions et donnes communes
+- Métriques comparées : score total/moyen, parties preneur, victoires, taux de victoire
+- Confrontations directes (preneur vs défenseur) et partenariats
+- Bouton retour vers `/stats`
+
+**Hooks utilisés** : `useHeadToHead`, `usePlayers`, `usePlayerGroups` (via `GroupFilter`), `useNavigate`, `useSearchParams`
 
 ### Statistiques joueur (`PlayerStats`)
 

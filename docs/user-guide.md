@@ -384,6 +384,21 @@ L'écran principal des statistiques affiche :
 
 Appuyer sur un joueur dans le classement pour voir ses statistiques détaillées.
 
+Un bouton **« Comparer »** à côté du titre permet d'accéder à la page de comparaison face à face.
+
+### Comparaison face à face
+
+Accessible via le bouton **Comparer** sur l'écran des statistiques globales, ou directement via l'URL `/stats/h2h`.
+
+Cette page permet de comparer deux joueurs sur leurs sessions communes :
+
+- **Sélection** : deux menus déroulants pour choisir les joueurs à comparer. Les filtres de groupe et de dates sont disponibles comme sur les autres pages de statistiques.
+- **Bilan central** : badge VS, nombre de sessions et de donnes partagées
+- **Statistiques globales** : score total et score moyen de chaque joueur dans les sessions communes
+- **En tant que preneur** : nombre de prises, victoires et taux de victoire
+- **Confrontations directes** : donnes où l'un est preneur et l'autre défenseur (non partenaire) — nombre et taux de victoire
+- **Partenariats** : nombre de fois où chaque joueur a appelé l'autre comme partenaire
+
 ### Statistiques par joueur
 
 L'écran de détail d'un joueur affiche :

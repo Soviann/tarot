@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Repository;
 
 use App\Dto\DateRange;
+use App\Entity\Player;
 use App\Entity\PlayerGroup;
 use App\Entity\Session;
 use App\Enum\GameStatus;
@@ -128,6 +129,27 @@ final class SessionRepository extends ServiceEntityRepository
         }
 
         return $result;
+    }
+
+    public function countSharedSessions(Player $player1, Player $player2, ?DateRange $dateRange = null, ?int $playerGroupId = null): int
+    {
+        $qb = $this->createQueryBuilder('s')
+            ->select('COUNT(s.id)')
+            ->join('s.players', 'p1')
+            ->join('s.players', 'p2')
+            ->andWhere('p1 = :player1')
+            ->andWhere('p2 = :player2')
+            ->setParameter('player1', $player1)
+            ->setParameter('player2', $player2);
+
+        $this->applyDateFilter($qb, $dateRange, 's', 'createdAt');
+
+        if (null !== $playerGroupId) {
+            $qb->andWhere('s.playerGroup = :group')
+               ->setParameter('group', $playerGroupId);
+        }
+
+        return (int) $qb->getQuery()->getSingleScalarResult();
     }
 
     public function countAll(?DateRange $dateRange = null, ?int $playerGroupId = null): int

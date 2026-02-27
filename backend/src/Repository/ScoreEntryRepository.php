@@ -356,6 +356,41 @@ final class ScoreEntryRepository extends ServiceEntityRepository
     }
 
     /**
+     * @return array{averageScore: float, totalScore: int}
+     */
+    public function getPlayerScoreInSharedSessions(Player $player, Player $other, ?DateRange $dateRange = null, ?int $playerGroupId = null): array
+    {
+        $qb = $this->createQueryBuilder('se')
+            ->select('AVG(se.score) AS averageScore', 'SUM(se.score) AS totalScore')
+            ->join('se.game', 'g')
+            ->join('g.session', 's')
+            ->join('s.players', 'p1')
+            ->join('s.players', 'p2')
+            ->andWhere('p1 = :player1')
+            ->andWhere('p2 = :player2')
+            ->andWhere('se.player = :player')
+            ->andWhere('g.status = :status')
+            ->setParameter('player', $player)
+            ->setParameter('player1', $player)
+            ->setParameter('player2', $other)
+            ->setParameter('status', GameStatus::Completed);
+
+        $this->applyDateFilter($qb, $dateRange, 'g', 'completedAt');
+        if (null !== $playerGroupId) {
+            $qb->andWhere('s.playerGroup = :group')
+               ->setParameter('group', $playerGroupId);
+        }
+
+        /** @var array{averageScore: float|string|null, totalScore: int|string|null} $result */
+        $result = $qb->getQuery()->getSingleResult();
+
+        return [
+            'averageScore' => null !== $result['averageScore'] ? (float) $result['averageScore'] : 0.0,
+            'totalScore' => (int) ($result['totalScore'] ?? 0),
+        ];
+    }
+
+    /**
      * @return array{averageScore: float, bestGameScore: int, gamesPlayed: int, totalScore: int, worstGameScore: int}
      */
     public function getPlayerScoreAggregates(Player $player, ?DateRange $dateRange = null, ?int $playerGroupId = null): array

@@ -47,6 +47,33 @@ final class GameRepository extends ServiceEntityRepository
             ->getSingleScalarResult();
     }
 
+    public function countCalledAsPartner(Player $taker, Player $partner, ?DateRange $dateRange = null, ?int $playerGroupId = null): int
+    {
+        $qb = $this->createQueryBuilder('g')
+            ->select('COUNT(g.id)')
+            ->join('g.session', 's')
+            ->join('s.players', 'p1')
+            ->join('s.players', 'p2')
+            ->andWhere('p1 = :player1')
+            ->andWhere('p2 = :player2')
+            ->andWhere('g.taker = :taker')
+            ->andWhere('g.partner = :partner')
+            ->andWhere('g.status = :status')
+            ->setParameter('partner', $partner)
+            ->setParameter('player1', $taker)
+            ->setParameter('player2', $partner)
+            ->setParameter('status', GameStatus::Completed)
+            ->setParameter('taker', $taker);
+
+        $this->applyDateFilter($qb, $dateRange, 'g', 'completedAt');
+        if (null !== $playerGroupId) {
+            $qb->andWhere('s.playerGroup = :group')
+               ->setParameter('group', $playerGroupId);
+        }
+
+        return (int) $qb->getQuery()->getSingleScalarResult();
+    }
+
     public function countCompletedForSession(Session $session): int
     {
         return $this->countBySessionAndStatus($session, GameStatus::Completed);
@@ -217,6 +244,139 @@ final class GameRepository extends ServiceEntityRepository
             ->setParameter('session', $session)
             ->getQuery()
             ->getSingleScalarResult();
+    }
+
+    public function countSharedCompletedGames(Player $player1, Player $player2, ?DateRange $dateRange = null, ?int $playerGroupId = null): int
+    {
+        $qb = $this->createQueryBuilder('g')
+            ->select('COUNT(g.id)')
+            ->join('g.session', 's')
+            ->join('s.players', 'p1')
+            ->join('s.players', 'p2')
+            ->andWhere('p1 = :player1')
+            ->andWhere('p2 = :player2')
+            ->andWhere('g.status = :status')
+            ->setParameter('player1', $player1)
+            ->setParameter('player2', $player2)
+            ->setParameter('status', GameStatus::Completed);
+
+        $this->applyDateFilter($qb, $dateRange, 'g', 'completedAt');
+        if (null !== $playerGroupId) {
+            $qb->andWhere('s.playerGroup = :group')
+               ->setParameter('group', $playerGroupId);
+        }
+
+        return (int) $qb->getQuery()->getSingleScalarResult();
+    }
+
+    public function countTakerGamesInSharedSessions(Player $taker, Player $other, ?DateRange $dateRange = null, ?int $playerGroupId = null): int
+    {
+        $qb = $this->createQueryBuilder('g')
+            ->select('COUNT(g.id)')
+            ->join('g.session', 's')
+            ->join('s.players', 'p1')
+            ->join('s.players', 'p2')
+            ->andWhere('p1 = :player1')
+            ->andWhere('p2 = :player2')
+            ->andWhere('g.taker = :taker')
+            ->andWhere('g.status = :status')
+            ->setParameter('player1', $taker)
+            ->setParameter('player2', $other)
+            ->setParameter('status', GameStatus::Completed)
+            ->setParameter('taker', $taker);
+
+        $this->applyDateFilter($qb, $dateRange, 'g', 'completedAt');
+        if (null !== $playerGroupId) {
+            $qb->andWhere('s.playerGroup = :group')
+               ->setParameter('group', $playerGroupId);
+        }
+
+        return (int) $qb->getQuery()->getSingleScalarResult();
+    }
+
+    public function countTakerVsDefender(Player $taker, Player $defender, ?DateRange $dateRange = null, ?int $playerGroupId = null): int
+    {
+        $qb = $this->createQueryBuilder('g')
+            ->select('COUNT(g.id)')
+            ->join('g.session', 's')
+            ->join('s.players', 'p1')
+            ->join('s.players', 'p2')
+            ->andWhere('p1 = :player1')
+            ->andWhere('p2 = :player2')
+            ->andWhere('g.taker = :taker')
+            ->andWhere('g.status = :status')
+            ->andWhere('g.partner IS NULL OR g.partner != :defender')
+            ->setParameter('defender', $defender)
+            ->setParameter('player1', $taker)
+            ->setParameter('player2', $defender)
+            ->setParameter('status', GameStatus::Completed)
+            ->setParameter('taker', $taker);
+
+        $this->applyDateFilter($qb, $dateRange, 'g', 'completedAt');
+        if (null !== $playerGroupId) {
+            $qb->andWhere('s.playerGroup = :group')
+               ->setParameter('group', $playerGroupId);
+        }
+
+        return (int) $qb->getQuery()->getSingleScalarResult();
+    }
+
+    public function countTakerWinsInSharedSessions(Player $taker, Player $other, ?DateRange $dateRange = null, ?int $playerGroupId = null): int
+    {
+        $qb = $this->createQueryBuilder('g')
+            ->select('COUNT(g.id)')
+            ->join('g.session', 's')
+            ->join('s.players', 'p1')
+            ->join('s.players', 'p2')
+            ->join('g.scoreEntries', 'se')
+            ->andWhere('p1 = :player1')
+            ->andWhere('p2 = :player2')
+            ->andWhere('g.taker = :taker')
+            ->andWhere('g.status = :status')
+            ->andWhere('se.player = g.taker')
+            ->andWhere('se.score > 0')
+            ->setParameter('player1', $taker)
+            ->setParameter('player2', $other)
+            ->setParameter('status', GameStatus::Completed)
+            ->setParameter('taker', $taker);
+
+        $this->applyDateFilter($qb, $dateRange, 'g', 'completedAt');
+        if (null !== $playerGroupId) {
+            $qb->andWhere('s.playerGroup = :group')
+               ->setParameter('group', $playerGroupId);
+        }
+
+        return (int) $qb->getQuery()->getSingleScalarResult();
+    }
+
+    public function countTakerWinsVsDefender(Player $taker, Player $defender, ?DateRange $dateRange = null, ?int $playerGroupId = null): int
+    {
+        $qb = $this->createQueryBuilder('g')
+            ->select('COUNT(g.id)')
+            ->join('g.session', 's')
+            ->join('s.players', 'p1')
+            ->join('s.players', 'p2')
+            ->join('g.scoreEntries', 'se')
+            ->andWhere('p1 = :player1')
+            ->andWhere('p2 = :player2')
+            ->andWhere('g.taker = :taker')
+            ->andWhere('g.status = :status')
+            ->andWhere('g.partner IS NULL OR g.partner != :defender')
+            ->andWhere('se.player = g.taker')
+            ->andWhere('se.score > 0')
+            ->setParameter('defender', $defender)
+            ->setParameter('player1', $taker)
+            ->setParameter('player2', $defender)
+            ->setParameter('status', GameStatus::Completed)
+            ->setParameter('taker', $taker);
+
+        $this->applyDateFilter($qb, $dateRange, 'g', 'completedAt');
+        if (null !== $playerGroupId) {
+            $qb->andWhere('s.playerGroup = :group')
+               ->setParameter('group', $playerGroupId);
+        }
+
+        return (int) $qb->getQuery()->getSingleScalarResult();
     }
 
     /**

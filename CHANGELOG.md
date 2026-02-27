@@ -8,6 +8,7 @@ Le format est basé sur [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/)
 
 ### Added
 
+- **Comparaison head-to-head** : nouvelle page VS (`/stats/h2h`) pour comparer deux joueurs face à face — sessions communes, victoires en tant que preneur, confrontations directes (preneur vs défenseur), partenariats, scores totaux/moyens. Accessible via le bouton « Comparer » sur la page Statistiques.
 - **Zoom graphe Elo** : zoom et scroll horizontal sur le graphe d'évolution Elo global (molette, pinch-to-zoom, drag/swipe pour naviguer), double-clic/tap pour réinitialiser
 
 ### Changed

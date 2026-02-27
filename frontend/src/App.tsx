@@ -15,6 +15,7 @@ import { queryClient } from "./queryClient";
 import { CUSTOM_THEME_NAMES, CUSTOM_THEMES, type ThemeConfig } from "./services/themeRegistry";
 
 const GroupDetail = lazy(() => import("./pages/GroupDetail"));
+const HeadToHead = lazy(() => import("./pages/HeadToHead"));
 const Groups = lazy(() => import("./pages/Groups"));
 const Help = lazy(() => import("./pages/Help"));
 const NotFound = lazy(() => import("./pages/NotFound"));
@@ -98,6 +99,7 @@ export default function App() {
                     element={<SessionPage />}
                   />
                   <Route path="/stats" element={<Stats />} />
+                  <Route path="/stats/h2h" element={<HeadToHead />} />
                   <Route
                     path="/stats/player/:id"
                     element={<PlayerStats />}
