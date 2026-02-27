@@ -44,7 +44,8 @@ export default function HeadToHead() {
   const player2Id = p2Param ? Number(p2Param) : undefined;
 
   const { players } = usePlayers();
-  const { isPending, stats } = useHeadToHead(player1Id, player2Id, groupId, from, to);
+  const enabled = player1Id !== undefined && player2Id !== undefined && player1Id !== player2Id;
+  const { isFetching, stats } = useHeadToHead(player1Id, player2Id, groupId, from, to);
 
   const playerOptions = [
     { label: "Choisir…", value: "" },
@@ -108,15 +109,15 @@ export default function HeadToHead() {
         </div>
       </div>
 
-      {isPending && (
+      {isFetching && (
         <div className="py-8">
           <Spinner />
         </div>
       )}
 
-      {!isPending && !stats && (
+      {!isFetching && !stats && (
         <p className="py-8 text-center text-sm text-text-muted">
-          Sélectionnez deux joueurs pour voir leur comparaison.
+          {enabled ? "Aucune donnée disponible." : "Sélectionnez deux joueurs pour voir leur comparaison."}
         </p>
       )}
 

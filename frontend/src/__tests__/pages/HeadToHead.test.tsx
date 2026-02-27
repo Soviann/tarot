@@ -70,6 +70,7 @@ describe("HeadToHead page", () => {
   it("renders player selectors", () => {
     mockPlayersHook();
     vi.mocked(useHeadToHeadModule.useHeadToHead).mockReturnValue({
+      isFetching: false,
       isPending: false,
       stats: null,
     } as ReturnType<typeof useHeadToHeadModule.useHeadToHead>);
@@ -84,6 +85,7 @@ describe("HeadToHead page", () => {
   it("shows empty state when no players are selected", () => {
     mockPlayersHook();
     vi.mocked(useHeadToHeadModule.useHeadToHead).mockReturnValue({
+      isFetching: false,
       isPending: false,
       stats: null,
     } as ReturnType<typeof useHeadToHeadModule.useHeadToHead>);
@@ -93,9 +95,10 @@ describe("HeadToHead page", () => {
     expect(screen.getByText(/sélectionnez deux joueurs/i)).toBeInTheDocument();
   });
 
-  it("shows spinner when loading", () => {
+  it("shows spinner when fetching", () => {
     mockPlayersHook();
     vi.mocked(useHeadToHeadModule.useHeadToHead).mockReturnValue({
+      isFetching: true,
       isPending: true,
       stats: null,
     } as ReturnType<typeof useHeadToHeadModule.useHeadToHead>);
@@ -108,6 +111,7 @@ describe("HeadToHead page", () => {
   it("displays VS data when stats are loaded", () => {
     mockPlayersHook();
     vi.mocked(useHeadToHeadModule.useHeadToHead).mockReturnValue({
+      isFetching: false,
       isPending: false,
       stats: mockStats,
     } as ReturnType<typeof useHeadToHeadModule.useHeadToHead>);
@@ -126,6 +130,7 @@ describe("HeadToHead page", () => {
     const user = userEvent.setup();
     mockPlayersHook();
     vi.mocked(useHeadToHeadModule.useHeadToHead).mockReturnValue({
+      isFetching: false,
       isPending: false,
       stats: null,
     } as ReturnType<typeof useHeadToHeadModule.useHeadToHead>);
