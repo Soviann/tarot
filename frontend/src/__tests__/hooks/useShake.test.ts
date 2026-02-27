@@ -75,8 +75,8 @@ describe("useShake", () => {
 
     expect(onShake).toHaveBeenCalledOnce();
 
-    // After cooldown (5s), shake should work again
-    act(() => vi.advanceTimersByTime(5000));
+    // After cooldown (30s), shake should work again
+    act(() => vi.advanceTimersByTime(30000));
 
     act(() => {
       fireDeviceMotion(0, 0, 9.8);
@@ -107,5 +107,57 @@ describe("useShake", () => {
     // Should not register listener
     expect(addSpy).not.toHaveBeenCalledWith("devicemotion", expect.any(Function));
     addSpy.mockRestore();
+  });
+
+  it("cooldown persists across disable/re-enable cycles", () => {
+    const onShake = vi.fn();
+    const { rerender } = renderHook(
+      ({ enabled }) => useShake(onShake, { enabled }),
+      { initialProps: { enabled: true } },
+    );
+
+    // Trigger a shake
+    act(() => fireDeviceMotion(0, 0, 9.8));
+    act(() => fireDeviceMotion(30, 30, 9.8));
+    expect(onShake).toHaveBeenCalledOnce();
+
+    // Disable (simulates easter egg animation playing)
+    rerender({ enabled: false });
+
+    // Advance past the old cooldown duration
+    act(() => vi.advanceTimersByTime(10000));
+
+    // Re-enable (simulates animation finished)
+    rerender({ enabled: true });
+
+    // Shake again immediately — should NOT trigger (cooldown still active)
+    act(() => fireDeviceMotion(0, 0, 9.8));
+    act(() => fireDeviceMotion(30, 30, 9.8));
+
+    expect(onShake).toHaveBeenCalledOnce();
+  });
+
+  it("resets baseline after re-enabling to prevent stale data false trigger", () => {
+    const onShake = vi.fn();
+    const { rerender } = renderHook(
+      ({ enabled }) => useShake(onShake, { enabled }),
+      { initialProps: { enabled: true } },
+    );
+
+    // Establish baseline at (0, 0, 9.8)
+    act(() => fireDeviceMotion(0, 0, 9.8));
+
+    // Disable the hook
+    rerender({ enabled: false });
+
+    // Re-enable after cooldown expires
+    act(() => vi.advanceTimersByTime(30000));
+    rerender({ enabled: true });
+
+    // First event after re-enable: delta from stale lastRef would be huge
+    // but it should set a new baseline, not trigger
+    act(() => fireDeviceMotion(20, 20, 9.8));
+
+    expect(onShake).not.toHaveBeenCalled();
   });
 });

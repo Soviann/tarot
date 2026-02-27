@@ -14,6 +14,10 @@ Le format est basé sur [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/)
 
 - **Easter egg shake** : secouer le téléphone inverse les scores (×-1) pendant 12 secondes avant d'afficher la modale « Eh non, bien essayé 😏 » (remplace l'ancienne rotation 180°)
 
+### Fixed
+
+- **Easter egg shake** : ajout d'un cooldown de 30 secondes persistant entre les déclenchements et réinitialisation de la baseline d'accélération à la réactivation du listener pour empêcher les faux positifs
+
 ### Removed
 
 - **Easter egg gyroscope inversé** : retourner le téléphone ne déclenche plus rien (le comportement d'inversion des scores est désormais sur le shake)
