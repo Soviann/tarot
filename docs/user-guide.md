@@ -384,11 +384,11 @@ L'écran principal des statistiques affiche :
 
 Appuyer sur un joueur dans le classement pour voir ses statistiques détaillées.
 
-Un bouton **« Comparer »** à côté du titre permet d'accéder à la page de comparaison face à face.
+Un bouton **« VS »** à côté du titre permet d'accéder à la page de comparaison face à face.
 
 ### Comparaison face à face
 
-Accessible via le bouton **Comparer** sur l'écran des statistiques globales, ou directement via l'URL `/stats/h2h`.
+Accessible via le bouton **VS** sur l'écran des statistiques globales, ou directement via l'URL `/stats/h2h`.
 
 Cette page permet de comparer deux joueurs sur leurs sessions communes :
 

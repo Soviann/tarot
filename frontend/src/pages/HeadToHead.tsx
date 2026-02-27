@@ -49,7 +49,10 @@ export default function HeadToHead() {
 
   const playerOptions = [
     { label: "Choisir…", value: "" },
-    ...players.map((p) => ({ label: p.name, value: String(p.id) })),
+    ...players
+      .slice()
+      .sort((a, b) => a.name.localeCompare(b.name))
+      .map((p) => ({ label: p.name, value: String(p.id) })),
   ];
 
   const setPlayer = (key: "p1" | "p2", value: string) => {
