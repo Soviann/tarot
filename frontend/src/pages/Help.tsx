@@ -343,6 +343,17 @@ export default function Help() {
         </p>
 
         <h3 className="mt-3 font-medium text-text-primary">
+          Comparaison face à face
+        </h3>
+        <p className="mt-1">
+          Appuyer sur le bouton <strong>« VS »</strong> en haut de la page
+          Statistiques pour accéder à la comparaison. Sélectionner deux
+          joueurs pour voir leurs statistiques sur les sessions communes :
+          victoires en tant que preneur, confrontations directes,
+          partenariats et scores moyens.
+        </p>
+
+        <h3 className="mt-3 font-medium text-text-primary">
           Statistiques par joueur
         </h3>
         <p className="mt-1">

@@ -55,17 +55,17 @@ export default function Stats() {
   return (
     <div className="flex flex-col gap-6 p-4 lg:p-8">
       <div className="flex flex-wrap items-center justify-between gap-2">
-        <div className="flex items-center gap-3">
-          <h1 className="text-2xl font-bold text-text-primary">Statistiques</h1>
+        <h1 className="text-2xl font-bold text-text-primary">Statistiques</h1>
+        <div className="flex items-center gap-2">
           <button
-            className="rounded-full bg-surface-elevated px-3 py-1 text-sm font-medium text-text-secondary hover:bg-surface-tertiary"
+            className="rounded-full bg-surface-elevated px-2.5 py-1 text-xs font-medium text-text-secondary hover:bg-surface-tertiary"
             onClick={() => navigate("/stats/h2h")}
             type="button"
           >
-            Comparer
+            VS
           </button>
+          <GroupFilter onChange={setGroupId} value={groupId} />
         </div>
-        <GroupFilter onChange={setGroupId} value={groupId} />
       </div>
 
       <DateRangeFilter
