@@ -11,6 +11,10 @@ Le format est basé sur [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/)
 - **Comparaison head-to-head** : nouvelle page VS (`/stats/h2h`) pour comparer deux joueurs face à face — sessions communes, victoires en tant que preneur, confrontations directes (preneur vs défenseur), partenariats, scores totaux/moyens. Accessible via le bouton « Comparer » sur la page Statistiques.
 - **Zoom graphe Elo** : zoom et scroll horizontal sur le graphe d'évolution Elo global (molette, pinch-to-zoom, drag/swipe pour naviguer), double-clic/tap pour réinitialiser
 
+### Fixed
+
+- **Dictée vocale** : le bouton « Dicter le résultat » ne réagissait pas au clic sur mobile (Android & iPhone) — la promesse de `startListening` n'était pas attendue et les erreurs étaient silencieusement ignorées. Un message d'erreur s'affiche désormais sous le bouton en cas d'échec.
+
 ### Changed
 
 - **Easter egg shake** : secouer le téléphone inverse les scores (×-1) pendant 12 secondes avant d'afficher la modale « Eh non, bien essayé 😏 » (remplace l'ancienne rotation 180°)

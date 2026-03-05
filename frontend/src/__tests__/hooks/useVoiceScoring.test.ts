@@ -63,16 +63,16 @@ describe("useVoiceScoring", () => {
     expect(result.current.error).toBeNull();
   });
 
-  it("appelle startListening avec fr-FR quand start() est appelé", () => {
+  it("appelle startListening avec fr-FR quand start() est appelé", async () => {
     const { result } = renderHook(() => useVoiceScoring(PLAYERS));
-    act(() => result.current.start());
+    await act(async () => result.current.start());
     expect(mockStartListening).toHaveBeenCalledWith({ language: "fr-FR" });
   });
 
-  it("start() est no-op si pas supporté", () => {
+  it("start() est no-op si pas supporté", async () => {
     mockHookReturn.browserSupportsSpeechRecognition = false;
     const { result } = renderHook(() => useVoiceScoring(PLAYERS));
-    act(() => result.current.start());
+    await act(async () => result.current.start());
     expect(mockStartListening).not.toHaveBeenCalled();
   });
 
@@ -126,5 +126,25 @@ describe("useVoiceScoring", () => {
     const { result } = renderHook(() => useVoiceScoring(PLAYERS));
     // finalTranscript is set but nothing parseable → status stays result with empty result
     expect(result.current.parsedResult).toEqual({});
+  });
+
+  it("expose l'erreur si startListening rejette", async () => {
+    mockStartListening.mockRejectedValueOnce(new Error("Microphone access denied"));
+    const { result } = renderHook(() => useVoiceScoring(PLAYERS));
+    await act(async () => result.current.start());
+    expect(result.current.error).toBe("Microphone access denied");
+    expect(result.current.status).toBe("error");
+  });
+
+  it("réinitialise l'erreur lors d'un nouveau start réussi", async () => {
+    mockStartListening.mockRejectedValueOnce(new Error("Microphone access denied"));
+    const { result } = renderHook(() => useVoiceScoring(PLAYERS));
+    await act(async () => result.current.start());
+    expect(result.current.error).toBe("Microphone access denied");
+
+    mockStartListening.mockResolvedValueOnce(undefined);
+    await act(async () => result.current.start());
+    expect(result.current.error).toBeNull();
+    expect(result.current.status).toBe("idle");
   });
 });

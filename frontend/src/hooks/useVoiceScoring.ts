@@ -14,6 +14,7 @@ export function useVoiceScoring(playerNames: string[]) {
     transcript,
   } = useSpeechRecognition();
 
+  const [error, setError] = useState<string | null>(null);
   const [manualReset, setManualReset] = useState(false);
 
   const parsedResult: VoiceScoreResult = useMemo(() => {
@@ -34,19 +35,24 @@ export function useVoiceScoring(playerNames: string[]) {
 
   const hasFinalResult = !manualReset && finalTranscript.length > 0;
 
-  const status: VoiceStatus = listening
-    ? "listening"
-    : hasFinalResult
-      ? "result"
-      : "idle";
+  const status: VoiceStatus = error
+    ? "error"
+    : listening
+      ? "listening"
+      : hasFinalResult
+        ? "result"
+        : "idle";
 
-  const error = null; // Errors are handled by the library gracefully
-
-  const start = useCallback(() => {
+  const start = useCallback(async () => {
     if (!browserSupportsSpeechRecognition) return;
+    setError(null);
     setManualReset(false);
     resetTranscript();
-    SpeechRecognition.startListening({ language: "fr-FR" });
+    try {
+      await SpeechRecognition.startListening({ language: "fr-FR" });
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Erreur de reconnaissance vocale");
+    }
   }, [browserSupportsSpeechRecognition, resetTranscript]);
 
   const stop = useCallback(() => {
@@ -59,6 +65,7 @@ export function useVoiceScoring(playerNames: string[]) {
   }, [resetTranscript]);
 
   const reset = useCallback(() => {
+    setError(null);
     setManualReset(true);
     resetTranscript();
   }, [resetTranscript]);
