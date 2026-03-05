@@ -224,7 +224,8 @@ export default function CompleteGameModal({ game, onBadgesUnlocked, onClose, onG
 
   return (
     <Modal onClose={onClose} open={open} title={title}>
-      <div className="flex max-h-[70vh] flex-col gap-4 overflow-y-auto">
+      <div className="flex max-h-[70vh] flex-col gap-4">
+        <div className="flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto">
         {/* Bandeau info preneur + appelé */}
         <div className="flex items-center gap-3 rounded-xl bg-surface-secondary p-3">
           <PlayerAvatar color={game.taker.color} name={game.taker.name} playerId={game.taker.id} size="md" />
@@ -432,6 +433,8 @@ export default function CompleteGameModal({ game, onBadgesUnlocked, onClose, onG
           </div>
         )}
 
+        </div>
+
         {/* Erreur */}
         {completeGame.isError && (
           <p className="text-center text-sm text-score-negative">
@@ -441,7 +444,7 @@ export default function CompleteGameModal({ game, onBadgesUnlocked, onClose, onG
 
         {/* Valider */}
         <button
-          className="w-full rounded-xl bg-accent-500 py-3 text-sm font-semibold text-white transition-colors disabled:opacity-40"
+          className="w-full shrink-0 rounded-xl bg-accent-500 py-3 text-sm font-semibold text-white transition-colors disabled:opacity-40"
           disabled={!canSubmit}
           onClick={handleSubmit}
           type="button"

@@ -13,6 +13,7 @@ Le format est basé sur [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/)
 
 ### Fixed
 
+- **Modale complétion** : le bouton « Valider » est désormais toujours visible sans scroll sur les petits écrans (fixé en bas de la modale, seul le contenu défile)
 - **Dictée vocale** : le bouton « Dicter le résultat » ne réagissait pas au clic sur mobile (Android & iPhone) — la promesse de `startListening` n'était pas attendue et les erreurs étaient silencieusement ignorées. Un message d'erreur s'affiche désormais sous le bouton en cas d'échec.
 
 ### Changed

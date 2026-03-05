@@ -415,6 +415,18 @@ describe("CompleteGameModal", () => {
     expect(screen.getByRole("button", { name: "Seul" })).not.toHaveClass("ring-2");
   });
 
+  it("keeps validate button outside scrollable area", () => {
+    setupMock();
+    renderWithProviders(
+      <CompleteGameModal game={inProgressGame} onClose={vi.fn()} open players={mockPlayers} sessionId={1} />,
+    );
+
+    const validateButton = screen.getByRole("button", { name: "Valider" });
+    // The button must NOT be inside the scrollable container (overflow-y-auto)
+    const scrollableContainer = validateButton.closest("[class*='overflow-y-auto']");
+    expect(scrollableContainer).toBeNull();
+  });
+
   it("does not render when open is false", () => {
     setupMock();
     renderWithProviders(
