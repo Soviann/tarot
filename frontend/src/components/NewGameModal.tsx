@@ -106,7 +106,7 @@ export default function NewGameModal({ createGame, currentDealerName, lastGameCo
             {contracts.map(({ colorClass, label, value }) => (
               <button
                 className={`${colorClass} rounded-xl px-4 py-3 text-sm font-semibold text-white transition-all ${
-                  selectedContract === value ? "ring-2 ring-offset-2 ring-offset-surface-primary ring-white" : "opacity-80"
+                  selectedContract === value ? "ring-3 ring-offset-2 ring-offset-surface-primary ring-white scale-105 shadow-lg" : selectedContract !== null ? "opacity-50" : "opacity-80"
                 }`}
                 key={value}
                 onClick={() => setSelectedContract(value)}
