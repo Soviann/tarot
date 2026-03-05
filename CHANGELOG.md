@@ -6,16 +6,12 @@ Le format est basé sur [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/)
 
 ## [Unreleased]
 
+## [1.7.0] - 2026-03-05
+
 ### Added
 
 - **Comparaison head-to-head** : nouvelle page VS (`/stats/h2h`) pour comparer deux joueurs face à face — sessions communes, victoires en tant que preneur, confrontations directes (preneur vs défenseur), partenariats, scores totaux/moyens. Accessible via le bouton « Comparer » sur la page Statistiques.
 - **Zoom graphe Elo** : zoom et scroll horizontal sur le graphe d'évolution Elo global (molette, pinch-to-zoom, drag/swipe pour naviguer), double-clic/tap pour réinitialiser
-
-### Fixed
-
-- **Sélection du contrat** : le contrat sélectionné dans la modale de création de donne est désormais clairement distingué (anneau plus épais, léger zoom, ombre portée, contrats non sélectionnés plus atténués)
-- **Modale complétion** : le bouton « Valider » est désormais toujours visible sans scroll sur les petits écrans (fixé en bas de la modale, seul le contenu défile)
-- **Dictée vocale** : le bouton « Dicter le résultat » ne réagissait pas au clic sur mobile (Android & iPhone) — la promesse de `startListening` n'était pas attendue et les erreurs étaient silencieusement ignorées. Un message d'erreur s'affiche désormais sous le bouton en cas d'échec.
 
 ### Changed
 
@@ -23,6 +19,9 @@ Le format est basé sur [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/)
 
 ### Fixed
 
+- **Sélection du contrat** : le contrat sélectionné dans la modale de création de donne est désormais clairement distingué (anneau plus épais, léger zoom, ombre portée, contrats non sélectionnés plus atténués)
+- **Modale complétion** : le bouton « Valider » est désormais toujours visible sans scroll sur les petits écrans (fixé en bas de la modale, seul le contenu défile)
+- **Dictée vocale** : le bouton « Dicter le résultat » ne réagissait pas au clic sur mobile (Android & iPhone) — la promesse de `startListening` n'était pas attendue et les erreurs étaient silencieusement ignorées. Un message d'erreur s'affiche désormais sous le bouton en cas d'échec.
 - **Easter egg shake** : ajout d'un cooldown de 30 secondes persistant entre les déclenchements et réinitialisation de la baseline d'accélération à la réactivation du listener pour empêcher les faux positifs
 
 ### Removed
