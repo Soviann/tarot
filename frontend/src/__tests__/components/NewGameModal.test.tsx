@@ -73,7 +73,7 @@ describe("NewGameModal", () => {
     expect(aliceAvatar.closest("button")).toHaveClass("ring-2");
   });
 
-  it("highlights selected contract with ring", async () => {
+  it("highlights selected contract with strong visual cues", async () => {
     const createGame = createMockCreateGame();
     renderWithProviders(
       <NewGameModal createGame={createGame} onClose={vi.fn()} open players={mockPlayers} />,
@@ -82,7 +82,21 @@ describe("NewGameModal", () => {
     const gardeButton = screen.getByRole("button", { name: "Garde" });
     await userEvent.click(gardeButton);
 
-    expect(gardeButton).toHaveClass("ring-2");
+    expect(gardeButton).toHaveClass("ring-3");
+    expect(gardeButton).toHaveClass("scale-105");
+  });
+
+  it("dims unselected contracts when one is selected", async () => {
+    const createGame = createMockCreateGame();
+    renderWithProviders(
+      <NewGameModal createGame={createGame} onClose={vi.fn()} open players={mockPlayers} />,
+    );
+
+    await userEvent.click(screen.getByRole("button", { name: "Garde" }));
+
+    expect(screen.getByRole("button", { name: "Petite" })).toHaveClass("opacity-50");
+    expect(screen.getByRole("button", { name: "Garde Sans" })).toHaveClass("opacity-50");
+    expect(screen.getByRole("button", { name: "Garde Contre" })).toHaveClass("opacity-50");
   });
 
   it("disables validate button when no player selected", () => {
@@ -204,8 +218,9 @@ describe("NewGameModal", () => {
       const bobAvatar = screen.getByRole("img", { name: "Bob" });
       expect(bobAvatar.closest("button")).toHaveClass("ring-2");
 
-      // Garde should be selected → ring-2 on contract button
-      expect(screen.getByRole("button", { name: "Garde" })).toHaveClass("ring-2");
+      // Garde should be selected → ring-3 + scale-105 on contract button
+      expect(screen.getByRole("button", { name: "Garde" })).toHaveClass("ring-3");
+      expect(screen.getByRole("button", { name: "Garde" })).toHaveClass("scale-105");
 
       // Valider should be enabled
       expect(screen.getByRole("button", { name: "Valider" })).toBeEnabled();
@@ -226,7 +241,7 @@ describe("NewGameModal", () => {
 
       // Override contract: select Petite instead of Garde
       await userEvent.click(screen.getByRole("button", { name: "Petite" }));
-      expect(screen.getByRole("button", { name: "Petite" })).toHaveClass("ring-2");
+      expect(screen.getByRole("button", { name: "Petite" })).toHaveClass("ring-3");
     });
   });
 });

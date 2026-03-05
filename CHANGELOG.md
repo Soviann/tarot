@@ -13,6 +13,7 @@ Le format est basé sur [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/)
 
 ### Fixed
 
+- **Sélection du contrat** : le contrat sélectionné dans la modale de création de donne est désormais clairement distingué (anneau plus épais, léger zoom, ombre portée, contrats non sélectionnés plus atténués)
 - **Modale complétion** : le bouton « Valider » est désormais toujours visible sans scroll sur les petits écrans (fixé en bas de la modale, seul le contenu défile)
 - **Dictée vocale** : le bouton « Dicter le résultat » ne réagissait pas au clic sur mobile (Android & iPhone) — la promesse de `startListening` n'était pas attendue et les erreurs étaient silencieusement ignorées. Un message d'erreur s'affiche désormais sous le bouton en cas d'échec.
 
