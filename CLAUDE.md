@@ -1,182 +1,121 @@
 # CLAUDE.md
 
-**Mandatory** rules for Claude Code on this project.
-
-**Context**: Claude = sole developer. Maximum rigor, keep this file, tests, and docs up to date.
+Mandatory rules. Claude = sole developer. Keep this file, tests, docs up to date.
 
 ## Architecture
 
-**Stack**: Symfony 7.4 + API Platform 4 (backend) | React 19 + TypeScript + Vite (frontend)
-**DB**: MariaDB via DDEV | **Styling**: Tailwind CSS 4 | **Data fetching**: TanStack Query
+Symfony 7.4 + API Platform 4 | React 19 + TypeScript + Vite | MariaDB via DDEV | Tailwind CSS 4 | TanStack Query
 
 ```
 tarot/
-├── backend/          # Symfony API — PHP 8.3
-├── frontend/         # React PWA — TypeScript
-├── docs/             # user-guide.md, frontend-usage.md, plans/
+├── backend/    # Symfony API — PHP 8.3
+├── frontend/   # React PWA — TypeScript
+├── docs/       # user-guide.md, frontend-usage.md, plans/
 ├── CLAUDE.md
 └── CHANGELOG.md
 ```
 
-> Detailed file map (entities, hooks, components, routes, API endpoints): see `memory/patterns.md`
+> File map (entities, hooks, components, routes, API endpoints): `memory/patterns.md`
 
 ## Approach
 
-- Edit files when asked. Don't create issues or plans unless requested.
-- Prefer acting over asking.
-- **No codebase exploration.** CLAUDE.md, MEMORY.md, and `memory/patterns.md` contain all needed context (file paths, patterns, conventions). Jump straight to implementation. Only read files you are about to edit — never glob/grep to "understand the codebase" first.
-- **Keep `memory/patterns.md` up to date.** When adding new entities, hooks, components, pages, or routes, update the file map in `memory/patterns.md` in the same session.
+- Edit files when asked.
+- **No codebase exploration.** CLAUDE.md, MEMORY.md, `memory/patterns.md` have all context. Only read files you're about to edit.
+- **Keep `memory/patterns.md` up to date** when adding entities, hooks, components, pages, routes.
 
 ## Plans
 
-- Store in `docs/plans/` (project-local, never global).
-- Temporary — delete after the related PR is merged.
-- **Concise plans only**: describe what to do (files, logic, order), not how (no code blocks). Code is written at implementation time.
+Store in `docs/plans/` (temporary, delete after PR merged). Concise: what to do, not how.
 
 ## Mandatory TDD
 
-1. **Test first**: write/modify test → must fail
-2. **Implement**: minimum to pass
-3. **Refactor**: green tests
+1. Test first (must fail) → 2. Implement (minimum to pass) → 3. Refactor (green tests)
 
-**Backend tests**: `make test-back`
-**Frontend tests**: `make test-front`
+Backend: `make test-back` | Frontend: `make test-front`
 
 ## Commands
 
-**Always use `make` targets** when one exists for the task at hand (tests, lint, migrations, etc.) — never call the underlying tools directly.
+Always use `make` targets, always prefix with `ddev exec` (hookify-enforced).
 
-The Makefile contains generic commands (no DDEV prefix). In local dev, DDEV is used as the runtime environment, so **always prefix `make` with `ddev exec`** (enforced by hookify rule `require-ddev-exec`).
-
-Use `ddev exec make help` to see all available targets.
-
-```bash
-# Workflows
-ddev exec make dev              # First launch (deps + migrations)
-
-# Tests
-ddev exec make test             # All tests (backend + frontend)
-ddev exec make test-back        # PHPUnit
-ddev exec make test-front       # Vitest
-
-# Quality
-ddev exec make lint             # All linters (PHPStan + CS Fixer dry-run + TypeScript)
-ddev exec make phpstan          # PHPStan only
-ddev exec make cs               # PHP CS Fixer (fix)
-
-# Database
-ddev exec make db-diff          # Generate a migration
-ddev exec make db-migrate       # Run migrations
-
-# Build
-ddev exec make build            # Production build
-ddev exec make serve-prod       # Build + serve (port 4173)
-
-# Symfony
-ddev exec make sf CMD="..."     # Any Symfony console command
-```
+| Command | Purpose |
+|---|---|
+| `ddev exec make dev` | First launch (deps + migrations) |
+| `ddev exec make test` | All tests |
+| `ddev exec make test-back` | PHPUnit |
+| `ddev exec make test-front` | Vitest |
+| `ddev exec make lint` | All linters (PHPStan + CS Fixer dry-run + TS) |
+| `ddev exec make phpstan` | PHPStan only |
+| `ddev exec make cs` | PHP CS Fixer (fix) |
+| `ddev exec make db-diff` | Generate migration |
+| `ddev exec make db-migrate` | Run migrations |
+| `ddev exec make build` | Production build |
+| `ddev exec make sf CMD="..."` | Any Symfony console command |
 
 ## Git
 
 ### Commits
 
-Format: `<type>(scope): description` — Types: `feat`, `fix`, `chore`, `refactor`, `docs`
-**Verbe conjugué** (impératif 3e personne), pas infinitif : `ajoute`, `corrige`, `supprime` (pas `ajouter`, `corriger`, `supprimer`)
-**Always** reference the issue: append `#N` in the message body or use `fixes #N` to auto-close.
-**Before committing**: run PHP CS Fixer on all staged `.php` files to ensure consistent formatting.
+`<type>(scope): description` — Types: `feat|fix|chore|refactor|docs`
+Verbe conjugué (impératif 3e pers.): `ajoute`, `corrige`, `supprime` (pas infinitif).
+Always reference issue (`#N` in body or `fixes #N`). Run CS Fixer on staged `.php` before commit.
 
 ### Branching
 
-**Never push directly to `main`.** All work goes through a branch + PR.
-
-- Branch naming: `<type>/<issue-number>-<short-description>` (e.g. `feat/2-entities`, `fix/15-score-calc`)
-- One branch = one issue (1:1 mapping)
-- Branch from `main`, merge back to `main`
-- Branch auto-deleted after merge (GitHub setting `delete_branch_on_merge`)
+Never push to `main`. Branch + PR only.
+- `<type>/<issue-number>-<short-description>` (e.g. `feat/2-entities`)
+- One branch = one issue. Branch from `main`, auto-deleted after merge.
 
 ### Pull Requests
 
-- Every issue closes via a PR, not a direct commit
-- PR title follows commit format: `<type>(scope): description`
-- PR body: summary + `fixes #N`
-- Merge strategy: **squash merge** (`--squash`) → one commit per issue on main
-- Request code review (agent) before merge
-- **Always** update CHANGELOG on the feature branch, before merge.
+- PR title: `<type>(scope): description` | Body: summary + `fixes #N`
+- Squash merge (`--squash`) → one commit per issue
+- Code review (agent) before merge. Update CHANGELOG on branch before merge.
 
-### Tags & Releases
+### Releases
 
-Semantic versioning: `vMAJOR.MINOR.PATCH`
-- Tag after a coherent set of issues is merged (milestone)
-- No release per PR — only at milestones
-- **Workflow**: update CHANGELOG `[Unreleased]` → `[X.Y.Z] - YYYY-MM-DD`, then tag on `main`
-- **GitHub Action** (`.github/workflows/release.yml`): pushing a `v*` tag automatically creates a GitHub Release with notes extracted from CHANGELOG
-- Keep `[Unreleased]` section at the top of CHANGELOG for ongoing work
+Semver `vMAJOR.MINOR.PATCH`. Tag at milestones (not per PR).
+Workflow: update CHANGELOG `[Unreleased]` → `[X.Y.Z] - YYYY-MM-DD`, then `git tag vX.Y.Z && git push origin vX.Y.Z`.
+GitHub Action auto-creates release from CHANGELOG.
+
+### Issue workflow
 
 ```bash
-# Release workflow:
-# 1. On main, ensure CHANGELOG has the new version section
-# 2. Tag and push:
-git tag vX.Y.Z
-git push origin vX.Y.Z
-# 3. GitHub Action creates the release automatically
+git checkout -b feat/N-description main   # 1. Branch
+# TDD, commits referencing #N             # 2. Develop
+git push -u origin feat/N-description     # 3. Push
+gh pr create --title "..." --body "..."   # 4. PR (fixes #N)
+# code review                             # 5. Review
+gh pr merge N --squash                    # 6. Merge (auto-delete, auto-close)
 ```
 
-```bash
-# Workflow for each issue:
-git checkout -b feat/N-description main     # 1. Create branch
-# ... TDD, commits referencing #N ...       # 2. Develop
-git push -u origin feat/N-description       # 3. Push branch
-gh pr create --title "..." --body "..."     # 4. Create PR (fixes #N)
-# ... code review ...                       # 5. Review
-gh pr merge N --squash                       # 6. Squash merge (branch auto-deleted)
-# Issue auto-closes via "fixes #N"          # 7. Done
-```
+"Next issue" = highest-priority Todo from board. Full cycle: implement → test → PR → review → merge → CHANGELOG.
 
-## Issue Workflow
+## GitHub Project
 
-- "Next issue" = pick highest-priority Todo from the board and start. Don't list options.
-- Full cycle: implement → test → PR → review fixes → squash merge → CHANGELOG.
+**Repo**: `Soviann/tarot` | **Project**: `Tarot - Roadmap` (number: 2, owner: Soviann)
+Columns: `Backlog` → `Todo` → `In Progress` → `Done`. IDs in MEMORY.md.
 
-## GitHub Issues & Project
-
-**Repo**: `Soviann/tarot` — **Project**: `Tarot - Roadmap` (number: 2, owner: Soviann)
-
-**Board columns** (Status field): `Backlog` → `Todo` → `In Progress` → `Done`
-
-Project IDs and column option IDs: see MEMORY.md.
-
-**Manual step required**: move the issue to `In Progress` when starting work (`gh project item-edit`). Other transitions (Done, auto-close) are automatic.
-
-### Rules
-
-1. **All work starts from an issue.** Check existing issues first; create if none exists.
-2. **Move issue to `In Progress`** manually when starting work (use `gh project item-edit`). Other transitions (Done, auto-close) are automatic.
-3. **New ideas** without immediate implementation → `Backlog` (set manually only for new issues that need triaging).
-4. **Close issues** via PR with `fixes #N` in PR body (auto-closes on merge).
-5. **Labels**: use existing (`enhancement`, `bug`, etc.). Don't create new ones without asking.
-
+Rules:
+1. All work starts from an issue. Check existing first.
+2. Move to `In Progress` manually (`gh project item-edit`). Other transitions are automatic.
+3. New ideas without implementation → `Backlog`.
+4. Close via PR `fixes #N`. Labels: use existing only.
 
 ## Changelog
 
-Update `CHANGELOG.md` under `## [Unreleased]`: `### Added|Changed|Fixed|Removed`
+`CHANGELOG.md` under `## [Unreleased]`: `### Added|Changed|Fixed|Removed`
 Format: `- **Name**: Description`
 
 ## Documentation
 
-Two living docs in `docs/` must be maintained:
-
-- **`docs/user-guide.md`** — end-user guide: update when features, screens, or workflows change
-- **`docs/frontend-usage.md`** — developer reference: update when components, hooks, or types are added/modified/removed
+Maintain: `docs/user-guide.md` (end-user) and `docs/frontend-usage.md` (developer reference).
 
 ## Code Conventions
 
-- **Backend DB queries**: All database queries MUST live in dedicated entity repositories (`src/Repository/`). Use QueryBuilder exclusively (no raw DQL strings). Services/controllers/processors inject repositories, never `EntityManagerInterface` for queries.
-- **Backend enums**: PHP backed enums for all fixed value sets
-- **Backend quality**: PHPStan (level max) auto-enforced by PostToolUse hook; PHP CS Fixer (`@Symfony` + `@Symfony:risky`) run on all modified PHP files before each commit
-- **API responses**: use API Platform serialization groups, not custom DTOs unless needed
-- **Frontend**: functional components, custom hooks for API calls, TypeScript strict mode
+- **Backend**: queries in repositories only (QueryBuilder, no raw DQL). PHP backed enums. PHPStan level max. CS Fixer `@Symfony` + `@Symfony:risky`. API Platform serialization groups (no custom DTOs unless needed).
+- **Frontend**: functional components, custom hooks for API, TypeScript strict. UI primitives from `components/ui/`.
 
 ## Language
 
-- **Git commits, PR titles & all other files** (README, CHANGELOG, docs, UI text, comments): French
-- **Code identifiers** (variables, functions, classes): English
+- Git, PR, CHANGELOG, docs, UI text, comments: **French**
+- Code identifiers: **English**
