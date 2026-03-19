@@ -1,4 +1,4 @@
-import { type ReactNode, useCallback, useState } from "react";
+import { type ReactNode, useCallback, useEffect, useRef, useState } from "react";
 import { useHintCooldown } from "../hooks/useHintCooldown";
 
 const HINT_CHANCE = 0.05;
@@ -11,14 +11,19 @@ interface KonamiHintProps {
 export default function KonamiHint({ children }: KonamiHintProps) {
   const [visible, setVisible] = useState(false);
   const { canShowHint, markHintShown } = useHintCooldown();
+  const timerRef = useRef<ReturnType<typeof setTimeout>>();
 
   const handleClick = useCallback(() => {
     if (!canShowHint() || Math.random() >= HINT_CHANCE) return;
 
     markHintShown();
     setVisible(true);
-    setTimeout(() => setVisible(false), HINT_DURATION_MS);
+    timerRef.current = setTimeout(() => setVisible(false), HINT_DURATION_MS);
   }, [canShowHint, markHintShown]);
+
+  useEffect(() => {
+    return () => clearTimeout(timerRef.current);
+  }, []);
 
   return (
     <div className="relative inline-flex" data-testid="konami-hint-trigger" onClick={handleClick}>

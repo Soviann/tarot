@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useHintCooldown } from "../hooks/useHintCooldown";
 
 const HINT_CHANCE = 0.02;
@@ -15,45 +15,49 @@ const DOOM_ICONS = [
 ] as const;
 
 interface TraverseState {
+  endX: string;
+  endY: string;
   icon: string;
   startX: string;
   startY: string;
-  endX: string;
-  endY: string;
 }
 
 function randomTraverse(): TraverseState {
   const icon = DOOM_ICONS[Math.floor(Math.random() * DOOM_ICONS.length)];
   const direction = Math.floor(Math.random() * 4);
-  const perpendicular = `${Math.random() * 80 + 10}vh`;
+  const offset = Math.random() * 80 + 10;
 
   switch (direction) {
     case 0: // left to right
-      return { icon, startX: "-32px", startY: perpendicular, endX: "calc(100vw + 32px)", endY: perpendicular };
+      return { endX: "calc(100vw + 32px)", endY: `${offset}vh`, icon, startX: "-32px", startY: `${offset}vh` };
     case 1: // right to left
-      return { icon, startX: "calc(100vw + 32px)", startY: perpendicular, endX: "-32px", endY: perpendicular };
+      return { endX: "-32px", endY: `${offset}vh`, icon, startX: "calc(100vw + 32px)", startY: `${offset}vh` };
     case 2: // top to bottom
-      return { icon, startX: perpendicular, startY: "-32px", endX: perpendicular, endY: "calc(100vh + 32px)" };
+      return { endX: `${offset}vw`, endY: "calc(100vh + 32px)", icon, startX: `${offset}vw`, startY: "-32px" };
     default: // bottom to top
-      return { icon, startX: perpendicular, startY: "calc(100vh + 32px)", endX: perpendicular, endY: "-32px" };
+      return { endX: `${offset}vw`, endY: "-32px", icon, startX: `${offset}vw`, startY: "calc(100vh + 32px)" };
   }
 }
 
 export default function DoomHint() {
   const [traverse, setTraverse] = useState<TraverseState | null>(null);
   const { canShowHint, markHintShown } = useHintCooldown();
+  const timerRef = useRef<ReturnType<typeof setTimeout>>();
 
   const handleClick = useCallback(() => {
     if (!canShowHint() || Math.random() >= HINT_CHANCE) return;
 
     markHintShown();
     setTraverse(randomTraverse());
-    setTimeout(() => setTraverse(null), HINT_DURATION_MS);
+    timerRef.current = setTimeout(() => setTraverse(null), HINT_DURATION_MS);
   }, [canShowHint, markHintShown]);
 
   useEffect(() => {
     document.addEventListener("click", handleClick);
-    return () => document.removeEventListener("click", handleClick);
+    return () => {
+      document.removeEventListener("click", handleClick);
+      clearTimeout(timerRef.current);
+    };
   }, [handleClick]);
 
   if (!traverse) return null;
