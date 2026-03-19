@@ -11,7 +11,7 @@ interface KonamiHintProps {
 export default function KonamiHint({ children }: KonamiHintProps) {
   const [visible, setVisible] = useState(false);
   const { canShowHint, markHintShown } = useHintCooldown();
-  const timerRef = useRef<ReturnType<typeof setTimeout>>();
+  const timerRef = useRef<ReturnType<typeof setTimeout>>(null);
 
   const handleClick = useCallback(() => {
     if (!canShowHint() || Math.random() >= HINT_CHANCE) return;

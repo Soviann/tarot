@@ -42,7 +42,7 @@ function randomTraverse(): TraverseState {
 export default function DoomHint() {
   const [traverse, setTraverse] = useState<TraverseState | null>(null);
   const { canShowHint, markHintShown } = useHintCooldown();
-  const timerRef = useRef<ReturnType<typeof setTimeout>>();
+  const timerRef = useRef<ReturnType<typeof setTimeout>>(null);
 
   const handleClick = useCallback(() => {
     if (!canShowHint() || Math.random() >= HINT_CHANCE) return;
