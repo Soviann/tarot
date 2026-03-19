@@ -4,6 +4,7 @@ import { ThemeProvider, useTheme } from "next-themes";
 import { ErrorBoundary } from "react-error-boundary";
 import { BrowserRouter, Route, Routes } from "react-router-dom";
 import { toast, Toaster } from "sonner";
+import DoomHint from "./components/DoomHint";
 import { ErrorFallback } from "./components/ErrorFallback";
 import Layout from "./components/Layout";
 import ThemeSplash from "./components/ThemeSplash";
@@ -109,6 +110,7 @@ export default function App() {
               </Routes>
             </Suspense>
           </BrowserRouter>
+          <DoomHint />
           <ThemeEasterEgg />
           <ThemedToaster />
           {import.meta.env.DEV && (

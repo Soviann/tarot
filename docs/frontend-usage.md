@@ -505,6 +505,17 @@ Hook s'abonnant proprement (avec cleanup) à un événement de l'event bus `game
 useGameEventListener("game:completed", (event) => { /* ... */ });
 ```
 
+### `useHintCooldown`
+
+**Fichier** : `hooks/useHintCooldown.ts`
+
+Hook gérant le cooldown partagé de 10 minutes pour les indices d'easter eggs. Stocke le timestamp du dernier indice affiché dans `localStorage` (clé `hint-last-shown`).
+
+```ts
+const { canShowHint, markHintShown } = useHintCooldown();
+if (canShowHint()) { markHintShown(); /* afficher l'indice */ }
+```
+
 ### `useKonamiCode`
 
 **Fichier** : `hooks/useKonamiCode.ts`
@@ -1384,6 +1395,22 @@ Modal de complétion (étape 2) ou modification d'une donne. Titre dynamique sel
 - Pré-remplissage automatique en mode édition (donne complétée)
 - Callback `onGameCompleted` appelé uniquement lors de la première complétion (pas en mode édition), avec le contexte complet (victoire ou défaite)
 
+### `DoomHint`
+
+**Fichier** : `components/DoomHint.tsx`
+
+Composant global (monté dans `App.tsx`) affichant un indice d'easter egg Doom. Au clic n'importe où sur la page, 2% de chance qu'une icône Doom 32x32 traverse l'écran dans une direction aléatoire (gauche→droite, droite→gauche, haut→bas, bas→haut). Animation CSS de 2 secondes. Cooldown partagé de 10 minutes via `useHintCooldown`.
+
+### `KonamiHint`
+
+**Fichier** : `components/KonamiHint.tsx`
+
+Wrapper affichant un indice d'easter egg Konami au clic. 5% de chance qu'un logo Konami apparaisse brièvement (~2 secondes, fade in/out) au-dessus du contenu enfant. Utilisé dans `PlayerAvatar` pour wrapper chaque avatar. Cooldown partagé de 10 minutes via `useHintCooldown`.
+
+| Prop | Type | Description |
+|------|------|-------------|
+| `children` | `ReactNode?` | Contenu wrappé (avatar) |
+
 ### `ThemeSplash`
 
 **Fichier** : `components/ThemeSplash.tsx`
@@ -1739,7 +1766,7 @@ import { ContractBadge, EmptyState, FAB, MetricCard, Modal, OverflowMenu, Player
 
 **Fichier** : `components/ui/PlayerAvatar.tsx`
 
-Affiche un cercle coloré avec les initiales du joueur. Palette de 10 couleurs appliquées en inline style.
+Affiche un cercle coloré avec les initiales du joueur. Palette de 10 couleurs appliquées en inline style. Chaque avatar est wrappé par `KonamiHint` pour afficher un indice d'easter egg au clic (5% de chance, cooldown 10 min).
 
 | Prop | Type | Défaut | Description |
 |------|------|--------|-------------|

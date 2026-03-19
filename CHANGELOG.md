@@ -6,6 +6,10 @@ Le format est basé sur [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/)
 
 ## [Unreleased]
 
+### Added
+
+- **Indices easter eggs** : indices subtils et éphémères suggérant la présence d'easter eggs cachés — logo Konami au clic sur un avatar (5%, 2s), icône Doom traversant l'écran au clic (2%, 32px). Cooldown partagé de 10 minutes.
+
 ## [1.7.1] - 2026-03-19
 
 ### Fixed
