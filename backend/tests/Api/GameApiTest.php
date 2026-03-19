@@ -679,4 +679,362 @@ class GameApiTest extends ApiTestCase
 
         $this->assertResponseStatusCodeSame(422);
     }
+
+    // ---------------------------------------------------------------
+    // Edge cases : validateurs (#35)
+    // ---------------------------------------------------------------
+
+    public function testOnlyLastGameEditableWith3Games(): void
+    {
+        $session = $this->createSessionWithPlayers('Alice', 'Bob', 'Charlie', 'Diana', 'Eve');
+        $players = $session->getPlayers()->toArray();
+
+        // Créer 3 donnes complétées
+        for ($i = 1; $i <= 3; ++$i) {
+            $game = new Game();
+            $game->setContract(Contract::Petite);
+            $game->setOudlers(2);
+            $game->setPoints(45);
+            $game->setPosition($i);
+            $game->setSession($session);
+            $game->setStatus(GameStatus::Completed);
+            $game->setTaker($players[0]);
+            $this->em->persist($game);
+        }
+        $this->em->flush();
+
+        // Tenter d'éditer la première donne → 422
+        $firstGameId = $this->em->getRepository(Game::class)
+            ->findOneBy(['session' => $session, 'position' => 1])->getId();
+
+        $this->client->request('PATCH', '/api/games/'.$firstGameId, [
+            'headers' => ['Content-Type' => 'application/merge-patch+json'],
+            'json' => ['points' => 50],
+        ]);
+
+        $this->assertResponseStatusCodeSame(422);
+    }
+
+    public function testPartnerSameAsTaker(): void
+    {
+        $session = $this->createSessionWithPlayers('Alice', 'Bob', 'Charlie', 'Diana', 'Eve');
+        $players = $session->getPlayers()->toArray();
+
+        $game = new Game();
+        $game->setContract(Contract::Petite);
+        $game->setPosition(1);
+        $game->setSession($session);
+        $game->setTaker($players[0]);
+        $this->em->persist($game);
+        $this->em->flush();
+
+        // Compléter avec partner = taker (auto-appel via IRI)
+        $response = $this->client->request('PATCH', '/api/games/'.$game->getId(), [
+            'headers' => ['Content-Type' => 'application/merge-patch+json'],
+            'json' => [
+                'oudlers' => 2,
+                'partner' => $this->getIri($players[0]),
+                'points' => 45,
+                'status' => 'completed',
+            ],
+        ]);
+
+        // Partner = taker → rejeté (auto-appel doit utiliser partner: null)
+        $this->assertResponseStatusCodeSame(422);
+    }
+
+    // ---------------------------------------------------------------
+    // Edge cases : transitions de statut (#35)
+    // ---------------------------------------------------------------
+
+    public function testCompleteWithPointsButNoOudlers(): void
+    {
+        $session = $this->createSessionWithPlayers('Alice', 'Bob', 'Charlie', 'Diana', 'Eve');
+        $players = $session->getPlayers()->toArray();
+
+        $game = new Game();
+        $game->setContract(Contract::Petite);
+        $game->setPosition(1);
+        $game->setSession($session);
+        $game->setTaker($players[0]);
+        $this->em->persist($game);
+        $this->em->flush();
+
+        // Points sans oudlers → erreur attendue
+        $this->client->request('PATCH', '/api/games/'.$game->getId(), [
+            'headers' => ['Content-Type' => 'application/merge-patch+json'],
+            'json' => [
+                'points' => 45,
+                'status' => 'completed',
+            ],
+        ]);
+
+        $this->assertResponseStatusCodeSame(422);
+    }
+
+    public function testCompleteWithOudlersButNoPoints(): void
+    {
+        $session = $this->createSessionWithPlayers('Alice', 'Bob', 'Charlie', 'Diana', 'Eve');
+        $players = $session->getPlayers()->toArray();
+
+        $game = new Game();
+        $game->setContract(Contract::Petite);
+        $game->setPosition(1);
+        $game->setSession($session);
+        $game->setTaker($players[0]);
+        $this->em->persist($game);
+        $this->em->flush();
+
+        // Oudlers sans points → erreur attendue
+        $this->client->request('PATCH', '/api/games/'.$game->getId(), [
+            'headers' => ['Content-Type' => 'application/merge-patch+json'],
+            'json' => [
+                'oudlers' => 2,
+                'status' => 'completed',
+            ],
+        ]);
+
+        $this->assertResponseStatusCodeSame(422);
+    }
+
+    public function testIdempotentPatchCompletedGame(): void
+    {
+        $session = $this->createSessionWithPlayers('Alice', 'Bob', 'Charlie', 'Diana', 'Eve');
+        $players = $session->getPlayers()->toArray();
+
+        $this->client->disableReboot();
+
+        // Créer et compléter une donne
+        $response = $this->client->request('POST', $this->getIri($session).'/games', [
+            'headers' => ['Content-Type' => 'application/ld+json'],
+            'json' => [
+                'contract' => 'petite',
+                'taker' => $this->getIri($players[0]),
+            ],
+        ]);
+        $gameIri = $response->toArray()['@id'];
+
+        $response = $this->client->request('PATCH', $gameIri, [
+            'headers' => ['Content-Type' => 'application/merge-patch+json'],
+            'json' => [
+                'oudlers' => 2,
+                'partner' => $this->getIri($players[1]),
+                'points' => 45,
+                'status' => 'completed',
+            ],
+        ]);
+        $this->assertResponseIsSuccessful();
+        $firstData = $response->toArray();
+
+        // PATCH identique sur donne déjà complétée → les scores restent les mêmes
+        $response = $this->client->request('PATCH', $gameIri, [
+            'headers' => ['Content-Type' => 'application/merge-patch+json'],
+            'json' => [
+                'oudlers' => 2,
+                'partner' => $this->getIri($players[1]),
+                'points' => 45,
+                'status' => 'completed',
+            ],
+        ]);
+        $this->assertResponseIsSuccessful();
+        $secondData = $response->toArray();
+
+        // Les scores doivent être identiques
+        $firstScores = [];
+        foreach ($firstData['scoreEntries'] as $entry) {
+            $firstScores[$entry['player']['name']] = $entry['score'];
+        }
+        $secondScores = [];
+        foreach ($secondData['scoreEntries'] as $entry) {
+            $secondScores[$entry['player']['name']] = $entry['score'];
+        }
+
+        $this->assertSame($firstScores, $secondScores);
+    }
+
+    // ---------------------------------------------------------------
+    // Edge cases : champs partiels / null (#35)
+    // ---------------------------------------------------------------
+
+    public function testPatchOnlyPointsOnInProgressGame(): void
+    {
+        $session = $this->createSessionWithPlayers('Alice', 'Bob', 'Charlie', 'Diana', 'Eve');
+        $players = $session->getPlayers()->toArray();
+
+        $game = new Game();
+        $game->setContract(Contract::Petite);
+        $game->setPosition(1);
+        $game->setSession($session);
+        $game->setTaker($players[0]);
+        $this->em->persist($game);
+        $this->em->flush();
+
+        // PATCH uniquement points sans changer le status → reste in_progress
+        $response = $this->client->request('PATCH', '/api/games/'.$game->getId(), [
+            'headers' => ['Content-Type' => 'application/merge-patch+json'],
+            'json' => ['points' => 45],
+        ]);
+
+        $this->assertResponseIsSuccessful();
+        $this->assertSame('in_progress', $response->toArray()['status']);
+    }
+
+    public function testPoigneeWithoutOwner(): void
+    {
+        $session = $this->createSessionWithPlayers('Alice', 'Bob', 'Charlie', 'Diana', 'Eve');
+        $players = $session->getPlayers()->toArray();
+
+        $game = new Game();
+        $game->setContract(Contract::Petite);
+        $game->setPosition(1);
+        $game->setSession($session);
+        $game->setTaker($players[0]);
+        $this->em->persist($game);
+        $this->em->flush();
+
+        // Compléter avec poignée simple mais sans poigneeOwner
+        $response = $this->client->request('PATCH', '/api/games/'.$game->getId(), [
+            'headers' => ['Content-Type' => 'application/merge-patch+json'],
+            'json' => [
+                'oudlers' => 2,
+                'poignee' => 'simple',
+                'points' => 45,
+                'status' => 'completed',
+            ],
+        ]);
+
+        // La poignée est acceptée mais le bonus est attribué au camp gagnant
+        // sans notion de propriétaire (poigneeOwner reste None par défaut)
+        $this->assertResponseIsSuccessful();
+    }
+
+    public function testPatchPartnerToNullOnCompletedGame(): void
+    {
+        $session = $this->createSessionWithPlayers('Alice', 'Bob', 'Charlie', 'Diana', 'Eve');
+        $players = $session->getPlayers()->toArray();
+
+        // Créer et compléter une donne avec partenaire
+        $game = new Game();
+        $game->setContract(Contract::Petite);
+        $game->setOudlers(2);
+        $game->setPartner($players[1]);
+        $game->setPoints(45);
+        $game->setPosition(1);
+        $game->setSession($session);
+        $game->setStatus(GameStatus::Completed);
+        $game->setTaker($players[0]);
+        $this->em->persist($game);
+        $calculator = new \App\Service\Scoring\ScoreCalculator();
+        foreach ($calculator->compute($game) as $entry) {
+            $this->em->persist($entry);
+            $game->addScoreEntry($entry);
+        }
+        $this->em->flush();
+
+        // PATCH partner: null → passage en self-call, recalcul des scores
+        $response = $this->client->request('PATCH', '/api/games/'.$game->getId(), [
+            'headers' => ['Content-Type' => 'application/merge-patch+json'],
+            'json' => [
+                'partner' => null,
+            ],
+        ]);
+
+        $this->assertResponseIsSuccessful();
+        $data = $response->toArray();
+
+        // En self-call, le preneur reçoit ×4 le score
+        $scores = [];
+        foreach ($data['scoreEntries'] as $entry) {
+            $scores[$entry['player']['name']] = $entry['score'];
+        }
+
+        // Petite, 2 oudlers, 45 pts → base=29, preneur self-call ×4 = 116
+        $this->assertSame(116, $scores['Alice']);
+        $this->assertSame(0, \array_sum($scores));
+    }
+
+    // ---------------------------------------------------------------
+    // Edge cases : cascade et nettoyage (#35)
+    // ---------------------------------------------------------------
+
+    public function testEditGameReplacesOldScoreEntries(): void
+    {
+        $session = $this->createSessionWithPlayers('Alice', 'Bob', 'Charlie', 'Diana', 'Eve');
+        $players = $session->getPlayers()->toArray();
+
+        $this->client->disableReboot();
+
+        // Créer et compléter une donne
+        $response = $this->client->request('POST', $this->getIri($session).'/games', [
+            'headers' => ['Content-Type' => 'application/ld+json'],
+            'json' => [
+                'contract' => 'petite',
+                'taker' => $this->getIri($players[0]),
+            ],
+        ]);
+        $gameIri = $response->toArray()['@id'];
+
+        $this->client->request('PATCH', $gameIri, [
+            'headers' => ['Content-Type' => 'application/merge-patch+json'],
+            'json' => [
+                'oudlers' => 2,
+                'partner' => $this->getIri($players[1]),
+                'points' => 45,
+                'status' => 'completed',
+            ],
+        ]);
+        $this->assertResponseIsSuccessful();
+
+        // Modifier les points → les anciens ScoreEntry doivent être supprimés
+        $response = $this->client->request('PATCH', $gameIri, [
+            'headers' => ['Content-Type' => 'application/merge-patch+json'],
+            'json' => ['points' => 50],
+        ]);
+        $this->assertResponseIsSuccessful();
+        $data = $response->toArray();
+
+        // Exactement 5 ScoreEntry (pas 10 = ancien + nouveau)
+        $this->assertCount(5, $data['scoreEntries']);
+    }
+
+    public function testDeleteCompletedGameCascadesScoreEntries(): void
+    {
+        $session = $this->createSessionWithPlayers('Alice', 'Bob', 'Charlie', 'Diana', 'Eve');
+        $players = $session->getPlayers()->toArray();
+
+        $this->client->disableReboot();
+
+        // Créer et compléter une donne
+        $response = $this->client->request('POST', $this->getIri($session).'/games', [
+            'headers' => ['Content-Type' => 'application/ld+json'],
+            'json' => [
+                'contract' => 'petite',
+                'taker' => $this->getIri($players[0]),
+            ],
+        ]);
+        $gameIri = $response->toArray()['@id'];
+        $gameId = $response->toArray()['id'];
+
+        $this->client->request('PATCH', $gameIri, [
+            'headers' => ['Content-Type' => 'application/merge-patch+json'],
+            'json' => [
+                'oudlers' => 2,
+                'partner' => $this->getIri($players[1]),
+                'points' => 45,
+                'status' => 'completed',
+            ],
+        ]);
+        $this->assertResponseIsSuccessful();
+
+        // Supprimer la donne
+        $this->client->request('DELETE', $gameIri);
+        $this->assertResponseStatusCodeSame(204);
+
+        // Vérifier qu'il n'y a plus de ScoreEntry pour cette donne
+        $count = $this->em->getConnection()->executeQuery(
+            'SELECT COUNT(*) FROM score_entry WHERE game_id = ?',
+            [$gameId]
+        )->fetchOne();
+        $this->assertSame(0, (int) $count);
+    }
 }

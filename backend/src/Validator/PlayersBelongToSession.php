@@ -14,6 +14,8 @@ class PlayersBelongToSession extends Constraint
 {
     public string $message = 'Le joueur "{{ player }}" n\'appartient pas à la session.';
 
+    public string $partnerSameAsTakerMessage = 'Le partenaire ne peut pas être le preneur lui-même.';
+
     #[\Override]
     public function getTargets(): string
     {

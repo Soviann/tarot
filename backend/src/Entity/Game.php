@@ -28,6 +28,7 @@ use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Serializer\Attribute\Groups;
 use Symfony\Component\Validator\Constraints as Assert;
+use Symfony\Component\Validator\Context\ExecutionContextInterface;
 
 #[ApiResource(
     operations: [
@@ -61,6 +62,7 @@ use Symfony\Component\Validator\Constraints as Assert;
     ],
     normalizationContext: ['groups' => ['game:read']],
 )]
+#[Assert\Callback(callback: 'validateCompletionData', groups: ['game:patch'])]
 #[OnlyLastGameEditable(groups: ['game:delete', 'game:patch'])]
 #[ORM\Entity(repositoryClass: GameRepository::class)]
 #[ORM\Index(columns: ['session_id', 'status'])]
@@ -365,5 +367,24 @@ class Game
         $this->taker = $taker;
 
         return $this;
+    }
+
+    public function validateCompletionData(ExecutionContextInterface $context): void
+    {
+        if (GameStatus::Completed !== $this->status) {
+            return;
+        }
+
+        if (null === $this->oudlers) {
+            $context->buildViolation('Le nombre d\'oudlers est requis pour compléter une donne.')
+                ->atPath('oudlers')
+                ->addViolation();
+        }
+
+        if (null === $this->points) {
+            $context->buildViolation('Les points sont requis pour compléter une donne.')
+                ->atPath('points')
+                ->addViolation();
+        }
     }
 }

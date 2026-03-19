@@ -35,11 +35,17 @@ class PlayersBelongToSessionValidator extends ConstraintValidator
 
         // Vérifier le partenaire
         $partner = $value->getPartner();
-        if (null !== $partner && !$sessionPlayers->contains($partner)) {
-            $this->context->buildViolation($constraint->message)
-                ->setParameter('{{ player }}', $partner->getName())
-                ->atPath('partner')
-                ->addViolation();
+        if (null !== $partner) {
+            if ($partner === $taker) {
+                $this->context->buildViolation($constraint->partnerSameAsTakerMessage)
+                    ->atPath('partner')
+                    ->addViolation();
+            } elseif (!$sessionPlayers->contains($partner)) {
+                $this->context->buildViolation($constraint->message)
+                    ->setParameter('{{ player }}', $partner->getName())
+                    ->atPath('partner')
+                    ->addViolation();
+            }
         }
     }
 }
