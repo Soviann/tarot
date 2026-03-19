@@ -49,8 +49,9 @@ export function calculateScore(input: ScoreCalculatorInput): ScoreResult {
   const { chelem, contract, oudlers, partnerId, petitAuBout, poignee, points } = input;
   const multiplier = CONTRACT_MULTIPLIER[contract];
   const requiredPoints = REQUIRED_POINTS[oudlers];
-  const intPoints = Math.trunc(points);
-  const attackWins = intPoints >= requiredPoints;
+  // Règle FFT : le demi-point va au camp gagnant
+  const attackWins = points >= requiredPoints;
+  const intPoints = attackWins ? Math.ceil(points) : Math.floor(points);
   const selfCall = partnerId === null;
 
   // Score de base : (|points - requis| + 25) × multiplicateur
