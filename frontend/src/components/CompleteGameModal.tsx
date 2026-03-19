@@ -149,8 +149,8 @@ export default function CompleteGameModal({ game, onBadgesUnlocked, onClose, onG
     return () => clearTimeout(timer);
   }, [game.taker.id, players, voice.parsedResult, voice.status]);
 
-  const pointsNum = points === "" ? null : Number(points);
-  const pointsValid = pointsNum !== null && !isNaN(pointsNum) && pointsNum >= 0 && pointsNum <= 91;
+  const pointsNum = points === "" ? null : Number(points.replace(",", "."));
+  const pointsValid = pointsNum !== null && !isNaN(pointsNum) && pointsNum >= 0 && pointsNum <= 91 && (pointsNum % 1 === 0 || pointsNum % 1 === 0.5);
   const hasPartner = selfCall || partnerId !== null;
   const canSubmit = pointsValid && hasPartner && !completeGame.isPending;
 
@@ -314,9 +314,8 @@ export default function CompleteGameModal({ game, onBadgesUnlocked, onClose, onG
         <div>
           <input
             className={`w-full rounded-xl border border-surface-border bg-surface-primary px-4 py-3 text-center text-lg font-semibold tabular-nums text-text-primary placeholder:text-text-muted focus:border-accent-500 focus:outline-none focus:ring-1 focus:ring-accent-500 ${voiceHighlight.has("points") ? "ring-2 ring-green-500" : ""}`}
-            inputMode="numeric"
+            inputMode="decimal"
             onChange={(e) => setPoints(e.target.value)}
-            pattern="[0-9]*"
             placeholder="Points"
             type="text"
             value={points}
