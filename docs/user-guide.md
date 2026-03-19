@@ -330,7 +330,7 @@ La saisie se fait en **2 étapes** :
 
 1. **Sélectionner le partenaire** : appuyer sur l'avatar du joueur appelé, ou **« Seul »** si le preneur appelle son propre roi. Le bandeau en haut de la modale affiche l'appelé à côté du preneur pour vérification rapide.
 2. **Nombre d'oudlers** : utiliser le stepper (0 à 3)
-3. **Points réalisés** : saisir le total de points du camp attaquant (0 à 91)
+3. **Points réalisés** : saisir le total de points du camp attaquant (0 à 91, les demi-points comme 40,5 ou 40.5 sont acceptés)
 4. **Bonus** (section dépliable, optionnel) :
    - **Poignée** : Simple / Double / Triple + qui la montre (Attaque / Défense)
    - **Petit au bout** : Attaque / Défense
@@ -677,6 +677,8 @@ Score de base = (|points réalisés − points requis| + 25) × multiplicateur d
 | Garde Contre | ×6 |
 
 Le score de base est **positif** si le preneur atteint les points requis, **négatif** sinon.
+
+> **Demi-points** : si le décompte donne un nombre à ½ point (ex : 40,5), le demi-point va au **camp gagnant** (règle FFT). Exemple : 40,5 pts avec 2 oudlers → l'attaque n'atteint pas 41, elle perd → le ½ point va à la défense → 40 pts comptés.
 
 ### Bonus
 

@@ -199,23 +199,25 @@ describe("calculateScore", () => {
   });
 
   // ---------------------------------------------------------------
-  // Demi-points : tronqués à l'entier comme le backend
+  // Demi-points : arrondi FFT (½ point au camp gagnant)
   // ---------------------------------------------------------------
 
-  it("tronque les demi-points avant le calcul (garde, 53.5 pts, 1 oudler)", () => {
-    // Backend: (int)53.5 = 53, requis=51, diff=2, base=(2+25)×2=54
+  it("arrondit le demi-point en faveur de l'attaque quand elle gagne (53.5 pts, 1 oudler)", () => {
+    // 53.5 pts, requis=51 → attaque gagne → ceil(53.5)=54
+    // base=(54-51+25)×2=56
     const result = calculateScore(makeInput({
       contract: Contract.Garde,
       oudlers: 1,
       points: 53.5,
     }));
 
-    expect(result.baseScore).toBe(54);
-    expect(result.takerScore).toBe(108);
+    expect(result.attackWins).toBe(true);
+    expect(result.baseScore).toBe(56);
+    expect(result.takerScore).toBe(112);
   });
 
-  it("tronque les demi-points pour déterminer le résultat (40.5 pts, 2 oudlers)", () => {
-    // Backend: (int)40.5 = 40, requis=41, attaque perd
+  it("arrondit le demi-point en faveur de la défense quand l'attaque perd (40.5 pts, 2 oudlers)", () => {
+    // 40.5 pts, requis=41 → attaque perd → floor(40.5)=40
     // base=-(|40-41|+25)×1 = -26
     const result = calculateScore(makeInput({
       oudlers: 2,
@@ -224,6 +226,25 @@ describe("calculateScore", () => {
 
     expect(result.attackWins).toBe(false);
     expect(result.baseScore).toBe(-26);
+  });
+
+  it("arrondit le demi-point pour déterminer le résultat (41.5 pts, 2 oudlers → attaque gagne)", () => {
+    // 41.5 pts, requis=41 → attaque gagne → ceil(41.5)=42
+    // base=(42-41+25)×1=26
+    const result = calculateScore(makeInput({
+      oudlers: 2,
+      points: 41.5,
+    }));
+
+    expect(result.attackWins).toBe(true);
+    expect(result.baseScore).toBe(26);
+  });
+
+  it("les points entiers ne sont pas affectés par l'arrondi", () => {
+    const result = calculateScore(makeInput({ points: 45 }));
+
+    expect(result.attackWins).toBe(true);
+    expect(result.baseScore).toBe(29);
   });
 
   // ---------------------------------------------------------------
@@ -264,6 +285,8 @@ describe("calculateScore", () => {
     { desc: "garde gagnée", input: makeInput({ contract: Contract.Garde, oudlers: 1, points: 60 }) },
     { desc: "self-call gagné", input: makeInput({ partnerId: null }) },
     { desc: "self-call perdu", input: makeInput({ contract: Contract.Garde, oudlers: 0, partnerId: null, points: 30 }) },
+    { desc: "demi-point attaque gagne", input: makeInput({ points: 41.5 }) },
+    { desc: "demi-point attaque perd", input: makeInput({ oudlers: 0, points: 40.5 }) },
     { desc: "tous les bonus", input: makeInput({
       chelem: Chelem.None,
       contract: Contract.Garde,

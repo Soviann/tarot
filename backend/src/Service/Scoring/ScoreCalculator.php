@@ -45,8 +45,9 @@ final readonly class ScoreCalculator
         $contract = $game->getContract();
         $multiplier = $contract->multiplier();
         $requiredPoints = $this->getRequiredPoints($oudlers);
-        $intPoints = (int) $points;
-        $attackWins = $intPoints >= $requiredPoints;
+        // Règle FFT : le demi-point va au camp gagnant
+        $attackWins = $points >= $requiredPoints;
+        $intPoints = $attackWins ? (int) \ceil($points) : (int) \floor($points);
 
         // Score de base : (|points - requis| + 25) × multiplicateur, négatif si perdu
         $baseScore = (\abs($intPoints - $requiredPoints) + 25) * $multiplier;

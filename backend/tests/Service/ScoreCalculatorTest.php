@@ -490,6 +490,14 @@ class ScoreCalculatorTest extends TestCase
             Contract::Garde, 3, 91, false, Poignee::None, Side::None, Side::None, Chelem::NotAnnouncedWon,
         ];
 
+        yield 'demi-point attaque gagne' => [
+            Contract::Petite, 2, 41.5, false, Poignee::None, Side::None, Side::None, Chelem::None,
+        ];
+
+        yield 'demi-point attaque perd' => [
+            Contract::Petite, 0, 40.5, false, Poignee::None, Side::None, Side::None, Chelem::None,
+        ];
+
         yield 'tous les bonus combinés' => [
             Contract::Garde, 1, 60, false, Poignee::Triple, Side::Attack, Side::Attack, Chelem::None,
         ];
@@ -513,6 +521,55 @@ class ScoreCalculatorTest extends TestCase
 
         $this->expectException(\InvalidArgumentException::class);
         $this->calculator->compute($game);
+    }
+
+    // ---------------------------------------------------------------
+    // Demi-points : arrondi FFT (½ point au camp gagnant)
+    // ---------------------------------------------------------------
+
+    public function testDemiPointAttaqueGagne(): void
+    {
+        // 53.5 pts, 1 oudler, requis=51 → attaque gagne → ceil(53.5)=54
+        // base=(54-51+25)×2=56
+        $game = $this->createGame(
+            contract: Contract::Garde,
+            oudlers: 1,
+            points: 53.5,
+        );
+
+        $entries = $this->calculator->compute($game);
+
+        $this->assertTakerScore(56, $entries);
+    }
+
+    public function testDemiPointAttaquePerd(): void
+    {
+        // 40.5 pts, 2 oudlers, requis=41 → attaque perd → floor(40.5)=40
+        // base=-(|40-41|+25)×1=-26
+        $game = $this->createGame(
+            contract: Contract::Petite,
+            oudlers: 2,
+            points: 40.5,
+        );
+
+        $entries = $this->calculator->compute($game);
+
+        $this->assertTakerScore(-26, $entries);
+    }
+
+    public function testDemiPointJusteAuDessus(): void
+    {
+        // 41.5 pts, 2 oudlers, requis=41 → attaque gagne → ceil(41.5)=42
+        // base=(42-41+25)×1=26
+        $game = $this->createGame(
+            contract: Contract::Petite,
+            oudlers: 2,
+            points: 41.5,
+        );
+
+        $entries = $this->calculator->compute($game);
+
+        $this->assertTakerScore(26, $entries);
     }
 
     // ---------------------------------------------------------------
