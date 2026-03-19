@@ -6,6 +6,8 @@ Le format est basé sur [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/)
 
 ## [Unreleased]
 
+## [1.7.1] - 2026-03-19
+
 ### Fixed
 
 - **Demi-points** : applique la règle FFT — le ½ point va au camp gagnant (au lieu de `Math.trunc`/`(int)` qui arrondissait toujours vers zéro). Accepte la virgule comme séparateur décimal dans le champ de saisie des points.
