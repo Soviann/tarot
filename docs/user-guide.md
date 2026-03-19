@@ -578,6 +578,15 @@ Après la saisie d'une donne, un **mème aléatoire** peut apparaître en plein 
 
 Un thème caché existe dans l'application. Si vous connaissez le bon code, l'interface se transforme radicalement avec une ambiance très différente, des effets sonores contextuels à chaque donne, et un splash animé à l'activation. Le bouton de changement de thème permet ensuite de revenir au mode normal.
 
+### Indices subtils
+
+L'application affiche parfois des **indices éphémères** suggérant la présence d'easter eggs cachés :
+
+- **Logo Konami** : au clic sur un avatar de joueur, un logo peut apparaître brièvement au-dessus (~2 secondes) avant de s'estomper.
+- **Icône Doom** : au clic n'importe où, une petite icône peut traverser l'écran dans une direction aléatoire.
+
+Ces indices sont très rares et ne gênent jamais l'utilisation normale. Un cooldown de 10 minutes empêche les apparitions trop fréquentes.
+
 ---
 
 ## Badges et succès

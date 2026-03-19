@@ -1,4 +1,5 @@
 import { useTheme } from "next-themes";
+import KonamiHint from "../KonamiHint";
 import { getThemeConfig } from "../../services/themeRegistry";
 
 interface PlayerAvatarProps {
@@ -60,18 +61,20 @@ export default function PlayerAvatar({
     const initials = getInitials(name);
 
     return (
-      <div className={`inline-flex flex-col items-center gap-0.5 ${className}`.trim()} role="img" aria-label={name}>
-        <img
-          alt=""
-          className={`${sizeClass} rounded-full object-cover`}
-          src={avatars.icons[iconIndex]}
-        />
-        {avatars.initialsPosition === "below" && (
-          <span className="text-[0.6rem] font-bold leading-none text-text-secondary">
-            {initials}
-          </span>
-        )}
-      </div>
+      <KonamiHint>
+        <div className={`inline-flex flex-col items-center gap-0.5 ${className}`.trim()} role="img" aria-label={name}>
+          <img
+            alt=""
+            className={`${sizeClass} rounded-full object-cover`}
+            src={avatars.icons[iconIndex]}
+          />
+          {avatars.initialsPosition === "below" && (
+            <span className="text-[0.6rem] font-bold leading-none text-text-secondary">
+              {initials}
+            </span>
+          )}
+        </div>
+      </KonamiHint>
     );
   }
 
@@ -81,13 +84,15 @@ export default function PlayerAvatar({
   const backgroundColor = useCustomColor ? color : PLAYER_PALETTE[colorIndex];
 
   return (
-    <div
-      aria-label={name}
-      className={`${sizeClasses[size]} inline-flex items-center justify-center rounded-full font-semibold text-white ${className}`.trim()}
-      role="img"
-      style={{ backgroundColor: backgroundColor! }}
-    >
-      {getInitials(name)}
-    </div>
+    <KonamiHint>
+      <div
+        aria-label={name}
+        className={`${sizeClasses[size]} inline-flex items-center justify-center rounded-full font-semibold text-white ${className}`.trim()}
+        role="img"
+        style={{ backgroundColor: backgroundColor! }}
+      >
+        {getInitials(name)}
+      </div>
+    </KonamiHint>
   );
 }
