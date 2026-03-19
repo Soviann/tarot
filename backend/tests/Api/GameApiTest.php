@@ -7,6 +7,7 @@ namespace App\Tests\Api;
 use App\Entity\Game;
 use App\Enum\Contract;
 use App\Enum\GameStatus;
+use App\Service\Scoring\ScoreCalculator;
 
 class GameApiTest extends ApiTestCase
 {
@@ -277,7 +278,7 @@ class GameApiTest extends ApiTestCase
         $game->setTaker($players[0]);
         $this->em->persist($game);
         // Ajouter les scores initiaux
-        $calculator = new \App\Service\Scoring\ScoreCalculator();
+        $calculator = new ScoreCalculator();
         foreach ($calculator->compute($game) as $entry) {
             $this->em->persist($entry);
             $game->addScoreEntry($entry);
@@ -399,7 +400,7 @@ class GameApiTest extends ApiTestCase
         $game1->setStatus(GameStatus::Completed);
         $game1->setTaker($players[0]);
         $this->em->persist($game1);
-        $calculator = new \App\Service\Scoring\ScoreCalculator();
+        $calculator = new ScoreCalculator();
         foreach ($calculator->compute($game1) as $entry) {
             $this->em->persist($entry);
             $game1->addScoreEntry($entry);
@@ -704,8 +705,10 @@ class GameApiTest extends ApiTestCase
         $this->em->flush();
 
         // Tenter d'éditer la première donne → 422
-        $firstGameId = $this->em->getRepository(Game::class)
-            ->findOneBy(['session' => $session, 'position' => 1])->getId();
+        $firstGame = $this->em->getRepository(Game::class)
+            ->findOneBy(['session' => $session, 'position' => 1]);
+        $this->assertNotNull($firstGame);
+        $firstGameId = $firstGame->getId();
 
         $this->client->request('PATCH', '/api/games/'.$firstGameId, [
             'headers' => ['Content-Type' => 'application/merge-patch+json'],
@@ -729,7 +732,7 @@ class GameApiTest extends ApiTestCase
         $this->em->flush();
 
         // Compléter avec partner = taker (auto-appel via IRI)
-        $response = $this->client->request('PATCH', '/api/games/'.$game->getId(), [
+        $this->client->request('PATCH', '/api/games/'.$game->getId(), [
             'headers' => ['Content-Type' => 'application/merge-patch+json'],
             'json' => [
                 'oudlers' => 2,
@@ -746,6 +749,42 @@ class GameApiTest extends ApiTestCase
     // ---------------------------------------------------------------
     // Edge cases : transitions de statut (#35)
     // ---------------------------------------------------------------
+
+    public function testCannotChangeTakerOnCompletedGame(): void
+    {
+        $session = $this->createSessionWithPlayers('Alice', 'Bob', 'Charlie', 'Diana', 'Eve');
+        $players = $session->getPlayers()->toArray();
+
+        // Créer et compléter une donne
+        $game = new Game();
+        $game->setContract(Contract::Petite);
+        $game->setOudlers(2);
+        $game->setPartner($players[1]);
+        $game->setPoints(45);
+        $game->setPosition(1);
+        $game->setSession($session);
+        $game->setStatus(GameStatus::Completed);
+        $game->setTaker($players[0]);
+        $this->em->persist($game);
+        $calculator = new ScoreCalculator();
+        foreach ($calculator->compute($game) as $entry) {
+            $this->em->persist($entry);
+            $game->addScoreEntry($entry);
+        }
+        $this->em->flush();
+
+        // PATCH taker sur donne complétée → le champ est ignoré (pas dans game:complete)
+        $response = $this->client->request('PATCH', '/api/games/'.$game->getId(), [
+            'headers' => ['Content-Type' => 'application/merge-patch+json'],
+            'json' => [
+                'taker' => $this->getIri($players[2]),
+            ],
+        ]);
+
+        $this->assertResponseIsSuccessful();
+        // Le preneur reste Alice (champ non dénormalisable via PATCH)
+        $this->assertSame('Alice', $response->toArray()['taker']['name']);
+    }
 
     public function testCompleteWithPointsButNoOudlers(): void
     {
@@ -903,9 +942,19 @@ class GameApiTest extends ApiTestCase
             ],
         ]);
 
-        // La poignée est acceptée mais le bonus est attribué au camp gagnant
-        // sans notion de propriétaire (poigneeOwner reste None par défaut)
+        // La poignée est acceptée, bonus attribué au camp gagnant (poigneeOwner=None)
         $this->assertResponseIsSuccessful();
+        $data = $response->toArray();
+
+        $scores = [];
+        foreach ($data['scoreEntries'] as $entry) {
+            $scores[$entry['player']['name']] = $entry['score'];
+        }
+
+        // Petite, 2 oudlers, 45 pts, poignée simple (bonus 20) :
+        // base=(45-41+25)×1=29, +20 poignée = 49, preneur self-call ×4 = 196
+        $this->assertSame(196, $scores['Alice']);
+        $this->assertSame(0, \array_sum($scores));
     }
 
     public function testPatchPartnerToNullOnCompletedGame(): void
@@ -924,7 +973,7 @@ class GameApiTest extends ApiTestCase
         $game->setStatus(GameStatus::Completed);
         $game->setTaker($players[0]);
         $this->em->persist($game);
-        $calculator = new \App\Service\Scoring\ScoreCalculator();
+        $calculator = new ScoreCalculator();
         foreach ($calculator->compute($game) as $entry) {
             $this->em->persist($entry);
             $game->addScoreEntry($entry);
