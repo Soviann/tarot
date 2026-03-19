@@ -150,7 +150,7 @@ export default function CompleteGameModal({ game, onBadgesUnlocked, onClose, onG
   }, [game.taker.id, players, voice.parsedResult, voice.status]);
 
   const pointsNum = points === "" ? null : Number(points.replace(",", "."));
-  const pointsValid = pointsNum !== null && !isNaN(pointsNum) && pointsNum >= 0 && pointsNum <= 91;
+  const pointsValid = pointsNum !== null && !isNaN(pointsNum) && pointsNum >= 0 && pointsNum <= 91 && (pointsNum % 1 === 0 || pointsNum % 1 === 0.5);
   const hasPartner = selfCall || partnerId !== null;
   const canSubmit = pointsValid && hasPartner && !completeGame.isPending;
 
