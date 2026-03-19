@@ -56,7 +56,7 @@ export default function DoomHint() {
     document.addEventListener("click", handleClick);
     return () => {
       document.removeEventListener("click", handleClick);
-      clearTimeout(timerRef.current);
+      clearTimeout(timerRef.current ?? undefined);
     };
   }, [handleClick]);
 
