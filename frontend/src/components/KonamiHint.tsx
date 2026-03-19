@@ -22,7 +22,7 @@ export default function KonamiHint({ children }: KonamiHintProps) {
   }, [canShowHint, markHintShown]);
 
   useEffect(() => {
-    return () => clearTimeout(timerRef.current);
+    return () => clearTimeout(timerRef.current ?? undefined);
   }, []);
 
   return (
