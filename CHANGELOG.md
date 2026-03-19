@@ -9,6 +9,12 @@ Le format est basé sur [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/)
 ### Added
 
 - **Indices easter eggs** : indices subtils et éphémères suggérant la présence d'easter eggs cachés — logo Konami au clic sur un avatar (5%, 2s), icône Doom traversant l'écran au clic (2%, 32px). Cooldown partagé de 10 minutes.
+- **Tests edge cases PATCH /games** : 11 tests API + 1 test unitaire couvrant les validateurs, transitions de statut, champs partiels, immutabilité et cascade.
+
+### Fixed
+
+- **Validation complétion** : retourne 422 au lieu de 500 quand on tente de compléter une donne sans oudlers ou sans points.
+- **Partner = preneur** : rejette le PATCH quand le partenaire est le preneur lui-même (auto-appel doit utiliser `partner: null`).
 
 ## [1.7.1] - 2026-03-19
 

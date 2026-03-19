@@ -110,6 +110,25 @@ class PlayersBelongToSessionValidatorTest extends ConstraintValidatorTestCase
             ->assertRaised();
     }
 
+    public function testPartnerSameAsTakerIsInvalid(): void
+    {
+        $taker = $this->createPlayer(1, 'Alice');
+        $session = new Session();
+        $session->addPlayer($taker);
+
+        $game = new Game();
+        $game->setContract(Contract::Petite);
+        $game->setPartner($taker);
+        $game->setSession($session);
+        $game->setTaker($taker);
+
+        $this->validator->validate($game, new PlayersBelongToSession());
+
+        $this->buildViolation('Le partenaire ne peut pas être le preneur lui-même.')
+            ->atPath('property.path.partner')
+            ->assertRaised();
+    }
+
     protected function createValidator(): PlayersBelongToSessionValidator
     {
         return new PlayersBelongToSessionValidator();
