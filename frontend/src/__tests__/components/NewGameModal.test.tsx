@@ -305,11 +305,17 @@ describe("NewGameModal", () => {
 
     it("bouton Valider désactivé quand isPending = true", async () => {
       const createGame = createMockCreateGame({ isPending: true });
+      const lastGameConfig = { contract: Contract.Garde, takerId: 1 };
       renderWithProviders(
-        <NewGameModal createGame={createGame} onClose={vi.fn()} open players={mockPlayers} />,
+        <NewGameModal createGame={createGame} lastGameConfig={lastGameConfig} onClose={vi.fn()} open players={mockPlayers} />,
       );
 
-      // Même avec joueur + contrat sélectionnés via lastGameConfig
+      // Appliquer la config pour pré-sélectionner joueur + contrat
+      await userEvent.click(screen.getByRole("button", { name: /même config/i }));
+
+      // Joueur et contrat sélectionnés, mais isPending → Valider désactivé
+      expect(screen.getByRole("img", { name: "Alice" }).closest("button")).toHaveClass("ring-2");
+      expect(screen.getByRole("button", { name: "Garde" })).toHaveClass("ring-3");
       expect(screen.getByRole("button", { name: "Valider" })).toBeDisabled();
     });
 

@@ -1087,31 +1087,25 @@ describe("SessionPage", () => {
   // ---------------------------------------------------------------
 
   describe("orchestration modales", () => {
-    it("ouvrir NewGameModal → fermer → ouvrir CompleteGameModal sans interférence", async () => {
-      setupMocks({
-        useSession: { data: mockSessionWithInProgress, session: mockSessionWithInProgress },
-      });
+    it("ouvrir NewGameModal → fermer → ouvrir CompleteGameModal (mode édition) sans interférence", async () => {
+      setupMocks();
       renderWithProviders(<SessionPage />);
 
-      // Ouvrir NewGameModal via FAB (désactivé car in progress)
-      // → on ne peut pas cliquer FAB. Testons autrement : la modale Compléter doit fonctionner
-      // indépendamment du fait que NewGameModal ait été ouverte auparavant.
-      // Note : NewGameModal est toujours rendue mais fermée. CompleteGameModal aussi.
+      // Ouvrir NewGameModal via FAB
+      await userEvent.click(screen.getByRole("button", { name: "Nouvelle donne" }));
+      expect(screen.getByText("Nouvelle donne", { selector: "h2" })).toBeInTheDocument();
 
-      // Ouvrir CompleteGameModal
-      await userEvent.click(screen.getByRole("button", { name: "Compléter" }));
-      expect(screen.getByText("Compléter la donne")).toBeInTheDocument();
-
-      // Fermer (cliquer sur le fond de la modale)
+      // Fermer NewGameModal
       await userEvent.click(screen.getByRole("button", { name: "Fermer" }));
       await waitFor(() => {
-        expect(screen.queryByText("Compléter la donne")).not.toBeInTheDocument();
+        expect(screen.queryByText("Nouvelle donne", { selector: "h2" })).not.toBeInTheDocument();
       });
 
-      // Rouvrir → form vierge, pas de données persistées
-      await userEvent.click(screen.getByRole("button", { name: "Compléter" }));
-      expect(screen.getByText("Compléter la donne")).toBeInTheDocument();
-      expect(screen.getByPlaceholderText("Points")).toHaveValue("");
+      // Ouvrir CompleteGameModal en mode édition → pas d'interférence d'état
+      await userEvent.click(screen.getByRole("button", { name: "Modifier" }));
+      expect(screen.getByText("Modifier la donne")).toBeInTheDocument();
+      // Les champs du mode édition sont pré-remplis (vient de lastCompletedGame, pas de NewGameModal)
+      expect(screen.getByPlaceholderText("Points")).toHaveValue("56");
     });
 
     it("passe inProgressGame à CompleteGameModal et lastCompletedGame au mode édition", async () => {
