@@ -8,6 +8,7 @@ Le format est basé sur [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/)
 
 ### Added
 
+- **Badge « Main du destin »** : nouveau badge performance décerné lorsqu'un joueur remporte une donne avec exactement 0 points de marge.
 - **Badge « Appel à un ami »** : nouveau badge social décerné lorsqu'un joueur appelle le même partenaire 5 fois consécutivement.
 - **Indices easter eggs** : indices subtils et éphémères suggérant la présence d'easter eggs cachés — logo Konami au clic sur un avatar (5%, 2s), icône Doom traversant l'écran au clic (2%, 32px). Cooldown partagé de 10 minutes.
 - **Tests edge cases PATCH /games** : 11 tests API + 1 test unitaire couvrant les validateurs, transitions de statut, champs partiels, immutabilité et cascade.

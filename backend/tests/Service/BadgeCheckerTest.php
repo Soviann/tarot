@@ -535,6 +535,60 @@ class BadgeCheckerTest extends ApiTestCase
         self::assertNotContains(BadgeType::FriendCaller, $takerBadges);
     }
 
+    public function testDestinyHandBadge(): void
+    {
+        $session = $this->createSessionWithPlayers('Alice', 'Bob', 'Charlie', 'Diana', 'Eve');
+        $taker = $session->getPlayers()->toArray()[0];
+
+        // 3 oudlers → required=36. Points=36 → margin=0, taker wins
+        $this->completeGame($session, $taker, oudlers: 3, points: 36);
+
+        $result = $this->checker->checkAndAward($session);
+
+        self::assertContains(BadgeType::DestinyHand, $result[$taker->getId()]);
+    }
+
+    public function testDestinyHandBadgeNotAwardedOnLoss(): void
+    {
+        $session = $this->createSessionWithPlayers('Alice', 'Bob', 'Charlie', 'Diana', 'Eve');
+        $taker = $session->getPlayers()->toArray()[0];
+
+        // 3 oudlers → required=36. Points=35 → deficit=1, taker loses
+        $this->completeGame($session, $taker, oudlers: 3, points: 35, takerScore: -50);
+
+        $result = $this->checker->checkAndAward($session);
+
+        $takerBadges = $result[$taker->getId()] ?? [];
+        self::assertNotContains(BadgeType::DestinyHand, $takerBadges);
+    }
+
+    public function testDestinyHandBadgeNotAwardedWithMargin(): void
+    {
+        $session = $this->createSessionWithPlayers('Alice', 'Bob', 'Charlie', 'Diana', 'Eve');
+        $taker = $session->getPlayers()->toArray()[0];
+
+        // 3 oudlers → required=36. Points=37 → margin=1, not zero
+        $this->completeGame($session, $taker, oudlers: 3, points: 37);
+
+        $result = $this->checker->checkAndAward($session);
+
+        $takerBadges = $result[$taker->getId()] ?? [];
+        self::assertNotContains(BadgeType::DestinyHand, $takerBadges);
+    }
+
+    public function testDestinyHandBadgeWithDifferentOudlerCount(): void
+    {
+        $session = $this->createSessionWithPlayers('Alice', 'Bob', 'Charlie', 'Diana', 'Eve');
+        $taker = $session->getPlayers()->toArray()[0];
+
+        // 2 oudlers → required=41. Points=41.0 → margin=0
+        $this->completeGame($session, $taker, oudlers: 2, points: 41);
+
+        $result = $this->checker->checkAndAward($session);
+
+        self::assertContains(BadgeType::DestinyHand, $result[$taker->getId()]);
+    }
+
     public function testCatchThemAllBadge(): void
     {
         $session = $this->createSessionWithPlayers('Alice', 'Bob', 'Charlie', 'Diana', 'Eve');

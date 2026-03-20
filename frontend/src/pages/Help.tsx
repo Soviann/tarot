@@ -34,6 +34,7 @@ const BADGE_CATEGORIES: { category: string; badges: { description: string; emoji
       { description: "Gagner à +30 points du contrat", emoji: "🔥", label: "Confortable +30" },
       { description: "Gagner à +40 points du contrat", emoji: "🌋", label: "Confortable +40" },
       { description: "Gagner à +50 points du contrat", emoji: "☀️", label: "Confortable +50" },
+      { description: "Remporter une donne avec exactement 0 points de marge", emoji: "⚖️", label: "Main du destin" },
     ],
   },
   {
