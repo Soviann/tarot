@@ -855,7 +855,7 @@ Page d'aide in-app reprenant le contenu du guide utilisateur (`docs/user-guide.m
 
 **Fonctionnalités** :
 - Section « Installation » toujours visible
-- 13 sections en accordéon dépliable (`AccordionSection`, composant local) dont une section « Badges » listant les 33 badges visibles par catégorie (données statiques dans `BADGE_CATEGORIES`, badge Konami exclu)
+- 13 sections en accordéon dépliable (`AccordionSection`, composant local) dont une section « Badges » listant les 34 badges visibles par catégorie (données statiques dans `BADGE_CATEGORIES`, badge Konami exclu)
 - Lien vers le dépôt GitHub en bas de page
 - Bouton retour vers l'accueil
 - Accessible via l'icône `CircleHelp` sur la page d'accueil (`Home.tsx`), à droite du titre « Sessions récentes »
@@ -1053,7 +1053,7 @@ Grille affichant les badges d'un joueur. Seuls les badges débloqués sont visib
 
 | Prop | Type | Description |
 |------|------|-------------|
-| `badges` | `Badge[]` | *requis* — liste des 34 badges (avec `unlockedAt` null ou date) |
+| `badges` | `Badge[]` | *requis* — liste des 35 badges (avec `unlockedAt` null ou date) |
 
 **Fonctionnalités** :
 - Header « Badges (X/Y) » avec compteur débloqués/total
