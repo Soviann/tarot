@@ -15,7 +15,6 @@ use App\Repository\StarEventRepository;
 use App\Service\BadgeChecker;
 use App\State\StarEventCreateProcessor;
 use Doctrine\ORM\EntityManagerInterface;
-use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\MockObject\Stub;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\HttpKernel\Exception\UnprocessableEntityHttpException;
@@ -43,19 +42,6 @@ class StarEventCreateProcessorTest extends TestCase
             $this->badgeChecker,
             $this->em,
             $this->persistProcessor,
-            $this->sessionRepository,
-            $this->starEventRepository,
-        );
-    }
-
-    private function createProcessorWith(
-        ?EntityManagerInterface $em = null,
-        ?PersistProcessor $persistProcessor = null,
-    ): StarEventCreateProcessor {
-        return new StarEventCreateProcessor(
-            $this->badgeChecker,
-            $em ?? $this->em,
-            $persistProcessor ?? $this->persistProcessor,
             $this->sessionRepository,
             $this->starEventRepository,
         );
@@ -185,6 +171,19 @@ class StarEventCreateProcessorTest extends TestCase
         $processor = $this->createProcessorWith(em: $em);
 
         $processor->process($starEvent, $this->operation, ['sessionId' => 10]);
+    }
+
+    private function createProcessorWith(
+        ?EntityManagerInterface $em = null,
+        ?PersistProcessor $persistProcessor = null,
+    ): StarEventCreateProcessor {
+        return new StarEventCreateProcessor(
+            $this->badgeChecker,
+            $em ?? $this->em,
+            $persistProcessor ?? $this->persistProcessor,
+            $this->sessionRepository,
+            $this->starEventRepository,
+        );
     }
 
     private function createPlayer(int $id): Player

@@ -12,7 +12,6 @@ use App\Entity\Session;
 use App\State\SessionPatchProcessor;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\UnitOfWork;
-use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\MockObject\Stub;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\HttpKernel\Exception\UnprocessableEntityHttpException;
@@ -35,16 +34,6 @@ class SessionPatchProcessorTest extends TestCase
         $this->processor = new SessionPatchProcessor(
             $this->em,
             $this->persistProcessor,
-        );
-    }
-
-    private function createProcessorWith(
-        ?EntityManagerInterface $em = null,
-        ?PersistProcessor $persistProcessor = null,
-    ): SessionPatchProcessor {
-        return new SessionPatchProcessor(
-            $em ?? $this->em,
-            $persistProcessor ?? $this->persistProcessor,
         );
     }
 
@@ -162,6 +151,16 @@ class SessionPatchProcessorTest extends TestCase
 
         $operation = $this->createStub(Operation::class);
         $processor->process($session, $operation);
+    }
+
+    private function createProcessorWith(
+        ?EntityManagerInterface $em = null,
+        ?PersistProcessor $persistProcessor = null,
+    ): SessionPatchProcessor {
+        return new SessionPatchProcessor(
+            $em ?? $this->em,
+            $persistProcessor ?? $this->persistProcessor,
+        );
     }
 
     /**

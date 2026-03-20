@@ -19,7 +19,6 @@ use App\Service\Scoring\ScoreCalculator;
 use App\State\EloRevertHelper;
 use App\State\GameCompleteProcessor;
 use Doctrine\ORM\EntityManagerInterface;
-use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\MockObject\Stub;
 use PHPUnit\Framework\TestCase;
 
@@ -49,24 +48,6 @@ class GameCompleteProcessorTest extends TestCase
             $this->em,
             $this->persistProcessor,
             $this->scoreCalculator,
-        );
-    }
-
-    private function createProcessorWith(
-        ?BadgeChecker $badgeChecker = null,
-        ?EloCalculator $eloCalculator = null,
-        ?EloRevertHelper $eloRevertHelper = null,
-        ?EntityManagerInterface $em = null,
-        ?PersistProcessor $persistProcessor = null,
-        ?ScoreCalculator $scoreCalculator = null,
-    ): GameCompleteProcessor {
-        return new GameCompleteProcessor(
-            $badgeChecker ?? $this->badgeChecker,
-            $eloCalculator ?? $this->eloCalculator,
-            $eloRevertHelper ?? $this->eloRevertHelper,
-            $em ?? $this->em,
-            $persistProcessor ?? $this->persistProcessor,
-            $scoreCalculator ?? $this->scoreCalculator,
         );
     }
 
@@ -371,6 +352,24 @@ class GameCompleteProcessorTest extends TestCase
         $processor = $this->createProcessorWith(persistProcessor: $persistProcessor);
 
         $processor->process($game, $operation, $uriVariables, $context);
+    }
+
+    private function createProcessorWith(
+        ?BadgeChecker $badgeChecker = null,
+        ?EloCalculator $eloCalculator = null,
+        ?EloRevertHelper $eloRevertHelper = null,
+        ?EntityManagerInterface $em = null,
+        ?PersistProcessor $persistProcessor = null,
+        ?ScoreCalculator $scoreCalculator = null,
+    ): GameCompleteProcessor {
+        return new GameCompleteProcessor(
+            $badgeChecker ?? $this->badgeChecker,
+            $eloCalculator ?? $this->eloCalculator,
+            $eloRevertHelper ?? $this->eloRevertHelper,
+            $em ?? $this->em,
+            $persistProcessor ?? $this->persistProcessor,
+            $scoreCalculator ?? $this->scoreCalculator,
+        );
     }
 
     /**

@@ -40,18 +40,6 @@ class SessionCreateProcessorTest extends TestCase
         );
     }
 
-    private function createProcessorWith(
-        ?PersistProcessor $persistProcessor = null,
-        ?SessionRepository $sessionRepository = null,
-    ): SessionCreateProcessor {
-        return new SessionCreateProcessor(
-            $this->em,
-            $persistProcessor ?? $this->persistProcessor,
-            $this->playerGroupRepository,
-            $sessionRepository ?? $this->sessionRepository,
-        );
-    }
-
     public function testReturnsExistingActiveSession(): void
     {
         $players = $this->createPlayers(5);
@@ -175,6 +163,18 @@ class SessionCreateProcessorTest extends TestCase
         $result = $this->processor->process($session, $operation);
 
         $this->assertNull($result->getPlayerGroup());
+    }
+
+    private function createProcessorWith(
+        ?PersistProcessor $persistProcessor = null,
+        ?SessionRepository $sessionRepository = null,
+    ): SessionCreateProcessor {
+        return new SessionCreateProcessor(
+            $this->em,
+            $persistProcessor ?? $this->persistProcessor,
+            $this->playerGroupRepository,
+            $sessionRepository ?? $this->sessionRepository,
+        );
     }
 
     /**

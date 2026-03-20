@@ -14,7 +14,6 @@ use App\Enum\GameStatus;
 use App\Repository\GameRepository;
 use App\Repository\SessionRepository;
 use App\State\GameCreateProcessor;
-use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\MockObject\Stub;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\HttpKernel\Exception\UnprocessableEntityHttpException;
