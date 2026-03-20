@@ -244,4 +244,83 @@ describe("NewGameModal", () => {
       expect(screen.getByRole("button", { name: "Petite" })).toHaveClass("ring-3");
     });
   });
+
+  describe("cycle de vie modale", () => {
+    it("sélectionner un joueur puis un autre → le premier n'est plus highlighted", async () => {
+      const createGame = createMockCreateGame();
+      renderWithProviders(
+        <NewGameModal createGame={createGame} onClose={vi.fn()} open players={mockPlayers} />,
+      );
+
+      // Sélectionner Alice
+      await userEvent.click(screen.getByRole("img", { name: "Alice" }).closest("button")!);
+      expect(screen.getByRole("img", { name: "Alice" }).closest("button")).toHaveClass("ring-2");
+
+      // Sélectionner Bob → Alice n'est plus highlighted
+      await userEvent.click(screen.getByRole("img", { name: "Bob" }).closest("button")!);
+      expect(screen.getByRole("img", { name: "Bob" }).closest("button")).toHaveClass("ring-2");
+      expect(screen.getByRole("img", { name: "Alice" }).closest("button")).not.toHaveClass("ring-2");
+    });
+
+    it("sélectionner un contrat puis un autre → le premier n'est plus highlighted", async () => {
+      const createGame = createMockCreateGame();
+      renderWithProviders(
+        <NewGameModal createGame={createGame} onClose={vi.fn()} open players={mockPlayers} />,
+      );
+
+      await userEvent.click(screen.getByRole("button", { name: "Garde" }));
+      expect(screen.getByRole("button", { name: "Garde" })).toHaveClass("ring-3");
+
+      await userEvent.click(screen.getByRole("button", { name: "Petite" }));
+      expect(screen.getByRole("button", { name: "Petite" })).toHaveClass("ring-3");
+      expect(screen.getByRole("button", { name: "Garde" })).not.toHaveClass("ring-3");
+    });
+
+    it("ouvrir → sélectionner → fermer → rouvrir → form vierge", async () => {
+      const createGame = createMockCreateGame();
+      const { rerender } = renderWithProviders(
+        <NewGameModal createGame={createGame} onClose={vi.fn()} open players={mockPlayers} />,
+      );
+
+      // Sélectionner joueur + contrat
+      await userEvent.click(screen.getByRole("img", { name: "Alice" }).closest("button")!);
+      await userEvent.click(screen.getByRole("button", { name: "Garde" }));
+      expect(screen.getByRole("button", { name: "Valider" })).toBeEnabled();
+
+      // Fermer la modale
+      rerender(
+        <NewGameModal createGame={createGame} onClose={vi.fn()} open={false} players={mockPlayers} />,
+      );
+
+      // Rouvrir la modale
+      rerender(
+        <NewGameModal createGame={createGame} onClose={vi.fn()} open players={mockPlayers} />,
+      );
+
+      // Form doit être vierge
+      expect(screen.getByRole("button", { name: "Valider" })).toBeDisabled();
+      expect(screen.getByRole("img", { name: "Alice" }).closest("button")).not.toHaveClass("ring-2");
+      expect(screen.getByRole("button", { name: "Garde" })).not.toHaveClass("ring-3");
+    });
+
+    it("bouton Valider désactivé quand isPending = true", async () => {
+      const createGame = createMockCreateGame({ isPending: true });
+      renderWithProviders(
+        <NewGameModal createGame={createGame} onClose={vi.fn()} open players={mockPlayers} />,
+      );
+
+      // Même avec joueur + contrat sélectionnés via lastGameConfig
+      expect(screen.getByRole("button", { name: "Valider" })).toBeDisabled();
+    });
+
+    it("createGame.reset() est appelé à l'ouverture", () => {
+      const reset = vi.fn();
+      const createGame = createMockCreateGame({ reset });
+      renderWithProviders(
+        <NewGameModal createGame={createGame} onClose={vi.fn()} open players={mockPlayers} />,
+      );
+
+      expect(reset).toHaveBeenCalled();
+    });
+  });
 });
