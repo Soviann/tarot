@@ -474,10 +474,12 @@ final readonly class BadgeChecker
                 $lastPartnerId = $game->partnerId;
             }
 
-            $max = \max($max, $current);
+            if ($current >= 5) {
+                return true;
+            }
         }
 
-        return $max >= 5;
+        return false;
     }
 
     /**
