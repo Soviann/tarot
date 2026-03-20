@@ -1,4 +1,4 @@
-import { screen, waitFor } from "@testing-library/react";
+import { screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import CompleteGameModal from "../../components/CompleteGameModal";
 import * as useCompleteGameModule from "../../hooks/useCompleteGame";
@@ -434,6 +434,305 @@ describe("CompleteGameModal", () => {
     );
 
     expect(screen.queryByText("Compléter la donne")).not.toBeInTheDocument();
+  });
+
+  // ---------------------------------------------------------------
+  // Validation des points
+  // ---------------------------------------------------------------
+
+  describe("validation des points", () => {
+    it("désactive Valider pour une saisie non numérique (\"abc\")", async () => {
+      setupMock();
+      renderWithProviders(
+        <CompleteGameModal game={inProgressGame} onClose={vi.fn()} open players={mockPlayers} sessionId={1} />,
+      );
+
+      await userEvent.click(screen.getByRole("button", { name: "Seul" }));
+      await userEvent.type(screen.getByPlaceholderText("Points"), "abc");
+
+      expect(screen.getByRole("button", { name: "Valider" })).toBeDisabled();
+    });
+
+    it("accepte une saisie décimale .5 (\"45.5\")", async () => {
+      setupMock();
+      renderWithProviders(
+        <CompleteGameModal game={inProgressGame} onClose={vi.fn()} open players={mockPlayers} sessionId={1} />,
+      );
+
+      await userEvent.click(screen.getByRole("button", { name: "Seul" }));
+      await userEvent.type(screen.getByPlaceholderText("Points"), "45.5");
+
+      expect(screen.getByRole("button", { name: "Valider" })).toBeEnabled();
+    });
+
+    it("accepte une saisie décimale avec virgule (\"45,5\")", async () => {
+      setupMock();
+      renderWithProviders(
+        <CompleteGameModal game={inProgressGame} onClose={vi.fn()} open players={mockPlayers} sessionId={1} />,
+      );
+
+      await userEvent.click(screen.getByRole("button", { name: "Seul" }));
+      await userEvent.type(screen.getByPlaceholderText("Points"), "45,5");
+
+      expect(screen.getByRole("button", { name: "Valider" })).toBeEnabled();
+    });
+
+    it("rejette une saisie décimale non .5 (\"45.3\")", async () => {
+      setupMock();
+      renderWithProviders(
+        <CompleteGameModal game={inProgressGame} onClose={vi.fn()} open players={mockPlayers} sessionId={1} />,
+      );
+
+      await userEvent.click(screen.getByRole("button", { name: "Seul" }));
+      await userEvent.type(screen.getByPlaceholderText("Points"), "45.3");
+
+      expect(screen.getByRole("button", { name: "Valider" })).toBeDisabled();
+    });
+
+    it("désactive Valider pour une saisie négative (\"-5\")", async () => {
+      setupMock();
+      renderWithProviders(
+        <CompleteGameModal game={inProgressGame} onClose={vi.fn()} open players={mockPlayers} sessionId={1} />,
+      );
+
+      await userEvent.click(screen.getByRole("button", { name: "Seul" }));
+      await userEvent.type(screen.getByPlaceholderText("Points"), "-5");
+
+      expect(screen.getByRole("button", { name: "Valider" })).toBeDisabled();
+    });
+
+    it("désactive Valider pour une saisie > 91", async () => {
+      setupMock();
+      renderWithProviders(
+        <CompleteGameModal game={inProgressGame} onClose={vi.fn()} open players={mockPlayers} sessionId={1} />,
+      );
+
+      await userEvent.click(screen.getByRole("button", { name: "Seul" }));
+      await userEvent.type(screen.getByPlaceholderText("Points"), "92");
+
+      expect(screen.getByRole("button", { name: "Valider" })).toBeDisabled();
+    });
+
+    it("accepte points = 91 (borne haute)", async () => {
+      setupMock();
+      renderWithProviders(
+        <CompleteGameModal game={inProgressGame} onClose={vi.fn()} open players={mockPlayers} sessionId={1} />,
+      );
+
+      await userEvent.click(screen.getByRole("button", { name: "Seul" }));
+      await userEvent.type(screen.getByPlaceholderText("Points"), "91");
+
+      expect(screen.getByRole("button", { name: "Valider" })).toBeEnabled();
+    });
+
+    it("accepte points = 0 (borne basse) et calcule le score", async () => {
+      setupMock();
+      renderWithProviders(
+        <CompleteGameModal game={inProgressGame} onClose={vi.fn()} open players={mockPlayers} sessionId={1} />,
+      );
+
+      await userEvent.click(screen.getByRole("button", { name: "Seul" }));
+      await userEvent.type(screen.getByPlaceholderText("Points"), "0");
+
+      expect(screen.getByRole("button", { name: "Valider" })).toBeEnabled();
+      await waitFor(() => {
+        expect(screen.getByText(/Contrat chuté/)).toBeInTheDocument();
+      });
+    });
+
+    it("traite les espaces autour du nombre (\" 45 \") comme valide", async () => {
+      setupMock();
+      renderWithProviders(
+        <CompleteGameModal game={inProgressGame} onClose={vi.fn()} open players={mockPlayers} sessionId={1} />,
+      );
+
+      await userEvent.click(screen.getByRole("button", { name: "Seul" }));
+      await userEvent.type(screen.getByPlaceholderText("Points"), " 45 ");
+
+      // Number(" 45 ") === 45, which is valid
+      expect(screen.getByRole("button", { name: "Valider" })).toBeEnabled();
+    });
+  });
+
+  // ---------------------------------------------------------------
+  // Interactions bonus
+  // ---------------------------------------------------------------
+
+  describe("interactions bonus", () => {
+    it("affiche le sélecteur propriétaire poignée quand une poignée est sélectionnée", async () => {
+      setupMock();
+      renderWithProviders(
+        <CompleteGameModal game={inProgressGame} onClose={vi.fn()} open players={mockPlayers} sessionId={1} />,
+      );
+
+      await userEvent.click(screen.getByRole("button", { name: /Bonus/i }));
+      await userEvent.click(screen.getByRole("button", { name: "Simple" }));
+
+      expect(screen.getByText("Poignée montrée par")).toBeInTheDocument();
+    });
+
+    it("masque le sélecteur propriétaire quand poignée revient à Aucune", async () => {
+      setupMock();
+      renderWithProviders(
+        <CompleteGameModal game={inProgressGame} onClose={vi.fn()} open players={mockPlayers} sessionId={1} />,
+      );
+
+      await userEvent.click(screen.getByRole("button", { name: /Bonus/i }));
+      await userEvent.click(screen.getByRole("button", { name: "Simple" }));
+      expect(screen.getByText("Poignée montrée par")).toBeInTheDocument();
+
+      await userEvent.click(screen.getByRole("button", { name: "Aucune" }));
+      expect(screen.queryByText("Poignée montrée par")).not.toBeInTheDocument();
+    });
+
+    it("pré-remplit tous les champs bonus en mode édition", () => {
+      setupMock();
+      const gameWithBonuses: Game = {
+        ...completedGame,
+        chelem: "announced_won",
+        petitAuBout: "attack",
+        poignee: "double",
+        poigneeOwner: "defense",
+      };
+      renderWithProviders(
+        <CompleteGameModal game={gameWithBonuses} onClose={vi.fn()} open players={mockPlayers} sessionId={1} />,
+      );
+
+      // Bonus section should be auto-expanded
+      expect(screen.getByText("Poignée montrée par")).toBeInTheDocument();
+
+      // Poignée Double should be selected
+      const poigneeSection = screen.getByText("Poignée").closest("div")!;
+      expect(within(poigneeSection).getByRole("button", { name: "Double" })).toHaveClass("bg-accent-500");
+
+      // Petit au bout Attaque should be selected
+      const petitSection = screen.getByText("Petit au bout").closest("div")!;
+      expect(within(petitSection).getByRole("button", { name: "Attaque" })).toHaveClass("bg-accent-500");
+
+      // Chelem "Annoncé gagné" should be selected
+      expect(screen.getByRole("button", { name: "Annoncé gagné" })).toHaveClass("bg-accent-500");
+
+      // Défense should be selected for poignée owner
+      const ownerSection = screen.getByText("Poignée montrée par").closest("div")!;
+      expect(within(ownerSection).getByRole("button", { name: "Défense" })).toHaveClass("bg-accent-500");
+    });
+
+    it("auto-déplie les bonus en mode édition quand un bonus est défini", () => {
+      setupMock();
+      const gameWithPetitAuBout: Game = {
+        ...completedGame,
+        petitAuBout: "attack",
+      };
+      renderWithProviders(
+        <CompleteGameModal game={gameWithPetitAuBout} onClose={vi.fn()} open players={mockPlayers} sessionId={1} />,
+      );
+
+      // Bonus section auto-expanded because petitAuBout is set
+      expect(screen.getByText("Petit au bout")).toBeInTheDocument();
+    });
+
+    it("ne déplie pas les bonus en mode édition quand aucun bonus", () => {
+      setupMock();
+      renderWithProviders(
+        <CompleteGameModal game={completedGame} onClose={vi.fn()} open players={mockPlayers} sessionId={1} />,
+      );
+
+      // completedGame has all bonuses set to "none"
+      expect(screen.queryByText("Petit au bout")).not.toBeInTheDocument();
+    });
+
+    it("réinitialise poigneeOwner à none quand poignée passe à Aucune", async () => {
+      const { mutate } = setupMock();
+      renderWithProviders(
+        <CompleteGameModal game={inProgressGame} onClose={vi.fn()} open players={mockPlayers} sessionId={1} />,
+      );
+
+      // Set up valid form
+      await userEvent.click(screen.getByRole("button", { name: "Seul" }));
+      await userEvent.type(screen.getByPlaceholderText("Points"), "45");
+
+      // Open bonus, select poignée simple then owner attaque
+      await userEvent.click(screen.getByRole("button", { name: /Bonus/i }));
+      await userEvent.click(screen.getByRole("button", { name: "Simple" }));
+      const ownerSection = screen.getByText("Poignée montrée par").closest("div")!;
+      await userEvent.click(within(ownerSection).getByRole("button", { name: "Attaque" }));
+
+      // Switch poignée back to Aucune
+      const poigneeSection = screen.getByText("Poignée").closest("div")!;
+      await userEvent.click(within(poigneeSection).getByRole("button", { name: "Aucune" }));
+
+      // Submit and verify poigneeOwner is "none"
+      await userEvent.click(screen.getByRole("button", { name: "Valider" }));
+
+      expect(mutate).toHaveBeenCalledWith(
+        expect.objectContaining({ poignee: "none", poigneeOwner: "none" }),
+        expect.anything(),
+      );
+    });
+  });
+
+  // ---------------------------------------------------------------
+  // Flux partenaire
+  // ---------------------------------------------------------------
+
+  describe("flux partenaire", () => {
+    it("sélectionner partenaire puis cliquer Seul → partnerId = null", async () => {
+      const { mutate } = setupMock();
+      renderWithProviders(
+        <CompleteGameModal game={inProgressGame} onClose={vi.fn()} open players={mockPlayers} sessionId={1} />,
+      );
+
+      // Select Bob as partner
+      await userEvent.click(screen.getByRole("img", { name: "Bob" }).closest("button")!);
+      // Then switch to self-call
+      await userEvent.click(screen.getByRole("button", { name: "Seul" }));
+
+      // Enter points and submit
+      await userEvent.type(screen.getByPlaceholderText("Points"), "45");
+      await userEvent.click(screen.getByRole("button", { name: "Valider" }));
+
+      expect(mutate).toHaveBeenCalledWith(
+        expect.objectContaining({ partnerId: null }),
+        expect.anything(),
+      );
+    });
+
+    it("cliquer Seul puis sélectionner partenaire → selfCall = false", async () => {
+      const { mutate } = setupMock();
+      renderWithProviders(
+        <CompleteGameModal game={inProgressGame} onClose={vi.fn()} open players={mockPlayers} sessionId={1} />,
+      );
+
+      // Self-call first
+      await userEvent.click(screen.getByRole("button", { name: "Seul" }));
+      // Then select Bob
+      await userEvent.click(screen.getByRole("img", { name: "Bob" }).closest("button")!);
+
+      // Seul should no longer be active
+      expect(screen.getByRole("button", { name: "Seul" })).not.toHaveClass("ring-2");
+
+      // Enter points and submit
+      await userEvent.type(screen.getByPlaceholderText("Points"), "45");
+      await userEvent.click(screen.getByRole("button", { name: "Valider" }));
+
+      expect(mutate).toHaveBeenCalledWith(
+        expect.objectContaining({ partnerId: 2 }),
+        expect.anything(),
+      );
+    });
+
+    it("boutons partenaire ont une opacité réduite quand selfCall est actif", async () => {
+      setupMock();
+      renderWithProviders(
+        <CompleteGameModal game={inProgressGame} onClose={vi.fn()} open players={mockPlayers} sessionId={1} />,
+      );
+
+      await userEvent.click(screen.getByRole("button", { name: "Seul" }));
+
+      // Partner avatar buttons should have opacity-40 class
+      const bobButton = screen.getByRole("img", { name: "Bob" }).closest("button")!;
+      expect(bobButton).toHaveClass("opacity-40");
+    });
   });
 
   // Voice scoring integration tests
