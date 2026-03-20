@@ -14,22 +14,23 @@ use App\Repository\SessionRepository;
 use App\State\SessionCreateProcessor;
 use Doctrine\ORM\EntityManagerInterface;
 use PHPUnit\Framework\MockObject\MockObject;
+use PHPUnit\Framework\MockObject\Stub;
 use PHPUnit\Framework\TestCase;
 
 class SessionCreateProcessorTest extends TestCase
 {
     private EntityManagerInterface&MockObject $em;
-    private PersistProcessor&MockObject $persistProcessor;
-    private PlayerGroupRepository&MockObject $playerGroupRepository;
+    private PersistProcessor&Stub $persistProcessor;
+    private PlayerGroupRepository&Stub $playerGroupRepository;
     private SessionCreateProcessor $processor;
-    private SessionRepository&MockObject $sessionRepository;
+    private SessionRepository&Stub $sessionRepository;
 
     protected function setUp(): void
     {
         $this->em = $this->createMock(EntityManagerInterface::class);
-        $this->persistProcessor = $this->createMock(PersistProcessor::class);
-        $this->playerGroupRepository = $this->createMock(PlayerGroupRepository::class);
-        $this->sessionRepository = $this->createMock(SessionRepository::class);
+        $this->persistProcessor = $this->createStub(PersistProcessor::class);
+        $this->playerGroupRepository = $this->createStub(PlayerGroupRepository::class);
+        $this->sessionRepository = $this->createStub(SessionRepository::class);
 
         $this->processor = new SessionCreateProcessor(
             $this->em,
@@ -47,16 +48,23 @@ class SessionCreateProcessorTest extends TestCase
         $existingSession = new Session();
         $this->setId($existingSession, 99);
 
-        $this->sessionRepository->expects($this->once())
+        $sessionRepository = $this->createMock(SessionRepository::class);
+        $sessionRepository->expects($this->once())
             ->method('findActiveWithExactPlayers')
             ->with([1, 2, 3, 4, 5], 5)
             ->willReturn($existingSession);
 
-        $this->persistProcessor->expects($this->never())->method('process');
+        $persistProcessor = $this->createMock(PersistProcessor::class);
+        $persistProcessor->expects($this->never())->method('process');
         $this->em->expects($this->never())->method('flush');
 
-        $operation = $this->createMock(Operation::class);
-        $result = $this->processor->process($session, $operation);
+        $processor = $this->createProcessorWith(
+            persistProcessor: $persistProcessor,
+            sessionRepository: $sessionRepository,
+        );
+
+        $operation = $this->createStub(Operation::class);
+        $result = $processor->process($session, $operation);
 
         $this->assertSame($existingSession, $result);
     }
@@ -67,14 +75,19 @@ class SessionCreateProcessorTest extends TestCase
         $session = $this->createSession($players);
 
         $this->sessionRepository->method('findActiveWithExactPlayers')->willReturn(null);
-        $this->persistProcessor->expects($this->once())
+
+        $persistProcessor = $this->createMock(PersistProcessor::class);
+        $persistProcessor->expects($this->once())
             ->method('process')
             ->willReturn($session);
+
+        $processor = $this->createProcessorWith(persistProcessor: $persistProcessor);
+
         $this->playerGroupRepository->method('findMatchingExactPlayers')->willReturn([]);
         $this->em->expects($this->once())->method('flush');
 
-        $operation = $this->createMock(Operation::class);
-        $result = $this->processor->process($session, $operation);
+        $operation = $this->createStub(Operation::class);
+        $result = $processor->process($session, $operation);
 
         $this->assertSame($session, $result);
         $this->assertSame($players[0], $result->getCurrentDealer());
@@ -99,7 +112,7 @@ class SessionCreateProcessorTest extends TestCase
             ->willReturn([$group]);
         $this->em->expects($this->once())->method('flush');
 
-        $operation = $this->createMock(Operation::class);
+        $operation = $this->createStub(Operation::class);
         $result = $this->processor->process($session, $operation);
 
         $this->assertSame($group, $result->getPlayerGroup());
@@ -129,7 +142,7 @@ class SessionCreateProcessorTest extends TestCase
             ->willReturn([$group1, $group2]);
         $this->em->expects($this->once())->method('flush');
 
-        $operation = $this->createMock(Operation::class);
+        $operation = $this->createStub(Operation::class);
         $result = $this->processor->process($session, $operation);
 
         $this->assertNull($result->getPlayerGroup());
@@ -146,10 +159,22 @@ class SessionCreateProcessorTest extends TestCase
             ->willReturn([]);
         $this->em->expects($this->once())->method('flush');
 
-        $operation = $this->createMock(Operation::class);
+        $operation = $this->createStub(Operation::class);
         $result = $this->processor->process($session, $operation);
 
         $this->assertNull($result->getPlayerGroup());
+    }
+
+    private function createProcessorWith(
+        ?PersistProcessor $persistProcessor = null,
+        ?SessionRepository $sessionRepository = null,
+    ): SessionCreateProcessor {
+        return new SessionCreateProcessor(
+            $this->em,
+            $persistProcessor ?? $this->persistProcessor,
+            $this->playerGroupRepository,
+            $sessionRepository ?? $this->sessionRepository,
+        );
     }
 
     /**

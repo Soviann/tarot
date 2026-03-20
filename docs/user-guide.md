@@ -390,14 +390,13 @@ Un bouton **« VS »** à côté du titre permet d'accéder à la page de compar
 
 Accessible via le bouton **VS** sur l'écran des statistiques globales, ou directement via l'URL `/stats/h2h`.
 
-Cette page permet de comparer deux joueurs sur leurs sessions communes :
+Cette page permet de comparer deux joueurs selon trois axes :
 
 - **Sélection** : deux menus déroulants pour choisir les joueurs à comparer. Les filtres de groupe et de dates sont disponibles comme sur les autres pages de statistiques.
 - **Bilan central** : badge VS, nombre de sessions et de donnes partagées
-- **Statistiques globales** : score total et score moyen de chaque joueur dans les sessions communes
-- **En tant que preneur** : nombre de prises, victoires et taux de victoire
-- **Confrontations directes** : donnes où l'un est preneur et l'autre défenseur (non partenaire) — nombre et taux de victoire
-- **Partenariats** : nombre de fois où chaque joueur a appelé l'autre comme partenaire
+- **Stats globales** — *Toutes les parties de chaque joueur* : donnes jouées, score total, score moyen, parties en preneur, victoires et taux de victoire (toutes parties confondues, pas seulement les sessions communes)
+- **Stats en commun** — *Parties jouées ensemble* : score total, score moyen, parties en preneur, victoires et taux de victoire dans les sessions où les deux joueurs étaient présents
+- **Face à face** — *Quand l'un prend contre l'autre* : confrontations directes (preneur vs défenseur), victoires, taux de victoire et nombre de fois où chaque joueur a appelé l'autre comme partenaire
 
 ### Statistiques par joueur
 

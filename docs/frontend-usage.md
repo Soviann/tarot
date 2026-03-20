@@ -945,8 +945,10 @@ Page d'aide in-app reprenant le contenu du guide utilisateur (`docs/user-guide.m
 - Sélection de deux joueurs via `Select`
 - Filtre par groupe (`GroupFilter`) et par tranche de dates (`DateRangeFilter`)
 - Layout VS : avatars, badge VS central, sessions et donnes communes
-- Métriques comparées : score total/moyen, parties preneur, victoires, taux de victoire
-- Confrontations directes (preneur vs défenseur) et partenariats
+- 3 sections de comparaison :
+  - **Stats globales** : toutes les parties de chaque joueur (donnes jouées, score total/moyen, parties preneur, victoires, taux)
+  - **Stats en commun** : parties jouées ensemble (score total/moyen, parties preneur, victoires, taux)
+  - **Face à face** : confrontations preneur vs défenseur, victoires, taux et partenariats
 - Bouton retour vers `/stats`
 
 **Hooks utilisés** : `useHeadToHead`, `usePlayers`, `usePlayerGroups` (via `GroupFilter`), `useNavigate`, `useSearchParams`

@@ -20,25 +20,25 @@ use App\Repository\ScoreEntryRepository;
 use App\Repository\SessionRepository;
 use App\Repository\StarEventRepository;
 use App\Service\GlobalStatisticsService;
-use PHPUnit\Framework\MockObject\MockObject;
+use PHPUnit\Framework\MockObject\Stub;
 use PHPUnit\Framework\TestCase;
 
 final class GlobalStatisticsServiceTest extends TestCase
 {
-    private EloHistoryRepository&MockObject $eloHistoryRepository;
-    private GameRepository&MockObject $gameRepository;
-    private ScoreEntryRepository&MockObject $scoreEntryRepository;
+    private EloHistoryRepository&Stub $eloHistoryRepository;
+    private GameRepository&Stub $gameRepository;
+    private ScoreEntryRepository&Stub $scoreEntryRepository;
     private GlobalStatisticsService $service;
-    private SessionRepository&MockObject $sessionRepository;
-    private StarEventRepository&MockObject $starEventRepository;
+    private SessionRepository&Stub $sessionRepository;
+    private StarEventRepository&Stub $starEventRepository;
 
     protected function setUp(): void
     {
-        $this->eloHistoryRepository = $this->createMock(EloHistoryRepository::class);
-        $this->gameRepository = $this->createMock(GameRepository::class);
-        $this->scoreEntryRepository = $this->createMock(ScoreEntryRepository::class);
-        $this->sessionRepository = $this->createMock(SessionRepository::class);
-        $this->starEventRepository = $this->createMock(StarEventRepository::class);
+        $this->eloHistoryRepository = $this->createStub(EloHistoryRepository::class);
+        $this->gameRepository = $this->createStub(GameRepository::class);
+        $this->scoreEntryRepository = $this->createStub(ScoreEntryRepository::class);
+        $this->sessionRepository = $this->createStub(SessionRepository::class);
+        $this->starEventRepository = $this->createStub(StarEventRepository::class);
 
         $this->service = new GlobalStatisticsService(
             $this->eloHistoryRepository,
@@ -55,22 +55,22 @@ final class GlobalStatisticsServiceTest extends TestCase
     {
         $dateRange = new DateRange();
 
-        $this->scoreEntryRepository->method('getLeaderboardScores')->with($dateRange, null)->willReturn([
+        $this->scoreEntryRepository->method('getLeaderboardScores')->willReturn([
             new LeaderboardScoreDto('#ff0000', 1, 'Alice', 500),
             new LeaderboardScoreDto('#0000ff', 2, 'Bob', 300),
         ]);
 
-        $this->scoreEntryRepository->method('countGamesPlayedByPlayer')->with($dateRange, null)->willReturn([
+        $this->scoreEntryRepository->method('countGamesPlayedByPlayer')->willReturn([
             new GamesPlayedCountDto(10, 1),
             new GamesPlayedCountDto(8, 2),
         ]);
 
-        $this->gameRepository->method('countTakerGames')->with($dateRange, null)->willReturn([
+        $this->gameRepository->method('countTakerGames')->willReturn([
             new PlayerCountDto(5, 1),
             new PlayerCountDto(4, 2),
         ]);
 
-        $this->gameRepository->method('countTakerWins')->with($dateRange, null)->willReturn([
+        $this->gameRepository->method('countTakerWins')->willReturn([
             new PlayerCountDto(3, 1),
             new PlayerCountDto(2, 2),
         ]);
@@ -230,7 +230,7 @@ final class GlobalStatisticsServiceTest extends TestCase
 
     public function testEloRankingMapping(): void
     {
-        $this->eloHistoryRepository->method('getEloRanking')->with(null)->willReturn([
+        $this->eloHistoryRepository->method('getEloRanking')->willReturn([
             new EloRankingEntryDto(1600, 10, '#ff0000', 1, 'Alice'),
             new EloRankingEntryDto(1450, 5, '#0000ff', 2, 'Bob'),
         ]);
@@ -305,23 +305,18 @@ final class GlobalStatisticsServiceTest extends TestCase
         $groupId = 42;
 
         $this->gameRepository->method('getAverageDurationSeconds')
-            ->with($dateRange, $groupId)
             ->willReturn(120);
 
         $this->gameRepository->method('getTotalDurationSeconds')
-            ->with($dateRange, $groupId)
             ->willReturn(36000);
 
         $this->gameRepository->method('countCompleted')
-            ->with($dateRange, $groupId)
             ->willReturn(50);
 
         $this->sessionRepository->method('countAll')
-            ->with($dateRange, $groupId)
             ->willReturn(10);
 
         $this->starEventRepository->method('countAll')
-            ->with($dateRange, $groupId)
             ->willReturn(25);
 
         self::assertSame(120, $this->service->getAverageGameDurationSeconds($dateRange, $groupId));
