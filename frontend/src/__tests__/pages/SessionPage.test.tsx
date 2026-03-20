@@ -1,4 +1,4 @@
-import { act, screen, waitFor } from "@testing-library/react";
+import { act, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { toast } from "sonner";
 import SessionPage from "../../pages/SessionPage";
@@ -1080,5 +1080,73 @@ describe("SessionPage", () => {
     expect(screen.getByText("Eh non, bien essayé 😏")).toBeInTheDocument();
 
     vi.useRealTimers();
+  });
+
+  // ---------------------------------------------------------------
+  // Orchestration modales
+  // ---------------------------------------------------------------
+
+  describe("orchestration modales", () => {
+    it("ouvrir NewGameModal → fermer → ouvrir CompleteGameModal (mode édition) sans interférence", async () => {
+      setupMocks();
+      renderWithProviders(<SessionPage />);
+
+      // Ouvrir NewGameModal via FAB
+      await userEvent.click(screen.getByRole("button", { name: "Nouvelle donne" }));
+      expect(screen.getByText("Nouvelle donne", { selector: "h2" })).toBeInTheDocument();
+
+      // Fermer NewGameModal
+      await userEvent.click(screen.getByRole("button", { name: "Fermer" }));
+      await waitFor(() => {
+        expect(screen.queryByText("Nouvelle donne", { selector: "h2" })).not.toBeInTheDocument();
+      });
+
+      // Ouvrir CompleteGameModal en mode édition → pas d'interférence d'état
+      await userEvent.click(screen.getByRole("button", { name: "Modifier" }));
+      expect(screen.getByText("Modifier la donne")).toBeInTheDocument();
+      // Les champs du mode édition sont pré-remplis (vient de lastCompletedGame, pas de NewGameModal)
+      expect(screen.getByPlaceholderText("Points")).toHaveValue("56");
+    });
+
+    it("passe inProgressGame à CompleteGameModal et lastCompletedGame au mode édition", async () => {
+      setupMocks({
+        useSession: { data: mockSessionWithInProgress, session: mockSessionWithInProgress },
+      });
+      renderWithProviders(<SessionPage />);
+
+      // CompleteGameModal en complétion → reçoit inProgressGame (Charlie, Petite)
+      await userEvent.click(screen.getByRole("button", { name: "Compléter" }));
+      expect(screen.getByText("Compléter la donne")).toBeInTheDocument();
+      // Le bandeau info dans la modale montre le preneur de l'inProgressGame (Charlie + Petite)
+      const modal = screen.getByText("Compléter la donne").closest("[role='dialog']")!;
+      expect(within(modal).getByText("Charlie")).toBeInTheDocument();
+      expect(within(modal).getByText("Petite")).toBeInTheDocument();
+    });
+
+    it("pas de bouton Modifier quand aucune donne complétée", () => {
+      setupMocks({
+        useSessionGames: {
+          data: { pageParams: [1], pages: [{ member: [], totalItems: 0 }] },
+        },
+      });
+      renderWithProviders(<SessionPage />);
+
+      expect(screen.queryByRole("button", { name: "Modifier" })).not.toBeInTheDocument();
+    });
+
+    it("affiche erreur quand la session ne charge pas", () => {
+      setupMocks({
+        useSession: {
+          isError: true,
+          isPending: false,
+          isSuccess: false,
+          session: null,
+        },
+      });
+      renderWithProviders(<SessionPage />);
+
+      // Session null → NotFound affiché
+      expect(screen.getByRole("heading", { level: 1, name: /404/ })).toBeInTheDocument();
+    });
   });
 });
