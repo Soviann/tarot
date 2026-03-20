@@ -112,6 +112,7 @@ describe("Help", () => {
       { emoji: "🔥", label: "Confortable +30", description: "Gagner à +30 points du contrat" },
       { emoji: "🌋", label: "Confortable +40", description: "Gagner à +40 points du contrat" },
       { emoji: "☀️", label: "Confortable +50", description: "Gagner à +50 points du contrat" },
+      { emoji: "⚖️", label: "Main du destin", description: "Remporter une donne avec exactement 0 points de marge" },
       // Fun
       { emoji: "📈", label: "Comeback", description: "Remonter de dernier à premier en une session" },
       { emoji: "💀", label: "Lanterne rouge", description: "Finir dernier 5 fois" },

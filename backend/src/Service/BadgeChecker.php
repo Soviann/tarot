@@ -251,6 +251,7 @@ final readonly class BadgeChecker
             BadgeType::Comfortable40 => $this->checkComfortable($context, 40),
             BadgeType::Comfortable50 => $this->checkComfortable($context, 50),
             BadgeType::Comeback => $this->checkComeback($player, $context, $sessionEntries),
+            BadgeType::DestinyHand => $this->checkDestinyHand($context),
             BadgeType::FirstChelem => $this->checkFirstChelem($context),
             BadgeType::FirstGame => $this->checkFirstGame($context),
             BadgeType::FriendCaller => $this->checkFriendCaller($context),
@@ -432,6 +433,27 @@ final readonly class BadgeChecker
         $countAtMax = \count(\array_filter($cumulative, static fn (int $s): bool => $s === $maxScore));
 
         return 1 === $countAtMax;
+    }
+
+    /**
+     * Taker won with exactly 0 margin (points === required for the number of oudlers).
+     */
+    private function checkDestinyHand(BadgeCheckContext $context): bool
+    {
+        foreach ($context->takerGameDetails as $game) {
+            if ($game->takerScore <= 0) {
+                continue;
+            }
+            $required = ScoreCalculator::REQUIRED_POINTS[$game->oudlers] ?? null;
+            if (null === $required) {
+                continue;
+            }
+            if ($game->points === (float) $required) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     /**

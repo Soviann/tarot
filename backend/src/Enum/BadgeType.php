@@ -17,6 +17,7 @@ enum BadgeType: string
     case Comfortable40 = 'comfortable_40';
     case Comfortable50 = 'comfortable_50';
     case Comeback = 'comeback';
+    case DestinyHand = 'destiny_hand';
     case FirstChelem = 'first_chelem';
     case FirstGame = 'first_game';
     case FriendCaller = 'friend_caller';
@@ -45,7 +46,7 @@ enum BadgeType: string
     {
         return match ($this) {
             self::CatchThemAll, self::Centurion, self::FirstGame, self::Regular => 'progression',
-            self::Audacious, self::ChampionStreak, self::Comfortable10, self::Comfortable20, self::Comfortable30, self::Comfortable40, self::Comfortable50, self::FirstChelem, self::GardeContreWon, self::Kamikaze, self::NoNet, self::PetitMalin, self::SelfCaller, self::SurpriseChelem, self::TriplePoignee, self::Wall, self::ZeroBout => 'performance',
+            self::Audacious, self::ChampionStreak, self::Comfortable10, self::Comfortable20, self::Comfortable30, self::Comfortable40, self::Comfortable50, self::DestinyHand, self::FirstChelem, self::GardeContreWon, self::Kamikaze, self::NoNet, self::PetitMalin, self::SelfCaller, self::SurpriseChelem, self::TriplePoignee, self::Wall, self::ZeroBout => 'performance',
             self::CloseCall, self::Comeback, self::Konami, self::LastPlace, self::LosingStreak, self::RisingStar, self::StarCollector, self::StarShower, self::ThreeOutlersLoss => 'fun',
             self::FriendCaller, self::Marathon, self::NightOwl, self::Social => 'social',
         };
@@ -65,6 +66,7 @@ enum BadgeType: string
             self::Comfortable40 => 'Gagner à +40 points du contrat',
             self::Comfortable50 => 'Gagner à +50 points du contrat',
             self::Comeback => 'Remonter de dernier à premier en une session',
+            self::DestinyHand => 'Remporter une donne avec exactement 0 points de marge',
             self::FirstChelem => 'Réussir un Chelem annoncé',
             self::FirstGame => 'Jouer sa première donne',
             self::FriendCaller => 'Appeler le même partenaire 5 fois de suite',
@@ -105,6 +107,7 @@ enum BadgeType: string
             self::Comfortable40 => '🌋',
             self::Comfortable50 => '☀️',
             self::Comeback => '📈',
+            self::DestinyHand => '⚖️',
             self::FirstChelem => '👑',
             self::FirstGame => '🎮',
             self::FriendCaller => '📞',
@@ -145,6 +148,7 @@ enum BadgeType: string
             self::Comfortable40 => 'Confortable +40',
             self::Comfortable50 => 'Confortable +50',
             self::Comeback => 'Comeback',
+            self::DestinyHand => 'Main du destin',
             self::FirstChelem => 'Premier Chelem',
             self::FirstGame => 'Première donne',
             self::FriendCaller => 'Appel à un ami',
