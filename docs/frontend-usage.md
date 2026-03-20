@@ -1606,7 +1606,7 @@ formatDuration(7200);  // "2h"
 
 **Fichier** : `services/scoreCalculator.ts`
 
-Miroir frontend du `ScoreCalculator` backend. Calcule les scores d'une donne en temps réel pour l'aperçu. Les points sont tronqués à l'entier (`Math.trunc`) avant le calcul, comme le backend (`(int) $points`).
+Miroir frontend du `ScoreCalculator` backend. Calcule les scores d'une donne en temps réel pour l'aperçu. Supporte les demi-points (règle FFT) : le demi-point va au camp gagnant (`Math.ceil` si attaque gagne, `Math.floor` sinon).
 
 ```ts
 import { calculateScore } from "./services/scoreCalculator";
