@@ -20,14 +20,14 @@ readonly class SessionController
     }
 
     #[Route('/api/player-groups/{id}/close-sessions', methods: ['POST'])]
-    public function closeGroupSessions(int $id, SessionRepository $sessionRepository): JsonResponse
+    public function closeGroupSessions(int $id): JsonResponse
     {
         $group = $this->playerGroupRepository->find($id);
         if (null === $group) {
             throw new NotFoundHttpException('Groupe introuvable.');
         }
 
-        return new JsonResponse(['closedCount' => $sessionRepository->closeActiveSessionsForGroup($group)]);
+        return new JsonResponse(['closedCount' => $this->sessionRepository->closeActiveSessionsForGroup($group)]);
     }
 
     #[Route('/api/sessions/{id}/summary', methods: ['GET'])]
