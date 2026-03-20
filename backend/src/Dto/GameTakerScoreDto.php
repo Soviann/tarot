@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Dto;
 
+use App\Util\EnumHelper;
+
 final readonly class GameTakerScoreDto
 {
     public int $gameId;
@@ -26,8 +28,8 @@ final readonly class GameTakerScoreDto
         $this->gameId = (int) $gameId;
         $this->partnerId = null !== $partnerId ? (int) $partnerId : null;
         $this->playerId = (int) $playerId;
-        $this->poignee = (string) ($poignee instanceof \BackedEnum ? $poignee->value : $poignee);
-        $this->poigneeOwner = (string) ($poigneeOwner instanceof \BackedEnum ? $poigneeOwner->value : $poigneeOwner);
+        $this->poignee = EnumHelper::toString($poignee);
+        $this->poigneeOwner = EnumHelper::toString($poigneeOwner);
         $this->takerId = (int) $takerId;
         $this->takerScore = (int) $takerScore;
     }

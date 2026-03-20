@@ -11,17 +11,18 @@ use App\Repository\EloHistoryRepository;
 use App\State\EloRevertHelper;
 use Doctrine\ORM\EntityManagerInterface;
 use PHPUnit\Framework\MockObject\MockObject;
+use PHPUnit\Framework\MockObject\Stub;
 use PHPUnit\Framework\TestCase;
 
 class EloRevertHelperTest extends TestCase
 {
-    private EloHistoryRepository&MockObject $eloHistoryRepository;
+    private EloHistoryRepository&Stub $eloHistoryRepository;
     private EntityManagerInterface&MockObject $em;
     private EloRevertHelper $helper;
 
     protected function setUp(): void
     {
-        $this->eloHistoryRepository = $this->createMock(EloHistoryRepository::class);
+        $this->eloHistoryRepository = $this->createStub(EloHistoryRepository::class);
         $this->em = $this->createMock(EntityManagerInterface::class);
 
         $this->helper = new EloRevertHelper(
@@ -57,7 +58,6 @@ class EloRevertHelperTest extends TestCase
         $historyB->setGame($game);
 
         $this->eloHistoryRepository->method('findByGame')
-            ->with($game)
             ->willReturn([$historyA, $historyB]);
 
         $this->em->expects($this->exactly(2))
@@ -82,7 +82,6 @@ class EloRevertHelperTest extends TestCase
         $game = new Game();
 
         $this->eloHistoryRepository->method('findByGame')
-            ->with($game)
             ->willReturn([]);
 
         $this->em->expects($this->never())->method('remove');
@@ -106,7 +105,6 @@ class EloRevertHelperTest extends TestCase
         $history->setGame($game);
 
         $this->eloHistoryRepository->method('findByGame')
-            ->with($game)
             ->willReturn([$history]);
 
         $this->em->expects($this->once())

@@ -29,7 +29,7 @@ class SessionCollectionProviderTest extends TestCase
             ->method('findRecentWithLastActivity')
             ->willReturn($sessions);
 
-        $operation = $this->createMock(Operation::class);
+        $operation = $this->createStub(Operation::class);
         $result = $this->provider->provide($operation);
 
         $this->assertSame($sessions, $result);
@@ -41,7 +41,7 @@ class SessionCollectionProviderTest extends TestCase
             ->method('findRecentWithLastActivity')
             ->willReturn([]);
 
-        $operation = $this->createMock(Operation::class);
+        $operation = $this->createStub(Operation::class);
         $result = $this->provider->provide($operation);
 
         $this->assertSame([], $result);

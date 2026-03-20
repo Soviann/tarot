@@ -15,6 +15,10 @@ Le format est basé sur [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/)
 - **Tests frontend validation & scoreCalculator** : 36 tests couvrant les bornes de points (0, 91), combinaisons de bonus extrêmes, score max/min théorique, validation des saisies (non numérique, décimale, négative, >91, espaces), interactions bonus (poignée owner, pré-remplissage édition) et flux partenaire (self-call toggle, opacité).
 - **Tests cycle de vie modales** : 15 tests couvrant le reset des formulaires à la réouverture (NewGameModal, CompleteGameModal), la commutation joueur/contrat, l'état isPending, l'aperçu des scores dynamique (oudlers, bonus, effacement), la fermeture uniquement sur succès, l'orchestration sans interférence d'état entre modales, et l'affichage correct des objets game.
 
+### Changed
+
+- **Comparaison face à face** : restructure la page en 3 sections distinctes — stats globales (toutes les parties de chaque joueur), stats en commun (parties jouées ensemble), et face à face (confrontations preneur vs défenseur + partenariats).
+
 ### Fixed
 
 - **Validation complétion** : retourne 422 au lieu de 500 quand on tente de compléter une donne sans oudlers ou sans points.

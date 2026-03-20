@@ -12,23 +12,23 @@ use App\Entity\Session;
 use App\Repository\GameRepository;
 use App\Repository\ScoreEntryRepository;
 use App\State\SessionDetailProvider;
-use PHPUnit\Framework\MockObject\MockObject;
+use PHPUnit\Framework\MockObject\Stub;
 use PHPUnit\Framework\TestCase;
 
 class SessionDetailProviderTest extends TestCase
 {
-    private GameRepository&MockObject $gameRepository;
-    private ItemProvider&MockObject $itemProvider;
-    private Operation&MockObject $operation;
+    private GameRepository&Stub $gameRepository;
+    private ItemProvider&Stub $itemProvider;
+    private Operation&Stub $operation;
     private SessionDetailProvider $provider;
-    private ScoreEntryRepository&MockObject $scoreEntryRepository;
+    private ScoreEntryRepository&Stub $scoreEntryRepository;
 
     protected function setUp(): void
     {
-        $this->gameRepository = $this->createMock(GameRepository::class);
-        $this->itemProvider = $this->createMock(ItemProvider::class);
-        $this->operation = $this->createMock(Operation::class);
-        $this->scoreEntryRepository = $this->createMock(ScoreEntryRepository::class);
+        $this->gameRepository = $this->createStub(GameRepository::class);
+        $this->itemProvider = $this->createStub(ItemProvider::class);
+        $this->operation = $this->createStub(Operation::class);
+        $this->scoreEntryRepository = $this->createStub(ScoreEntryRepository::class);
 
         $this->provider = new SessionDetailProvider(
             $this->gameRepository,
@@ -58,13 +58,10 @@ class SessionDetailProviderTest extends TestCase
 
         $this->itemProvider->method('provide')->willReturn($session);
         $this->gameRepository->method('getMaxCreatedAtForSession')
-            ->with($session)
             ->willReturn($lastPlayed);
         $this->scoreEntryRepository->method('getCumulativeScoresForSession')
-            ->with($session)
             ->willReturn($dtos);
         $this->gameRepository->method('findInProgressForSession')
-            ->with($session)
             ->willReturn($inProgressGame);
 
         $result = $this->provider->provide($this->operation, ['id' => 1]);
@@ -84,7 +81,6 @@ class SessionDetailProviderTest extends TestCase
 
         $this->itemProvider->method('provide')->willReturn($session);
         $this->gameRepository->method('getMaxCreatedAtForSession')
-            ->with($session)
             ->willReturn(null);
         $this->scoreEntryRepository->method('getCumulativeScoresForSession')->willReturn([]);
         $this->gameRepository->method('findInProgressForSession')->willReturn(null);

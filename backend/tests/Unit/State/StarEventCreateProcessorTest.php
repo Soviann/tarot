@@ -15,28 +15,28 @@ use App\Repository\StarEventRepository;
 use App\Service\BadgeChecker;
 use App\State\StarEventCreateProcessor;
 use Doctrine\ORM\EntityManagerInterface;
-use PHPUnit\Framework\MockObject\MockObject;
+use PHPUnit\Framework\MockObject\Stub;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\HttpKernel\Exception\UnprocessableEntityHttpException;
 
 class StarEventCreateProcessorTest extends TestCase
 {
-    private BadgeChecker&MockObject $badgeChecker;
-    private EntityManagerInterface&MockObject $em;
-    private Operation&MockObject $operation;
-    private PersistProcessor&MockObject $persistProcessor;
+    private BadgeChecker&Stub $badgeChecker;
+    private EntityManagerInterface&Stub $em;
+    private Operation&Stub $operation;
+    private PersistProcessor&Stub $persistProcessor;
     private StarEventCreateProcessor $processor;
-    private SessionRepository&MockObject $sessionRepository;
-    private StarEventRepository&MockObject $starEventRepository;
+    private SessionRepository&Stub $sessionRepository;
+    private StarEventRepository&Stub $starEventRepository;
 
     protected function setUp(): void
     {
-        $this->badgeChecker = $this->createMock(BadgeChecker::class);
-        $this->em = $this->createMock(EntityManagerInterface::class);
-        $this->operation = $this->createMock(Operation::class);
-        $this->persistProcessor = $this->createMock(PersistProcessor::class);
-        $this->sessionRepository = $this->createMock(SessionRepository::class);
-        $this->starEventRepository = $this->createMock(StarEventRepository::class);
+        $this->badgeChecker = $this->createStub(BadgeChecker::class);
+        $this->em = $this->createStub(EntityManagerInterface::class);
+        $this->operation = $this->createStub(Operation::class);
+        $this->persistProcessor = $this->createStub(PersistProcessor::class);
+        $this->sessionRepository = $this->createStub(SessionRepository::class);
+        $this->starEventRepository = $this->createStub(StarEventRepository::class);
 
         $this->processor = new StarEventCreateProcessor(
             $this->badgeChecker,
@@ -55,15 +55,20 @@ class StarEventCreateProcessorTest extends TestCase
         $starEvent = new StarEvent();
         $starEvent->setPlayer($player);
 
-        $this->sessionRepository->method('find')->with(10)->willReturn($session);
-        $this->persistProcessor->expects($this->once())
+        $this->sessionRepository->method('find')->willReturn($session);
+
+        $persistProcessor = $this->createMock(PersistProcessor::class);
+        $persistProcessor->expects($this->once())
             ->method('process')
             ->with($starEvent, $this->operation, ['sessionId' => 10], [])
             ->willReturn($starEvent);
+
+        $processor = $this->createProcessorWith(persistProcessor: $persistProcessor);
+
         $this->starEventRepository->method('countBySessionAndPlayer')->willReturn(1);
         $this->badgeChecker->method('checkAndAward')->willReturn([]);
 
-        $result = $this->processor->process($starEvent, $this->operation, ['sessionId' => 10]);
+        $result = $processor->process($starEvent, $this->operation, ['sessionId' => 10]);
 
         $this->assertSame($session, $starEvent->getSession());
         $this->assertSame($starEvent, $result);
@@ -71,7 +76,7 @@ class StarEventCreateProcessorTest extends TestCase
 
     public function testThrowsOnMissingSession(): void
     {
-        $this->sessionRepository->method('find')->with(99)->willReturn(null);
+        $this->sessionRepository->method('find')->willReturn(null);
 
         $starEvent = new StarEvent();
 
@@ -90,7 +95,7 @@ class StarEventCreateProcessorTest extends TestCase
         $starEvent = new StarEvent();
         $starEvent->setPlayer($playerOutside);
 
-        $this->sessionRepository->method('find')->with(10)->willReturn($session);
+        $this->sessionRepository->method('find')->willReturn($session);
 
         $this->expectException(UnprocessableEntityHttpException::class);
         $this->expectExceptionMessage('Le joueur n\'appartient pas à la session.');
@@ -113,22 +118,24 @@ class StarEventCreateProcessorTest extends TestCase
         $starEvent = new StarEvent();
         $starEvent->setPlayer($penalized);
 
-        $this->sessionRepository->method('find')->with(10)->willReturn($session);
+        $this->sessionRepository->method('find')->willReturn($session);
         $this->persistProcessor->method('process')->willReturn($starEvent);
         $this->starEventRepository->method('countBySessionAndPlayer')
-            ->with($session, $penalized)
             ->willReturn(3);
         $this->badgeChecker->method('checkAndAward')->willReturn([]);
 
         $persistedEntries = [];
-        $this->em->expects($this->exactly(5))
+        $em = $this->createMock(EntityManagerInterface::class);
+        $em->expects($this->exactly(5))
             ->method('persist')
             ->willReturnCallback(static function (ScoreEntry $entry) use (&$persistedEntries): void {
                 $persistedEntries[] = $entry;
             });
-        $this->em->expects($this->once())->method('flush');
+        $em->expects($this->once())->method('flush');
 
-        $this->processor->process($starEvent, $this->operation, ['sessionId' => 10]);
+        $processor = $this->createProcessorWith(em: $em);
+
+        $processor->process($starEvent, $this->operation, ['sessionId' => 10]);
 
         $this->assertCount(5, $persistedEntries);
 
@@ -151,17 +158,32 @@ class StarEventCreateProcessorTest extends TestCase
         $starEvent = new StarEvent();
         $starEvent->setPlayer($player);
 
-        $this->sessionRepository->method('find')->with(10)->willReturn($session);
+        $this->sessionRepository->method('find')->willReturn($session);
         $this->persistProcessor->method('process')->willReturn($starEvent);
         $this->starEventRepository->method('countBySessionAndPlayer')
-            ->with($session, $player)
             ->willReturn(2);
         $this->badgeChecker->method('checkAndAward')->willReturn([]);
 
-        $this->em->expects($this->never())->method('persist');
-        $this->em->expects($this->never())->method('flush');
+        $em = $this->createMock(EntityManagerInterface::class);
+        $em->expects($this->never())->method('persist');
+        $em->expects($this->never())->method('flush');
 
-        $this->processor->process($starEvent, $this->operation, ['sessionId' => 10]);
+        $processor = $this->createProcessorWith(em: $em);
+
+        $processor->process($starEvent, $this->operation, ['sessionId' => 10]);
+    }
+
+    private function createProcessorWith(
+        ?EntityManagerInterface $em = null,
+        ?PersistProcessor $persistProcessor = null,
+    ): StarEventCreateProcessor {
+        return new StarEventCreateProcessor(
+            $this->badgeChecker,
+            $em ?? $this->em,
+            $persistProcessor ?? $this->persistProcessor,
+            $this->sessionRepository,
+            $this->starEventRepository,
+        );
     }
 
     private function createPlayer(int $id): Player

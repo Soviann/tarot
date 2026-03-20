@@ -477,7 +477,6 @@ final readonly class BadgeChecker
      */
     private function checkFriendCaller(BadgeCheckContext $context): bool
     {
-        $max = 0;
         $current = 0;
         $lastPartnerId = null;
 

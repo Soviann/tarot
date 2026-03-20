@@ -45,7 +45,7 @@ class SessionRepositoryTest extends ApiTestCase
     public function testFindActiveWithExactPlayersMatch(): void
     {
         $session = $this->createSessionWithPlayers('A', 'B', 'C', 'D', 'E');
-        $playerIds = $session->getPlayers()->map(static fn ($p) => $p->getId())->getValues();
+        $playerIds = $session->getPlayers()->map(static fn ($p): ?int => $p->getId())->getValues();
 
         $found = $this->repo->findActiveWithExactPlayers($playerIds, 5);
         self::assertNotNull($found);
@@ -67,7 +67,7 @@ class SessionRepositoryTest extends ApiTestCase
         $session->setIsActive(false);
         $this->em->flush();
 
-        $playerIds = $session->getPlayers()->map(static fn ($p) => $p->getId())->getValues();
+        $playerIds = $session->getPlayers()->map(static fn ($p): ?int => $p->getId())->getValues();
 
         $found = $this->repo->findActiveWithExactPlayers($playerIds, 5);
         self::assertNull($found);
@@ -76,7 +76,7 @@ class SessionRepositoryTest extends ApiTestCase
     public function testFindRecentWithLastActivityOrdering(): void
     {
         // Create 2 sessions
-        $session1 = $this->createSessionWithPlayers('A', 'B', 'C', 'D', 'E');
+        $this->createSessionWithPlayers('A', 'B', 'C', 'D', 'E');
         $session2 = $this->createSessionWithPlayers('F', 'G', 'H', 'I', 'J');
 
         // Add a game to session2 to make it more recent

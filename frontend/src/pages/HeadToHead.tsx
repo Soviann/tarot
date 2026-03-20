@@ -5,7 +5,7 @@ import GroupFilter from "../components/GroupFilter";
 import { PlayerAvatar, Select, Spinner } from "../components/ui";
 import { useHeadToHead } from "../hooks/useHeadToHead";
 import { usePlayers } from "../hooks/usePlayers";
-import type { HeadToHeadPlayerStats } from "../types/api";
+import type { HeadToHeadGlobalPlayerStats, HeadToHeadPlayerStats } from "../types/api";
 
 function StatRow({ label, value1, value2 }: { label: string; value1: React.ReactNode; value2: React.ReactNode }) {
   return (
@@ -17,12 +17,22 @@ function StatRow({ label, value1, value2 }: { label: string; value1: React.React
   );
 }
 
+function Section({ children, subtitle, title }: { children: React.ReactNode; subtitle: string; title: string }) {
+  return (
+    <div className="rounded-xl bg-surface-elevated p-4">
+      <h2 className="mb-1 text-center text-sm font-semibold text-text-secondary">{title}</h2>
+      <p className="mb-3 text-center text-xs text-text-muted">{subtitle}</p>
+      {children}
+    </div>
+  );
+}
+
 function WinRate({ games, wins }: { games: number; wins: number }) {
   if (0 === games) return <span>—</span>;
   return <span>{Math.round((wins / games) * 100)}%</span>;
 }
 
-function PlayerColumn({ player }: { player: HeadToHeadPlayerStats }) {
+function PlayerColumn({ player }: { player: HeadToHeadGlobalPlayerStats | HeadToHeadPlayerStats }) {
   return (
     <div className="flex flex-col items-center gap-1">
       <PlayerAvatar color={player.playerColor} name={player.playerName} playerId={player.playerId} size="lg" />
@@ -137,31 +147,39 @@ export default function HeadToHead() {
             <PlayerColumn player={stats.player2} />
           </div>
 
-          {/* Stats comparison */}
-          <div className="rounded-xl bg-surface-elevated p-4">
-            <h2 className="mb-3 text-center text-sm font-semibold text-text-secondary">Statistiques globales</h2>
+          {/* Section 1: Stats globales */}
+          <Section subtitle="Toutes les parties de chaque joueur" title="Stats globales">
+            <div className="divide-y divide-border">
+              <StatRow label="Donnes jouées" value1={stats.globalPlayer1.gamesPlayed} value2={stats.globalPlayer2.gamesPlayed} />
+              <StatRow label="Score total" value1={stats.globalPlayer1.totalScore} value2={stats.globalPlayer2.totalScore} />
+              <StatRow label="Score moyen" value1={stats.globalPlayer1.averageScore.toFixed(1)} value2={stats.globalPlayer2.averageScore.toFixed(1)} />
+              <StatRow label="Parties preneur" value1={stats.globalPlayer1.gamesAsTaker} value2={stats.globalPlayer2.gamesAsTaker} />
+              <StatRow label="Victoires preneur" value1={stats.globalPlayer1.winsAsTaker} value2={stats.globalPlayer2.winsAsTaker} />
+              <StatRow
+                label="Taux victoire"
+                value1={<WinRate games={stats.globalPlayer1.gamesAsTaker} wins={stats.globalPlayer1.winsAsTaker} />}
+                value2={<WinRate games={stats.globalPlayer2.gamesAsTaker} wins={stats.globalPlayer2.winsAsTaker} />}
+              />
+            </div>
+          </Section>
+
+          {/* Section 2: Stats en commun */}
+          <Section subtitle="Parties jouées ensemble" title="Stats en commun">
             <div className="divide-y divide-border">
               <StatRow label="Score total" value1={stats.player1.totalScore} value2={stats.player2.totalScore} />
               <StatRow label="Score moyen" value1={stats.player1.averageScore.toFixed(1)} value2={stats.player2.averageScore.toFixed(1)} />
-            </div>
-          </div>
-
-          <div className="rounded-xl bg-surface-elevated p-4">
-            <h2 className="mb-3 text-center text-sm font-semibold text-text-secondary">En tant que preneur</h2>
-            <div className="divide-y divide-border">
               <StatRow label="Parties preneur" value1={stats.player1.gamesAsTaker} value2={stats.player2.gamesAsTaker} />
-              <StatRow label="Victoires" value1={stats.player1.winsAsTaker} value2={stats.player2.winsAsTaker} />
+              <StatRow label="Victoires preneur" value1={stats.player1.winsAsTaker} value2={stats.player2.winsAsTaker} />
               <StatRow
                 label="Taux victoire"
                 value1={<WinRate games={stats.player1.gamesAsTaker} wins={stats.player1.winsAsTaker} />}
                 value2={<WinRate games={stats.player2.gamesAsTaker} wins={stats.player2.winsAsTaker} />}
               />
             </div>
-          </div>
+          </Section>
 
-          <div className="rounded-xl bg-surface-elevated p-4">
-            <h2 className="mb-3 text-center text-sm font-semibold text-text-secondary">Confrontations directes</h2>
-            <p className="mb-2 text-center text-xs text-text-muted">Preneur vs défenseur adverse</p>
+          {/* Section 3: Face à face */}
+          <Section subtitle="Quand l'un prend contre l'autre" title="Face à face">
             <div className="divide-y divide-border">
               <StatRow label="Confrontations" value1={stats.player1.gamesAsTakerVsOtherAsDefender} value2={stats.player2.gamesAsTakerVsOtherAsDefender} />
               <StatRow label="Victoires" value1={stats.player1.winsAsTakerVsOtherAsDefender} value2={stats.player2.winsAsTakerVsOtherAsDefender} />
@@ -170,15 +188,9 @@ export default function HeadToHead() {
                 value1={<WinRate games={stats.player1.gamesAsTakerVsOtherAsDefender} wins={stats.player1.winsAsTakerVsOtherAsDefender} />}
                 value2={<WinRate games={stats.player2.gamesAsTakerVsOtherAsDefender} wins={stats.player2.winsAsTakerVsOtherAsDefender} />}
               />
-            </div>
-          </div>
-
-          <div className="rounded-xl bg-surface-elevated p-4">
-            <h2 className="mb-3 text-center text-sm font-semibold text-text-secondary">Partenariats</h2>
-            <div className="divide-y divide-border">
               <StatRow label="Appelé l'autre" value1={stats.player1.calledOtherAsPartner} value2={stats.player2.calledOtherAsPartner} />
             </div>
-          </div>
+          </Section>
         </div>
       )}
     </div>

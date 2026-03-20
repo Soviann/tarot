@@ -34,9 +34,8 @@ final class CompletedGamesExtensionTest extends TestCase
             ->method('setParameter')
             ->with('status_xxx', GameStatus::Completed);
 
-        $queryNameGenerator = $this->createMock(QueryNameGeneratorInterface::class);
+        $queryNameGenerator = $this->createStub(QueryNameGeneratorInterface::class);
         $queryNameGenerator->method('generateParameterName')
-            ->with('status')
             ->willReturn('status_xxx');
 
         $this->extension->applyToCollection(
@@ -53,7 +52,7 @@ final class CompletedGamesExtensionTest extends TestCase
         $queryBuilder = $this->createMock(QueryBuilder::class);
         $queryBuilder->expects($this->never())->method('andWhere');
 
-        $queryNameGenerator = $this->createMock(QueryNameGeneratorInterface::class);
+        $queryNameGenerator = $this->createStub(QueryNameGeneratorInterface::class);
 
         $this->extension->applyToCollection(
             $queryBuilder,
@@ -69,7 +68,7 @@ final class CompletedGamesExtensionTest extends TestCase
         $queryBuilder = $this->createMock(QueryBuilder::class);
         $queryBuilder->expects($this->never())->method('andWhere');
 
-        $queryNameGenerator = $this->createMock(QueryNameGeneratorInterface::class);
+        $queryNameGenerator = $this->createStub(QueryNameGeneratorInterface::class);
 
         $this->extension->applyToCollection(
             $queryBuilder,
@@ -85,7 +84,7 @@ final class CompletedGamesExtensionTest extends TestCase
         $queryBuilder = $this->createMock(QueryBuilder::class);
         $queryBuilder->expects($this->never())->method('andWhere');
 
-        $queryNameGenerator = $this->createMock(QueryNameGeneratorInterface::class);
+        $queryNameGenerator = $this->createStub(QueryNameGeneratorInterface::class);
 
         $this->extension->applyToCollection(
             $queryBuilder,
@@ -101,7 +100,7 @@ final class CompletedGamesExtensionTest extends TestCase
         $queryBuilder = $this->createMock(QueryBuilder::class);
         $queryBuilder->expects($this->never())->method('andWhere');
 
-        $queryNameGenerator = $this->createMock(QueryNameGeneratorInterface::class);
+        $queryNameGenerator = $this->createStub(QueryNameGeneratorInterface::class);
 
         $this->extension->applyToCollection(
             $queryBuilder,

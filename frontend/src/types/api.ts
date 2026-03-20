@@ -88,7 +88,20 @@ export interface HeadToHeadPlayerStats {
   winsAsTakerVsOtherAsDefender: number;
 }
 
+export interface HeadToHeadGlobalPlayerStats {
+  averageScore: number;
+  gamesAsTaker: number;
+  gamesPlayed: number;
+  playerColor: string | null;
+  playerId: number;
+  playerName: string;
+  totalScore: number;
+  winsAsTaker: number;
+}
+
 export interface HeadToHeadStats {
+  globalPlayer1: HeadToHeadGlobalPlayerStats;
+  globalPlayer2: HeadToHeadGlobalPlayerStats;
   player1: HeadToHeadPlayerStats;
   player2: HeadToHeadPlayerStats;
   sharedGames: number;

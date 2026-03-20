@@ -28,6 +28,26 @@ const mockPlayers = [
 ];
 
 const mockStats = {
+  globalPlayer1: {
+    averageScore: 18.2,
+    gamesAsTaker: 20,
+    gamesPlayed: 50,
+    playerColor: "#ff0000",
+    playerId: 1,
+    playerName: "Alice",
+    totalScore: 910,
+    winsAsTaker: 12,
+  },
+  globalPlayer2: {
+    averageScore: -5.1,
+    gamesAsTaker: 15,
+    gamesPlayed: 40,
+    playerColor: "#0000ff",
+    playerId: 2,
+    playerName: "Bob",
+    totalScore: -204,
+    winsAsTaker: 8,
+  },
   player1: {
     averageScore: 25.5,
     calledOtherAsPartner: 2,
@@ -108,7 +128,7 @@ describe("HeadToHead page", () => {
     expect(screen.getByRole("status")).toBeInTheDocument();
   });
 
-  it("displays VS data when stats are loaded", () => {
+  it("displays the three sections when stats are loaded", () => {
     mockPlayersHook();
     vi.mocked(useHeadToHeadModule.useHeadToHead).mockReturnValue({
       isFetching: false,
@@ -120,10 +140,24 @@ describe("HeadToHead page", () => {
 
     // VS badge appears in both selector and stats area
     expect(screen.getAllByText("VS").length).toBeGreaterThanOrEqual(2);
+
+    // Section 1: Stats globales
+    expect(screen.getByText("Stats globales")).toBeInTheDocument();
+    expect(screen.getByText("Toutes les parties de chaque joueur")).toBeInTheDocument();
+    expect(screen.getByText("910")).toBeInTheDocument(); // Alice global total
+    expect(screen.getByText("-204")).toBeInTheDocument(); // Bob global total
+
+    // Section 2: Stats en commun
+    expect(screen.getByText("Stats en commun")).toBeInTheDocument();
+    expect(screen.getByText("Parties jouées ensemble")).toBeInTheDocument();
     expect(screen.getByText(/3 session/)).toBeInTheDocument();
     expect(screen.getByText(/10 donne/)).toBeInTheDocument();
-    expect(screen.getByText("510")).toBeInTheDocument(); // Alice total score
-    expect(screen.getByText("-246")).toBeInTheDocument(); // Bob total score
+    expect(screen.getByText("510")).toBeInTheDocument(); // Alice shared total
+    expect(screen.getByText("-246")).toBeInTheDocument(); // Bob shared total
+
+    // Section 3: Face à face
+    expect(screen.getByText("Face à face")).toBeInTheDocument();
+    expect(screen.getByText("Quand l'un prend contre l'autre")).toBeInTheDocument();
   });
 
   it("navigates back to stats on back button click", async () => {
