@@ -253,6 +253,7 @@ final readonly class BadgeChecker
             BadgeType::Comeback => $this->checkComeback($player, $context, $sessionEntries),
             BadgeType::FirstChelem => $this->checkFirstChelem($context),
             BadgeType::FirstGame => $this->checkFirstGame($context),
+            BadgeType::FriendCaller => $this->checkFriendCaller($context),
             BadgeType::GardeContreWon => $this->checkGardeContreWon($context),
             BadgeType::Kamikaze => $this->checkKamikaze($context),
             BadgeType::LastPlace => $this->checkLastPlace($player, $context, $sessionScoreSums),
@@ -447,6 +448,38 @@ final readonly class BadgeChecker
     private function checkFirstGame(BadgeCheckContext $context): bool
     {
         return $context->completedGameCount >= 1;
+    }
+
+    /**
+     * Player called the same partner >= 5 consecutive times as taker.
+     */
+    private function checkFriendCaller(BadgeCheckContext $context): bool
+    {
+        $max = 0;
+        $current = 0;
+        $lastPartnerId = null;
+
+        foreach ($context->takerGameDetails as $game) {
+            if (null === $game->partnerId) {
+                $current = 0;
+                $lastPartnerId = null;
+
+                continue;
+            }
+
+            if ($game->partnerId === $lastPartnerId) {
+                ++$current;
+            } else {
+                $current = 1;
+                $lastPartnerId = $game->partnerId;
+            }
+
+            if ($current >= 5) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     /**

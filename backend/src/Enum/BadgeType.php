@@ -19,6 +19,7 @@ enum BadgeType: string
     case Comeback = 'comeback';
     case FirstChelem = 'first_chelem';
     case FirstGame = 'first_game';
+    case FriendCaller = 'friend_caller';
     case GardeContreWon = 'garde_contre_won';
     case Kamikaze = 'kamikaze';
     case Konami = 'konami';
@@ -46,7 +47,7 @@ enum BadgeType: string
             self::CatchThemAll, self::Centurion, self::FirstGame, self::Regular => 'progression',
             self::Audacious, self::ChampionStreak, self::Comfortable10, self::Comfortable20, self::Comfortable30, self::Comfortable40, self::Comfortable50, self::FirstChelem, self::GardeContreWon, self::Kamikaze, self::NoNet, self::PetitMalin, self::SelfCaller, self::SurpriseChelem, self::TriplePoignee, self::Wall, self::ZeroBout => 'performance',
             self::CloseCall, self::Comeback, self::Konami, self::LastPlace, self::LosingStreak, self::RisingStar, self::StarCollector, self::StarShower, self::ThreeOutlersLoss => 'fun',
-            self::Marathon, self::NightOwl, self::Social => 'social',
+            self::FriendCaller, self::Marathon, self::NightOwl, self::Social => 'social',
         };
     }
 
@@ -66,6 +67,7 @@ enum BadgeType: string
             self::Comeback => 'Remonter de dernier à premier en une session',
             self::FirstChelem => 'Réussir un Chelem annoncé',
             self::FirstGame => 'Jouer sa première donne',
+            self::FriendCaller => 'Appeler le même partenaire 5 fois de suite',
             self::GardeContreWon => 'Réussir une garde contre',
             self::Kamikaze => 'Tenter une Garde Contre',
             self::Konami => '',
@@ -105,6 +107,7 @@ enum BadgeType: string
             self::Comeback => '📈',
             self::FirstChelem => '👑',
             self::FirstGame => '🎮',
+            self::FriendCaller => '📞',
             self::GardeContreWon => '🏆',
             self::Kamikaze => '⚔️',
             self::Konami => '🕹️',
@@ -144,6 +147,7 @@ enum BadgeType: string
             self::Comeback => 'Comeback',
             self::FirstChelem => 'Premier Chelem',
             self::FirstGame => 'Première donne',
+            self::FriendCaller => 'Appel à un ami',
             self::GardeContreWon => 'Garde contre réussie',
             self::Kamikaze => 'Kamikaze',
             self::Konami => '',

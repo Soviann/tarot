@@ -591,7 +591,7 @@ Ces indices sont très rares et ne gênent jamais l'utilisation normale. Un cool
 
 ## Badges et succès
 
-L'application propose un système de **33 badges** (succès) que les joueurs débloquent automatiquement au fil de leurs parties.
+L'application propose un système de **34 badges** (succès) que les joueurs débloquent automatiquement au fil de leurs parties.
 
 ### Catégories
 
@@ -600,7 +600,7 @@ L'application propose un système de **33 badges** (succès) que les joueurs dé
 | **Progression** | 🎮 Première donne, 🔟 Habitué (10 sessions), 💯 Centurion (100 donnes), ⚾ Attrapez-les tous (obtenir tous les badges) |
 | **Performance** | 🔥 Inarrêtable (5 victoires d'affilée), 👑 Premier Chelem, ⚔️ Kamikaze (Garde Contre), 🎯 Sans filet (Garde Sans réussie), 🃏 Petit malin (5 Petits au bout), 🛡️ Muraille (10 victoires défense d'affilée), 🎲 Audacieux (chelem annoncé), 🏆 Garde contre réussie, 🎩 Chelem surprise (chelem non annoncé), 🤲 Poignée triple, 🎯 Zéro bout (gagner avec 0 bout), 🤙 Auto-appel (gagner en s'appelant soi-même), 💪🦾🔥🌋☀️ Confortable +10/+20/+30/+40/+50 (gagner avec une marge croissante) |
 | **Fun** | 📈 Comeback (dernier → premier), 💀 Lanterne rouge (5× dernier), ⭐ Collectionneur d'étoiles (10 étoiles), 😓 Si près du but (perdre à < 2 pts), 🤦 3 bouts pour rien (perdre avec 3 bouts), 📉 Série noire (5 défaites d'affilée), 🌟 Étoile montante (20 étoiles), ☄️ Pluie d'étoiles (3 étoiles en < 2h) |
-| **Social** | 🌙 Noctambule (donne après minuit), ⏰ Marathon (session > 3h), 👥 Sociable (10 joueurs différents) |
+| **Social** | 📞 Appel à un ami (même partenaire 5× de suite), 🌙 Noctambule (donne après minuit), ⏰ Marathon (session > 3h), 👥 Sociable (10 joueurs différents) |
 
 > Un badge secret supplémentaire est caché dans l'application — à vous de le découvrir !
 
@@ -616,14 +616,14 @@ Quand un ou plusieurs badges sont débloqués, une **modale** s'affiche automati
 
 ### Consulter ses badges
 
-Sur la page **Statistiques d'un joueur** (accessible via Stats → clic sur un joueur), une section **Badges (X/33)** affiche :
+Sur la page **Statistiques d'un joueur** (accessible via Stats → clic sur un joueur), une section **Badges (X/34)** affiche :
 - Les badges **débloqués** en premier, avec leur date d'obtention
 - Un bouton **« Voir les X restants »** pour révéler les badges verrouillés (grisés, avec leur condition de déblocage)
 - Un clic sur **« Masquer les badges verrouillés »** les cache à nouveau
 
 ### Liste complète dans l'aide
 
-La page **Aide** (`/aide`) contient une section **Badges** listant l'ensemble des 32 badges visibles, regroupés par catégorie (Progression, Performance, Fun, Social), avec pour chacun l'icône, le nom et la condition d'obtention. Le badge secret n'y figure pas. Cette section est accessible sans nécessiter de données joueur.
+La page **Aide** (`/aide`) contient une section **Badges** listant l'ensemble des 33 badges visibles, regroupés par catégorie (Progression, Performance, Fun, Social), avec pour chacun l'icône, le nom et la condition d'obtention. Le badge secret n'y figure pas. Cette section est accessible sans nécessiter de données joueur.
 
 ---
 

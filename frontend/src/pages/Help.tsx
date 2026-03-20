@@ -53,6 +53,7 @@ const BADGE_CATEGORIES: { category: string; badges: { description: string; emoji
   {
     category: "Social",
     badges: [
+      { description: "Appeler le même partenaire 5 fois de suite", emoji: "📞", label: "Appel à un ami" },
       { description: "Jouer une session de plus de 3 heures", emoji: "⏰", label: "Marathon" },
       { description: "Jouer une donne après minuit", emoji: "🌙", label: "Noctambule" },
       { description: "Jouer avec 10 joueurs différents", emoji: "👥", label: "Sociable" },
