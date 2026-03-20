@@ -58,7 +58,7 @@ export default function Stats() {
         <h1 className="text-2xl font-bold text-text-primary">Statistiques</h1>
         <div className="flex items-center gap-2">
           <button
-            className="rounded-full bg-surface-elevated px-2.5 py-1 text-xs font-medium text-text-secondary hover:bg-surface-tertiary"
+            className="rounded-full bg-accent-500 px-3 py-1 text-sm font-black text-white shadow hover:bg-accent-600"
             onClick={() => navigate("/stats/h2h")}
             type="button"
           >
