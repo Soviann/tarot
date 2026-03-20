@@ -576,7 +576,7 @@ class BadgeCheckerTest extends ApiTestCase
         self::assertNotContains(BadgeType::DestinyHand, $takerBadges);
     }
 
-    public function testDestinyHandBadgeWithHalfPoints(): void
+    public function testDestinyHandBadgeWithDifferentOudlerCount(): void
     {
         $session = $this->createSessionWithPlayers('Alice', 'Bob', 'Charlie', 'Diana', 'Eve');
         $taker = $session->getPlayers()->toArray()[0];
