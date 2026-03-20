@@ -10,6 +10,7 @@ Le format est basé sur [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/)
 
 - **Indices easter eggs** : indices subtils et éphémères suggérant la présence d'easter eggs cachés — logo Konami au clic sur un avatar (5%, 2s), icône Doom traversant l'écran au clic (2%, 32px). Cooldown partagé de 10 minutes.
 - **Tests edge cases PATCH /games** : 11 tests API + 1 test unitaire couvrant les validateurs, transitions de statut, champs partiels, immutabilité et cascade.
+- **Tests frontend validation & scoreCalculator** : 36 tests couvrant les bornes de points (0, 91), combinaisons de bonus extrêmes, score max/min théorique, validation des saisies (non numérique, décimale, négative, >91, espaces), interactions bonus (poignée owner, pré-remplissage édition) et flux partenaire (self-call toggle, opacité).
 
 ### Fixed
 

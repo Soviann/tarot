@@ -262,6 +262,110 @@ describe("calculateScore", () => {
   });
 
   // ---------------------------------------------------------------
+  // Points aux bornes
+  // ---------------------------------------------------------------
+
+  it("calcule correctement avec 0 pts (borne basse)", () => {
+    // Petite, 0 oudlers, 0 pts → requis=56, base=-(56-0+25)×1=-81
+    const result = calculateScore(makeInput({ oudlers: 0, points: 0 }));
+
+    expect(result.attackWins).toBe(false);
+    expect(result.baseScore).toBe(-81);
+  });
+
+  it("calcule correctement avec 91 pts (borne haute)", () => {
+    // Petite, 0 oudlers, 91 pts → requis=56, base=(91-56+25)×1=60
+    const result = calculateScore(makeInput({ oudlers: 0, points: 91 }));
+
+    expect(result.attackWins).toBe(true);
+    expect(result.baseScore).toBe(60);
+  });
+
+  // ---------------------------------------------------------------
+  // Tous les bonus combinés
+  // ---------------------------------------------------------------
+
+  it("combine triple poignée + petit au bout + chelem annoncé gagné (attaque gagne)", () => {
+    // GardeContre, 3 oudlers, 91 pts, triple poignée, petit au bout attaque, chelem annoncé gagné
+    // base=(91-36+25)×6=480, poignée=+40, petit=+10×6=+60, chelem=+400
+    // total=480+40+60+400=980
+    const result = calculateScore(makeInput({
+      chelem: Chelem.AnnouncedWon,
+      contract: Contract.GardeContre,
+      oudlers: 3,
+      petitAuBout: Side.Attack,
+      poignee: "triple",
+      points: 91,
+    }));
+
+    expect(result.attackWins).toBe(true);
+    expect(result.baseScore).toBe(480);
+    expect(result.poigneeBonus).toBe(40);
+    expect(result.petitAuBoutBonus).toBe(60);
+    expect(result.chelemBonus).toBe(400);
+    expect(result.totalPerPlayer).toBe(980);
+  });
+
+  it("combine triple poignée + petit au bout défense + chelem annoncé perdu (attaque perd)", () => {
+    // GardeContre, 0 oudlers, 0 pts, triple poignée, petit au bout défense, chelem annoncé perdu
+    // base=-(56-0+25)×6=-486, poignée=-40, petit=-10×6=-60, chelem=-200
+    // total=-486-40-60-200=-786
+    const result = calculateScore(makeInput({
+      chelem: Chelem.AnnouncedLost,
+      contract: Contract.GardeContre,
+      oudlers: 0,
+      petitAuBout: Side.Defense,
+      poignee: "triple",
+      points: 0,
+    }));
+
+    expect(result.attackWins).toBe(false);
+    expect(result.baseScore).toBe(-486);
+    expect(result.poigneeBonus).toBe(-40);
+    expect(result.petitAuBoutBonus).toBe(-60);
+    expect(result.chelemBonus).toBe(-200);
+    expect(result.totalPerPlayer).toBe(-786);
+  });
+
+  // ---------------------------------------------------------------
+  // Score maximum et minimum théoriques
+  // ---------------------------------------------------------------
+
+  it("calcule le score maximum théorique (garde contre, 91 pts, 3 oudlers, tous bonus positifs)", () => {
+    // GardeContre, 3 oudlers, 91 pts, triple poignée, petit au bout attaque, chelem annoncé gagné
+    // base=(91-36+25)×6=480, poignée=+40, petit=+60, chelem=+400
+    // total=980, preneur=980×2=1960
+    const result = calculateScore(makeInput({
+      chelem: Chelem.AnnouncedWon,
+      contract: Contract.GardeContre,
+      oudlers: 3,
+      petitAuBout: Side.Attack,
+      poignee: "triple",
+      points: 91,
+    }));
+
+    expect(result.totalPerPlayer).toBe(980);
+    expect(result.takerScore).toBe(1960);
+  });
+
+  it("calcule le score minimum théorique (garde contre, 0 pts, 0 oudlers, tous bonus négatifs)", () => {
+    // GardeContre, 0 oudlers, 0 pts, triple poignée, petit au bout attaque (perd), chelem annoncé perdu
+    // base=-(56-0+25)×6=-486, poignée=-40, petit=-10×6=-60, chelem=-200
+    // total=-786, preneur=-786×2=-1572
+    const result = calculateScore(makeInput({
+      chelem: Chelem.AnnouncedLost,
+      contract: Contract.GardeContre,
+      oudlers: 0,
+      petitAuBout: Side.Attack,
+      poignee: "triple",
+      points: 0,
+    }));
+
+    expect(result.totalPerPlayer).toBe(-786);
+    expect(result.takerScore).toBe(-1572);
+  });
+
+  // ---------------------------------------------------------------
   // Distribution : avec partenaire
   // ---------------------------------------------------------------
 
@@ -294,6 +398,34 @@ describe("calculateScore", () => {
       petitAuBout: Side.Attack,
       poignee: "triple",
       points: 60,
+    }) },
+    { desc: "self-call + tous les bonus positifs", input: makeInput({
+      chelem: Chelem.AnnouncedWon,
+      contract: Contract.GardeContre,
+      oudlers: 3,
+      partnerId: null,
+      petitAuBout: Side.Attack,
+      poignee: "triple",
+      points: 91,
+    }) },
+    { desc: "self-call + tous les bonus négatifs", input: makeInput({
+      chelem: Chelem.AnnouncedLost,
+      contract: Contract.GardeContre,
+      oudlers: 0,
+      partnerId: null,
+      petitAuBout: Side.Attack,
+      poignee: "triple",
+      points: 0,
+    }) },
+    { desc: "borne basse 0 pts", input: makeInput({ oudlers: 0, points: 0 }) },
+    { desc: "borne haute 91 pts", input: makeInput({ oudlers: 0, points: 91 }) },
+    { desc: "garde contre + chelem non annoncé gagné + poignée double", input: makeInput({
+      chelem: Chelem.NotAnnouncedWon,
+      contract: Contract.GardeContre,
+      oudlers: 3,
+      petitAuBout: Side.Defense,
+      poignee: "double",
+      points: 91,
     }) },
   ])("somme des scores = 0 pour $desc", ({ input }) => {
     const result = calculateScore(input);
