@@ -47,22 +47,22 @@ final class HeadToHeadServiceTest extends TestCase
 
         // Player 1 as taker
         $this->gameRepository->method('countTakerGamesInSharedSessions')
-            ->willReturnCallback(static fn (Player $taker) => 1 === $taker->getId() ? 5 : 4);
+            ->willReturnCallback(static fn (Player $taker): int => 1 === $taker->getId() ? 5 : 4);
 
         $this->gameRepository->method('countTakerWinsInSharedSessions')
-            ->willReturnCallback(static fn (Player $taker) => 1 === $taker->getId() ? 3 : 2);
+            ->willReturnCallback(static fn (Player $taker): int => 1 === $taker->getId() ? 3 : 2);
 
         $this->gameRepository->method('countTakerVsDefender')
-            ->willReturnCallback(static fn (Player $taker) => 1 === $taker->getId() ? 2 : 1);
+            ->willReturnCallback(static fn (Player $taker): int => 1 === $taker->getId() ? 2 : 1);
 
         $this->gameRepository->method('countTakerWinsVsDefender')
-            ->willReturnCallback(static fn (Player $taker) => 1 === $taker->getId() ? 1 : 0);
+            ->willReturnCallback(static fn (Player $taker): int => 1 === $taker->getId() ? 1 : 0);
 
         $this->gameRepository->method('countCalledAsPartner')
-            ->willReturnCallback(static fn (Player $taker) => 1 === $taker->getId() ? 2 : 1);
+            ->willReturnCallback(static fn (Player $taker): int => 1 === $taker->getId() ? 2 : 1);
 
         $this->scoreEntryRepository->method('getPlayerScoreInSharedSessions')
-            ->willReturnCallback(static fn (Player $p) => 1 === $p->getId()
+            ->willReturnCallback(static fn (Player $p): array => 1 === $p->getId()
                 ? ['averageScore' => 25.5, 'totalScore' => 510]
                 : ['averageScore' => -12.3, 'totalScore' => -246]);
 
