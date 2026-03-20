@@ -885,4 +885,176 @@ describe("CompleteGameModal", () => {
       expect(screen.getByPlaceholderText("Points")).toHaveValue("72");
     });
   });
+
+  // ---------------------------------------------------------------
+  // Cycle de vie modale
+  // ---------------------------------------------------------------
+
+  describe("cycle de vie modale", () => {
+    it("ouvrir en complétion → remplir → fermer → rouvrir → form vierge", async () => {
+      setupMock();
+      const { rerender } = renderWithProviders(
+        <CompleteGameModal game={inProgressGame} onClose={vi.fn()} open players={mockPlayers} sessionId={1} />,
+      );
+
+      // Remplir le formulaire
+      await userEvent.click(screen.getByRole("button", { name: "Seul" }));
+      await userEvent.click(screen.getByRole("button", { name: "Augmenter" }));
+      await userEvent.type(screen.getByPlaceholderText("Points"), "45");
+
+      // Fermer
+      rerender(
+        <CompleteGameModal game={inProgressGame} onClose={vi.fn()} open={false} players={mockPlayers} sessionId={1} />,
+      );
+
+      // Rouvrir
+      rerender(
+        <CompleteGameModal game={inProgressGame} onClose={vi.fn()} open players={mockPlayers} sessionId={1} />,
+      );
+
+      // Form doit être vierge
+      expect(screen.getByPlaceholderText("Points")).toHaveValue("");
+      expect(screen.getByRole("status")).toHaveTextContent("0");
+      expect(screen.getByRole("button", { name: "Seul" })).not.toHaveClass("ring-2");
+      expect(screen.getByRole("button", { name: "Valider" })).toBeDisabled();
+    });
+
+    it("ouvrir en mode édition → tous les champs pré-remplis", () => {
+      setupMock();
+      const gameWithAll: Game = {
+        ...completedGame,
+        chelem: "announced_won",
+        oudlers: 3,
+        partner: { id: 3, name: "Charlie" },
+        petitAuBout: "defense",
+        poignee: "simple",
+        poigneeOwner: "attack",
+        points: 60,
+      };
+      renderWithProviders(
+        <CompleteGameModal game={gameWithAll} onClose={vi.fn()} open players={mockPlayers} sessionId={1} />,
+      );
+
+      // Points
+      expect(screen.getByPlaceholderText("Points")).toHaveValue("60");
+      // Oudlers
+      expect(screen.getByRole("status")).toHaveTextContent("3");
+      // Partenaire Charlie
+      const partnerHeading = screen.getByRole("heading", { name: "Partenaire" });
+      const partnerSection = partnerHeading.closest("div")!;
+      expect(partnerSection.querySelector("[role='img'][aria-label='Charlie']")!.closest("button")).toHaveClass("ring-2");
+      // Bonus section auto-ouverte
+      expect(screen.getByText("Poignée montrée par")).toBeInTheDocument();
+      // Poignée Simple
+      const poigneeSection = screen.getByText("Poignée").closest("div")!;
+      expect(within(poigneeSection).getByRole("button", { name: "Simple" })).toHaveClass("bg-accent-500");
+      // Petit au bout Défense
+      const petitSection = screen.getByText("Petit au bout").closest("div")!;
+      expect(within(petitSection).getByRole("button", { name: "Défense" })).toHaveClass("bg-accent-500");
+      // Chelem Annoncé gagné
+      expect(screen.getByRole("button", { name: "Annoncé gagné" })).toHaveClass("bg-accent-500");
+    });
+
+    it("aperçu des scores se met à jour quand on change les oudlers", async () => {
+      setupMock();
+      renderWithProviders(
+        <CompleteGameModal game={inProgressGame} onClose={vi.fn()} open players={mockPlayers} sessionId={1} />,
+      );
+
+      await userEvent.click(screen.getByRole("button", { name: "Seul" }));
+      await userEvent.type(screen.getByPlaceholderText("Points"), "45");
+
+      // 0 oudlers, requis=56, 45 pts → chuté
+      await waitFor(() => {
+        expect(screen.getByText(/Contrat chuté/)).toBeInTheDocument();
+      });
+
+      // 3 oudlers, requis=36, 45 pts → rempli
+      await userEvent.click(screen.getByRole("button", { name: "Augmenter" }));
+      await userEvent.click(screen.getByRole("button", { name: "Augmenter" }));
+      await userEvent.click(screen.getByRole("button", { name: "Augmenter" }));
+
+      await waitFor(() => {
+        expect(screen.getByText(/Contrat rempli/)).toBeInTheDocument();
+      });
+    });
+
+    it("aperçu des scores se met à jour quand on change un bonus", async () => {
+      setupMock();
+      renderWithProviders(
+        <CompleteGameModal game={inProgressGame} onClose={vi.fn()} open players={mockPlayers} sessionId={1} />,
+      );
+
+      // 3 oudlers + 45 pts + seul → contrat rempli
+      await userEvent.click(screen.getByRole("button", { name: "Seul" }));
+      await userEvent.click(screen.getByRole("button", { name: "Augmenter" }));
+      await userEvent.click(screen.getByRole("button", { name: "Augmenter" }));
+      await userEvent.click(screen.getByRole("button", { name: "Augmenter" }));
+      await userEvent.type(screen.getByPlaceholderText("Points"), "45");
+
+      await waitFor(() => {
+        expect(screen.getByText(/Contrat rempli/)).toBeInTheDocument();
+      });
+
+      // Capturer le score preneur avant bonus
+      const scoreBeforeBonus = screen.getByText("Preneur").closest("div")!.textContent;
+
+      // Ajouter petit au bout attaque
+      await userEvent.click(screen.getByRole("button", { name: /Bonus/i }));
+      await userEvent.click(screen.getByRole("button", { name: "Attaque" }));
+
+      // Le score devrait changer
+      await waitFor(() => {
+        const scoreAfterBonus = screen.getByText("Preneur").closest("div")!.textContent;
+        expect(scoreAfterBonus).not.toBe(scoreBeforeBonus);
+      });
+    });
+
+    it("aperçu disparaît quand on efface les points", async () => {
+      setupMock();
+      renderWithProviders(
+        <CompleteGameModal game={inProgressGame} onClose={vi.fn()} open players={mockPlayers} sessionId={1} />,
+      );
+
+      await userEvent.click(screen.getByRole("button", { name: "Seul" }));
+      await userEvent.type(screen.getByPlaceholderText("Points"), "45");
+
+      // Aperçu visible
+      await waitFor(() => {
+        expect(screen.getByText(/Contrat/)).toBeInTheDocument();
+      });
+
+      // Effacer les points
+      await userEvent.clear(screen.getByPlaceholderText("Points"));
+
+      // Aperçu disparu
+      await waitFor(() => {
+        expect(screen.queryByText(/Contrat rempli/)).not.toBeInTheDocument();
+        expect(screen.queryByText(/Contrat chuté/)).not.toBeInTheDocument();
+      });
+    });
+
+    it("fermeture de la modale uniquement après succès mutation", async () => {
+      const onClose = vi.fn();
+      const mutate = vi.fn();
+      setupMock({ mutate: mutate as ReturnType<typeof useCompleteGameModule.useCompleteGame>["mutate"] });
+      renderWithProviders(
+        <CompleteGameModal game={inProgressGame} onClose={onClose} open players={mockPlayers} sessionId={1} />,
+      );
+
+      // Remplir et soumettre
+      await userEvent.click(screen.getByRole("button", { name: "Seul" }));
+      await userEvent.type(screen.getByPlaceholderText("Points"), "45");
+      await userEvent.click(screen.getByRole("button", { name: "Valider" }));
+
+      // onClose n'est pas appelé immédiatement (pas encore de succès)
+      expect(onClose).not.toHaveBeenCalled();
+
+      // Simuler le succès de la mutation
+      const successCallback = mutate.mock.calls[0][1].onSuccess;
+      successCallback({ newBadges: {} });
+
+      expect(onClose).toHaveBeenCalled();
+    });
+  });
 });
