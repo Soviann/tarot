@@ -15,22 +15,23 @@ use App\Repository\GameRepository;
 use App\Repository\SessionRepository;
 use App\State\GameCreateProcessor;
 use PHPUnit\Framework\MockObject\MockObject;
+use PHPUnit\Framework\MockObject\Stub;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\HttpKernel\Exception\UnprocessableEntityHttpException;
 
 class GameCreateProcessorTest extends TestCase
 {
-    private GameRepository&MockObject $gameRepository;
-    private Operation&MockObject $operation;
-    private PersistProcessor&MockObject $persistProcessor;
+    private GameRepository&Stub $gameRepository;
+    private Operation&Stub $operation;
+    private PersistProcessor&Stub $persistProcessor;
     private GameCreateProcessor $processor;
-    private SessionRepository&MockObject $sessionRepository;
+    private SessionRepository&Stub $sessionRepository;
 
     protected function setUp(): void
     {
-        $this->gameRepository = $this->createMock(GameRepository::class);
-        $this->persistProcessor = $this->createMock(PersistProcessor::class);
-        $this->sessionRepository = $this->createMock(SessionRepository::class);
+        $this->gameRepository = $this->createStub(GameRepository::class);
+        $this->persistProcessor = $this->createStub(PersistProcessor::class);
+        $this->sessionRepository = $this->createStub(SessionRepository::class);
 
         $this->processor = new GameCreateProcessor(
             $this->gameRepository,
@@ -38,7 +39,7 @@ class GameCreateProcessorTest extends TestCase
             $this->sessionRepository,
         );
 
-        $this->operation = $this->createMock(Operation::class);
+        $this->operation = $this->createStub(Operation::class);
     }
 
     public function testProcessSetsPositionStatusDealerAndSession(): void
@@ -63,23 +64,27 @@ class GameCreateProcessorTest extends TestCase
         $game->setTaker($taker);
 
         $this->sessionRepository->method('find')
-            ->with(10)
             ->willReturn($session);
 
         $this->gameRepository->method('countBySessionAndStatus')
-            ->with($session, GameStatus::InProgress)
             ->willReturn(0);
 
         $this->gameRepository->method('getMaxPositionForSession')
-            ->with($session)
             ->willReturn(3);
 
-        $this->persistProcessor->expects($this->once())
+        $persistProcessor = $this->createMock(PersistProcessor::class);
+        $persistProcessor->expects($this->once())
             ->method('process')
             ->with($game, $this->operation, ['sessionId' => 10], [])
             ->willReturn($game);
 
-        $result = $this->processor->process($game, $this->operation, ['sessionId' => 10]);
+        $processor = new GameCreateProcessor(
+            $this->gameRepository,
+            $persistProcessor,
+            $this->sessionRepository,
+        );
+
+        $result = $processor->process($game, $this->operation, ['sessionId' => 10]);
 
         $this->assertSame($game, $result);
         $this->assertSame(4, $game->getPosition());
@@ -91,7 +96,6 @@ class GameCreateProcessorTest extends TestCase
     public function testProcessThrowsOnSessionNotFound(): void
     {
         $this->sessionRepository->method('find')
-            ->with(999)
             ->willReturn(null);
 
         $game = new Game();
@@ -110,7 +114,6 @@ class GameCreateProcessorTest extends TestCase
         $session->setIsActive(false);
 
         $this->sessionRepository->method('find')
-            ->with(10)
             ->willReturn($session);
 
         $game = new Game();
@@ -133,11 +136,9 @@ class GameCreateProcessorTest extends TestCase
         $session->setIsActive(true);
 
         $this->sessionRepository->method('find')
-            ->with(10)
             ->willReturn($session);
 
         $this->gameRepository->method('countBySessionAndStatus')
-            ->with($session, GameStatus::InProgress)
             ->willReturn(1);
 
         $game = new Game();
@@ -166,11 +167,9 @@ class GameCreateProcessorTest extends TestCase
         $session->addPlayer($otherPlayer);
 
         $this->sessionRepository->method('find')
-            ->with(10)
             ->willReturn($session);
 
         $this->gameRepository->method('countBySessionAndStatus')
-            ->with($session, GameStatus::InProgress)
             ->willReturn(0);
 
         $game = new Game();
@@ -195,15 +194,12 @@ class GameCreateProcessorTest extends TestCase
         $session->addPlayer($taker);
 
         $this->sessionRepository->method('find')
-            ->with(10)
             ->willReturn($session);
 
         $this->gameRepository->method('countBySessionAndStatus')
-            ->with($session, GameStatus::InProgress)
             ->willReturn(0);
 
         $this->gameRepository->method('getMaxPositionForSession')
-            ->with($session)
             ->willReturn(5);
 
         $this->persistProcessor->method('process')->willReturnArgument(0);

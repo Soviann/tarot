@@ -32,7 +32,7 @@ class GameDeleteProcessorTest extends TestCase
     public function testProcessRevertsEloThenRemoves(): void
     {
         $game = new Game();
-        $operation = $this->createMock(Operation::class);
+        $operation = $this->createStub(Operation::class);
 
         $callOrder = [];
 
@@ -58,7 +58,7 @@ class GameDeleteProcessorTest extends TestCase
     public function testProcessPassesAllArguments(): void
     {
         $game = new Game();
-        $operation = $this->createMock(Operation::class);
+        $operation = $this->createStub(Operation::class);
         $uriVariables = ['sessionId' => 42];
         $context = ['groups' => ['game:delete']];
 

@@ -20,26 +20,27 @@ use App\State\EloRevertHelper;
 use App\State\GameCompleteProcessor;
 use Doctrine\ORM\EntityManagerInterface;
 use PHPUnit\Framework\MockObject\MockObject;
+use PHPUnit\Framework\MockObject\Stub;
 use PHPUnit\Framework\TestCase;
 
 class GameCompleteProcessorTest extends TestCase
 {
-    private BadgeChecker&MockObject $badgeChecker;
-    private EloCalculator&MockObject $eloCalculator;
-    private EloRevertHelper&MockObject $eloRevertHelper;
-    private EntityManagerInterface&MockObject $em;
-    private PersistProcessor&MockObject $persistProcessor;
+    private BadgeChecker&Stub $badgeChecker;
+    private EloCalculator&Stub $eloCalculator;
+    private EloRevertHelper&Stub $eloRevertHelper;
+    private EntityManagerInterface&Stub $em;
+    private PersistProcessor&Stub $persistProcessor;
     private GameCompleteProcessor $processor;
-    private ScoreCalculator&MockObject $scoreCalculator;
+    private ScoreCalculator&Stub $scoreCalculator;
 
     protected function setUp(): void
     {
-        $this->badgeChecker = $this->createMock(BadgeChecker::class);
-        $this->eloCalculator = $this->createMock(EloCalculator::class);
-        $this->eloRevertHelper = $this->createMock(EloRevertHelper::class);
-        $this->em = $this->createMock(EntityManagerInterface::class);
-        $this->persistProcessor = $this->createMock(PersistProcessor::class);
-        $this->scoreCalculator = $this->createMock(ScoreCalculator::class);
+        $this->badgeChecker = $this->createStub(BadgeChecker::class);
+        $this->eloCalculator = $this->createStub(EloCalculator::class);
+        $this->eloRevertHelper = $this->createStub(EloRevertHelper::class);
+        $this->em = $this->createStub(EntityManagerInterface::class);
+        $this->persistProcessor = $this->createStub(PersistProcessor::class);
+        $this->scoreCalculator = $this->createStub(ScoreCalculator::class);
 
         $this->processor = new GameCompleteProcessor(
             $this->badgeChecker,
@@ -48,6 +49,24 @@ class GameCompleteProcessorTest extends TestCase
             $this->em,
             $this->persistProcessor,
             $this->scoreCalculator,
+        );
+    }
+
+    private function createProcessorWith(
+        ?BadgeChecker $badgeChecker = null,
+        ?EloCalculator $eloCalculator = null,
+        ?EloRevertHelper $eloRevertHelper = null,
+        ?EntityManagerInterface $em = null,
+        ?PersistProcessor $persistProcessor = null,
+        ?ScoreCalculator $scoreCalculator = null,
+    ): GameCompleteProcessor {
+        return new GameCompleteProcessor(
+            $badgeChecker ?? $this->badgeChecker,
+            $eloCalculator ?? $this->eloCalculator,
+            $eloRevertHelper ?? $this->eloRevertHelper,
+            $em ?? $this->em,
+            $persistProcessor ?? $this->persistProcessor,
+            $scoreCalculator ?? $this->scoreCalculator,
         );
     }
 
@@ -61,7 +80,8 @@ class GameCompleteProcessorTest extends TestCase
         $game = $this->createCompletedGame($session, $players[0]);
 
         $scoreEntries = [new ScoreEntry(), new ScoreEntry()];
-        $this->scoreCalculator->expects($this->once())
+        $scoreCalculator = $this->createMock(ScoreCalculator::class);
+        $scoreCalculator->expects($this->once())
             ->method('compute')
             ->with($game)
             ->willReturn($scoreEntries);
@@ -77,23 +97,35 @@ class GameCompleteProcessorTest extends TestCase
                 'ratingChange' => 20,
             ];
         }
-        $this->eloCalculator->expects($this->once())
+        $eloCalculator = $this->createMock(EloCalculator::class);
+        $eloCalculator->expects($this->once())
             ->method('compute')
             ->willReturn($eloResults);
 
-        $this->eloRevertHelper->expects($this->never())->method('revert');
+        $eloRevertHelper = $this->createMock(EloRevertHelper::class);
+        $eloRevertHelper->expects($this->never())->method('revert');
 
-        $this->persistProcessor->expects($this->once())
+        $persistProcessor = $this->createMock(PersistProcessor::class);
+        $persistProcessor->expects($this->once())
             ->method('process')
             ->willReturn($game);
 
-        $this->badgeChecker->expects($this->once())
+        $badgeChecker = $this->createMock(BadgeChecker::class);
+        $badgeChecker->expects($this->once())
             ->method('checkAndAward')
             ->with($session)
             ->willReturn([]);
 
-        $operation = $this->createMock(Operation::class);
-        $result = $this->processor->process($game, $operation);
+        $processor = $this->createProcessorWith(
+            badgeChecker: $badgeChecker,
+            eloCalculator: $eloCalculator,
+            eloRevertHelper: $eloRevertHelper,
+            persistProcessor: $persistProcessor,
+            scoreCalculator: $scoreCalculator,
+        );
+
+        $operation = $this->createStub(Operation::class);
+        $result = $processor->process($game, $operation);
 
         $this->assertSame($game, $result);
         $this->assertNotNull($game->getCompletedAt());
@@ -115,13 +147,16 @@ class GameCompleteProcessorTest extends TestCase
         $existingEntry = new ScoreEntry();
         $game->addScoreEntry($existingEntry);
 
-        $this->eloRevertHelper->expects($this->once())
+        $eloRevertHelper = $this->createMock(EloRevertHelper::class);
+        $eloRevertHelper->expects($this->once())
             ->method('revert')
             ->with($game);
 
-        $this->em->expects($this->atLeastOnce())->method('remove');
+        $em = $this->createMock(EntityManagerInterface::class);
+        $em->expects($this->atLeastOnce())->method('remove');
 
-        $this->scoreCalculator->expects($this->once())
+        $scoreCalculator = $this->createMock(ScoreCalculator::class);
+        $scoreCalculator->expects($this->once())
             ->method('compute')
             ->with($game)
             ->willReturn([new ScoreEntry()]);
@@ -136,22 +171,34 @@ class GameCompleteProcessorTest extends TestCase
                 'ratingChange' => 20,
             ];
         }
-        $this->eloCalculator->expects($this->once())
+        $eloCalculator = $this->createMock(EloCalculator::class);
+        $eloCalculator->expects($this->once())
             ->method('compute')
             ->willReturn($eloResults);
 
-        $this->persistProcessor->expects($this->once())
+        $persistProcessor = $this->createMock(PersistProcessor::class);
+        $persistProcessor->expects($this->once())
             ->method('process')
             ->willReturn($game);
 
         // Badges NOT checked on edit
-        $this->badgeChecker->expects($this->never())->method('checkAndAward');
+        $badgeChecker = $this->createMock(BadgeChecker::class);
+        $badgeChecker->expects($this->never())->method('checkAndAward');
+
+        $processor = $this->createProcessorWith(
+            badgeChecker: $badgeChecker,
+            eloCalculator: $eloCalculator,
+            eloRevertHelper: $eloRevertHelper,
+            em: $em,
+            persistProcessor: $persistProcessor,
+            scoreCalculator: $scoreCalculator,
+        );
 
         $completedAtBefore = $game->getCompletedAt();
         $dealerBefore = $session->getCurrentDealer();
 
-        $operation = $this->createMock(Operation::class);
-        $this->processor->process($game, $operation);
+        $operation = $this->createStub(Operation::class);
+        $processor->process($game, $operation);
 
         // completedAt not changed (was already completed)
         $this->assertSame($completedAtBefore, $game->getCompletedAt());
@@ -172,17 +219,30 @@ class GameCompleteProcessorTest extends TestCase
         $this->setId($taker, 1);
         $game->setTaker($taker);
 
-        $this->scoreCalculator->expects($this->never())->method('compute');
-        $this->eloCalculator->expects($this->never())->method('compute');
-        $this->eloRevertHelper->expects($this->never())->method('revert');
-        $this->badgeChecker->expects($this->never())->method('checkAndAward');
+        $scoreCalculator = $this->createMock(ScoreCalculator::class);
+        $scoreCalculator->expects($this->never())->method('compute');
+        $eloCalculator = $this->createMock(EloCalculator::class);
+        $eloCalculator->expects($this->never())->method('compute');
+        $eloRevertHelper = $this->createMock(EloRevertHelper::class);
+        $eloRevertHelper->expects($this->never())->method('revert');
+        $badgeChecker = $this->createMock(BadgeChecker::class);
+        $badgeChecker->expects($this->never())->method('checkAndAward');
 
-        $this->persistProcessor->expects($this->once())
+        $persistProcessor = $this->createMock(PersistProcessor::class);
+        $persistProcessor->expects($this->once())
             ->method('process')
             ->willReturn($game);
 
-        $operation = $this->createMock(Operation::class);
-        $result = $this->processor->process($game, $operation);
+        $processor = $this->createProcessorWith(
+            badgeChecker: $badgeChecker,
+            eloCalculator: $eloCalculator,
+            eloRevertHelper: $eloRevertHelper,
+            persistProcessor: $persistProcessor,
+            scoreCalculator: $scoreCalculator,
+        );
+
+        $operation = $this->createStub(Operation::class);
+        $result = $processor->process($game, $operation);
 
         $this->assertSame($game, $result);
     }
@@ -212,7 +272,7 @@ class GameCompleteProcessorTest extends TestCase
         $this->persistProcessor->method('process')->willReturn($game);
         $this->badgeChecker->method('checkAndAward')->willReturn([]);
 
-        $operation = $this->createMock(Operation::class);
+        $operation = $this->createStub(Operation::class);
         $this->processor->process($game, $operation);
 
         foreach ($players as $player) {
@@ -249,7 +309,7 @@ class GameCompleteProcessorTest extends TestCase
         $this->badgeChecker->method('checkAndAward')
             ->willReturn([1 => [BadgeType::FirstGame]]);
 
-        $operation = $this->createMock(Operation::class);
+        $operation = $this->createStub(Operation::class);
         $result = $this->processor->process($game, $operation);
 
         $this->assertNotNull($result->getNewBadges());
@@ -279,7 +339,7 @@ class GameCompleteProcessorTest extends TestCase
         $this->persistProcessor->method('process')->willReturn($game);
         $this->badgeChecker->method('checkAndAward')->willReturn([]);
 
-        $operation = $this->createMock(Operation::class);
+        $operation = $this->createStub(Operation::class);
         $result = $this->processor->process($game, $operation);
 
         $this->assertNull($result->getNewBadges());
@@ -298,16 +358,19 @@ class GameCompleteProcessorTest extends TestCase
         $this->setId($taker, 1);
         $game->setTaker($taker);
 
-        $operation = $this->createMock(Operation::class);
+        $operation = $this->createStub(Operation::class);
         $uriVariables = ['id' => 1];
         $context = ['groups' => ['game:complete']];
 
-        $this->persistProcessor->expects($this->once())
+        $persistProcessor = $this->createMock(PersistProcessor::class);
+        $persistProcessor->expects($this->once())
             ->method('process')
             ->with($game, $operation, $uriVariables, $context)
             ->willReturn($game);
 
-        $this->processor->process($game, $operation, $uriVariables, $context);
+        $processor = $this->createProcessorWith(persistProcessor: $persistProcessor);
+
+        $processor->process($game, $operation, $uriVariables, $context);
     }
 
     /**

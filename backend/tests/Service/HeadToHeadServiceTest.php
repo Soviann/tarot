@@ -9,21 +9,21 @@ use App\Repository\GameRepository;
 use App\Repository\ScoreEntryRepository;
 use App\Repository\SessionRepository;
 use App\Service\HeadToHeadService;
-use PHPUnit\Framework\MockObject\MockObject;
+use PHPUnit\Framework\MockObject\Stub;
 use PHPUnit\Framework\TestCase;
 
 final class HeadToHeadServiceTest extends TestCase
 {
-    private GameRepository&MockObject $gameRepository;
-    private ScoreEntryRepository&MockObject $scoreEntryRepository;
+    private GameRepository&Stub $gameRepository;
+    private ScoreEntryRepository&Stub $scoreEntryRepository;
     private HeadToHeadService $service;
-    private SessionRepository&MockObject $sessionRepository;
+    private SessionRepository&Stub $sessionRepository;
 
     protected function setUp(): void
     {
-        $this->gameRepository = $this->createMock(GameRepository::class);
-        $this->scoreEntryRepository = $this->createMock(ScoreEntryRepository::class);
-        $this->sessionRepository = $this->createMock(SessionRepository::class);
+        $this->gameRepository = $this->createStub(GameRepository::class);
+        $this->scoreEntryRepository = $this->createStub(ScoreEntryRepository::class);
+        $this->sessionRepository = $this->createStub(SessionRepository::class);
 
         $this->service = new HeadToHeadService(
             $this->gameRepository,
@@ -38,11 +38,9 @@ final class HeadToHeadServiceTest extends TestCase
         $player2 = $this->createPlayerStub(2, 'Bob', '#0000ff');
 
         $this->sessionRepository->method('countSharedSessions')
-            ->with($player1, $player2, null, null)
             ->willReturn(3);
 
         $this->gameRepository->method('countSharedCompletedGames')
-            ->with($player1, $player2, null, null)
             ->willReturn(10);
 
         // Player 1 as taker
@@ -95,9 +93,9 @@ final class HeadToHeadServiceTest extends TestCase
         self::assertSame(-12.3, $p2->averageScore);
     }
 
-    private function createPlayerStub(int $id, string $name, ?string $color = null): Player&MockObject
+    private function createPlayerStub(int $id, string $name, ?string $color = null): Player&Stub
     {
-        $player = $this->createMock(Player::class);
+        $player = $this->createStub(Player::class);
         $player->method('getId')->willReturn($id);
         $player->method('getName')->willReturn($name);
         $player->method('getColor')->willReturn($color);
