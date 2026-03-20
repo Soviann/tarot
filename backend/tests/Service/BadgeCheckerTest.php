@@ -460,6 +460,81 @@ class BadgeCheckerTest extends ApiTestCase
         self::assertNotContains(BadgeType::Wall, $defenderBadges);
     }
 
+    public function testFriendCallerBadge(): void
+    {
+        $session = $this->createSessionWithPlayers('Alice', 'Bob', 'Charlie', 'Diana', 'Eve');
+        $players = $session->getPlayers()->toArray();
+        $taker = $players[0];
+        $partner = $players[1];
+
+        // 5 consecutive games calling the same partner
+        for ($i = 0; $i < 5; ++$i) {
+            $this->completeGame($session, $taker, partner: $partner);
+        }
+
+        $result = $this->checker->checkAndAward($session);
+
+        self::assertContains(BadgeType::FriendCaller, $result[$taker->getId()]);
+    }
+
+    public function testFriendCallerBadgeNotAwardedUnder5(): void
+    {
+        $session = $this->createSessionWithPlayers('Alice', 'Bob', 'Charlie', 'Diana', 'Eve');
+        $players = $session->getPlayers()->toArray();
+        $taker = $players[0];
+        $partner = $players[1];
+
+        // Only 4 consecutive games calling the same partner
+        for ($i = 0; $i < 4; ++$i) {
+            $this->completeGame($session, $taker, partner: $partner);
+        }
+
+        $result = $this->checker->checkAndAward($session);
+
+        $takerBadges = $result[$taker->getId()] ?? [];
+        self::assertNotContains(BadgeType::FriendCaller, $takerBadges);
+    }
+
+    public function testFriendCallerBadgeStreakBrokenByDifferentPartner(): void
+    {
+        $session = $this->createSessionWithPlayers('Alice', 'Bob', 'Charlie', 'Diana', 'Eve');
+        $players = $session->getPlayers()->toArray();
+        $taker = $players[0];
+        $partnerA = $players[1];
+        $partnerB = $players[2];
+
+        // 3 with partnerA, 1 with partnerB, 3 with partnerA → max streak = 3
+        for ($i = 0; $i < 3; ++$i) {
+            $this->completeGame($session, $taker, partner: $partnerA);
+        }
+        $this->completeGame($session, $taker, partner: $partnerB);
+        for ($i = 0; $i < 3; ++$i) {
+            $this->completeGame($session, $taker, partner: $partnerA);
+        }
+
+        $result = $this->checker->checkAndAward($session);
+
+        $takerBadges = $result[$taker->getId()] ?? [];
+        self::assertNotContains(BadgeType::FriendCaller, $takerBadges);
+    }
+
+    public function testFriendCallerBadgeIgnoresSelfCalls(): void
+    {
+        $session = $this->createSessionWithPlayers('Alice', 'Bob', 'Charlie', 'Diana', 'Eve');
+        $players = $session->getPlayers()->toArray();
+        $taker = $players[0];
+
+        // 5 self-calls (no partner) should NOT count
+        for ($i = 0; $i < 5; ++$i) {
+            $this->completeGame($session, $taker);
+        }
+
+        $result = $this->checker->checkAndAward($session);
+
+        $takerBadges = $result[$taker->getId()] ?? [];
+        self::assertNotContains(BadgeType::FriendCaller, $takerBadges);
+    }
+
     public function testCatchThemAllBadge(): void
     {
         $session = $this->createSessionWithPlayers('Alice', 'Bob', 'Charlie', 'Diana', 'Eve');

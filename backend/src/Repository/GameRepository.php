@@ -645,6 +645,7 @@ final class GameRepository extends ServiceEntityRepository
             ->setParameter('playerIds', $playerIds)
             ->setParameter('status', GameStatus::Completed)
             ->orderBy('g.createdAt', 'ASC')
+            ->addOrderBy('g.id', 'ASC')
             ->getQuery()
             ->getResult();
 
