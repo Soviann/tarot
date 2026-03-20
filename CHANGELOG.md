@@ -6,6 +6,10 @@ Le format est basé sur [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/)
 
 ## [Unreleased]
 
+### Changed
+
+- **Comparaison face à face** : restructure la page en 3 sections distinctes — stats globales (toutes les parties de chaque joueur), stats en commun (parties jouées ensemble), et face à face (confrontations preneur vs défenseur + partenariats).
+
 ### Added
 
 - **Badge « Main du destin »** : nouveau badge performance décerné lorsqu'un joueur remporte une donne avec exactement 0 points de marge.

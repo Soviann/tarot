@@ -87,6 +87,24 @@ final class HeadToHeadApiTest extends ApiTestCase
         self::assertSame(0, $data['player2']['winsAsTakerVsOtherAsDefender']);
         // Bob never called Alice as partner
         self::assertSame(0, $data['player2']['calledOtherAsPartner']);
+
+        // Global stats (all games, not just shared)
+        self::assertArrayHasKey('globalPlayer1', $data);
+        self::assertArrayHasKey('globalPlayer2', $data);
+
+        $g1 = $data['globalPlayer1'];
+        self::assertSame($alice->getId(), $g1['playerId']);
+        self::assertSame('Alice', $g1['playerName']);
+        self::assertSame(3, $g1['gamesPlayed']);
+        self::assertSame(2, $g1['gamesAsTaker']);
+        self::assertSame(2, $g1['winsAsTaker']);
+
+        $g2 = $data['globalPlayer2'];
+        self::assertSame($bob->getId(), $g2['playerId']);
+        self::assertSame('Bob', $g2['playerName']);
+        self::assertSame(3, $g2['gamesPlayed']);
+        self::assertSame(1, $g2['gamesAsTaker']);
+        self::assertSame(0, $g2['winsAsTaker']);
     }
 
     public function testRespectsDateFilter(): void

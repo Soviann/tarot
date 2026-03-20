@@ -64,11 +64,23 @@ final class HeadToHeadServiceTest extends TestCase
                 ? ['averageScore' => 25.5, 'totalScore' => 510]
                 : ['averageScore' => -12.3, 'totalScore' => -246]);
 
+        $this->scoreEntryRepository->method('getPlayerScoreAggregates')
+            ->willReturnCallback(static fn (Player $p): array => 1 === $p->getId()
+                ? ['averageScore' => 18.2, 'bestGameScore' => 120, 'gamesPlayed' => 50, 'totalScore' => 910, 'worstGameScore' => -80]
+                : ['averageScore' => -5.1, 'bestGameScore' => 90, 'gamesPlayed' => 40, 'totalScore' => -204, 'worstGameScore' => -100]);
+
+        $this->gameRepository->method('countPlayerGamesAsTaker')
+            ->willReturnCallback(static fn (Player $p): int => 1 === $p->getId() ? 20 : 15);
+
+        $this->gameRepository->method('countPlayerWinsAsTaker')
+            ->willReturnCallback(static fn (Player $p): int => 1 === $p->getId() ? 12 : 8);
+
         $result = $this->service->getHeadToHead($player1, $player2);
 
         self::assertSame(3, $result['sharedSessions']);
         self::assertSame(10, $result['sharedGames']);
 
+        // Shared session stats (player1)
         $p1 = $result['player1'];
         self::assertSame(1, $p1->playerId);
         self::assertSame('Alice', $p1->playerName);
@@ -81,6 +93,7 @@ final class HeadToHeadServiceTest extends TestCase
         self::assertSame(510, $p1->totalScore);
         self::assertSame(25.5, $p1->averageScore);
 
+        // Shared session stats (player2)
         $p2 = $result['player2'];
         self::assertSame(2, $p2->playerId);
         self::assertSame('Bob', $p2->playerName);
@@ -91,6 +104,28 @@ final class HeadToHeadServiceTest extends TestCase
         self::assertSame(1, $p2->calledOtherAsPartner);
         self::assertSame(-246, $p2->totalScore);
         self::assertSame(-12.3, $p2->averageScore);
+
+        // Global stats (player1)
+        $g1 = $result['globalPlayer1'];
+        self::assertSame(1, $g1->playerId);
+        self::assertSame('Alice', $g1->playerName);
+        self::assertSame('#ff0000', $g1->playerColor);
+        self::assertSame(910, $g1->totalScore);
+        self::assertSame(18.2, $g1->averageScore);
+        self::assertSame(50, $g1->gamesPlayed);
+        self::assertSame(20, $g1->gamesAsTaker);
+        self::assertSame(12, $g1->winsAsTaker);
+
+        // Global stats (player2)
+        $g2 = $result['globalPlayer2'];
+        self::assertSame(2, $g2->playerId);
+        self::assertSame('Bob', $g2->playerName);
+        self::assertSame('#0000ff', $g2->playerColor);
+        self::assertSame(-204, $g2->totalScore);
+        self::assertSame(-5.1, $g2->averageScore);
+        self::assertSame(40, $g2->gamesPlayed);
+        self::assertSame(15, $g2->gamesAsTaker);
+        self::assertSame(8, $g2->winsAsTaker);
     }
 
     private function createPlayerStub(int $id, string $name, ?string $color = null): Player&Stub
