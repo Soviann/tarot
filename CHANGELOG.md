@@ -6,6 +6,10 @@ Le format est basé sur [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/)
 
 ## [Unreleased]
 
+### Fixed
+
+- **Sécurité** : corrige la vulnérabilité RCE serialize-javascript via override npm (GHSA-5c6j-r48x-rmvq).
+
 ## [1.8.0] - 2026-03-21
 
 ### Added
