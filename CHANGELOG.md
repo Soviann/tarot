@@ -6,6 +6,8 @@ Le format est basé sur [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/)
 
 ## [Unreleased]
 
+## [1.8.0] - 2026-03-21
+
 ### Added
 
 - **Badge « Main du destin »** : nouveau badge performance décerné lorsqu'un joueur remporte une donne avec exactement 0 points de marge.
