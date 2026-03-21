@@ -43,7 +43,7 @@ export default function Select<T extends string = string>({
         </ListboxButton>
 
         <ListboxOptions
-          className={`absolute z-50 mt-1 overflow-hidden rounded-xl border border-surface-border bg-surface-elevated py-1 shadow-lg transition duration-200 ease-out data-closed:scale-95 data-closed:opacity-0 ${
+          className={`absolute z-50 mt-1 max-h-60 overflow-y-auto rounded-xl border border-surface-border bg-surface-elevated py-1 shadow-lg transition duration-200 ease-out data-closed:scale-95 data-closed:opacity-0 ${
             isCompact ? "right-0 min-w-44" : "left-0 right-0"
           }`}
           transition

@@ -21,6 +21,7 @@ Le format est basé sur [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/)
 
 ### Fixed
 
+- **Dropdown joueurs page VS** : corrige l'impossibilité de scroller dans les dropdowns de sélection de joueurs quand la liste est longue.
 - **Validation complétion** : retourne 422 au lieu de 500 quand on tente de compléter une donne sans oudlers ou sans points.
 - **Partner = preneur** : rejette le PATCH quand le partenaire est le preneur lui-même (auto-appel doit utiliser `partner: null`).
 
