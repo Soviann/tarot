@@ -15,13 +15,13 @@ tarot/
 └── CHANGELOG.md
 ```
 
-> File map (entities, hooks, components, routes, API endpoints): `memory/patterns.md`
+> File map (entities, hooks, components, routes, API endpoints): `.claude/memory/patterns.md`
 
 ## Approach
 
 - Edit files when asked.
-- **No codebase exploration.** CLAUDE.md, MEMORY.md, `memory/patterns.md` have all context. Only read files you're about to edit.
-- **Keep `memory/patterns.md` up to date** when adding entities, hooks, components, pages, routes.
+- **No codebase exploration.** CLAUDE.md, MEMORY.md, `.claude/memory/patterns.md` have all context. Only read files you're about to edit.
+- **Keep `.claude/memory/patterns.md` up to date** when adding entities, hooks, components, pages, routes.
 
 ## Plans
 
