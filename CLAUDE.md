@@ -15,13 +15,13 @@ tarot/
 └── CHANGELOG.md
 ```
 
-> File map (entities, hooks, components, routes, API endpoints): `.claude/memory/patterns.md`
+> File map (entities, hooks, components, routes, API endpoints): `docs/patterns.md`
 
 ## Approach
 
 - Edit files when asked.
 - **No codebase exploration.** CLAUDE.md, MEMORY.md, `.claude/memory/patterns.md` have all context. Only read files you're about to edit.
-- **Keep `.claude/memory/patterns.md` up to date** when adding entities, hooks, components, pages, routes.
+- **Keep `docs/patterns.md` up to date** when adding entities, hooks, components, pages, routes.
 
 ## Plans
 
@@ -57,7 +57,11 @@ Always use `make` targets, always prefix with `ddev exec` (hookify-enforced).
 
 `<type>(scope): description` — Types: `feat|fix|chore|refactor|docs`
 Verbe conjugué (impératif 3e pers.): `ajoute`, `corrige`, `supprime` (pas infinitif).
+Commit title = visible impact, not implementation detail. BAD: `utilise PATCH au lieu de PUT`. GOOD: `corrige la perte des tomes`.
 Always reference issue (`#N` in body or `fixes #N`). Run CS Fixer on staged `.php` before commit.
+Never commit `docs/plans/` — always `git reset docs/plans/` before committing.
+Skip `git diff` when you made the edits — only diff to discover changes you didn't make.
+Local merges: `--no-ff`.
 
 ### Branching
 
@@ -112,10 +116,18 @@ Maintain: `docs/user-guide.md` (end-user) and `docs/frontend-usage.md` (develope
 
 ## Code Conventions
 
-- **Backend**: queries in repositories only (QueryBuilder, no raw DQL). PHP backed enums. PHPStan level max. CS Fixer `@Symfony` + `@Symfony:risky`. API Platform serialization groups (no custom DTOs unless needed).
+- **Backend**: queries in repositories only (QueryBuilder, no raw DQL). PHP backed enums. PHPStan level max. CS Fixer `@Symfony` + `@Symfony:risky`. API Platform serialization groups (no custom DTOs unless needed). Backslash-prefix native functions: `\array_map()`, `\sprintf()`.
 - **Frontend**: functional components, custom hooks for API, TypeScript strict. UI primitives from `components/ui/`.
+- Yoda conditions: `if (null === $var)` not `if ($var === null)`
+- Alphabetical: constructor assignments, associative array keys, YAML keys
+- No magic strings: use constants or enums for domain values reused across files
 
 ## Language
 
 - Git, PR, CHANGELOG, docs, UI text, comments: **French**
 - Code identifiers: **English**
+- CLAUDE.md: **English**
+
+## Recommended Plugins
+
+`context7`, `superpowers`, `pr-review-toolkit`, `commit-commands`, `hookify`, `code-simplifier`.
