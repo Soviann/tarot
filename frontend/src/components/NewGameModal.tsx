@@ -254,6 +254,7 @@ export default function NewGameModal({ createGame, currentDealerName, lastGameCo
         <div>
           <button
             className="flex w-full items-center justify-between rounded-xl bg-surface-secondary px-4 py-3 text-sm font-medium text-text-secondary"
+            aria-expanded={completionOpen}
             onClick={() => {
               const opening = !completionOpen;
               setCompletionOpen(opening);
@@ -323,6 +324,7 @@ export default function NewGameModal({ createGame, currentDealerName, lastGameCo
               <div>
                 <button
                   className="flex w-full items-center justify-between rounded-xl bg-surface-secondary px-4 py-3 text-sm font-medium text-text-secondary"
+                  aria-expanded={bonusesOpen}
                   onClick={() => setBonusesOpen(!bonusesOpen)}
                   type="button"
                 >
