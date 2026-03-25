@@ -175,6 +175,11 @@ enum BadgeType: string
         };
     }
 
+    public function availableSince(): \DateTimeImmutable
+    {
+        return new \DateTimeImmutable('2026-03-25');
+    }
+
     /**
      * @return array{description: string, emoji: string, label: string, type: string}
      */
