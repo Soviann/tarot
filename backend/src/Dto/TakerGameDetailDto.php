@@ -9,6 +9,7 @@ use App\Util\EnumHelper;
 final readonly class TakerGameDetailDto
 {
     public string $chelem;
+    public \DateTimeImmutable $completedAt;
     public string $contract;
     public int $gameId;
     public int $oudlers;
@@ -21,6 +22,7 @@ final readonly class TakerGameDetailDto
 
     public function __construct(
         \BackedEnum|int|string $chelem,
+        \DateTimeImmutable|string|null $completedAt,
         \BackedEnum|int|string $contract,
         int|string $gameId,
         int|string $oudlers,
@@ -32,6 +34,11 @@ final readonly class TakerGameDetailDto
         int|string $takerScore,
     ) {
         $this->chelem = EnumHelper::toString($chelem);
+        $this->completedAt = match (true) {
+            $completedAt instanceof \DateTimeImmutable => $completedAt,
+            null !== $completedAt => new \DateTimeImmutable($completedAt),
+            default => new \DateTimeImmutable('1970-01-01'),
+        };
         $this->contract = EnumHelper::toString($contract);
         $this->gameId = (int) $gameId;
         $this->oudlers = (int) $oudlers;
