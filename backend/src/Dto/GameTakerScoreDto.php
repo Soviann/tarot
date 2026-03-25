@@ -8,6 +8,7 @@ use App\Util\EnumHelper;
 
 final readonly class GameTakerScoreDto
 {
+    public \DateTimeImmutable $completedAt;
     public int $gameId;
     public ?int $partnerId;
     public int $playerId;
@@ -17,6 +18,7 @@ final readonly class GameTakerScoreDto
     public int $takerScore;
 
     public function __construct(
+        \DateTimeImmutable|string|null $completedAt,
         int|string $playerId,
         int|string $gameId,
         int|string|null $partnerId,
@@ -25,6 +27,11 @@ final readonly class GameTakerScoreDto
         int|string $takerId,
         int|string $takerScore,
     ) {
+        $this->completedAt = match (true) {
+            $completedAt instanceof \DateTimeImmutable => $completedAt,
+            null !== $completedAt => new \DateTimeImmutable($completedAt),
+            default => new \DateTimeImmutable('1970-01-01'),
+        };
         $this->gameId = (int) $gameId;
         $this->partnerId = null !== $partnerId ? (int) $partnerId : null;
         $this->playerId = (int) $playerId;

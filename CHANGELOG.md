@@ -8,6 +8,7 @@ Le format est basé sur [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/)
 
 ### Fixed
 
+- **Badges** : les badges ne se déclenchent plus rétroactivement sur des donnes antérieures à leur date d'introduction (`availableSince`).
 - **Sécurité** : corrige la vulnérabilité RCE serialize-javascript via override npm (GHSA-5c6j-r48x-rmvq).
 
 ## [1.8.0] - 2026-03-21

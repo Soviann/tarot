@@ -79,8 +79,10 @@ final class DtoMappingTest extends TestCase
 
     public function testTakerGameDetailDtoWithNativeTypes(): void
     {
+        $date = new \DateTimeImmutable('2026-03-25');
         $dto = new TakerGameDetailDto(
             chelem: Chelem::None,
+            completedAt: $date,
             contract: Contract::Garde,
             gameId: 10,
             oudlers: 3,
@@ -93,6 +95,7 @@ final class DtoMappingTest extends TestCase
         );
 
         self::assertSame('none', $dto->chelem);
+        self::assertSame($date, $dto->completedAt);
         self::assertSame('garde', $dto->contract);
         self::assertSame(10, $dto->gameId);
         self::assertSame(3, $dto->oudlers);
@@ -108,6 +111,7 @@ final class DtoMappingTest extends TestCase
     {
         $dto = new TakerGameDetailDto(
             chelem: 'announced_won',
+            completedAt: '2026-01-15 10:00:00',
             contract: 'garde_sans',
             gameId: '7',
             oudlers: '2',
@@ -120,6 +124,8 @@ final class DtoMappingTest extends TestCase
         );
 
         self::assertSame('announced_won', $dto->chelem);
+        self::assertInstanceOf(\DateTimeImmutable::class, $dto->completedAt);
+        self::assertSame('2026-01-15', $dto->completedAt->format('Y-m-d'));
         self::assertSame('garde_sans', $dto->contract);
         self::assertSame(7, $dto->gameId);
         self::assertSame(2, $dto->oudlers);
@@ -207,6 +213,7 @@ final class DtoMappingTest extends TestCase
     public function testGameTakerScoreDtoWithBackedEnumCoercion(): void
     {
         $dto = new GameTakerScoreDto(
+            completedAt: '2026-03-25 12:00:00',
             playerId: '1',
             gameId: '20',
             partnerId: '6',
@@ -216,6 +223,7 @@ final class DtoMappingTest extends TestCase
             takerScore: '180',
         );
 
+        self::assertInstanceOf(\DateTimeImmutable::class, $dto->completedAt);
         self::assertSame(1, $dto->playerId);
         self::assertSame(20, $dto->gameId);
         self::assertSame(6, $dto->partnerId);
@@ -227,7 +235,9 @@ final class DtoMappingTest extends TestCase
 
     public function testGameTakerScoreDtoWithNullPartner(): void
     {
+        $date = new \DateTimeImmutable('2026-03-25');
         $dto = new GameTakerScoreDto(
+            completedAt: $date,
             playerId: 2,
             gameId: 30,
             partnerId: null,
@@ -237,6 +247,7 @@ final class DtoMappingTest extends TestCase
             takerScore: 50,
         );
 
+        self::assertSame($date, $dto->completedAt);
         self::assertNull($dto->partnerId);
         self::assertSame('none', $dto->poignee);
         self::assertSame('none', $dto->poigneeOwner);

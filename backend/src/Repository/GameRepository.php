@@ -637,7 +637,7 @@ final class GameRepository extends ServiceEntityRepository
 
         /** @var list<TakerGameDetailDto> $dtos */
         $dtos = $this->createQueryBuilder('g')
-            ->select('NEW App\Dto\TakerGameDetailDto(g.chelem, g.contract, g.id, g.oudlers, IDENTITY(g.partner), g.poignee, g.poigneeOwner, g.points, IDENTITY(g.taker), se.score)')
+            ->select('NEW App\Dto\TakerGameDetailDto(g.chelem, g.completedAt, g.contract, g.id, g.oudlers, IDENTITY(g.partner), g.poignee, g.poigneeOwner, g.points, IDENTITY(g.taker), se.score)')
             ->join('g.scoreEntries', 'se')
             ->andWhere('g.taker IN (:playerIds)')
             ->andWhere('g.status = :status')

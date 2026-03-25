@@ -589,6 +589,34 @@ class BadgeCheckerTest extends ApiTestCase
         self::assertContains(BadgeType::DestinyHand, $result[$taker->getId()]);
     }
 
+    public function testBadgeIgnoresGamesBeforeAvailableSince(): void
+    {
+        $session = $this->createSessionWithPlayers('Alice', 'Bob', 'Charlie', 'Diana', 'Eve');
+        $taker = $session->getPlayers()->toArray()[0];
+
+        // Game completed BEFORE DestinyHand's availableSince → should NOT trigger
+        $pastDate = BadgeType::DestinyHand->availableSince()->modify('-1 day');
+        $this->completeGame($session, $taker, oudlers: 3, points: 36, completedAt: $pastDate);
+
+        $result = $this->checker->checkAndAward($session);
+
+        $takerBadges = $result[$taker->getId()] ?? [];
+        self::assertNotContains(BadgeType::DestinyHand, $takerBadges);
+    }
+
+    public function testBadgeAwardsGamesOnOrAfterAvailableSince(): void
+    {
+        $session = $this->createSessionWithPlayers('Alice', 'Bob', 'Charlie', 'Diana', 'Eve');
+        $taker = $session->getPlayers()->toArray()[0];
+
+        // Game completed ON availableSince → should trigger
+        $this->completeGame($session, $taker, oudlers: 3, points: 36, completedAt: BadgeType::DestinyHand->availableSince());
+
+        $result = $this->checker->checkAndAward($session);
+
+        self::assertContains(BadgeType::DestinyHand, $result[$taker->getId()]);
+    }
+
     public function testCatchThemAllBadge(): void
     {
         $session = $this->createSessionWithPlayers('Alice', 'Bob', 'Charlie', 'Diana', 'Eve');

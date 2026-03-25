@@ -7,6 +7,7 @@ namespace App\Service;
 use App\Dto\GameTakerScoreDto;
 use App\Dto\PlayerScoreSumDto;
 use App\Dto\ScoreEntryPositionDto;
+use App\Dto\TakerGameDetailDto;
 use App\Entity\Player;
 use App\Entity\PlayerBadge;
 use App\Entity\Session;
@@ -142,6 +143,8 @@ final readonly class BadgeChecker
         array $sessionScoreSums,
     ): array {
         $newBadges = [];
+        /** @var array<string, BadgeCheckContext> $filteredContexts */
+        $filteredContexts = [];
 
         foreach (BadgeType::cases() as $badgeType) {
             if (BadgeType::CatchThemAll === $badgeType || BadgeType::Konami === $badgeType) {
@@ -150,7 +153,12 @@ final readonly class BadgeChecker
             if (\in_array($badgeType, $existingTypes, true)) {
                 continue;
             }
-            if ($this->checkCondition($badgeType, $player, $context, $sessionEntries, $sessionScoreSums)) {
+            $since = $badgeType->availableSince();
+            $key = $since->format('Y-m-d H:i:s');
+            if (!isset($filteredContexts[$key])) {
+                $filteredContexts[$key] = $this->filterContext($context, $since);
+            }
+            if ($this->checkCondition($badgeType, $player, $filteredContexts[$key], $sessionEntries, $sessionScoreSums)) {
                 $badge = new PlayerBadge();
                 $badge->setBadgeType($badgeType);
                 $badge->setPlayer($player);
@@ -226,6 +234,43 @@ final readonly class BadgeChecker
         }
 
         return $contexts;
+    }
+
+    private function filterContext(BadgeCheckContext $context, \DateTimeImmutable $since): BadgeCheckContext
+    {
+        $filteredTakerGameDetails = \array_values(\array_filter(
+            $context->takerGameDetails,
+            static fn (TakerGameDetailDto $g): bool => $g->completedAt >= $since,
+        ));
+
+        $filteredGamesWithTakerScore = \array_values(\array_filter(
+            $context->gamesWithTakerScore,
+            static fn (GameTakerScoreDto $g): bool => $g->completedAt >= $since,
+        ));
+
+        return new BadgeCheckContext(
+            announcedChelemCount: $context->announcedChelemCount,
+            chelemAnnouncedWonCount: $context->chelemAnnouncedWonCount,
+            coPlayerCount: $context->coPlayerCount,
+            completedGameCount: $context->completedGameCount,
+            distinctSessionIds: $context->distinctSessionIds,
+            distinctSessionCount: $context->distinctSessionCount,
+            gardeContreCount: $context->gardeContreCount,
+            gamesWithTakerScore: $filteredGamesWithTakerScore,
+            hasStarShower: $context->hasStarShower,
+            marathonSessionIds: $context->marathonSessionIds,
+            nightOwlCount: $context->nightOwlCount,
+            starEventCount: $context->starEventCount,
+            surpriseChelemCount: $context->surpriseChelemCount,
+            takerGameDetails: $filteredTakerGameDetails,
+            takerScores: \array_map(
+                static fn (TakerGameDetailDto $g): int => $g->takerScore,
+                $filteredTakerGameDetails,
+            ),
+            wonGardeContreCount: $context->wonGardeContreCount,
+            wonGardeSansCount: $context->wonGardeSansCount,
+            wonPetitAuBoutAttackCount: $context->wonPetitAuBoutAttackCount,
+        );
     }
 
     /**
