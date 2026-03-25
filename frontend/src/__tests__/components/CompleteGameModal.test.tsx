@@ -824,6 +824,21 @@ describe("CompleteGameModal", () => {
       expect(screen.getByRole("button", { name: "Seul" })).toHaveClass("ring-2");
     });
 
+    it("pré-remplit le côté défense depuis le résultat vocal", () => {
+      setupMock();
+      setupVoiceMock({
+        isSupported: true,
+        parsedResult: { playerName: "Bob", pointsSide: "defense", points: 46 },
+        status: "result",
+      });
+      renderWithProviders(
+        <CompleteGameModal game={inProgressGame} onClose={vi.fn()} open players={mockPlayers} sessionId={1} />,
+      );
+
+      expect(screen.getByPlaceholderText("Points")).toHaveValue("46");
+      expect(screen.getByRole("button", { name: "Déf." })).toHaveClass("bg-accent-500");
+    });
+
     it("ne masque pas le bouton micro en mode édition", () => {
       setupMock();
       setupVoiceMock({ isSupported: true });
@@ -883,6 +898,108 @@ describe("CompleteGameModal", () => {
       );
 
       expect(screen.getByPlaceholderText("Points")).toHaveValue("72");
+    });
+  });
+
+  // ---------------------------------------------------------------
+  // Choix côté points (attaque / défense)
+  // ---------------------------------------------------------------
+
+  describe("choix côté points", () => {
+    it("affiche les boutons Attaque / Défense près du champ Points", () => {
+      setupMock();
+      renderWithProviders(
+        <CompleteGameModal game={inProgressGame} onClose={vi.fn()} open players={mockPlayers} sessionId={1} />,
+      );
+
+      expect(screen.getByRole("button", { name: "Att." })).toBeInTheDocument();
+      expect(screen.getByRole("button", { name: "Déf." })).toBeInTheDocument();
+    });
+
+    it("sélectionne Attaque par défaut", () => {
+      setupMock();
+      renderWithProviders(
+        <CompleteGameModal game={inProgressGame} onClose={vi.fn()} open players={mockPlayers} sessionId={1} />,
+      );
+
+      expect(screen.getByRole("button", { name: "Att." })).toHaveClass("bg-accent-500");
+      expect(screen.getByRole("button", { name: "Déf." })).not.toHaveClass("bg-accent-500");
+    });
+
+    it("convertit les points défense en points attaque à la soumission (91 - pts)", async () => {
+      const { mutate } = setupMock();
+      renderWithProviders(
+        <CompleteGameModal game={inProgressGame} onClose={vi.fn()} open players={mockPlayers} sessionId={1} />,
+      );
+
+      await userEvent.click(screen.getByRole("button", { name: "Seul" }));
+      await userEvent.click(screen.getByRole("button", { name: "Déf." }));
+      await userEvent.type(screen.getByPlaceholderText("Points"), "46");
+      await userEvent.click(screen.getByRole("button", { name: "Valider" }));
+
+      // 91 - 46 = 45 attack points
+      expect(mutate).toHaveBeenCalledWith(
+        expect.objectContaining({ points: 45 }),
+        expect.anything(),
+      );
+    });
+
+    it("affiche l'aperçu des scores avec les points convertis en mode défense", async () => {
+      setupMock();
+      renderWithProviders(
+        <CompleteGameModal game={inProgressGame} onClose={vi.fn()} open players={mockPlayers} sessionId={1} />,
+      );
+
+      // 3 oudlers → requis 36
+      await userEvent.click(screen.getByRole("button", { name: "Augmenter" }));
+      await userEvent.click(screen.getByRole("button", { name: "Augmenter" }));
+      await userEvent.click(screen.getByRole("button", { name: "Augmenter" }));
+      await userEvent.click(screen.getByRole("button", { name: "Seul" }));
+      await userEvent.click(screen.getByRole("button", { name: "Déf." }));
+      // 46 defense points → 45 attack points → 45 >= 36 → rempli
+      await userEvent.type(screen.getByPlaceholderText("Points"), "46");
+
+      await waitFor(() => {
+        expect(screen.getByText(/Contrat rempli/)).toBeInTheDocument();
+      });
+    });
+
+    it("soumet les points attaque directement sans conversion", async () => {
+      const { mutate } = setupMock();
+      renderWithProviders(
+        <CompleteGameModal game={inProgressGame} onClose={vi.fn()} open players={mockPlayers} sessionId={1} />,
+      );
+
+      await userEvent.click(screen.getByRole("button", { name: "Seul" }));
+      // Attaque est déjà sélectionné par défaut
+      await userEvent.type(screen.getByPlaceholderText("Points"), "45");
+      await userEvent.click(screen.getByRole("button", { name: "Valider" }));
+
+      expect(mutate).toHaveBeenCalledWith(
+        expect.objectContaining({ points: 45 }),
+        expect.anything(),
+      );
+    });
+
+    it("réinitialise le côté à Attaque à la réouverture", async () => {
+      setupMock();
+      const { rerender } = renderWithProviders(
+        <CompleteGameModal game={inProgressGame} onClose={vi.fn()} open players={mockPlayers} sessionId={1} />,
+      );
+
+      await userEvent.click(screen.getByRole("button", { name: "Déf." }));
+      expect(screen.getByRole("button", { name: "Déf." })).toHaveClass("bg-accent-500");
+
+      // Close and reopen
+      rerender(
+        <CompleteGameModal game={inProgressGame} onClose={vi.fn()} open={false} players={mockPlayers} sessionId={1} />,
+      );
+      rerender(
+        <CompleteGameModal game={inProgressGame} onClose={vi.fn()} open players={mockPlayers} sessionId={1} />,
+      );
+
+      expect(screen.getByRole("button", { name: "Att." })).toHaveClass("bg-accent-500");
+      expect(screen.getByRole("button", { name: "Déf." })).not.toHaveClass("bg-accent-500");
     });
   });
 

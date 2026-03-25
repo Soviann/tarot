@@ -8,6 +8,7 @@ Le format est basé sur [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/)
 
 ### Added
 
+- **Points attaque / défense** : choix du côté (attaque ou défense) lors de la saisie des points, avec conversion automatique. Compatible avec la saisie vocale.
 - **Rafraîchissement automatique** : la page session se met à jour automatiquement toutes les 5 secondes lorsqu'un autre joueur saisit une donne, sans rechargement manuel.
 - **Nouvelle donne** : possibilité de compléter une donne directement depuis la modal de création via un accordéon « Résultat (optionnel) », évitant le passage par deux modales séparées.
 
