@@ -1,5 +1,6 @@
 import { REQUIRED_POINTS } from "./scoreCalculator";
 import { Chelem, Contract, Side } from "../types/enums";
+import { isDoomWeek } from "./doomWeek";
 
 export interface MemeConfig {
   caption: string;
@@ -56,6 +57,11 @@ const SPIDERMAN_POINTING: MemeConfig = { caption: "", id: "spiderman-pointing", 
 const INFINITY_BEYOND: MemeConfig = { caption: "To infinity… and beyond!", id: "infinity-beyond", image: "/memes/infinity-beyond.jpg" };
 const MIND_BLOWN: MemeConfig = { caption: "42 — La réponse à la grande question", id: "mind-blown", image: "/memes/mind-blown.gif" };
 
+// Doom week
+const DOOM_BLEEDING: MemeConfig = { caption: "", id: "doom-bleeding", image: "/images/doom/doom-bleeding-256x256.png" };
+const DOOM_DEMON: MemeConfig = { caption: "", id: "doom-demon", image: "/images/doom/doom-demon-256x256.png" };
+const RIP_AND_TEAR: MemeConfig = { caption: "Rip and Tear!", id: "rip-and-tear", image: "/memes/rip-and-tear.jpg" };
+
 // --- Constants ---
 
 const MEME_CHANCE = 0.4;
@@ -74,6 +80,8 @@ export function buildPool(ctx: GameContext): WeightedMeme[] {
     pool.push({ meme: MIND_BLOWN, weight: 40 });
   }
 
+  const doomWeek = isDoomWeek();
+
   if (ctx.attackWins) {
     // Conditional victory memes
     if (ctx.petitAuBout === Side.Attack) {
@@ -90,6 +98,9 @@ export function buildPool(ctx: GameContext): WeightedMeme[] {
     if (margin >= 0 && margin <= 5) {
       pool.push({ meme: JORDAN_PEELE, weight: 20 });
     }
+    if (doomWeek) {
+      pool.push({ meme: RIP_AND_TEAR, weight: 3 });
+    }
     // Base victory pool
     pool.push({ meme: BORAT, weight: BASE_WEIGHT });
     pool.push({ meme: CHAMPIONS, weight: BASE_WEIGHT });
@@ -102,12 +113,18 @@ export function buildPool(ctx: GameContext): WeightedMeme[] {
       pool.push({ meme: CHOSEN_ONE, weight: 30 });
       pool.push({ meme: PICARD_FACEPALM, weight: 20 });
       pool.push({ meme: PIKACHU_SURPRISED, weight: 10 });
+      if (doomWeek) {
+        pool.push({ meme: DOOM_DEMON, weight: 15 });
+      }
     }
     if (ctx.contract === Contract.GardeSans) {
       pool.push({ meme: CRYING_JORDAN, weight: 20 });
     }
     if (ctx.previousScore !== null && ctx.previousScore >= 50 && ctx.takerScore <= -50) {
       pool.push({ meme: ILL_BE_BACK, weight: 20 });
+    }
+    if (doomWeek) {
+      pool.push({ meme: DOOM_BLEEDING, weight: 3 });
     }
     // Base defeat pool
     pool.push({ meme: AH_SHIT, weight: BASE_WEIGHT });
