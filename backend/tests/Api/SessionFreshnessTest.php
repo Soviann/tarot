@@ -23,4 +23,34 @@ class SessionFreshnessTest extends ApiTestCase
 
         $this->assertResponseStatusCodeSame(404);
     }
+
+    public function testFreshnessUpdatesAfterGameCreation(): void
+    {
+        $client = static::createClient();
+        $client->disableReboot();
+
+        $session = $this->createSessionWithPlayers('Alice', 'Bob', 'Charlie', 'Dave', 'Eve');
+
+        $response = $client->request('GET', '/api/sessions/'.$session->getId().'/freshness');
+        $before = $response->toArray()['updatedAt'];
+
+        // Attendre 1 seconde pour que le timestamp change
+        \usleep(1_100_000);
+
+        // Créer une donne
+        $taker = $session->getPlayers()->first();
+        $client->request('POST', '/api/sessions/'.$session->getId().'/games', [
+            'headers' => ['Content-Type' => 'application/ld+json'],
+            'json' => [
+                'contract' => 'petite',
+                'taker' => $this->getIri($taker),
+            ],
+        ]);
+        $this->assertResponseIsSuccessful();
+
+        $response = $client->request('GET', '/api/sessions/'.$session->getId().'/freshness');
+        $after = $response->toArray()['updatedAt'];
+
+        $this->assertNotSame($before, $after, 'updatedAt should change after game creation');
+    }
 }

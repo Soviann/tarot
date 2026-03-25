@@ -61,6 +61,8 @@ final readonly class GameCompleteProcessor implements ProcessorInterface
             }
         }
 
+        $data->getSession()->setUpdatedAt(new \DateTimeImmutable());
+
         /** @var Game $game */
         $game = $this->persistProcessor->process($data, $operation, $uriVariables, $context);
 
