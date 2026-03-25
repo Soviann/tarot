@@ -2,6 +2,13 @@ import { buildPool, selectMeme } from "../../services/memeSelector";
 import type { GameContext } from "../../services/memeSelector";
 import { Chelem, Contract, Side } from "../../types/enums";
 
+vi.mock("../../services/doomWeek", () => ({
+  isDoomWeek: vi.fn(() => false),
+}));
+
+import { isDoomWeek } from "../../services/doomWeek";
+const mockIsDoomWeek = vi.mocked(isDoomWeek);
+
 function makeContext(overrides: Partial<GameContext> = {}): GameContext {
   return {
     attackWins: true,
@@ -319,6 +326,84 @@ describe("buildPool", () => {
 
       expect(ids).toContain("ill-be-back");
       expect(ids).toContain("this-is-fine");
+    });
+  });
+
+  describe("doom week memes", () => {
+    beforeEach(() => {
+      mockIsDoomWeek.mockReturnValue(true);
+    });
+
+    afterEach(() => {
+      mockIsDoomWeek.mockReturnValue(false);
+    });
+
+    it("includes doom-bleeding (weight 3) on defeat during doom week", () => {
+      const ctx = makeContext({ attackWins: false });
+
+      expect(poolIds(ctx)).toContain("doom-bleeding");
+      expect(poolWeight(ctx, "doom-bleeding")).toBe(3);
+    });
+
+    it("does NOT include doom-bleeding on victory during doom week", () => {
+      expect(poolIds(makeContext())).not.toContain("doom-bleeding");
+    });
+
+    it("does NOT include doom-bleeding outside doom week", () => {
+      mockIsDoomWeek.mockReturnValue(false);
+
+      expect(poolIds(makeContext({ attackWins: false }))).not.toContain("doom-bleeding");
+    });
+
+    it("includes rip-and-tear (weight 3) on victory during doom week", () => {
+      const ctx = makeContext();
+
+      expect(poolIds(ctx)).toContain("rip-and-tear");
+      expect(poolWeight(ctx, "rip-and-tear")).toBe(3);
+    });
+
+    it("does NOT include rip-and-tear on defeat during doom week", () => {
+      expect(poolIds(makeContext({ attackWins: false }))).not.toContain("rip-and-tear");
+    });
+
+    it("does NOT include rip-and-tear outside doom week", () => {
+      mockIsDoomWeek.mockReturnValue(false);
+
+      expect(poolIds(makeContext())).not.toContain("rip-and-tear");
+    });
+
+    it("includes doom-demon (weight 15) on improbable defeat during doom week", () => {
+      const ctx = makeContext({ attackWins: false, oudlers: 3 });
+
+      expect(poolIds(ctx)).toContain("doom-demon");
+      expect(poolWeight(ctx, "doom-demon")).toBe(15);
+    });
+
+    it("includes doom-demon on chelem raté during doom week", () => {
+      expect(poolIds(makeContext({ attackWins: false, chelem: Chelem.AnnouncedLost }))).toContain("doom-demon");
+    });
+
+    it("includes doom-demon on garde contre loss during doom week", () => {
+      expect(poolIds(makeContext({ attackWins: false, contract: Contract.GardeContre }))).toContain("doom-demon");
+    });
+
+    it("does NOT include doom-demon on basic defeat during doom week", () => {
+      expect(poolIds(makeContext({ attackWins: false }))).not.toContain("doom-demon");
+    });
+
+    it("does NOT include doom-demon outside doom week", () => {
+      mockIsDoomWeek.mockReturnValue(false);
+
+      expect(poolIds(makeContext({ attackWins: false, oudlers: 3 }))).not.toContain("doom-demon");
+    });
+
+    it("doom memes coexist with regular memes", () => {
+      const ids = poolIds(makeContext({ attackWins: false, oudlers: 3 }));
+
+      expect(ids).toContain("doom-bleeding");
+      expect(ids).toContain("doom-demon");
+      expect(ids).toContain("ah-shit");
+      expect(ids).toContain("chosen-one");
     });
   });
 });
