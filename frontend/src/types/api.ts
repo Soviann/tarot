@@ -248,6 +248,7 @@ export interface SessionDetail {
   playerOrder: number[] | null;
   players: GamePlayer[];
   starEvents: StarEvent[];
+  updatedAt: string;
 }
 
 export interface SessionHighlights {
