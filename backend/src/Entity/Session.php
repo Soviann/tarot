@@ -55,6 +55,10 @@ class Session
     #[ORM\Column(type: 'datetime_immutable')]
     private \DateTimeImmutable $createdAt;
 
+    #[Groups(['session:read'])]
+    #[ORM\Column(type: 'datetime_immutable')]
+    private \DateTimeImmutable $updatedAt;
+
     /** @var Collection<int, Game> */
     #[ORM\OneToMany(targetEntity: Game::class, mappedBy: 'session')]
     private Collection $games;
@@ -115,6 +119,7 @@ class Session
     public function __construct()
     {
         $this->createdAt = new \DateTimeImmutable();
+        $this->updatedAt = $this->createdAt;
         $this->games = new ArrayCollection();
         $this->players = new ArrayCollection();
         $this->starEvents = new ArrayCollection();
@@ -314,6 +319,18 @@ class Session
     public function getStarEvents(): Collection
     {
         return $this->starEvents;
+    }
+
+    public function getUpdatedAt(): \DateTimeImmutable
+    {
+        return $this->updatedAt;
+    }
+
+    public function setUpdatedAt(\DateTimeImmutable $updatedAt): static
+    {
+        $this->updatedAt = $updatedAt;
+
+        return $this;
     }
 
     /**

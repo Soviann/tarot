@@ -63,6 +63,8 @@ final readonly class GameCreateProcessor implements ProcessorInterface
         $data->setSession($session);
         $data->setStatus(GameStatus::InProgress);
 
+        $session->setUpdatedAt(new \DateTimeImmutable());
+
         return $this->persistProcessor->process($data, $operation, $uriVariables, $context);
     }
 }

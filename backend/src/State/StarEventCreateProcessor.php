@@ -65,6 +65,7 @@ final readonly class StarEventCreateProcessor implements ProcessorInterface
         }
 
         $data->setSession($session);
+        $session->setUpdatedAt(new \DateTimeImmutable());
 
         /** @var StarEvent $starEvent */
         $starEvent = $this->persistProcessor->process($data, $operation, $uriVariables, $context);

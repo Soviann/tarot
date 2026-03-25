@@ -40,4 +40,15 @@ readonly class SessionController
 
         return new JsonResponse($sessionSummaryService->getSummary($session));
     }
+
+    #[Route('/api/sessions/{id}/freshness', methods: ['GET'])]
+    public function freshness(int $id): JsonResponse
+    {
+        $session = $this->sessionRepository->find($id);
+        if (null === $session) {
+            throw new NotFoundHttpException('Session introuvable.');
+        }
+
+        return new JsonResponse(['updatedAt' => $session->getUpdatedAt()->format(\DateTimeInterface::ATOM)]);
+    }
 }

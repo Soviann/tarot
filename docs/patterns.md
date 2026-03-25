@@ -32,7 +32,7 @@ Reference for implementing without exploring. Jump straight to editing.
 | Pages | `pages/` | `Home`, `SessionPage`, `SessionSummary`, `Stats`, `PlayerStats`, `HeadToHead`, `Players`, `Groups`, `GroupDetail`, `Help`, `NotFound` |
 | Components | `components/` | `ThemeSplash`, `ErrorFallback`, `NewGameModal`, `CompleteGameModal`, `DeleteGameModal`, `AddStarModal`, `BadgeUnlockedModal`, `BadgeEmoji`, `BadgeGrid`, `ChangeDealerModal`, `ChangeGroupModal`, `DateRangeFilter`, `GameDetailModal`, `ReorderPlayersModal`, `ShareQrCodeModal`, `SwapPlayersModal`, `Scoreboard`, `GameList`, `SessionList`, `PlayerSelector`, `GroupFilter`, `SessionGroupSelector`, `InProgressBanner`, `Layout`, `BottomNav`, `MemeOverlay`, `Leaderboard`, `EloRanking`, `EloEvolutionChart`, `GlobalEloEvolutionChart`, `ScoreEvolutionChart`, `ScoreTrendChart`, `ContractDistributionChart`, `ContractSuccessRateTable`, `PersonalRecords`, `RoleDistributionChart` |
 | UI primitives | `components/ui/` | `ContractBadge`, `EmptyState`, `FAB`, `MetricCard`, `Modal`, `OverflowMenu`, `Pagination` (LoadMoreButton), `PlayerAvatar`, `ScoreDisplay`, `SearchInput`, `Select`, `Spinner`, `Stepper`, `UndoFAB` + `index.ts` barrel |
-| Hooks (queries) | `hooks/` | `useGame`, `useHeadToHead`, `usePlayers`, `useSession`, `useSessionSummary`, `useSessions`, `useSessionGames`, `useAllSessionGames`, `useGlobalStats`, `usePlayerStats`, `usePlayerGroup`, `usePlayerGroups` |
+| Hooks (queries) | `hooks/` | `useGame`, `useHeadToHead`, `usePlayers`, `useSession`, `useSessionFreshness`, `useSessionSummary`, `useSessions`, `useSessionGames`, `useAllSessionGames`, `useGlobalStats`, `usePlayerStats`, `usePlayerGroup`, `usePlayerGroups` |
 | Hooks (mutations) | `hooks/` | `useCreatePlayer`, `useCreateSession`, `useCreateGame`, `useCompleteGame`, `useCloseSession`, `useCloseGroupSessions`, `useDeleteGame`, `useAddStar`, `useAwardKonamiBadge`, `useReorderPlayers`, `useUpdateDealer`, `useUpdatePlayer`, `useCreatePlayerGroup`, `useUpdatePlayerGroup`, `useDeletePlayerGroup`, `useUpdateSessionGroup` |
 | Hooks (other) | `hooks/` | `useCheatCode`, `useDebounce`, `useGameEventListener`, `useKonamiCode`, `usePinchZoom`, `useResetOnOpen`, `useShake`, `useTextNormalizer`, `useThemeSounds`, `useVoiceScoring` |
 | Types | `types/` | `api.ts` (all TS interfaces), `enums.ts` (const-enums mirroring PHP) |
@@ -65,6 +65,7 @@ Reference for implementing without exploring. Jump straight to editing.
 | Game | `POST /sessions/{id}/games`, `PATCH/DELETE /games/{id}` |
 | StarEvent | `POST /sessions/{id}/star_events` |
 | PlayerGroup | `GET/POST /player_groups`, `GET/PATCH/DELETE /player_groups/{id}` |
+| Session Freshness | `GET /api/sessions/{id}/freshness` |
 | Session Summary | `GET /api/sessions/{id}/summary` |
 | Group Close | `POST /api/player-groups/{id}/close-sessions` |
 | Statistics | `GET /api/statistics` (global), `GET /api/statistics/head-to-head`, `GET /api/statistics/players/{id}` |

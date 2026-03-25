@@ -8,6 +8,7 @@ use ApiPlatform\Doctrine\Common\State\RemoveProcessor;
 use ApiPlatform\Metadata\Operation;
 use ApiPlatform\State\ProcessorInterface;
 use App\Entity\Game;
+use Doctrine\ORM\EntityManagerInterface;
 
 /**
  * Restaure les ELO avant de supprimer une donne.
@@ -17,6 +18,7 @@ use App\Entity\Game;
 final readonly class GameDeleteProcessor implements ProcessorInterface
 {
     public function __construct(
+        private EntityManagerInterface $em,
         private EloRevertHelper $eloRevertHelper,
         private RemoveProcessor $removeProcessor,
     ) {
@@ -28,6 +30,9 @@ final readonly class GameDeleteProcessor implements ProcessorInterface
     public function process(mixed $data, Operation $operation, array $uriVariables = [], array $context = []): void
     {
         $this->eloRevertHelper->revert($data);
+
+        $data->getSession()->setUpdatedAt(new \DateTimeImmutable());
+        $this->em->flush();
 
         $this->removeProcessor->process($data, $operation, $uriVariables, $context);
     }

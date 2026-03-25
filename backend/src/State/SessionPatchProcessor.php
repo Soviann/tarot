@@ -38,6 +38,8 @@ final readonly class SessionPatchProcessor implements ProcessorInterface
 
         $group = $data->getPlayerGroup();
 
+        $data->setUpdatedAt(new \DateTimeImmutable());
+
         /** @var Session $session */
         $session = $this->persistProcessor->process($data, $operation, $uriVariables, $context);
 
