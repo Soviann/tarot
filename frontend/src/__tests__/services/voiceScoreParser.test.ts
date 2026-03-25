@@ -5,6 +5,7 @@ import {
   extractOudlers,
   extractPlayerReference,
   extractPoints,
+  extractPointsSide,
   frenchWordToNumber,
   normalizeTranscript,
   parseVoiceScore,
@@ -410,6 +411,28 @@ describe("extractBonuses", () => {
   });
 });
 
+describe("extractPointsSide", () => {
+  it("retourne 'defense' pour 'defense 45 points'", () => {
+    expect(extractPointsSide("defense 45 points")).toBe("defense");
+  });
+
+  it("retourne 'defense' pour '45 points defense'", () => {
+    expect(extractPointsSide("45 points defense")).toBe("defense");
+  });
+
+  it("retourne 'attack' pour 'attaque 45 points'", () => {
+    expect(extractPointsSide("attaque 45 points")).toBe("attack");
+  });
+
+  it("retourne 'attack' pour '45 points attaque'", () => {
+    expect(extractPointsSide("45 points attaque")).toBe("attack");
+  });
+
+  it("retourne null quand pas de côté mentionné", () => {
+    expect(extractPointsSide("garde 45 points")).toBeNull();
+  });
+});
+
 describe("parseVoiceScore", () => {
   const players = ["Pierre", "Jean", "Marie", "Paul"];
 
@@ -529,5 +552,22 @@ describe("parseVoiceScore", () => {
     const result = parseVoiceScore("garde 56 points zéro bout appelé Pierre", players);
     expect(result.points).toBe(56);
     expect(result.oudlers).toBe(0);
+  });
+
+  it("parse 'défense 46 points' avec pointsSide", () => {
+    const result = parseVoiceScore("garde défense 46 points appelé Pierre", players);
+    expect(result.points).toBe(46);
+    expect(result.pointsSide).toBe("defense");
+  });
+
+  it("parse '45 points attaque' avec pointsSide", () => {
+    const result = parseVoiceScore("garde 45 points attaque appelé Pierre", players);
+    expect(result.points).toBe(45);
+    expect(result.pointsSide).toBe("attack");
+  });
+
+  it("n'inclut pas pointsSide quand pas de côté mentionné", () => {
+    const result = parseVoiceScore("garde 56 points appelé Pierre", players);
+    expect(result.pointsSide).toBeUndefined();
   });
 });

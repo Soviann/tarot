@@ -585,6 +585,42 @@ describe("NewGameModal", () => {
       });
     });
 
+    it("affiche les boutons Att. / Déf. dans l'accordéon de complétion", async () => {
+      renderModal();
+
+      await userEvent.click(screen.getByRole("button", { name: /résultat/i }));
+
+      expect(screen.getByRole("button", { name: "Att." })).toBeInTheDocument();
+      expect(screen.getByRole("button", { name: "Déf." })).toBeInTheDocument();
+    });
+
+    it("convertit les points défense en points attaque au PATCH (91 - pts)", async () => {
+      mockApiFetch.mockResolvedValueOnce(mockCompletedGame);
+      const mutate = vi.fn((_data: unknown, opts: { onSuccess?: (data: Game) => void }) => {
+        opts.onSuccess?.(mockCreatedGame);
+      });
+      const onClose = vi.fn();
+      renderModal({ mutate: mutate as ReturnType<typeof useCreateGame>["mutate"], onClose });
+
+      await userEvent.click(screen.getByRole("img", { name: "Alice" }).closest("button")!);
+      await userEvent.click(screen.getByRole("button", { name: "Garde" }));
+      await userEvent.click(screen.getByRole("button", { name: /résultat/i }));
+      await userEvent.click(screen.getByRole("button", { name: "Seul" }));
+      await userEvent.click(screen.getByRole("button", { name: "Déf." }));
+      await userEvent.type(screen.getByPlaceholderText("Points"), "40");
+      await userEvent.click(screen.getByRole("button", { name: "Valider" }));
+
+      // 91 - 40 = 51 attack points sent to API
+      await waitFor(() => {
+        expect(mockApiFetch).toHaveBeenCalledWith(
+          "/games/42",
+          expect.objectContaining({
+            body: expect.stringContaining('"points":51'),
+          }),
+        );
+      });
+    });
+
     it("les champs de complétion se réinitialisent à la réouverture", async () => {
       const createGame = createMockCreateGame();
       const { rerender } = renderWithProviders(

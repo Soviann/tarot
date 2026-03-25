@@ -59,6 +59,7 @@ export default function CompleteGameModal({ game, onBadgesUnlocked, onClose, onG
   const [poignee, setPoignee] = useState<PoigneeType>(Poignee.None);
   const [poigneeOwner, setPoigneeOwner] = useState<SideType>(Side.None);
   const [points, setPoints] = useState("");
+  const [pointsSide, setPointsSide] = useState<"attack" | "defense">("attack");
   const [selfCall, setSelfCall] = useState(false);
 
   const voiceApplied = useRef(false);
@@ -76,6 +77,7 @@ export default function CompleteGameModal({ game, onBadgesUnlocked, onClose, onG
       setPoignee(game.poignee);
       setPoigneeOwner(game.poigneeOwner);
       setPoints(game.points !== null ? String(game.points) : "");
+      setPointsSide("attack");
       setSelfCall(game.partner === null);
     } else {
       setBonusesOpen(false);
@@ -86,6 +88,7 @@ export default function CompleteGameModal({ game, onBadgesUnlocked, onClose, onG
       setPoignee(Poignee.None);
       setPoigneeOwner(Side.None);
       setPoints("");
+      setPointsSide("attack");
       setSelfCall(false);
     }
   });
@@ -143,6 +146,9 @@ export default function CompleteGameModal({ game, onBadgesUnlocked, onClose, onG
       setChelem(result.chelem);
       setBonusesOpen(true);
     }
+    if (result.pointsSide) {
+      setPointsSide(result.pointsSide);
+    }
 
     setVoiceHighlight(filled);
     const timer = setTimeout(() => setVoiceHighlight(new Set()), 3000);
@@ -151,11 +157,12 @@ export default function CompleteGameModal({ game, onBadgesUnlocked, onClose, onG
 
   const pointsNum = points === "" ? null : Number(points.replace(",", "."));
   const pointsValid = pointsNum !== null && !isNaN(pointsNum) && pointsNum >= 0 && pointsNum <= 91 && (pointsNum % 1 === 0 || pointsNum % 1 === 0.5);
+  const attackPoints = pointsValid && pointsNum !== null ? (pointsSide === "defense" ? 91 - pointsNum : pointsNum) : null;
   const hasPartner = selfCall || partnerId !== null;
   const canSubmit = pointsValid && hasPartner && !completeGame.isPending;
 
   const scoreResult = useMemo(() => {
-    if (!pointsValid) return null;
+    if (!pointsValid || attackPoints === null) return null;
     return calculateScore({
       chelem,
       contract: game.contract,
@@ -163,9 +170,9 @@ export default function CompleteGameModal({ game, onBadgesUnlocked, onClose, onG
       partnerId: selfCall ? null : partnerId,
       petitAuBout,
       poignee,
-      points: pointsNum!,
+      points: attackPoints,
     });
-  }, [chelem, game.contract, oudlers, partnerId, petitAuBout, poignee, pointsNum, pointsValid, selfCall]);
+  }, [attackPoints, chelem, game.contract, oudlers, partnerId, petitAuBout, poignee, pointsValid, selfCall]);
 
   const otherPlayers = players.filter((p) => p.id !== game.taker.id);
   const selectedPartner = partnerId !== null ? players.find((p) => p.id === partnerId) ?? null : null;
@@ -190,7 +197,7 @@ export default function CompleteGameModal({ game, onBadgesUnlocked, onClose, onG
         petitAuBout,
         poignee,
         poigneeOwner: poignee !== Poignee.None ? poigneeOwner : Side.None,
-        points: pointsNum!,
+        points: attackPoints!,
         status: GameStatus.Completed,
       },
       {
@@ -205,7 +212,7 @@ export default function CompleteGameModal({ game, onBadgesUnlocked, onClose, onG
               isSelfCall: selfCall,
               oudlers,
               petitAuBout,
-              points: pointsNum!,
+              points: attackPoints!,
               previousScore: null,
               takerScore: scoreResult.takerScore,
             });
@@ -311,9 +318,13 @@ export default function CompleteGameModal({ game, onBadgesUnlocked, onClose, onG
         </div>
 
         {/* Points */}
-        <div>
+        <div className="flex gap-2">
+          <div className="flex flex-col gap-1">
+            <ToggleButton label="Att." onClick={() => setPointsSide("attack")} selected={pointsSide === "attack"} />
+            <ToggleButton label="Déf." onClick={() => setPointsSide("defense")} selected={pointsSide === "defense"} />
+          </div>
           <input
-            className={`w-full rounded-xl border border-surface-border bg-surface-primary px-4 py-3 text-center text-lg font-semibold tabular-nums text-text-primary placeholder:text-text-muted focus:border-accent-500 focus:outline-none focus:ring-1 focus:ring-accent-500 ${voiceHighlight.has("points") ? "ring-2 ring-green-500" : ""}`}
+            className={`min-w-0 flex-1 rounded-xl border border-surface-border bg-surface-primary px-4 py-3 text-center text-lg font-semibold tabular-nums text-text-primary placeholder:text-text-muted focus:border-accent-500 focus:outline-none focus:ring-1 focus:ring-accent-500 ${voiceHighlight.has("points") ? "ring-2 ring-green-500" : ""}`}
             inputMode="decimal"
             onChange={(e) => setPoints(e.target.value)}
             placeholder="Points"

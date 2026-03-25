@@ -9,6 +9,7 @@ export interface VoiceScoreResult {
   playerName?: string;
   poignee?: PoigneeType;
   points?: number;
+  pointsSide?: "attack" | "defense";
 }
 
 const FILLER_WORDS = /\b(euh|heu|donc|alors|ben|bah|hein|voila|voilà)\b/g;
@@ -326,6 +327,15 @@ export function extractBonuses(text: string): BonusResult {
 }
 
 /**
+ * Extract which side the points belong to: "attack", "defense", or null if not mentioned.
+ */
+export function extractPointsSide(text: string): "attack" | "defense" | null {
+  if (/\bdefense\b/.test(text)) return "defense";
+  if (/\battaque\b/.test(text)) return "attack";
+  return null;
+}
+
+/**
  * Main parser: takes a raw transcript and player names, returns a partial score form result.
  * Never throws. Returns empty object for unparseable input.
  */
@@ -350,6 +360,9 @@ export function parseVoiceScore(
 
     const oudlers = extractOudlers(normalized);
     if (oudlers !== null) result.oudlers = oudlers;
+
+    const pointsSide = extractPointsSide(normalized);
+    if (pointsSide) result.pointsSide = pointsSide;
 
     const bonuses = extractBonuses(normalized);
     if (bonuses.petitAuBout) result.petitAuBout = true;
