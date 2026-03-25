@@ -16,6 +16,14 @@ describe("Layout", () => {
     expect(wrapper?.className).toMatch(/bg-surface-secondary/);
   });
 
+  it("uses dynamic viewport height instead of 100vh to prevent mobile scroll shift", () => {
+    const { container } = renderWithProviders(<Layout />);
+
+    const wrapper = container.querySelector("div");
+    expect(wrapper?.className).toMatch(/min-h-dvh/);
+    expect(wrapper?.className).not.toMatch(/min-h-screen/);
+  });
+
   it("does not render a help icon link", () => {
     renderWithProviders(<Layout />);
 
