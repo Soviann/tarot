@@ -37,7 +37,7 @@ Reference for implementing without exploring. Jump straight to editing.
 | Hooks (other) | `hooks/` | `useCheatCode`, `useDebounce`, `useGameEventListener`, `useKonamiCode`, `usePinchZoom`, `useResetOnOpen`, `useShake`, `useTextNormalizer`, `useThemeSounds`, `useVoiceScoring` |
 | Types | `types/` | `api.ts` (all TS interfaces), `enums.ts` (const-enums mirroring PHP) |
 | Utils | `utils/` | `playerOrder.ts` (`sortPlayersByOrder`) |
-| Services | `services/` | `api.ts` (`apiFetch<T>`, `ApiError`), `scoreCalculator.ts`, `themeRegistry.ts` (`CUSTOM_THEMES`, `getThemeConfig`), `gameEvents.ts` (mitt), `voiceScoreParser.ts`, `memeSelector.ts` |
+| Services | `services/` | `api.ts` (`apiFetch<T>`, `ApiError`), `doomWeek.ts` (`isDoomWeek`, `getHintChance`), `scoreCalculator.ts`, `themeRegistry.ts` (`CUSTOM_THEMES`, `getThemeConfig`), `gameEvents.ts` (mitt), `voiceScoreParser.ts`, `memeSelector.ts` |
 | Tests | `__tests__/` | Mirror structure. Mocks: `__tests__/mocks/recharts.tsx` |
 
 ## Routes
