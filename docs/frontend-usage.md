@@ -992,12 +992,13 @@ Page d'aide in-app reprenant le contenu du guide utilisateur (`docs/user-guide.m
 - Bandeau « Session terminée » (ambre) quand `isActive === false`
 - FAB masqué quand la session est clôturée
 - Bouton retour vers l'accueil
+- **Rafraîchissement automatique** : polling léger toutes les 5 s (`useSessionFreshness`) quand la session est active et l'onglet visible ; invalide les caches TanStack Query dès qu'un changement est détecté
 - États : chargement, session introuvable
 - **Easter egg shake** : secouer le téléphone inverse les scores affichés (×-1, positifs ↔ négatifs) pendant 12 secondes avec une icône de feedback visuel, puis affiche une modale « Eh non, bien essayé 😏 » avec un GIF
 - **Easter egg "Mind Blown"** : saisir exactement 42 points ajoute le mème "Mind Blown" (poids 40) au pool pondéré via `selectMeme`
 - **Easter egg "To infinity and beyond!"** : score individuel du preneur ≥ ±200 points ajoute le mème Buzz l'Éclair (poids 30) au pool pondéré via `selectMeme`
 
-**Hooks utilisés** : `useSession`, `useSessionGames`, `useAllSessionGames`, `useAddStar`, `useCloseSession`, `useCreateGame`, `useCreateSession` (via SwapPlayersModal), `useCompleteGame`, `useDeleteGame`, `usePlayerGroups`, `useReorderPlayers`, `useShake`, `useUpdateDealer`, `useUpdateSessionGroup`, `useNavigate`
+**Hooks utilisés** : `useSession`, `useSessionFreshness`, `useSessionGames`, `useAllSessionGames`, `useAddStar`, `useCloseSession`, `useCreateGame`, `useCreateSession` (via SwapPlayersModal), `useCompleteGame`, `useDeleteGame`, `usePlayerGroups`, `useReorderPlayers`, `useShake`, `useUpdateDealer`, `useUpdateSessionGroup`, `useNavigate`
 
 **Modales** :
 - `AddStarModal` : confirmation avant attribution d'étoile à un joueur
