@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useHintCooldown } from "../hooks/useHintCooldown";
+import { getHintChance } from "../services/doomWeek";
 
-const HINT_CHANCE = 0.02;
 const HINT_DURATION_MS = 2000;
 
 const DOOM_ICONS = [
@@ -45,7 +45,7 @@ export default function DoomHint() {
   const timerRef = useRef<ReturnType<typeof setTimeout>>(null);
 
   const handleClick = useCallback(() => {
-    if (!canShowHint() || Math.random() >= HINT_CHANCE) return;
+    if (!canShowHint() || Math.random() >= getHintChance()) return;
 
     markHintShown();
     setTraverse(randomTraverse());
