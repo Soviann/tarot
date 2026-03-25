@@ -33,6 +33,7 @@ import { toast } from "sonner";
 import { useUpdateDealer } from "../hooks/useUpdateDealer";
 import { useUpdateSessionGroup } from "../hooks/useUpdateSessionGroup";
 import { useGameEventListener } from "../hooks/useGameEventListener";
+import { useSessionFreshness } from "../hooks/useSessionFreshness";
 import { apiFetch } from "../services/api";
 import { gameEvents } from "../services/gameEvents";
 import type { GameContext, MemeConfig } from "../services/memeSelector";
@@ -46,6 +47,7 @@ export default function SessionPage() {
   const navigate = useNavigate();
   const sessionId = Number(id);
   const { isPending, session } = useSession(sessionId);
+  useSessionFreshness(sessionId, !!session?.isActive);
   const {
     data: gamesData,
     fetchNextPage,
