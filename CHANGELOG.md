@@ -6,6 +6,10 @@ Le format est basé sur [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/)
 
 ## [Unreleased]
 
+### Added
+
+- **Nouvelle donne** : possibilité de compléter une donne directement depuis la modal de création via un accordéon « Résultat (optionnel) », évitant le passage par deux modales séparées.
+
 ### Fixed
 
 - **Navbar** : corrige le décalage de la barre de navigation au scroll vers le haut sur mobile (`min-h-dvh` remplace `min-h-screen`).

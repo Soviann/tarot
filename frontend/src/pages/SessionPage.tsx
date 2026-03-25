@@ -303,9 +303,13 @@ export default function SessionPage() {
         createGame={createGame}
         currentDealerName={session.currentDealer?.name ?? null}
         lastGameConfig={lastCompletedGame ? { contract: lastCompletedGame.contract, takerId: lastCompletedGame.taker.id } : undefined}
+        onBadgesUnlocked={(badges) => setBadgeModalBadges(badges)}
         onClose={() => setNewGameModalOpen(false)}
+        onGameCompleted={handleGameCompleted}
+        onGameSaved={handleGameSaved}
         open={newGameModalOpen}
         players={orderedPlayers}
+        sessionId={sessionId}
       />
 
       {inProgressGame && (

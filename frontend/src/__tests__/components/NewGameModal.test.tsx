@@ -1,17 +1,60 @@
-import { screen } from "@testing-library/react";
+import { screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import NewGameModal from "../../components/NewGameModal";
 import type { useCreateGame } from "../../hooks/useCreateGame";
-import { Contract } from "../../types/enums";
+import { Chelem, Contract, GameStatus, Poignee, Side } from "../../types/enums";
 import { renderWithProviders } from "../test-utils";
 
+vi.mock("../../services/api", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("../../services/api")>();
+  return { ...actual, apiFetch: vi.fn() };
+});
+
+import { apiFetch } from "../../services/api";
+import type { Game } from "../../types/api";
+
+const mockApiFetch = vi.mocked(apiFetch);
+
+afterEach(() => {
+  vi.clearAllMocks();
+});
+
 const mockPlayers = [
-  { id: 1, name: "Alice" },
-  { id: 2, name: "Bob" },
-  { id: 3, name: "Charlie" },
-  { id: 4, name: "Diana" },
-  { id: 5, name: "Eve" },
+  { color: null, id: 1, name: "Alice" },
+  { color: null, id: 2, name: "Bob" },
+  { color: null, id: 3, name: "Charlie" },
+  { color: null, id: 4, name: "Diana" },
+  { color: null, id: 5, name: "Eve" },
 ];
+
+const mockCreatedGame: Game = {
+  chelem: Chelem.None,
+  completedAt: null,
+  contract: Contract.Garde,
+  createdAt: "2026-03-25T10:00:00+00:00",
+  dealer: { color: null, id: 1, name: "Alice" },
+  id: 42,
+  oudlers: null,
+  partner: null,
+  petitAuBout: Side.None,
+  poignee: Poignee.None,
+  poigneeOwner: Side.None,
+  points: null,
+  position: 1,
+  scoreEntries: [],
+  status: GameStatus.InProgress,
+  taker: { color: null, id: 3, name: "Charlie" },
+};
+
+const mockCompletedGame: Game = {
+  ...mockCreatedGame,
+  chelem: Chelem.None,
+  completedAt: "2026-03-25T10:01:00+00:00",
+  newBadges: { "3": [{ description: "Test badge", emoji: "🏆", label: "Champion", type: "champion", unlockedAt: "2026-03-25T10:01:00+00:00" }] },
+  oudlers: 2,
+  points: 45,
+  status: GameStatus.Completed,
+};
 
 function createMockCreateGame(
   overrides?: Partial<ReturnType<typeof useCreateGame>>,
@@ -323,10 +366,264 @@ describe("NewGameModal", () => {
       const reset = vi.fn();
       const createGame = createMockCreateGame({ reset });
       renderWithProviders(
-        <NewGameModal createGame={createGame} onClose={vi.fn()} open players={mockPlayers} />,
+        <NewGameModal createGame={createGame} onClose={vi.fn()} open players={mockPlayers} sessionId={1} />,
       );
 
       expect(reset).toHaveBeenCalled();
+    });
+  });
+
+  describe("compléter depuis la création", () => {
+    function renderModal(overrides?: { mutate?: ReturnType<typeof useCreateGame>["mutate"]; onBadgesUnlocked?: () => void; onClose?: () => void; onGameCompleted?: () => void; onGameSaved?: () => void }) {
+      const mutate = overrides?.mutate ?? vi.fn();
+      const createGame = createMockCreateGame({ mutate });
+      return renderWithProviders(
+        <NewGameModal
+          createGame={createGame}
+          onBadgesUnlocked={overrides?.onBadgesUnlocked}
+          onClose={overrides?.onClose ?? vi.fn()}
+          onGameCompleted={overrides?.onGameCompleted}
+          onGameSaved={overrides?.onGameSaved}
+          open
+          players={mockPlayers}
+          sessionId={1}
+        />,
+      );
+    }
+
+    it("affiche l'accordéon 'Résultat (optionnel)' replié par défaut", () => {
+      renderModal();
+
+      expect(screen.getByRole("button", { name: /résultat/i })).toBeInTheDocument();
+      // Completion fields not visible
+      expect(screen.queryByText("Partenaire")).not.toBeInTheDocument();
+      expect(screen.queryByPlaceholderText("Points")).not.toBeInTheDocument();
+    });
+
+    it("déplier l'accordéon affiche les champs de complétion", async () => {
+      renderModal();
+
+      await userEvent.click(screen.getByRole("button", { name: /résultat/i }));
+
+      expect(screen.getByText("Partenaire")).toBeInTheDocument();
+      expect(screen.getByText("Oudlers")).toBeInTheDocument();
+      expect(screen.getByPlaceholderText("Points")).toBeInTheDocument();
+    });
+
+    it("affiche le sous-accordéon Bonus dans les champs de complétion", async () => {
+      renderModal();
+
+      await userEvent.click(screen.getByRole("button", { name: /résultat/i }));
+      await userEvent.click(screen.getByRole("button", { name: /bonus/i }));
+
+      expect(screen.getByText("Poignée")).toBeInTheDocument();
+      expect(screen.getByText("Petit au bout")).toBeInTheDocument();
+      expect(screen.getByText("Chelem")).toBeInTheDocument();
+    });
+
+    it("soumet sans complétion → seulement POST, pas de PATCH", async () => {
+      const mutate = vi.fn((_data: unknown, opts: { onSuccess?: (data: Game) => void }) => {
+        opts.onSuccess?.(mockCreatedGame);
+      });
+      renderModal({ mutate: mutate as ReturnType<typeof useCreateGame>["mutate"] });
+
+      await userEvent.click(screen.getByRole("img", { name: "Alice" }).closest("button")!);
+      await userEvent.click(screen.getByRole("button", { name: "Garde" }));
+      await userEvent.click(screen.getByRole("button", { name: "Valider" }));
+
+      expect(mutate).toHaveBeenCalledOnce();
+      expect(mockApiFetch).not.toHaveBeenCalled();
+    });
+
+    it("soumet avec complétion → POST puis PATCH", async () => {
+      mockApiFetch.mockResolvedValueOnce(mockCompletedGame);
+      const mutate = vi.fn((_data: unknown, opts: { onSuccess?: (data: Game) => void }) => {
+        opts.onSuccess?.(mockCreatedGame);
+      });
+      const onClose = vi.fn();
+      renderModal({ mutate: mutate as ReturnType<typeof useCreateGame>["mutate"], onClose });
+
+      // Select taker + contract
+      await userEvent.click(screen.getByRole("img", { name: "Alice" }).closest("button")!);
+      await userEvent.click(screen.getByRole("button", { name: "Garde" }));
+
+      // Open completion accordion and fill fields
+      await userEvent.click(screen.getByRole("button", { name: /résultat/i }));
+      await userEvent.click(screen.getByRole("button", { name: "Seul" }));
+      await userEvent.click(screen.getByPlaceholderText("Points"));
+      await userEvent.type(screen.getByPlaceholderText("Points"), "51");
+
+      await userEvent.click(screen.getByRole("button", { name: "Valider" }));
+
+      // POST was called
+      expect(mutate).toHaveBeenCalledOnce();
+
+      // PATCH was called with correct payload
+      await waitFor(() => {
+        expect(mockApiFetch).toHaveBeenCalledWith(
+          "/games/42",
+          expect.objectContaining({
+            method: "PATCH",
+            headers: { "Content-Type": "application/merge-patch+json" },
+            body: JSON.stringify({
+              chelem: Chelem.None,
+              oudlers: 0,
+              partner: null,
+              petitAuBout: Side.None,
+              poignee: Poignee.None,
+              poigneeOwner: Side.None,
+              points: 51,
+              status: GameStatus.Completed,
+            }),
+          }),
+        );
+      });
+
+      await waitFor(() => expect(onClose).toHaveBeenCalled());
+    });
+
+    it("bouton désactivé quand points remplis mais pas de partenaire", async () => {
+      renderModal();
+
+      await userEvent.click(screen.getByRole("img", { name: "Alice" }).closest("button")!);
+      await userEvent.click(screen.getByRole("button", { name: "Garde" }));
+      await userEvent.click(screen.getByRole("button", { name: /résultat/i }));
+      await userEvent.type(screen.getByPlaceholderText("Points"), "51");
+
+      // Points filled but no partner → disabled
+      expect(screen.getByRole("button", { name: "Valider" })).toBeDisabled();
+    });
+
+    it("affiche l'aperçu des scores quand les champs sont valides", async () => {
+      renderModal();
+
+      await userEvent.click(screen.getByRole("img", { name: "Alice" }).closest("button")!);
+      await userEvent.click(screen.getByRole("button", { name: "Garde" }));
+      await userEvent.click(screen.getByRole("button", { name: /résultat/i }));
+      await userEvent.click(screen.getByRole("button", { name: "Seul" }));
+      await userEvent.type(screen.getByPlaceholderText("Points"), "51");
+
+      // 0 oudlers → required 56, 51 < 56 → attack loses
+      expect(screen.getByText(/contrat chuté/i)).toBeInTheDocument();
+      // "Preneur" appears in both the h3 label and score preview
+      expect(screen.getAllByText("Preneur")).toHaveLength(2);
+    });
+
+    it("déclenche onGameCompleted avec le contexte meme après complétion", async () => {
+      mockApiFetch.mockResolvedValueOnce(mockCompletedGame);
+      const onGameCompleted = vi.fn();
+      const mutate = vi.fn((_data: unknown, opts: { onSuccess?: (data: Game) => void }) => {
+        opts.onSuccess?.(mockCreatedGame);
+      });
+      renderModal({
+        mutate: mutate as ReturnType<typeof useCreateGame>["mutate"],
+        onGameCompleted,
+      });
+
+      await userEvent.click(screen.getByRole("img", { name: "Alice" }).closest("button")!);
+      await userEvent.click(screen.getByRole("button", { name: "Garde" }));
+      await userEvent.click(screen.getByRole("button", { name: /résultat/i }));
+      await userEvent.click(screen.getByRole("button", { name: "Seul" }));
+      await userEvent.type(screen.getByPlaceholderText("Points"), "51");
+      await userEvent.click(screen.getByRole("button", { name: "Valider" }));
+
+      await waitFor(() => {
+        expect(onGameCompleted).toHaveBeenCalledWith(
+          expect.objectContaining({
+            attackWins: false,
+            contract: Contract.Garde,
+            isSelfCall: true,
+            points: 51,
+          }),
+        );
+      });
+    });
+
+    it("déclenche onGameSaved avec l'id de la donne après complétion", async () => {
+      mockApiFetch.mockResolvedValueOnce(mockCompletedGame);
+      const onGameSaved = vi.fn();
+      const mutate = vi.fn((_data: unknown, opts: { onSuccess?: (data: Game) => void }) => {
+        opts.onSuccess?.(mockCreatedGame);
+      });
+      renderModal({
+        mutate: mutate as ReturnType<typeof useCreateGame>["mutate"],
+        onGameSaved,
+      });
+
+      await userEvent.click(screen.getByRole("img", { name: "Alice" }).closest("button")!);
+      await userEvent.click(screen.getByRole("button", { name: "Garde" }));
+      await userEvent.click(screen.getByRole("button", { name: /résultat/i }));
+      await userEvent.click(screen.getByRole("button", { name: "Seul" }));
+      await userEvent.type(screen.getByPlaceholderText("Points"), "51");
+      await userEvent.click(screen.getByRole("button", { name: "Valider" }));
+
+      await waitFor(() => {
+        expect(onGameSaved).toHaveBeenCalledWith(42);
+      });
+    });
+
+    it("déclenche onBadgesUnlocked quand la réponse contient des badges", async () => {
+      mockApiFetch.mockResolvedValueOnce(mockCompletedGame);
+      const onBadgesUnlocked = vi.fn();
+      const mutate = vi.fn((_data: unknown, opts: { onSuccess?: (data: Game) => void }) => {
+        opts.onSuccess?.(mockCreatedGame);
+      });
+      renderModal({
+        mutate: mutate as ReturnType<typeof useCreateGame>["mutate"],
+        onBadgesUnlocked,
+      });
+
+      await userEvent.click(screen.getByRole("img", { name: "Alice" }).closest("button")!);
+      await userEvent.click(screen.getByRole("button", { name: "Garde" }));
+      await userEvent.click(screen.getByRole("button", { name: /résultat/i }));
+      await userEvent.click(screen.getByRole("button", { name: "Seul" }));
+      await userEvent.type(screen.getByPlaceholderText("Points"), "51");
+      await userEvent.click(screen.getByRole("button", { name: "Valider" }));
+
+      await waitFor(() => {
+        expect(onBadgesUnlocked).toHaveBeenCalledWith(mockCompletedGame.newBadges);
+      });
+    });
+
+    it("les champs de complétion se réinitialisent à la réouverture", async () => {
+      const createGame = createMockCreateGame();
+      const { rerender } = renderWithProviders(
+        <NewGameModal createGame={createGame} onClose={vi.fn()} open players={mockPlayers} sessionId={1} />,
+      );
+
+      // Open accordion and fill points
+      await userEvent.click(screen.getByRole("button", { name: /résultat/i }));
+      await userEvent.type(screen.getByPlaceholderText("Points"), "51");
+      expect(screen.getByPlaceholderText("Points")).toHaveValue("51");
+
+      // Close and reopen
+      rerender(<NewGameModal createGame={createGame} onClose={vi.fn()} open={false} players={mockPlayers} sessionId={1} />);
+      rerender(<NewGameModal createGame={createGame} onClose={vi.fn()} open players={mockPlayers} sessionId={1} />);
+
+      // Accordion should be collapsed, fields reset
+      expect(screen.queryByPlaceholderText("Points")).not.toBeInTheDocument();
+    });
+
+    it("PATCH échoue → toast d'avertissement et modal se ferme", async () => {
+      mockApiFetch.mockRejectedValueOnce(new Error("Server error"));
+      const onClose = vi.fn();
+      const mutate = vi.fn((_data: unknown, opts: { onSuccess?: (data: Game) => void }) => {
+        opts.onSuccess?.(mockCreatedGame);
+      });
+      renderModal({
+        mutate: mutate as ReturnType<typeof useCreateGame>["mutate"],
+        onClose,
+      });
+
+      await userEvent.click(screen.getByRole("img", { name: "Alice" }).closest("button")!);
+      await userEvent.click(screen.getByRole("button", { name: "Garde" }));
+      await userEvent.click(screen.getByRole("button", { name: /résultat/i }));
+      await userEvent.click(screen.getByRole("button", { name: "Seul" }));
+      await userEvent.type(screen.getByPlaceholderText("Points"), "51");
+      await userEvent.click(screen.getByRole("button", { name: "Valider" }));
+
+      // Modal still closes even on PATCH failure
+      await waitFor(() => expect(onClose).toHaveBeenCalled());
     });
   });
 });
