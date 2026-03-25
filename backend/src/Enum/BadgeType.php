@@ -177,7 +177,9 @@ enum BadgeType: string
 
     public function availableSince(): \DateTimeImmutable
     {
-        return new \DateTimeImmutable('2026-03-25');
+        return match ($this) {
+            default => new \DateTimeImmutable('2026-03-25'),
+        };
     }
 
     /**
