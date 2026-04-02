@@ -16,6 +16,7 @@ Le format est basé sur [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/)
 
 ### Fixed
 
+- **Easter egg shake** : réduit la sensibilité du shake en exigeant plusieurs secousses consécutives au lieu d'un seul pic d'accélération.
 - **Navbar** : corrige le décalage de la barre de navigation au scroll vers le haut sur mobile (`min-h-dvh` remplace `min-h-screen`).
 - **Badges** : les badges ne se déclenchent plus rétroactivement sur des donnes antérieures à leur date d'introduction (`availableSince`).
 - **Sécurité** : corrige la vulnérabilité RCE serialize-javascript via override npm (GHSA-5c6j-r48x-rmvq).
