@@ -6,6 +6,10 @@ Le format est basé sur [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/)
 
 ## [Unreleased]
 
+### Fixed
+
+- **Rafraîchissement en direct** : corrige le rafraîchissement automatique de la session qui ne fonctionnait pas à cause d'un double préfixe `/api` dans l'URL de fraîcheur.
+
 ### Added
 
 - **Mèmes DOOM** : trois mèmes thématiques DOOM (Doomguy ensanglanté, Rip and Tear, Cacodemon) apparaissent uniquement durant la semaine du 10 décembre.
