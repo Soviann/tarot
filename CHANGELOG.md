@@ -16,6 +16,7 @@ Le format est basé sur [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/)
 
 ### Fixed
 
+- **Complétion de donne** : corrige le bandeau de donne en cours et l'historique des donnes qui n'étaient pas mis à jour après une saisie complète depuis la modal de création.
 - **Easter egg shake** : réduit la sensibilité du shake en exigeant plusieurs secousses consécutives au lieu d'un seul pic d'accélération.
 - **Navbar** : corrige le décalage de la barre de navigation au scroll vers le haut sur mobile (`min-h-dvh` remplace `min-h-screen`).
 - **Badges** : les badges ne se déclenchent plus rétroactivement sur des donnes antérieures à leur date d'introduction (`availableSince`).

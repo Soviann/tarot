@@ -44,7 +44,7 @@ describe("useCreateGame", () => {
     });
   });
 
-  it("invalidates session query on success", async () => {
+  it("does not auto-invalidate session query (caller handles invalidation)", async () => {
     const created = { contract: "garde", id: 1, status: "in_progress", taker: { id: 3, name: "Charlie" } };
     vi.mocked(api.apiFetch).mockResolvedValue(created);
     const { queryClient, wrapper } = createWrapper();
@@ -57,7 +57,7 @@ describe("useCreateGame", () => {
       result.current.mutateAsync({ contract: "garde", takerId: 3 }),
     );
 
-    expect(invalidateSpy).toHaveBeenCalledWith({ queryKey: ["session", 42] });
+    expect(invalidateSpy).not.toHaveBeenCalled();
   });
 
   it("propagates API errors", async () => {
