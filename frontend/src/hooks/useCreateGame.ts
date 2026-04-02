@@ -1,4 +1,4 @@
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation } from "@tanstack/react-query";
 import { apiFetch } from "../services/api";
 import type { Game } from "../types/api";
 import type { Contract } from "../types/enums";
@@ -9,8 +9,6 @@ interface CreateGameInput {
 }
 
 export function useCreateGame(sessionId: number) {
-  const queryClient = useQueryClient();
-
   return useMutation({
     mutationFn: ({ contract, takerId }: CreateGameInput) =>
       apiFetch<Game>(`/sessions/${sessionId}/games`, {
@@ -20,8 +18,5 @@ export function useCreateGame(sessionId: number) {
         }),
         method: "POST",
       }),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["session", sessionId] });
-    },
   });
 }

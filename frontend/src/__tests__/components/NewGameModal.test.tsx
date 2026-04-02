@@ -1,9 +1,12 @@
-import { screen, waitFor } from "@testing-library/react";
+import { QueryClientProvider } from "@tanstack/react-query";
+import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import { ThemeProvider } from "next-themes";
+import { MemoryRouter } from "react-router-dom";
 import NewGameModal from "../../components/NewGameModal";
 import type { useCreateGame } from "../../hooks/useCreateGame";
 import { Chelem, Contract, GameStatus, Poignee, Side } from "../../types/enums";
-import { renderWithProviders } from "../test-utils";
+import { createTestQueryClient, renderWithProviders } from "../test-utils";
 
 vi.mock("../../services/api", async (importOriginal) => {
   const actual = await importOriginal<typeof import("../../services/api")>();
@@ -421,11 +424,27 @@ describe("NewGameModal", () => {
       expect(screen.getByText("Chelem")).toBeInTheDocument();
     });
 
-    it("soumet sans complétion → seulement POST, pas de PATCH", async () => {
+    it("soumet sans complétion → seulement POST, pas de PATCH, et invalide les queries", async () => {
       const mutate = vi.fn((_data: unknown, opts: { onSuccess?: (data: Game) => void }) => {
         opts.onSuccess?.(mockCreatedGame);
       });
-      renderModal({ mutate: mutate as ReturnType<typeof useCreateGame>["mutate"] });
+      const queryClient = createTestQueryClient();
+      const invalidateSpy = vi.spyOn(queryClient, "invalidateQueries");
+      render(
+        <QueryClientProvider client={queryClient}>
+          <ThemeProvider attribute="class" defaultTheme="light" enableSystem={false}>
+            <MemoryRouter>
+              <NewGameModal
+                createGame={createMockCreateGame({ mutate: mutate as ReturnType<typeof useCreateGame>["mutate"] })}
+                onClose={vi.fn()}
+                open
+                players={mockPlayers}
+                sessionId={1}
+              />
+            </MemoryRouter>
+          </ThemeProvider>
+        </QueryClientProvider>,
+      );
 
       await userEvent.click(screen.getByRole("img", { name: "Alice" }).closest("button")!);
       await userEvent.click(screen.getByRole("button", { name: "Garde" }));
@@ -433,6 +452,7 @@ describe("NewGameModal", () => {
 
       expect(mutate).toHaveBeenCalledOnce();
       expect(mockApiFetch).not.toHaveBeenCalled();
+      expect(invalidateSpy).toHaveBeenCalledWith({ queryKey: ["session", 1] });
     });
 
     it("soumet avec complétion → POST puis PATCH", async () => {
@@ -640,16 +660,29 @@ describe("NewGameModal", () => {
       expect(screen.queryByPlaceholderText("Points")).not.toBeInTheDocument();
     });
 
-    it("PATCH échoue → toast d'avertissement et modal se ferme", async () => {
-      mockApiFetch.mockRejectedValueOnce(new Error("Server error"));
-      const onClose = vi.fn();
+    it("invalide les queries session après complétion réussie", async () => {
+      mockApiFetch.mockResolvedValueOnce({ ...mockCompletedGame, newBadges: null });
       const mutate = vi.fn((_data: unknown, opts: { onSuccess?: (data: Game) => void }) => {
         opts.onSuccess?.(mockCreatedGame);
       });
-      renderModal({
-        mutate: mutate as ReturnType<typeof useCreateGame>["mutate"],
-        onClose,
-      });
+      const onClose = vi.fn();
+      const queryClient = createTestQueryClient();
+      const invalidateSpy = vi.spyOn(queryClient, "invalidateQueries");
+      render(
+        <QueryClientProvider client={queryClient}>
+          <ThemeProvider attribute="class" defaultTheme="light" enableSystem={false}>
+            <MemoryRouter>
+              <NewGameModal
+                createGame={createMockCreateGame({ mutate: mutate as ReturnType<typeof useCreateGame>["mutate"] })}
+                onClose={onClose}
+                open
+                players={mockPlayers}
+                sessionId={1}
+              />
+            </MemoryRouter>
+          </ThemeProvider>
+        </QueryClientProvider>,
+      );
 
       await userEvent.click(screen.getByRole("img", { name: "Alice" }).closest("button")!);
       await userEvent.click(screen.getByRole("button", { name: "Garde" }));
@@ -658,8 +691,46 @@ describe("NewGameModal", () => {
       await userEvent.type(screen.getByPlaceholderText("Points"), "51");
       await userEvent.click(screen.getByRole("button", { name: "Valider" }));
 
-      // Modal still closes even on PATCH failure
-      await waitFor(() => expect(onClose).toHaveBeenCalled());
+      await waitFor(() => {
+        expect(invalidateSpy).toHaveBeenCalledWith({ queryKey: ["session", 1] });
+      });
+    });
+
+    it("PATCH échoue → invalide les queries, toast d'avertissement et modal se ferme", async () => {
+      mockApiFetch.mockRejectedValueOnce(new Error("Server error"));
+      const onClose = vi.fn();
+      const mutate = vi.fn((_data: unknown, opts: { onSuccess?: (data: Game) => void }) => {
+        opts.onSuccess?.(mockCreatedGame);
+      });
+      const queryClient = createTestQueryClient();
+      const invalidateSpy = vi.spyOn(queryClient, "invalidateQueries");
+      render(
+        <QueryClientProvider client={queryClient}>
+          <ThemeProvider attribute="class" defaultTheme="light" enableSystem={false}>
+            <MemoryRouter>
+              <NewGameModal
+                createGame={createMockCreateGame({ mutate: mutate as ReturnType<typeof useCreateGame>["mutate"] })}
+                onClose={onClose}
+                open
+                players={mockPlayers}
+                sessionId={1}
+              />
+            </MemoryRouter>
+          </ThemeProvider>
+        </QueryClientProvider>,
+      );
+
+      await userEvent.click(screen.getByRole("img", { name: "Alice" }).closest("button")!);
+      await userEvent.click(screen.getByRole("button", { name: "Garde" }));
+      await userEvent.click(screen.getByRole("button", { name: /résultat/i }));
+      await userEvent.click(screen.getByRole("button", { name: "Seul" }));
+      await userEvent.type(screen.getByPlaceholderText("Points"), "51");
+      await userEvent.click(screen.getByRole("button", { name: "Valider" }));
+
+      await waitFor(() => {
+        expect(invalidateSpy).toHaveBeenCalledWith({ queryKey: ["session", 1] });
+        expect(onClose).toHaveBeenCalled();
+      });
     });
   });
 });
