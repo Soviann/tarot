@@ -1,3 +1,4 @@
+import { useQueryClient } from "@tanstack/react-query";
 import { ChevronDown, RotateCcw } from "lucide-react";
 import { useRef, useMemo, useState } from "react";
 import type { useCreateGame } from "../hooks/useCreateGame";
@@ -53,6 +54,7 @@ const chelemOptions: { label: string; value: ChelemType }[] = [
 ];
 
 export default function NewGameModal({ createGame, currentDealerName, lastGameConfig, onBadgesUnlocked, onClose, onGameCompleted, onGameSaved, open, players, sessionId }: NewGameModalProps) {
+  const queryClient = useQueryClient();
   const [selectedContract, setSelectedContract] = useState<ContractType | null>(null);
   const [selectedTakerId, setSelectedTakerId] = useState<number | null>(null);
 
@@ -137,6 +139,7 @@ export default function NewGameModal({ createGame, currentDealerName, lastGameCo
         method: "PATCH",
       });
 
+      queryClient.invalidateQueries({ queryKey: ["session", sessionId] });
       toast("Donne enregistrée");
       if (scoreResult) {
         onGameCompleted?.({
@@ -158,6 +161,7 @@ export default function NewGameModal({ createGame, currentDealerName, lastGameCo
       }
       onClose();
     } catch {
+      queryClient.invalidateQueries({ queryKey: ["session", sessionId] });
       toast.warning("Donne créée mais non complétée");
       onClose();
     } finally {
@@ -174,6 +178,7 @@ export default function NewGameModal({ createGame, currentDealerName, lastGameCo
           if (completionIntended && completionValid) {
             completeCreatedGame(game);
           } else {
+            queryClient.invalidateQueries({ queryKey: ["session", sessionId] });
             toast("Donne créée");
             onClose();
           }
