@@ -12,7 +12,7 @@ export function useSessionFreshness(sessionId: number, enabled: boolean) {
 
   const query = useQuery({
     enabled,
-    queryFn: () => apiFetch<FreshnessResponse>(`/api/sessions/${sessionId}/freshness`),
+    queryFn: () => apiFetch<FreshnessResponse>(`/sessions/${sessionId}/freshness`),
     queryKey: ["session", sessionId, "freshness"],
     refetchInterval: 5000,
     refetchIntervalInBackground: false,
