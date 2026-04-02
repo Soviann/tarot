@@ -7,11 +7,13 @@ interface UseShakeOptions {
 
 const SHAKE_THRESHOLD = 25;
 const COOLDOWN_MS = 30_000;
+const REQUIRED_CONSECUTIVE_SHAKES = 3;
 
 export function useShake(onShake: () => void, options?: UseShakeOptions) {
   const enabled = options?.enabled ?? true;
   const lastRef = useRef<{ x: number; y: number; z: number } | null>(null);
   const lastTriggerRef = useRef(0);
+  const consecutiveRef = useRef(0);
   const onShakeRef = useRef(onShake);
   onShakeRef.current = onShake;
 
@@ -29,9 +31,19 @@ export function useShake(onShake: () => void, options?: UseShakeOptions) {
       const dz = Math.abs(z - lastRef.current.z);
       const delta = dx + dy + dz;
 
-      if (delta > SHAKE_THRESHOLD && Date.now() - lastTriggerRef.current >= COOLDOWN_MS) {
-        lastTriggerRef.current = Date.now();
-        onShakeRef.current();
+      if (delta > SHAKE_THRESHOLD) {
+        consecutiveRef.current++;
+
+        if (
+          consecutiveRef.current >= REQUIRED_CONSECUTIVE_SHAKES &&
+          Date.now() - lastTriggerRef.current >= COOLDOWN_MS
+        ) {
+          consecutiveRef.current = 0;
+          lastTriggerRef.current = Date.now();
+          onShakeRef.current();
+        }
+      } else {
+        consecutiveRef.current = 0;
       }
     }
 
@@ -41,8 +53,9 @@ export function useShake(onShake: () => void, options?: UseShakeOptions) {
   useEffect(() => {
     if (!enabled) return;
 
-    // Reset baseline to prevent stale data from triggering a false shake
+    // Reset baseline and streak to prevent false triggers after re-enabling
     lastRef.current = null;
+    consecutiveRef.current = 0;
 
     window.addEventListener("devicemotion", handleMotion as EventListener);
     return () => {
