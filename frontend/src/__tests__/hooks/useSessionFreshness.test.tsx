@@ -39,8 +39,32 @@ describe("useSessionFreshness", () => {
     });
 
     await waitFor(() => expect(result.current.data).toBeDefined());
-    expect(mockedApiFetch).toHaveBeenCalledWith("/api/sessions/1/freshness");
+    expect(mockedApiFetch).toHaveBeenCalledWith("/sessions/1/freshness");
     expect(result.current.data?.updatedAt).toBe("2026-03-25T14:00:00+00:00");
+  });
+
+  it("invalidates session queries when updatedAt changes", async () => {
+    const queryClient = new QueryClient({
+      defaultOptions: { queries: { retry: false } },
+    });
+    const invalidateSpy = vi.spyOn(queryClient, "invalidateQueries");
+
+    const wrapper = ({ children }: { children: ReactNode }) => (
+      <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
+    );
+
+    mockedApiFetch.mockResolvedValue({ updatedAt: "2026-03-25T14:00:00+00:00" });
+
+    const { result, rerender } = renderHook(() => useSessionFreshness(1, true), { wrapper });
+
+    await waitFor(() => expect(result.current.data).toBeDefined());
+    expect(invalidateSpy).not.toHaveBeenCalled();
+
+    mockedApiFetch.mockResolvedValue({ updatedAt: "2026-03-25T14:05:00+00:00" });
+    queryClient.setQueryData(["session", 1, "freshness"], { updatedAt: "2026-03-25T14:05:00+00:00" });
+    rerender();
+
+    await waitFor(() => expect(invalidateSpy).toHaveBeenCalledWith({ queryKey: ["session", 1] }));
   });
 
   it("does not fetch when disabled", () => {
