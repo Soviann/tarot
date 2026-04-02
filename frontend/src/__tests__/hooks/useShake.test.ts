@@ -19,19 +19,17 @@ describe("useShake", () => {
     vi.useRealTimers();
   });
 
-  it("calls onShake when acceleration exceeds threshold", () => {
+  it("calls onShake when sustained acceleration exceeds threshold", () => {
     const onShake = vi.fn();
     renderHook(() => useShake(onShake));
 
-    act(() => {
-      // First event sets baseline
-      fireDeviceMotion(0, 0, 9.8);
-    });
+    // Baseline
+    act(() => fireDeviceMotion(0, 0, 9.8));
 
-    act(() => {
-      // Second event with big delta triggers shake
-      fireDeviceMotion(30, 30, 9.8);
-    });
+    // Sustained shaking — 3 consecutive high deltas
+    act(() => fireDeviceMotion(30, 30, 9.8));
+    act(() => fireDeviceMotion(0, 0, 9.8));
+    act(() => fireDeviceMotion(30, 30, 9.8));
 
     expect(onShake).toHaveBeenCalledOnce();
   });
@@ -51,39 +49,64 @@ describe("useShake", () => {
     expect(onShake).not.toHaveBeenCalled();
   });
 
+  it("does not trigger on a single spike (requires sustained shaking)", () => {
+    const onShake = vi.fn();
+    renderHook(() => useShake(onShake));
+
+    // Baseline
+    act(() => fireDeviceMotion(0, 0, 9.8));
+
+    // Single spike above threshold — should NOT trigger
+    act(() => fireDeviceMotion(30, 30, 9.8));
+
+    // Back to calm
+    act(() => fireDeviceMotion(0, 0, 9.8));
+
+    expect(onShake).not.toHaveBeenCalled();
+  });
+
+  it("triggers after multiple consecutive high-acceleration samples", () => {
+    const onShake = vi.fn();
+    renderHook(() => useShake(onShake));
+
+    // Baseline
+    act(() => fireDeviceMotion(0, 0, 9.8));
+
+    // Sustained shaking — multiple consecutive high deltas
+    act(() => fireDeviceMotion(30, 30, 9.8));
+    act(() => fireDeviceMotion(0, 0, 9.8));
+    act(() => fireDeviceMotion(30, 30, 9.8));
+
+    expect(onShake).toHaveBeenCalledOnce();
+  });
+
   it("respects cooldown period between shakes", () => {
     const onShake = vi.fn();
     renderHook(() => useShake(onShake));
 
-    act(() => {
-      fireDeviceMotion(0, 0, 9.8);
-    });
-
-    act(() => {
-      fireDeviceMotion(30, 30, 9.8);
-    });
+    // First sustained shake
+    act(() => fireDeviceMotion(0, 0, 9.8));
+    act(() => fireDeviceMotion(30, 30, 9.8));
+    act(() => fireDeviceMotion(0, 0, 9.8));
+    act(() => fireDeviceMotion(30, 30, 9.8));
 
     expect(onShake).toHaveBeenCalledOnce();
 
     // Shake again immediately — should be ignored (cooldown)
-    act(() => {
-      fireDeviceMotion(0, 0, 9.8);
-    });
-    act(() => {
-      fireDeviceMotion(30, 30, 9.8);
-    });
+    act(() => fireDeviceMotion(0, 0, 9.8));
+    act(() => fireDeviceMotion(30, 30, 9.8));
+    act(() => fireDeviceMotion(0, 0, 9.8));
+    act(() => fireDeviceMotion(30, 30, 9.8));
 
     expect(onShake).toHaveBeenCalledOnce();
 
     // After cooldown (30s), shake should work again
     act(() => vi.advanceTimersByTime(30000));
 
-    act(() => {
-      fireDeviceMotion(0, 0, 9.8);
-    });
-    act(() => {
-      fireDeviceMotion(30, 30, 9.8);
-    });
+    act(() => fireDeviceMotion(0, 0, 9.8));
+    act(() => fireDeviceMotion(30, 30, 9.8));
+    act(() => fireDeviceMotion(0, 0, 9.8));
+    act(() => fireDeviceMotion(30, 30, 9.8));
 
     expect(onShake).toHaveBeenCalledTimes(2);
   });
@@ -116,7 +139,9 @@ describe("useShake", () => {
       { initialProps: { enabled: true } },
     );
 
-    // Trigger a shake
+    // Trigger a sustained shake
+    act(() => fireDeviceMotion(0, 0, 9.8));
+    act(() => fireDeviceMotion(30, 30, 9.8));
     act(() => fireDeviceMotion(0, 0, 9.8));
     act(() => fireDeviceMotion(30, 30, 9.8));
     expect(onShake).toHaveBeenCalledOnce();
@@ -131,6 +156,8 @@ describe("useShake", () => {
     rerender({ enabled: true });
 
     // Shake again immediately — should NOT trigger (cooldown still active)
+    act(() => fireDeviceMotion(0, 0, 9.8));
+    act(() => fireDeviceMotion(30, 30, 9.8));
     act(() => fireDeviceMotion(0, 0, 9.8));
     act(() => fireDeviceMotion(30, 30, 9.8));
 
