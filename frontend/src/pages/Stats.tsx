@@ -7,17 +7,19 @@ import EloRanking from "../components/EloRanking";
 import GlobalEloEvolutionChart from "../components/GlobalEloEvolutionChart";
 import GroupFilter from "../components/GroupFilter";
 import Leaderboard from "../components/Leaderboard";
+import WalkOfFame from "../components/WalkOfFame";
 import { Select, Spinner } from "../components/ui";
 import { useGlobalStats } from "../hooks/useGlobalStats";
 import { formatDuration } from "../utils/formatDuration";
 
-type GlobalStatsSection = "contracts" | "elo-evolution" | "elo-ranking" | "success-rate";
+type GlobalStatsSection = "contracts" | "elo-evolution" | "elo-ranking" | "success-rate" | "walk-of-fame";
 
 const ALL_SECTIONS: { label: string; value: GlobalStatsSection }[] = [
   { label: "Classement ELO", value: "elo-ranking" },
   { label: "Évolution ELO", value: "elo-evolution" },
   { label: "Répartition des contrats", value: "contracts" },
   { label: "Taux de réussite par contrat", value: "success-rate" },
+  { label: "Walk of Fame", value: "walk-of-fame" },
 ];
 
 export default function Stats() {
@@ -48,6 +50,7 @@ export default function Stats() {
       "elo-evolution": stats.eloEvolution.length > 0,
       "elo-ranking": stats.eloRanking.length > 0,
       "success-rate": stats.contractSuccessRateByPlayer.length > 0,
+      "walk-of-fame": stats.starRanking.length > 0,
     };
     return ALL_SECTIONS.filter((s) => hasData[s.value]);
   })();
@@ -167,6 +170,18 @@ export default function Stats() {
             Taux de réussite par contrat
           </h2>
           <ContractSuccessRateTable data={stats.contractSuccessRateByPlayer} />
+        </section>
+      )}
+
+      {selectedSection === "walk-of-fame" && (
+        <section>
+          <h2 className="mb-2 text-sm font-semibold text-text-secondary">
+            Walk of Fame
+          </h2>
+          <WalkOfFame
+            entries={stats.starRanking}
+            onPlayerClick={(id) => navigate(`/stats/player/${id}${groupId ? `?group=${groupId}` : ""}`)}
+          />
         </section>
       )}
     </div>

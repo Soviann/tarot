@@ -27,6 +27,7 @@ const mockStats = {
     { eloRating: 1520, gamesPlayed: 5, playerId: 1, playerName: "Alice" },
     { eloRating: 1480, gamesPlayed: 5, playerId: 2, playerName: "Bob" },
   ],
+  starRanking: [] as { playerColor: string | null; playerId: number; playerName: string; stars: number }[],
   leaderboard: [
     {
       gamesAsTaker: 3,
@@ -237,6 +238,38 @@ describe("Stats page", () => {
     renderWithProviders(<Stats />);
 
     expect(screen.queryByText("Durée moy. / donne")).not.toBeInTheDocument();
+  });
+
+  it("shows Walk of Fame section when starRanking is not empty", async () => {
+    const user = userEvent.setup();
+    const statsWithStars = {
+      ...mockStats,
+      starRanking: [
+        { playerColor: "#ff0000", playerId: 1, playerName: "Alice", stars: 5 },
+        { playerColor: "#0000ff", playerId: 2, playerName: "Bob", stars: 3 },
+      ],
+    };
+    vi.mocked(useGlobalStatsModule.useGlobalStats).mockReturnValue({
+      isPending: false,
+      stats: statsWithStars,
+    } as ReturnType<typeof useGlobalStatsModule.useGlobalStats>);
+
+    renderWithProviders(<Stats />);
+
+    // Open custom Select dropdown
+    const trigger = screen.getByRole("button", { name: /classement elo/i });
+    await user.click(trigger);
+
+    // Walk of Fame should be in the options
+    expect(screen.getByRole("option", { name: /walk of fame/i })).toBeInTheDocument();
+
+    // Select Walk of Fame
+    await user.click(screen.getByRole("option", { name: /walk of fame/i }));
+
+    // Verify section renders
+    expect(screen.getByRole("heading", { name: "Walk of Fame" })).toBeInTheDocument();
+    expect(screen.getByText("5 ⭐")).toBeInTheDocument();
+    expect(screen.getByText("3 ⭐")).toBeInTheDocument();
   });
 
   it("navigates to player stats on leaderboard click", async () => {
