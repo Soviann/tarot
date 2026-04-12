@@ -278,6 +278,8 @@ export interface SessionRankingEntry {
 
 export interface SessionSummary {
   awards: SessionAward[];
+  contractDistribution: ContractDistributionEntry[];
+  contractSuccessRate: ContractSuccessRatePlayer[];
   highlights: SessionHighlights;
   ranking: SessionRankingEntry[];
   scoreSpread: number;

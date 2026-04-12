@@ -5,6 +5,8 @@ import * as useSessionSummaryModule from "../../hooks/useSessionSummary";
 import SessionSummary from "../../pages/SessionSummary";
 import { renderWithProviders } from "../test-utils";
 
+vi.mock("recharts", () => import("../mocks/recharts"));
+
 vi.mock("sonner", () => ({
   toast: Object.assign(vi.fn(), {
     error: vi.fn(),
@@ -32,6 +34,31 @@ const mockSummary = {
       playerId: 1,
       playerName: "Alice",
       title: "Le Boucher",
+    },
+  ],
+  contractDistribution: [
+    { contract: "garde" as const, count: 5, percentage: 50 },
+    { contract: "petite" as const, count: 3, percentage: 30 },
+    { contract: "garde_sans" as const, count: 2, percentage: 20 },
+  ],
+  contractSuccessRate: [
+    {
+      color: null,
+      contracts: [
+        { contract: "garde" as const, count: 3, winRate: 66.7, wins: 2 },
+        { contract: "garde_sans" as const, count: 2, winRate: 100, wins: 2 },
+      ],
+      id: 1,
+      name: "Alice",
+    },
+    {
+      color: null,
+      contracts: [
+        { contract: "petite" as const, count: 3, winRate: 33.3, wins: 1 },
+        { contract: "garde" as const, count: 2, winRate: 50, wins: 1 },
+      ],
+      id: 2,
+      name: "Bob",
     },
   ],
   highlights: {
@@ -266,6 +293,34 @@ describe("SessionSummary page", () => {
     renderWithProviders(<SessionSummary />);
 
     expect(screen.queryByText("Distinctions")).not.toBeInTheDocument();
+  });
+
+  it("renders contract section with distribution and success rate", () => {
+    vi.mocked(useSessionSummaryModule.useSessionSummary).mockReturnValue({
+      data: mockSummary,
+      isPending: false,
+    } as ReturnType<typeof useSessionSummaryModule.useSessionSummary>);
+
+    renderWithProviders(<SessionSummary />);
+
+    expect(screen.getByText("Contrats")).toBeInTheDocument();
+  });
+
+  it("hides contract section when distribution is empty", () => {
+    const customSummary = {
+      ...mockSummary,
+      contractDistribution: [],
+      contractSuccessRate: [],
+    };
+
+    vi.mocked(useSessionSummaryModule.useSessionSummary).mockReturnValue({
+      data: customSummary,
+      isPending: false,
+    } as ReturnType<typeof useSessionSummaryModule.useSessionSummary>);
+
+    renderWithProviders(<SessionSummary />);
+
+    expect(screen.queryByText("Contrats")).not.toBeInTheDocument();
   });
 
   it("renders highlights without optional fields", () => {

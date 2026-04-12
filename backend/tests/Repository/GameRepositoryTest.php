@@ -359,6 +359,80 @@ class GameRepositoryTest extends ApiTestCase
         self::assertGreaterThan(0, $this->repo->getTotalDurationSeconds());
     }
 
+    public function testGetContractDistributionForSession(): void
+    {
+        $session = $this->createSessionWithPlayers('A', 'B', 'C', 'D', 'E');
+        $players = $session->getPlayers()->toArray();
+
+        self::assertSame([], $this->repo->getContractDistributionForSession($session));
+
+        $this->completeGame($session, $players[0], Contract::Garde);
+        $this->completeGame($session, $players[1], Contract::Garde);
+        $this->completeGame($session, $players[2], Contract::Petite);
+
+        $rows = $this->repo->getContractDistributionForSession($session);
+        self::assertCount(2, $rows);
+        self::assertSame(Contract::Garde, $rows[0]->contract);
+        self::assertSame(2, $rows[0]->count);
+        self::assertSame(Contract::Petite, $rows[1]->contract);
+        self::assertSame(1, $rows[1]->count);
+    }
+
+    public function testGetContractDistributionForSessionExcludesOtherSessions(): void
+    {
+        $session1 = $this->createSessionWithPlayers('A', 'B', 'C', 'D', 'E');
+        $session2 = $this->createSessionWithPlayers('F', 'G', 'H', 'I', 'J');
+        $this->completeGame($session1, $session1->getPlayers()->first(), Contract::Garde);
+        $this->completeGame($session2, $session2->getPlayers()->first(), Contract::Petite);
+
+        $rows = $this->repo->getContractDistributionForSession($session1);
+        self::assertCount(1, $rows);
+        self::assertSame(Contract::Garde, $rows[0]->contract);
+    }
+
+    public function testGetContractCountByPlayerForSession(): void
+    {
+        $session = $this->createSessionWithPlayers('A', 'B', 'C', 'D', 'E');
+        $players = $session->getPlayers()->toArray();
+
+        $this->completeGame($session, $players[0], Contract::Garde);
+        $this->completeGame($session, $players[0], Contract::Petite);
+        $this->completeGame($session, $players[1], Contract::Garde);
+
+        $rows = $this->repo->getContractCountByPlayerForSession($session);
+        self::assertNotEmpty($rows);
+
+        $player0Garde = null;
+        foreach ($rows as $row) {
+            if ($row->playerId === $players[0]->getId() && Contract::Garde === $row->contract) {
+                $player0Garde = $row;
+                break;
+            }
+        }
+        self::assertNotNull($player0Garde);
+        self::assertSame(1, $player0Garde->count);
+    }
+
+    public function testGetContractWinsByPlayerForSession(): void
+    {
+        $session = $this->createSessionWithPlayers('A', 'B', 'C', 'D', 'E');
+        $players = $session->getPlayers()->toArray();
+
+        $this->completeGame($session, $players[0], Contract::Garde, takerScore: 200);
+        $this->completeGame($session, $players[0], Contract::Garde, takerScore: -100);
+
+        $rows = $this->repo->getContractWinsByPlayerForSession($session);
+
+        $found = false;
+        foreach ($rows as $row) {
+            if ($row->playerId === $players[0]->getId()) {
+                self::assertSame(1, $row->wins);
+                $found = true;
+            }
+        }
+        self::assertTrue($found);
+    }
+
     private function createInProgressGame(Session $session, Player $taker): Game
     {
         $game = new Game();

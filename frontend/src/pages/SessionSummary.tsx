@@ -1,10 +1,14 @@
 import { ArrowLeft, Download, Share2 } from "lucide-react";
 import { useCallback, useRef, useState } from "react";
 import { Link, useParams } from "react-router-dom";
+import ContractDistributionChart from "../components/ContractDistributionChart";
+import ContractSuccessRateTable from "../components/ContractSuccessRateTable";
 import { PlayerAvatar, ScoreDisplay, Spinner } from "../components/ui";
 import { useSessionSummary } from "../hooks/useSessionSummary";
 import { toast } from "sonner";
 import type {
+  ContractDistributionEntry,
+  ContractSuccessRatePlayer,
   SessionAward,
   SessionHighlights,
   SessionRankingEntry,
@@ -254,6 +258,32 @@ function Highlights({ highlights }: { highlights: SessionHighlights }) {
   );
 }
 
+// --- Contract Section ---
+
+function ContractSection({
+  distribution,
+  successRate,
+}: {
+  distribution: ContractDistributionEntry[];
+  successRate: ContractSuccessRatePlayer[];
+}) {
+  if (distribution.length === 0) return null;
+
+  return (
+    <div className="rounded-xl bg-surface-secondary p-4 shadow-sm">
+      <h2 className="mb-3 text-lg font-semibold text-text-primary lg:text-xl">
+        Contrats
+      </h2>
+      <ContractDistributionChart data={distribution} />
+      {successRate.length > 0 && (
+        <div className="mt-4">
+          <ContractSuccessRateTable data={successRate} />
+        </div>
+      )}
+    </div>
+  );
+}
+
 // --- Awards ---
 
 const AWARD_COLORS = [
@@ -387,6 +417,12 @@ export default function SessionSummary() {
 
         {/* Highlights */}
         <Highlights highlights={summary.highlights} />
+
+        {/* Contrats */}
+        <ContractSection
+          distribution={summary.contractDistribution}
+          successRate={summary.contractSuccessRate}
+        />
 
         {/* Awards */}
         <Awards awards={summary.awards} />

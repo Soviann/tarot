@@ -720,6 +720,65 @@ final class GameRepository extends ServiceEntityRepository
         return $qb->getQuery()->getResult();
     }
 
+    /**
+     * @return list<ContractDistributionDto>
+     */
+    public function getContractDistributionForSession(Session $session): array
+    {
+        /** @var list<ContractDistributionDto> */
+        return $this->createQueryBuilder('g')
+            ->select('NEW App\Dto\ContractDistributionDto(g.contract, COUNT(g.id))')
+            ->andWhere('g.session = :session')
+            ->andWhere('g.status = :status')
+            ->setParameter('session', $session)
+            ->setParameter('status', GameStatus::Completed)
+            ->groupBy('g.contract')
+            ->orderBy('COUNT(g.id)', 'DESC')
+            ->getQuery()
+            ->getResult();
+    }
+
+    /**
+     * @return list<ContractCountByPlayerDto>
+     */
+    public function getContractCountByPlayerForSession(Session $session): array
+    {
+        /** @var list<ContractCountByPlayerDto> */
+        return $this->createQueryBuilder('g')
+            ->select('NEW App\Dto\ContractCountByPlayerDto(g.contract, COUNT(g.id), p.color, IDENTITY(g.taker), p.name)')
+            ->join('g.taker', 'p')
+            ->andWhere('g.session = :session')
+            ->andWhere('g.status = :status')
+            ->setParameter('session', $session)
+            ->setParameter('status', GameStatus::Completed)
+            ->groupBy('g.taker')
+            ->addGroupBy('p.color')
+            ->addGroupBy('p.name')
+            ->addGroupBy('g.contract')
+            ->getQuery()
+            ->getResult();
+    }
+
+    /**
+     * @return list<ContractWinsByPlayerDto>
+     */
+    public function getContractWinsByPlayerForSession(Session $session): array
+    {
+        /** @var list<ContractWinsByPlayerDto> */
+        return $this->createQueryBuilder('g')
+            ->select('NEW App\Dto\ContractWinsByPlayerDto(g.contract, IDENTITY(g.taker), COUNT(g.id))')
+            ->join(\App\Entity\ScoreEntry::class, 'se', 'WITH', 'se.game = g AND se.player = g.taker')
+            ->andWhere('g.session = :session')
+            ->andWhere('g.status = :status')
+            ->andWhere('se.score > 0')
+            ->setParameter('session', $session)
+            ->setParameter('status', GameStatus::Completed)
+            ->groupBy('g.taker')
+            ->addGroupBy('g.contract')
+            ->getQuery()
+            ->getResult();
+    }
+
     public function countCompleted(?DateRange $dateRange = null, ?int $playerGroupId = null): int
     {
         $qb = $this->createQueryBuilder('g')

@@ -64,6 +64,12 @@ class SessionSummaryServiceTest extends ApiTestCase
         self::assertNull($summary['highlights']['worstGame']);
         self::assertNull($summary['highlights']['mostPlayedContract']);
 
+        // contractDistribution: empty (no games)
+        self::assertSame([], $summary['contractDistribution']);
+
+        // contractSuccessRate: empty (no games)
+        self::assertSame([], $summary['contractSuccessRate']);
+
         // awards: empty because < 3 completed games
         self::assertSame([], $summary['awards']);
     }
@@ -166,6 +172,42 @@ class SessionSummaryServiceTest extends ApiTestCase
 
         // duration >= 0 (session just created, games completed nearly instantly)
         self::assertGreaterThanOrEqual(0, $summary['highlights']['duration']);
+
+        // -- contractDistribution (3 contracts, each played once) --
+        self::assertCount(3, $summary['contractDistribution']);
+        foreach ($summary['contractDistribution'] as $entry) {
+            self::assertSame(1, $entry['count']);
+            self::assertEqualsWithDelta(33.33, $entry['percentage'], 0.01);
+        }
+
+        // -- contractSuccessRate --
+        self::assertNotEmpty($summary['contractSuccessRate']);
+        // Alice took 2 games (Garde win, GardeSans win)
+        $aliceRate = null;
+        foreach ($summary['contractSuccessRate'] as $player) {
+            if ($player['id'] === $alice->getId()) {
+                $aliceRate = $player;
+            }
+        }
+        self::assertNotNull($aliceRate);
+        self::assertSame('Alice', $aliceRate['name']);
+        // Alice has 2 contracts, both with 100% winRate
+        foreach ($aliceRate['contracts'] as $c) {
+            self::assertSame(1, $c['count']);
+            self::assertSame(1, $c['wins']);
+            self::assertSame(100.0, $c['winRate']);
+        }
+        // Bob took 1 game (Petite loss)
+        $bobRate = null;
+        foreach ($summary['contractSuccessRate'] as $player) {
+            if ($player['id'] === $bob->getId()) {
+                $bobRate = $player;
+            }
+        }
+        self::assertNotNull($bobRate);
+        self::assertCount(1, $bobRate['contracts']);
+        self::assertSame(0, $bobRate['contracts'][0]['wins']);
+        self::assertSame(0.0, $bobRate['contracts'][0]['winRate']);
 
         // -- awards (>= 3 games, so awards are generated) --
         self::assertNotEmpty($summary['awards']);
