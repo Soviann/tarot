@@ -35,6 +35,7 @@ node_modules/
 .claude/settings.local.json
 .playwright-mcp/
 docs/plans/
+docs/superpowers/
 .ddev/share-providers/
 worktrees/
 ###< local ###
