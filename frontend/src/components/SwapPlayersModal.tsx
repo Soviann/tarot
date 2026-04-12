@@ -45,6 +45,7 @@ export default function SwapPlayersModal({
 
         <PlayerSelector
           onSelectionChange={setSelectedPlayerIds}
+          priorityPlayerIds={currentPlayerIds}
           selectedPlayerIds={selectedPlayerIds}
         />
 
