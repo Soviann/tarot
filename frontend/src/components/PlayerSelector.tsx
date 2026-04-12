@@ -13,6 +13,7 @@ interface PlayerSelectorProps {
   maxPlayers?: number;
   onSelectionChange: (ids: number[]) => void;
   onStart?: () => void;
+  priorityPlayerIds?: number[];
   selectedPlayerIds: number[];
 }
 
@@ -21,6 +22,7 @@ export default function PlayerSelector({
   maxPlayers = DEFAULT_MAX_PLAYERS,
   onSelectionChange,
   onStart,
+  priorityPlayerIds,
   selectedPlayerIds,
 }: PlayerSelectorProps) {
   const [search, setSearch] = useState("");
@@ -33,7 +35,20 @@ export default function PlayerSelector({
   const { players: allPlayers } = usePlayers();
   const { isPending, players: searchedPlayers } = usePlayers(search);
   const createPlayer = useCreatePlayer();
-  const players = searchedPlayers.filter((p) => p.active);
+  const activePlayers = searchedPlayers.filter((p) => p.active);
+
+  const players = useMemo(() => {
+    if (!priorityPlayerIds?.length) return activePlayers;
+    const prioritySet = new Map(priorityPlayerIds.map((id, i) => [id, i]));
+    return [...activePlayers].sort((a, b) => {
+      const aIdx = prioritySet.get(a.id);
+      const bIdx = prioritySet.get(b.id);
+      if (aIdx !== undefined && bIdx !== undefined) return aIdx - bIdx;
+      if (aIdx !== undefined) return -1;
+      if (bIdx !== undefined) return 1;
+      return a.name.localeCompare(b.name);
+    });
+  }, [activePlayers, priorityPlayerIds]);
 
   const selectedPlayers = useMemo(
     () =>

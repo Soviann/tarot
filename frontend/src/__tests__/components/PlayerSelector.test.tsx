@@ -607,6 +607,28 @@ describe("PlayerSelector", () => {
     });
   });
 
+  it("sorts dropdown by priorityPlayerIds first then alphabetically", async () => {
+    setupMocks();
+    renderWithProviders(
+      <PlayerSelector
+        onSelectionChange={vi.fn()}
+        priorityPlayerIds={[3, 1]}
+        selectedPlayerIds={[]}
+      />,
+    );
+
+    await searchFor("a");
+
+    const options = screen.getAllByRole("option");
+    // Priority: Charlie (3), Alice (1), then rest alphabetically: Bob, Diana, Eve, Frank
+    expect(options[0]).toHaveTextContent("Charlie");
+    expect(options[1]).toHaveTextContent("Alice");
+    expect(options[2]).toHaveTextContent("Bob");
+    expect(options[3]).toHaveTextContent("Diana");
+    expect(options[4]).toHaveTextContent("Eve");
+    expect(options[5]).toHaveTextContent("Frank");
+  });
+
   it("shows inactive player in chips if already selected", () => {
     const playersWithInactive = [
       { active: true, createdAt: "2025-01-15T10:00:00+00:00", id: 1, name: "Alice" },
