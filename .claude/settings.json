@@ -9,21 +9,46 @@
       "Bash(ddev exec *)",
       "Bash(ddev list*)",
       "Bash(ddev status*)",
+      "Bash(gh api:*)",
       "Bash(gh issue list*)",
       "Bash(gh issue view*)",
       "Bash(gh pr checks*)",
+      "Bash(gh pr diff:*)",
       "Bash(gh pr list*)",
       "Bash(gh pr view*)",
-      "Bash(gh run list*)",
-      "Bash(gh run view*)",
-      "Bash(git branch*)",
-      "Bash(git diff*)",
-      "Bash(git log*)",
-      "Bash(git show*)",
-      "Bash(git stash list*)",
-      "Bash(git status*)",
+      "Bash(gh repo view:*)",
+      "Bash(gh run:*)",
+      "Bash(git:*)",
+      "Bash(make:*)",
+      "WebFetch",
+      "WebSearch",
+      "mcp__plugin_chrome-devtools-mcp_chrome-devtools__*",
       "mcp__plugin_context7_context7__query-docs",
-      "mcp__plugin_context7_context7__resolve-library-id"
+      "mcp__plugin_context7_context7__resolve-library-id",
+      "mcp__plugin_playwright_playwright__*"
+    ],
+    "ask": [
+      "Bash(gh issue close:*)",
+      "Bash(gh issue delete:*)",
+      "Bash(gh pr close:*)",
+      "Bash(gh pr create:*)",
+      "Bash(gh pr merge:*)",
+      "Bash(git -C * branch -D:*)",
+      "Bash(git -C * checkout .:*)",
+      "Bash(git -C * clean -f:*)",
+      "Bash(git -C * commit:*)",
+      "Bash(git -C * push --force:*)",
+      "Bash(git -C * push -f:*)",
+      "Bash(git -C * reset --hard:*)",
+      "Bash(git -C * restore .:*)",
+      "Bash(git branch -D:*)",
+      "Bash(git checkout .:*)",
+      "Bash(git clean -f:*)",
+      "Bash(git commit:*)",
+      "Bash(git push --force:*)",
+      "Bash(git push -f:*)",
+      "Bash(git reset --hard:*)",
+      "Bash(git restore .:*)"
     ]
   },
   "hooks": {
@@ -33,7 +58,18 @@
         "hooks": [
           {
             "type": "command",
-            "command": "if echo \"$TOOL_INPUT\" | jq -e '.subagent_type == \"Explore\"' > /dev/null 2>&1; then if [ -f docs/patterns.md ]; then echo 'STOP — Read docs/patterns.md BEFORE exploring. Only launch Explore if patterns.md does not cover your need.'; else echo 'No docs/patterns.md found. After exploration, create one with the codebase map.'; fi; fi"
+            "command": "INPUT=$(cat); if [ \"$(echo \"$INPUT\" | jq -r '.tool_input.subagent_type // empty')\" = \"Explore\" ]; then SID=$(echo \"$INPUT\" | jq -r '.session_id // empty'); PROJ=\"${CLAUDE_PROJECT_DIR:-.}\"; if [ -f \"$PROJ/docs/patterns.md\" ]; then if [ ! -f \"/tmp/claude-patterns-$SID\" ]; then echo 'BLOCKED — Read docs/patterns.md first (it documents the codebase map and conventions). Only launch Explore if patterns.md does not cover your need; this block clears once patterns.md has been read this session.' >&2; exit 2; fi; else echo 'No docs/patterns.md found. After exploration, create one with the codebase map.'; fi; fi"
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Read",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "INPUT=$(cat); FP=$(echo \"$INPUT\" | jq -r '.tool_input.file_path // empty'); case \"$FP\" in */docs/patterns.md) SID=$(echo \"$INPUT\" | jq -r '.session_id // empty'); touch \"/tmp/claude-patterns-$SID\" ;; esac"
           }
         ]
       }
@@ -44,6 +80,16 @@
           {
             "type": "command",
             "command": ".claude/hooks/preserve-context.sh"
+          }
+        ]
+      }
+    ],
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash \"${CLAUDE_PROJECT_DIR:-.}/.claude/hooks/warn-before-compact.sh\""
           }
         ]
       }

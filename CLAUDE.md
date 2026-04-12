@@ -1,10 +1,104 @@
-# CLAUDE.md
+# CLAUDE.md — Mandatory rules
 
-Mandatory rules. Claude = sole developer. Keep this file, tests, docs up to date.
+<!-- TEMPLATE:START — managed by sync-template-config, do not edit manually.
+     Add here: shared conventions (coding standards, git rules, language rules, approach,
+     token optimization, recommended plugins, translations).
+     If unsure whether a rule belongs here or in PROJECT, ask the user before adding. -->
 
-## Architecture
+## Approach
+- Act over ask; read only files you'll edit.
+- Key context: CLAUDE.md, MEMORY.md, `docs/patterns.md` — update `docs/patterns.md` when adding entities/controllers/forms/commands/routes.
+- CLAUDE.md and `docs/patterns.md` must be optimized for LLM use and token efficiency, without loss of information/instruction.
+- Complex tasks: plan → approval → implement. Large changes: verifiable chunks.
+- Plans: `docs/plans/YYYY-MM-DD-<feature-name>.md` — temporary, delete after merge. Never commit.
+- Act on user instructions directly — no exploratory glob/grep when user names the target.
+- Don't verify existence of items already known from plan or memory.
+
+## Plans
+
+### Format
+- **PO summary first**: 2-3 sentences max, non-technical, describing what changes for the user/product. Enables fast validation before reading technical detail.
+- **Then phases**: phase N depends on N-1 output. Within each phase, mark tasks `[parallel]` or `[seq]`.
+- No prose — actionable instructions only. Each task: target files, method signatures/behavior, test criteria.
+- All architectural decisions made in plan. No "decide how to…" — Sonnet executes, doesn't architect.
+
+### Sonnet-readiness (per task)
+- Target files listed with expected changes
+- Input/output or behavior defined
+- Test criteria explicit (what to assert)
+
+### Execution model
+- Phase with independent tasks → `subagent-driven-development` (parallel Sonnet sub-agents)
+- Phase with dependencies → single sequential agent
+- Mechanical same-change × N → parallel sub-agents
+- One session per phase. Plan encodes execution — no orchestrator needed.
+
+## Quality
+- Linters/formatters: before committing only, ONLY on modified files.
+- DRY: extract at 3+ occurrences (or 2 if complex). Exception: abstraction obscures intent or coupling > duplication cost.
+- Prefer native/library solutions over custom code.
+
+## Token Cost Optimization
+- **Parallelize** independent tool calls in one turn. Serialize only when B depends on A's output.
+- **Combine Bash** with `&&` when output-independent. Don't combine when you need A's output to decide B, or when failure diagnosis/timeouts differ.
+- **No exploratory search when target is known.** Named file/symbol → Read/Grep directly. Skip verifying items known from plan/memory.
+- **Direct tools > subagents.** Subagent = full Opus conversation billed on top. Use Grep/Glob/Read for known targets, single-file reads, <3 queries. Use subagents only for open-ended multi-file research or to protect main context.
+- **Cheap models on mechanical subagents.** File search, simple refactor, mechanical lookup → `model: "haiku"` or `"sonnet"`.
+- **`gh --json field1,field2`** over MCP GitHub tools for simple queries. `minimal_output: true` on MCP list/search calls.
+
+## Coding Standards
+- `@Symfony` CS Fixer ruleset + [Symfony standards](https://symfony.com/doc/current/contributing/code/standards.html)
+- Backslash-prefix native functions: `\array_map()`, `\sprintf()`, `\count()`
+- Prefer `u()` (String component) over native string functions.
+- Yoda conditions: `null === $var` not `$var === null`.
+- Method order: `__construct` → public → protected → private (`setUp`/`tearDown` first in tests).
+- One-line args (except promoted constructors: one per line, trailing comma).
+- Existing files: fix only your changes.
+- PHPStan level 9 — never ignore/lower.
+- Alphabetical: constructor assignments, array keys, YAML keys.
+- No magic strings: use constants or enums for domain values reused across files.
+- DB queries: repositories only (`src/Repository/`), QueryBuilder only (no DQL). Never inject `EntityManagerInterface` for queries.
+- Doctrine migrations: always set `getDescription()` (French, concise).
+- **DTOs over arrays**: `readonly` DTO classes in `src/DTO/` or same namespace. `JsonSerializable` only for API/cache.
+
+## Git
+- Format: `<type>(scope|branch-name): description` — types: `feat|fix|chore|refactor|docs`
+- French descriptions: 3rd-person imperative (`ajoute`, `corrige`, `supprime` — not infinitive).
+- Commit title = visible impact, not implementation detail. Technical details in body.
+  - `fix`: problem solved. BAD: `utilise PATCH au lieu de PUT` GOOD: `corrige la perte des tomes`
+  - `feat`: capability added. BAD: `ajoute CoverSearchService` GOOD: `ajoute la recherche de couvertures`
+  - `refactor`/`chore`: improvement. BAD: `extrait getFieldPriority` GOOD: `simplifie la résolution de priorité`
+- Never commit `docs/plans/` — always `git reset docs/plans/` before committing.
+- Skip `git diff` when you made the edits — diff only to discover changes you didn't make.
+- Merges: `--no-ff`
+
+## Translations
+- No hardcoded user-facing text — always use translation keys.
+- `translations/messages.fr.yaml`: UI labels, titles, buttons, menus.
+- `translations/validators.fr.yaml`: `Assert\*` constraint `message:` params.
+- Key pattern: `app.<entity>.<context>.<purpose>` (e.g. `app.example.admin.fields.name.label`).
+- Twig: `{{ 'key'|trans }}`, with params: `{{ 'key'|trans({'%name%': val}) }}`
+
+## Language
+Commits + docs/comments: French. Code identifiers: English. CLAUDE.md: English.
+
+## Recommended Plugins
+`php-lsp`, `context7`, `superpowers`, `pr-review-toolkit`, `commit-commands`, `hookify`, `code-simplifier`.
+
+<!-- TEMPLATE:END -->
+
+<!-- PROJECT:START — project-specific content, edit freely.
+     Add here: project description, tech stack, architecture, commands, project-specific
+     deviations from the template rules.
+     If unsure whether a rule belongs here or in TEMPLATE, ask the user before adding. -->
+
+## Project
+
+Claude = sole developer. Keep this file, tests, docs up to date.
 
 Symfony 7.4 + API Platform 4 | React 19 + TypeScript + Vite | MariaDB via DDEV | Tailwind CSS 4 | TanStack Query
+
+## Architecture
 
 ```
 tarot/
@@ -16,16 +110,6 @@ tarot/
 ```
 
 > File map (entities, hooks, components, routes, API endpoints): `docs/patterns.md`
-
-## Approach
-
-- Edit files when asked.
-- **No codebase exploration.** CLAUDE.md, MEMORY.md, `.claude/memory/patterns.md` have all context. Only read files you're about to edit.
-- **Keep `docs/patterns.md` up to date** when adding entities, hooks, components, pages, routes.
-
-## Plans
-
-Store in `docs/plans/` (temporary, delete after PR merged). Concise: what to do, not how.
 
 ## Mandatory TDD
 
@@ -51,17 +135,7 @@ Always use `make` targets, always prefix with `ddev exec` (hookify-enforced).
 | `ddev exec make build` | Production build |
 | `ddev exec make sf CMD="..."` | Any Symfony console command |
 
-## Git
-
-### Commits
-
-`<type>(scope): description` — Types: `feat|fix|chore|refactor|docs`
-Verbe conjugué (impératif 3e pers.): `ajoute`, `corrige`, `supprime` (pas infinitif).
-Commit title = visible impact, not implementation detail. BAD: `utilise PATCH au lieu de PUT`. GOOD: `corrige la perte des tomes`.
-Always reference issue (`#N` in body or `fixes #N`). Run CS Fixer on staged `.php` before commit.
-Never commit `docs/plans/` — always `git reset docs/plans/` before committing.
-Skip `git diff` when you made the edits — only diff to discover changes you didn't make.
-Local merges: `--no-ff`.
+## Git — Project Rules
 
 ### Branching
 
@@ -114,20 +188,10 @@ Format: `- **Name**: Description`
 
 Maintain: `docs/user-guide.md` (end-user) and `docs/frontend-usage.md` (developer reference).
 
-## Code Conventions
+## Code Conventions — Project-Specific
 
-- **Backend**: queries in repositories only (QueryBuilder, no raw DQL). PHP backed enums. PHPStan level max. CS Fixer `@Symfony` + `@Symfony:risky`. API Platform serialization groups (no custom DTOs unless needed). Backslash-prefix native functions: `\array_map()`, `\sprintf()`.
+- PHP backed enums. CS Fixer `@Symfony:risky`.
+- API Platform serialization groups (no custom DTOs unless needed).
 - **Frontend**: functional components, custom hooks for API, TypeScript strict. UI primitives from `components/ui/`.
-- Yoda conditions: `if (null === $var)` not `if ($var === null)`
-- Alphabetical: constructor assignments, associative array keys, YAML keys
-- No magic strings: use constants or enums for domain values reused across files
 
-## Language
-
-- Git, PR, CHANGELOG, docs, UI text, comments: **French**
-- Code identifiers: **English**
-- CLAUDE.md: **English**
-
-## Recommended Plugins
-
-`context7`, `superpowers`, `pr-review-toolkit`, `commit-commands`, `hookify`, `code-simplifier`.
+<!-- PROJECT:END -->
