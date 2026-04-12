@@ -8,6 +8,7 @@ use App\Dto\ContractDistributionDto;
 use App\Dto\DateRange;
 use App\Dto\EloRankingEntryDto;
 use App\Dto\LeaderboardScoreDto;
+use App\Dto\PlayerWithCountDto;
 use App\Repository\EloHistoryRepository;
 use App\Repository\GameRepository;
 use App\Repository\ScoreEntryRepository;
@@ -233,6 +234,24 @@ final readonly class GlobalStatisticsService
                 'wins' => $wins[$row->playerId] ?? 0,
             ],
             $scoreRows,
+        );
+    }
+
+    /**
+     * Classement des joueurs par nombre d'étoiles reçues (ordre décroissant).
+     *
+     * @return list<array{playerColor: string|null, playerId: int, playerName: string, stars: int}>
+     */
+    public function getStarRanking(?DateRange $dateRange = null, ?int $playerGroupId = null): array
+    {
+        return \array_map(
+            static fn (PlayerWithCountDto $row): array => [
+                'playerColor' => $row->playerColor,
+                'playerId' => $row->playerId,
+                'playerName' => $row->playerName,
+                'stars' => $row->count,
+            ],
+            $this->starEventRepository->getStarRanking($dateRange, $playerGroupId),
         );
     }
 

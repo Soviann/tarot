@@ -13,6 +13,7 @@ use App\Dto\EloRankingEntryDto;
 use App\Dto\GamesPlayedCountDto;
 use App\Dto\LeaderboardScoreDto;
 use App\Dto\PlayerCountDto;
+use App\Dto\PlayerWithCountDto;
 use App\Enum\Contract;
 use App\Repository\EloHistoryRepository;
 use App\Repository\GameRepository;
@@ -292,6 +293,41 @@ final class GlobalStatisticsServiceTest extends TestCase
         self::assertSame(1480, $result[1]['history'][0]['ratingAfter']);
         self::assertSame(2, $result[1]['history'][1]['gameId']);
         self::assertSame(1500, $result[1]['history'][1]['ratingAfter']);
+    }
+
+    // ── Delegation methods ──────────────────────────────────────────────
+
+    // ── getStarRanking ───────────────────────────────────────────────────
+
+    public function testStarRankingMapping(): void
+    {
+        $this->starEventRepository->method('getStarRanking')->willReturn([
+            new PlayerWithCountDto(5, '#ff0000', 1, 'Alice'),
+            new PlayerWithCountDto(3, '#0000ff', 2, 'Bob'),
+        ]);
+
+        $result = $this->service->getStarRanking();
+
+        self::assertCount(2, $result);
+
+        self::assertSame('#ff0000', $result[0]['playerColor']);
+        self::assertSame(1, $result[0]['playerId']);
+        self::assertSame('Alice', $result[0]['playerName']);
+        self::assertSame(5, $result[0]['stars']);
+
+        self::assertSame('#0000ff', $result[1]['playerColor']);
+        self::assertSame(2, $result[1]['playerId']);
+        self::assertSame('Bob', $result[1]['playerName']);
+        self::assertSame(3, $result[1]['stars']);
+    }
+
+    public function testStarRankingEmpty(): void
+    {
+        $this->starEventRepository->method('getStarRanking')->willReturn([]);
+
+        $result = $this->service->getStarRanking();
+
+        self::assertSame([], $result);
     }
 
     // ── Delegation methods ──────────────────────────────────────────────

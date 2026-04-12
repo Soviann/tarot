@@ -37,6 +37,7 @@ readonly class StatisticsController
             'eloEvolution' => $globalStatisticsService->getAllPlayersEloHistory($dateRange, $playerGroupId),
             'eloRanking' => $globalStatisticsService->getEloRanking($playerGroupId),
             'leaderboard' => $globalStatisticsService->getLeaderboard($dateRange, $playerGroupId),
+            'starRanking' => $globalStatisticsService->getStarRanking($dateRange, $playerGroupId),
             'totalGames' => $globalStatisticsService->getTotalGames($dateRange, $playerGroupId),
             'totalPlayTime' => $globalStatisticsService->getTotalPlayTimeSeconds($dateRange, $playerGroupId),
             'totalSessions' => $globalStatisticsService->getTotalSessions($dateRange, $playerGroupId),

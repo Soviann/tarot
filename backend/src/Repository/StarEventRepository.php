@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Repository;
 
 use App\Dto\DateRange;
+use App\Dto\PlayerWithCountDto;
 use App\Entity\Player;
 use App\Entity\Session;
 use App\Entity\StarEvent;
@@ -153,6 +154,34 @@ final class StarEventRepository extends ServiceEntityRepository
         $result = $qb->getQuery()->getOneOrNullResult();
 
         return null !== $result ? (int) $result['cnt'] : 0;
+    }
+
+    /**
+     * @return list<PlayerWithCountDto>
+     */
+    public function getStarRanking(?DateRange $dateRange = null, ?int $playerGroupId = null): array
+    {
+        $qb = $this->createQueryBuilder('se')
+            ->select('COUNT(se.id) AS count, p.color AS playerColor, p.id AS playerId, p.name AS playerName')
+            ->join('se.player', 'p')
+            ->groupBy('p.id')
+            ->orderBy('count', 'DESC');
+
+        $this->applyDateFilter($qb, $dateRange, 'se', 'createdAt');
+        $this->applySessionGroupFilter($qb, $playerGroupId, 'se');
+
+        /** @var list<array{count: string, playerColor: string|null, playerId: int|string, playerName: string}> $rows */
+        $rows = $qb->getQuery()->getResult();
+
+        return \array_map(
+            static fn (array $row): PlayerWithCountDto => new PlayerWithCountDto(
+                $row['count'],
+                $row['playerColor'],
+                $row['playerId'],
+                $row['playerName'],
+            ),
+            $rows,
+        );
     }
 
     public function countAll(?DateRange $dateRange = null, ?int $playerGroupId = null): int

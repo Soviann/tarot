@@ -11,6 +11,7 @@ use App\Entity\Player;
 use App\Entity\PlayerGroup;
 use App\Entity\ScoreEntry;
 use App\Entity\Session;
+use App\Entity\StarEvent;
 use App\Enum\Chelem;
 use App\Enum\Contract;
 use App\Enum\GameStatus;
@@ -54,6 +55,17 @@ abstract class ApiTestCase extends BaseApiTestCase
         $this->em->flush();
 
         return $player;
+    }
+
+    protected function createStarEvent(Session $session, Player $player): StarEvent
+    {
+        $star = new StarEvent();
+        $star->setPlayer($player);
+        $star->setSession($session);
+        $this->em->persist($star);
+        $this->em->flush();
+
+        return $star;
     }
 
     protected function createSessionWithPlayers(string ...$names): Session

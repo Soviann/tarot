@@ -115,10 +115,18 @@ export interface GlobalStatistics {
   eloEvolution: EloEvolutionPlayer[];
   eloRanking: EloRankingEntry[];
   leaderboard: LeaderboardEntry[];
+  starRanking: StarRankingEntry[];
   totalGames: number;
   totalPlayTime: number;
   totalSessions: number;
   totalStars: number;
+}
+
+export interface StarRankingEntry {
+  playerColor: string | null;
+  playerId: number;
+  playerName: string;
+  stars: number;
 }
 
 export interface HydraCollection<T> {
