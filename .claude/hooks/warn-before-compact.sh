@@ -15,8 +15,8 @@ SIZE=$(stat -f %z "$TRANSCRIPT" 2>/dev/null || stat -c %s "$TRANSCRIPT" 2>/dev/n
 
 # Thresholds calibrated from observed auto-compact events on this project
 # (~850 KB transcript size). Soft = early warning, hard = urgent.
-SOFT=512000    # ~500 KB
-HARD=716800    # ~700 KB
+SOFT=716800    # ~700 KB
+HARD=808960    # ~790 KB
 
 if [ "$SIZE" -ge "$HARD" ]; then
   MSG="CONTEXT CRITICAL ($(( SIZE / 1024 )) KB transcript) — auto-compact imminent. BEFORE responding to the user's request, warn them that auto-compact is about to fire and ASK whether they want you to invoke the session-handoff skill now to save state to .claude/session-handoff.md. Do NOT launch session-handoff without their explicit confirmation."
