@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Service;
 
+use App\Dto\ContractDistributionDto;
 use App\Entity\Session;
 use App\Enum\Contract;
 use App\Repository\GameRepository;
@@ -40,7 +41,7 @@ final readonly class SessionSummaryService
     }
 
     /**
-     * @return array{awards: list<array{description: string, playerColor: string|null, playerId: int, playerName: string, title: string}>, highlights: array{bestGame: array{contract: string, gameId: int, playerName: string, score: int}|null, duration: int, lastPlace: array{playerId: int, playerName: string, score: int}, mostPlayedContract: array{contract: string, count: int}|null, mvp: array{playerId: int, playerName: string, score: int}, totalGames: int, totalStars: int, worstGame: array{contract: string, gameId: int, playerName: string, score: int}|null}, ranking: list<array{playerColor: string|null, playerId: int, playerName: string, position: int, score: int}>, scoreSpread: int}
+     * @return array{awards: list<array{description: string, playerColor: string|null, playerId: int, playerName: string, title: string}>, contractDistribution: list<array{contract: string, count: int, percentage: float}>, contractSuccessRate: list<array{color: string|null, contracts: list<array{contract: string, count: int, winRate: float, wins: int}>, id: int, name: string}>, highlights: array{bestGame: array{contract: string, gameId: int, playerName: string, score: int}|null, duration: int, lastPlace: array{playerId: int, playerName: string, score: int}, mostPlayedContract: array{contract: string, count: int}|null, mvp: array{playerId: int, playerName: string, score: int}, totalGames: int, totalStars: int, worstGame: array{contract: string, gameId: int, playerName: string, score: int}|null}, ranking: list<array{playerColor: string|null, playerId: int, playerName: string, position: int, score: int}>, scoreSpread: int}
      */
     public function getSummary(Session $session): array
     {
@@ -51,6 +52,8 @@ final readonly class SessionSummaryService
 
         return [
             'awards' => $awards,
+            'contractDistribution' => $this->computeContractDistribution($session, $totalGames),
+            'contractSuccessRate' => $this->computeContractSuccessRate($session),
             'highlights' => $highlights,
             'ranking' => $ranking,
             'scoreSpread' => !empty($ranking) ? $ranking[0]['score'] - $ranking[\count($ranking) - 1]['score'] : 0,
@@ -611,6 +614,76 @@ final readonly class SessionSummaryService
             'playerName' => $winner->getName(),
             'title' => 'Le Régulier',
         ];
+    }
+
+    /**
+     * Répartition des contrats joués dans la session (nombre et pourcentage).
+     *
+     * @return list<array{contract: string, count: int, percentage: float}>
+     */
+    private function computeContractDistribution(Session $session, int $totalGames): array
+    {
+        if (0 === $totalGames) {
+            return [];
+        }
+
+        $rows = $this->gameRepository->getContractDistributionForSession($session);
+
+        return \array_map(
+            static fn (ContractDistributionDto $row): array => [
+                'contract' => $row->contract->value,
+                'count' => $row->count,
+                'percentage' => \round($row->count / $totalGames * 100, 2),
+            ],
+            $rows,
+        );
+    }
+
+    /**
+     * Taux de réussite par contrat pour chaque joueur de la session.
+     *
+     * @return list<array{color: string|null, contracts: list<array{contract: string, count: int, winRate: float, wins: int}>, id: int, name: string}>
+     */
+    private function computeContractSuccessRate(Session $session): array
+    {
+        $countRows = $this->gameRepository->getContractCountByPlayerForSession($session);
+
+        if (empty($countRows)) {
+            return [];
+        }
+
+        $winRows = $this->gameRepository->getContractWinsByPlayerForSession($session);
+
+        /** @var array<string, int> $winsMap */
+        $winsMap = [];
+        foreach ($winRows as $row) {
+            $winsMap[$row->playerId.'_'.$row->contract->value] = $row->wins;
+        }
+
+        /** @var array<int, array{color: string|null, contracts: list<array{contract: string, count: int, winRate: float, wins: int}>, id: int, name: string}> $grouped */
+        $grouped = [];
+        foreach ($countRows as $row) {
+            $contract = $row->contract->value;
+            $wins = $winsMap[$row->playerId.'_'.$contract] ?? 0;
+
+            if (!isset($grouped[$row->playerId])) {
+                $grouped[$row->playerId] = [
+                    'color' => $row->playerColor,
+                    'contracts' => [],
+                    'id' => $row->playerId,
+                    'name' => $row->playerName,
+                ];
+            }
+
+            $grouped[$row->playerId]['contracts'][] = [
+                'contract' => $contract,
+                'count' => $row->count,
+                'winRate' => $row->count > 0 ? \round($wins / $row->count * 100, 1) : 0.0,
+                'wins' => $wins,
+            ];
+        }
+
+        return \array_values($grouped);
     }
 
     /**
