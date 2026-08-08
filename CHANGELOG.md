@@ -12,7 +12,7 @@ Le format est basé sur [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/)
 
 ### Added
 
-- **Dependabot** : configuration de la mise à jour automatisée des dépendances Composer, npm, GitHub Actions et Docker Compose.
+- **Dependabot** : configuration de la mise à jour automatisée et du groupement des dépendances Composer, npm, GitHub Actions et Docker Compose.
 - **Mèmes DOOM** : trois mèmes thématiques DOOM (Doomguy ensanglanté, Rip and Tear, Cacodemon) apparaissent uniquement durant la semaine du 10 décembre.
 - **Semaine DOOM** : la probabilité d'apparition des indices du thème doom passe de 2 % à 10 % durant la semaine du 10 décembre (anniversaire de la sortie de DOOM).
 - **Points attaque / défense** : choix du côté (attaque ou défense) lors de la saisie des points, avec conversion automatique. Compatible avec la saisie vocale.
