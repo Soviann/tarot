@@ -1,6 +1,7 @@
 @import "tailwindcss";
 @custom-variant dark (&:where(.dark, .dark *));
 @custom-variant doom (&:where(.doom, .doom *));
+@custom-variant noel (&:where(.noel, .noel *));
 
 @theme {
   --animate-theme-splash-fade-in: theme-splash-fade-in 200ms ease-out;
@@ -10,6 +11,8 @@
   --animate-undo-countdown: undo-countdown 5s linear forwards;
   --animate-hint-fade: hint-fade 2s ease-in-out forwards;
   --animate-doom-traverse: doom-traverse 2s linear forwards;
+  --animate-santa-sleigh-traverse: santa-sleigh-traverse 4.2s cubic-bezier(0.2, 0.8, 0.3, 1) forwards;
+
 
   --color-accent-50: #eef3f9;
   --color-accent-100: #d5e1f0;
@@ -112,6 +115,36 @@
   }
   to {
     translate: var(--hint-end-x) var(--hint-end-y);
+  }
+}
+
+@keyframes santa-sleigh-traverse {
+  0% {
+    transform: translate3d(0, 0, 0) translateY(0);
+  }
+  50% {
+    transform: translate3d(calc(50vw + 300px), 0, 0) translateY(-25px);
+  }
+  100% {
+    transform: translate3d(calc(100vw + 750px), 0, 0) translateY(-50px);
+  }
+}
+
+@keyframes snowfall {
+  0% {
+    transform: translateY(-20px);
+  }
+  100% {
+    transform: translateY(105vh);
+  }
+}
+
+@keyframes snow-sway {
+  0%, 100% {
+    margin-left: 0px;
+  }
+  50% {
+    margin-left: 30px;
   }
 }
 
@@ -220,5 +253,46 @@
 
   .doom :focus-visible {
     outline-color: var(--color-accent-400);
+  }
+
+  .noel {
+    --color-accent-50: #fef2f2;
+    --color-accent-100: #fee2e2;
+    --color-accent-200: #fecaca;
+    --color-accent-300: #f87171;
+    --color-accent-400: #dc2626;
+    --color-accent-500: #b91c1c;
+    --color-accent-600: #991b1b;
+    --color-accent-700: #7f1d1d;
+    --color-accent-800: #450a0a;
+    --color-accent-900: #300505;
+
+    --color-contract-garde: #3b82f6;
+    --color-contract-garde-contre: #dc2626;
+    --color-contract-garde-sans: #ea580c;
+    --color-contract-petite: #16a34a;
+
+    --color-score-negative: #f87171;
+    --color-score-positive: #4ade80;
+
+    --color-surface-border: #23593d;
+    --color-surface-elevated: #163d2a;
+    --color-surface-primary: #0a1f14;
+    --color-surface-secondary: #123322;
+    --color-surface-tertiary: #19452f;
+
+    --color-text-inverse: #0a1f14;
+    --color-text-muted: #94a3b8;
+    --color-text-primary: #f8fafc;
+    --color-text-secondary: #cbd5e1;
+  }
+
+  .noel :focus-visible {
+    outline-color: var(--color-accent-400);
+  }
+
+  .noel h1,
+  .noel h2 {
+    text-shadow: 0 0 12px rgba(220, 38, 38, 0.25);
   }
 }
