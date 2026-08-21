@@ -48,4 +48,53 @@ describe("themeRegistry", () => {
 
     expect(sound).toEqual({ src: "/sounds/doom/pistol.wav" });
   });
+
+  it("returns noel config for 'noel' theme", () => {
+    const config = getThemeConfig("noel");
+
+    expect(config).toBeDefined();
+    expect(config?.name).toBe("noel");
+    expect(config?.triggerNames).toEqual(["noel", "pere noel", "santa"]);
+    expect(config?.logo).toBe("/images/noel/santa-hat.png");
+    expect(config?.dealerIcon).toBe("/images/noel/santa-hat.png");
+  });
+
+  it("noel selectSound returns victory sound on attack win and null otherwise", () => {
+    const config = getThemeConfig("noel");
+    const winSound = config?.selectSound({
+      context: {
+        attackWins: true,
+        chelem: "none",
+        consecutiveLosses: 0,
+        contract: "garde",
+        isSelfCall: false,
+        oudlers: 2,
+        petitAuBout: "none",
+        points: 50,
+        previousScore: null,
+        takerScore: 40,
+      },
+      cumulativeScores: [],
+      previousCumulativeScores: [],
+    });
+    expect(winSound).toEqual({ src: "/sounds/noel/christmas-victory.mp3" });
+
+    const lossSound = config?.selectSound({
+      context: {
+        attackWins: false,
+        chelem: "none",
+        consecutiveLosses: 0,
+        contract: "garde",
+        isSelfCall: false,
+        oudlers: 2,
+        petitAuBout: "none",
+        points: 30,
+        previousScore: null,
+        takerScore: -40,
+      },
+      cumulativeScores: [],
+      previousCumulativeScores: [],
+    });
+    expect(lossSound).toBeNull();
+  });
 });

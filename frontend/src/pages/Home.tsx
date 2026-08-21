@@ -6,6 +6,8 @@ import SessionList from "../components/SessionList";
 import { useCreateSession } from "../hooks/useCreateSession";
 import { useTheme } from "next-themes";
 import { toast } from "sonner";
+import { getSeasonYear, SEASONAL_DISMISSED_KEY } from "../hooks/useSeasonalTheme";
+import { isChristmasPeriod } from "../services/christmasSeason";
 import { getThemeConfig } from "../services/themeRegistry";
 import type { Session } from "../types/api";
 
@@ -13,15 +15,37 @@ const REQUIRED_PLAYERS = 5;
 
 function ThemeToggle({ resolvedTheme, setTheme }: { resolvedTheme?: string; setTheme: (t: string) => void }) {
   const customTheme = getThemeConfig(resolvedTheme);
+  const inChristmasSeason = isChristmasPeriod();
+
+  const handleToggle = () => {
+    if (resolvedTheme === "noel") {
+      localStorage.setItem(SEASONAL_DISMISSED_KEY, getSeasonYear());
+      setTheme("light");
+    } else if (resolvedTheme === "dark") {
+      if (inChristmasSeason) {
+        setTheme("noel");
+      } else {
+        setTheme("light");
+      }
+    } else if (resolvedTheme === "light") {
+      setTheme("dark");
+    } else if (customTheme) {
+      setTheme("light");
+    } else {
+      setTheme(resolvedTheme === "dark" ? "light" : "dark");
+    }
+  };
 
   return (
     <button
       aria-label="Changer de thème"
       className="rounded-lg p-1.5 text-text-secondary hover:bg-surface-tertiary"
-      onClick={() => setTheme(customTheme ? "light" : resolvedTheme === "dark" ? "light" : "dark")}
+      onClick={handleToggle}
       type="button"
     >
-      {customTheme ? (
+      {resolvedTheme === "noel" ? (
+        <img alt="noel" className="size-5 lg:size-6" src="/images/noel/santa-hat.png" />
+      ) : customTheme ? (
         <img alt={customTheme.name} className="size-5 lg:size-6" src={customTheme.logo} />
       ) : resolvedTheme === "dark" ? (
         <Sun className="size-5 lg:size-6" />

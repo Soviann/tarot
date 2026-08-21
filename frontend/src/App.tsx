@@ -4,11 +4,14 @@ import { ThemeProvider, useTheme } from "next-themes";
 import { ErrorBoundary } from "react-error-boundary";
 import { BrowserRouter, Route, Routes } from "react-router-dom";
 import { toast, Toaster } from "sonner";
+import ChristmasSnowfall from "./components/ChristmasSnowfall";
 import DoomHint from "./components/DoomHint";
 import { ErrorFallback } from "./components/ErrorFallback";
 import Layout from "./components/Layout";
+import SantaSleighOverlay from "./components/SantaSleighOverlay";
 import ThemeSplash from "./components/ThemeSplash";
 import { useCheatCode } from "./hooks/useCheatCode";
+import { useSeasonalTheme } from "./hooks/useSeasonalTheme";
 import { useTextNormalizer } from "./hooks/useTextNormalizer";
 import { useThemeSounds } from "./hooks/useThemeSounds";
 import Home from "./pages/Home";
@@ -57,6 +60,7 @@ function ThemeCheatCodeHandler({ config }: { config: ThemeConfig }) {
 
 function ThemeEasterEgg() {
   useTextNormalizer();
+  useSeasonalTheme();
 
   return (
     <>
@@ -111,6 +115,8 @@ export default function App() {
             </Suspense>
           </BrowserRouter>
           <DoomHint />
+          <ChristmasSnowfall />
+          <SantaSleighOverlay />
           <ThemeEasterEgg />
           <ThemedToaster />
           {import.meta.env.DEV && (

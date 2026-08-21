@@ -69,6 +69,21 @@ function doomSelectSound(event: GameCompletedEvent): SoundEffect | null {
   return { src: DOOM_SOUNDS.playerUmf };
 }
 
+// --- Noel theme sounds ---
+
+const NOEL_SOUNDS = {
+  hohoho: "/sounds/noel/ho-ho-ho.wav",
+  victory: "/sounds/noel/christmas-victory.mp3",
+} as const;
+
+function noelSelectSound(event: GameCompletedEvent): SoundEffect | null {
+  const { context: ctx } = event;
+  if (ctx.attackWins) {
+    return { src: NOEL_SOUNDS.victory };
+  }
+  return null;
+}
+
 // --- Registry ---
 
 export const CUSTOM_THEMES: Record<string, ThemeConfig> = {
@@ -111,6 +126,29 @@ export const CUSTOM_THEMES: Record<string, ThemeConfig> = {
       color: "#ff4444",
       fontWeight: "bold",
     },
+  },
+  noel: {
+    activationSound: NOEL_SOUNDS.hohoho,
+    avatars: {
+      icons: [],
+      initialsPosition: "inside",
+    },
+    dealerIcon: "/images/noel/santa-hat.png",
+    logo: "/images/noel/santa-hat.png",
+    name: "noel",
+    normalizeText: false,
+    selectSound: noelSelectSound,
+    sonnerTheme: "dark",
+    splashImage: "/images/noel/santa-sleigh.png",
+    starIcons: [],
+    toastMessage: "JOYEUX NOËL ! 🎄🎅",
+    toastStyle: {
+      background: "#0a1f14",
+      border: "1px solid #dc2626",
+      color: "#fef08a",
+      fontWeight: "bold",
+    },
+    triggerNames: ["noel", "pere noel", "santa"],
   },
 };
 
