@@ -334,7 +334,11 @@ final readonly class SessionSummaryService
         $minCount = \PHP_INT_MAX;
         $winner = null;
         foreach ($session->getPlayers() as $player) {
-            $count = $takerCountMap[$player->getId()] ?? 0;
+            $playerId = $player->getId();
+            if (null === $playerId) {
+                continue;
+            }
+            $count = $takerCountMap[$playerId] ?? 0;
             if ($count < $minCount) {
                 $minCount = $count;
                 $winner = $player;

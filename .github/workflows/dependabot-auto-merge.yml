@@ -5,6 +5,7 @@ on: pull_request
 permissions:
   contents: write
   pull-requests: write
+  issues: write
 
 jobs:
   auto-merge:
@@ -18,9 +19,30 @@ jobs:
         with:
           github-token: "${{ secrets.GITHUB_TOKEN }}"
 
-      - name: Enable auto-merge for non-major updates
+      - name: Approve and enable auto-merge for non-major updates
+        id: merge
         if: steps.metadata.outputs.update-type != 'version-update:semver-major'
-        run: gh pr merge --auto --squash "$PR_URL"
+        run: |
+          gh pr review --approve "$PR_URL" || true
+          gh pr merge --auto --squash "$PR_URL"
+        env:
+          PR_URL: ${{ github.event.pull_request.html_url }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Alert on major version update
+        if: steps.metadata.outputs.update-type == 'version-update:semver-major'
+        run: |
+          gh pr edit "$PR_URL" --add-assignee "${{ github.repository_owner }}" --add-label "needs-manual-review" || true
+          gh pr comment "$PR_URL" --body "⚠️ @${{ github.repository_owner }} Cette PR Dependabot contient une mise à jour majeure (**semver-major**) et nécessite une revue manuelle." || true
+        env:
+          PR_URL: ${{ github.event.pull_request.html_url }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Alert on auto-merge failure
+        if: failure() && steps.merge.outcome == 'failure'
+        run: |
+          gh pr edit "$PR_URL" --add-assignee "${{ github.repository_owner }}" --add-label "needs-manual-review" || true
+          gh pr comment "$PR_URL" --body "❌ @${{ github.repository_owner }} L'activation de l'auto-merge a échoué sur cette PR Dependabot. Merci d'intervenir manuellement." || true
         env:
           PR_URL: ${{ github.event.pull_request.html_url }}
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

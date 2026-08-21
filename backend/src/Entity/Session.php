@@ -205,7 +205,10 @@ class Session
 
         $indexed = [];
         foreach ($players as $player) {
-            $indexed[$player->getId()] = $player;
+            $id = $player->getId();
+            if (null !== $id) {
+                $indexed[$id] = $player;
+            }
         }
 
         $ordered = [];

@@ -429,7 +429,8 @@ final readonly class BadgeChecker
      */
     private function checkComebackInSession(array $entries, Player $player): bool
     {
-        if (0 === \count($entries)) {
+        $playerId = $player->getId();
+        if (null === $playerId || 0 === \count($entries)) {
             return false;
         }
 
@@ -447,7 +448,7 @@ final readonly class BadgeChecker
                 // New game: check if player is last after previous game
                 if ($currentPosition > 0 && [] !== $cumulative) {
                     $minScore = \min($cumulative);
-                    $playerScore = $cumulative[$player->getId()] ?? null;
+                    $playerScore = $cumulative[$playerId] ?? null;
                     if (null !== $playerScore && $playerScore === $minScore) {
                         // Check that player is strictly last (not tied)
                         $countAtMin = \count(\array_filter($cumulative, static fn (int $s): bool => $s === $minScore));
@@ -468,7 +469,7 @@ final readonly class BadgeChecker
         }
 
         $maxScore = \max($cumulative);
-        $playerScore = $cumulative[$player->getId()] ?? null;
+        $playerScore = $cumulative[$playerId] ?? null;
 
         if (null === $playerScore || $playerScore !== $maxScore) {
             return false;
