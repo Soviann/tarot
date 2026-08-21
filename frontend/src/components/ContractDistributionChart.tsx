@@ -67,7 +67,7 @@ export default function ContractDistributionChart({ data }: ContractDistribution
               borderRadius: "0.5rem",
               color: "var(--color-text-primary)",
             }}
-            formatter={(value?: number, _name?: string, props?) => {
+            formatter={(value?: any, _name?: any, props?: any) => {
               if (value === undefined) return [];
               return [
                 `${value} (${(props?.payload as { percentage: number })?.percentage ?? 0}%)`,

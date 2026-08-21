@@ -72,7 +72,7 @@ export default function RoleDistributionChart({
               borderRadius: "0.5rem",
               color: "var(--color-text-primary)",
             }}
-            formatter={(value?: number) => {
+            formatter={(value?: any) => {
               if (value === undefined) return [];
               return [
                 `${value} (${Math.round((value / total) * 1000) / 10}%)`,
