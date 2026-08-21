@@ -37,8 +37,10 @@ export default defineConfig({
     target: "chrome64",
     rollupOptions: {
       output: {
-        manualChunks: {
-          recharts: ["recharts"],
+        manualChunks(id) {
+          if (id.includes("recharts")) {
+            return "recharts";
+          }
         },
       },
     },
