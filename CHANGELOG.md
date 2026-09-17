@@ -8,6 +8,7 @@ Le format est basé sur [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/)
 
 ### Fixed
 
+- **ScoreDisplay** : corrige le crash React #130 avec Vite 8/Rolldown sur les écrans de sessions et de statistiques en déballant le composant `CountUp`.
 - **Rafraîchissement en direct** : corrige le rafraîchissement automatique de la session qui ne fonctionnait pas à cause d'un double préfixe `/api` dans l'URL de fraîcheur.
 
 ### Added

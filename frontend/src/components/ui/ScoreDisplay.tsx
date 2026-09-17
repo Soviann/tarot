@@ -18,6 +18,16 @@ function getColorClass(value: number): string {
   return "text-text-muted";
 }
 
+function getCountUpComponent(): typeof CountUp {
+  let comp: unknown = CountUp;
+  while (comp && typeof comp === "object" && "default" in comp && (comp as { default: unknown }).default) {
+    comp = (comp as { default: unknown }).default;
+  }
+  return comp as typeof CountUp;
+}
+
+const CountUpComponent = getCountUpComponent();
+
 export default function ScoreDisplay({
   animated = true,
   className = "",
@@ -29,7 +39,7 @@ export default function ScoreDisplay({
       className={`${getColorClass(value)} tabular-nums font-semibold ${className}`.trim()}
     >
       {animated ? (
-        <CountUp
+        <CountUpComponent
           duration={duration / 1000}
           end={value}
           formattingFn={formatScore}
