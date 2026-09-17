@@ -38,4 +38,5 @@ docs/plans/
 docs/superpowers/
 .ddev/share-providers/
 worktrees/
+prod_dump/
 ###< local ###
