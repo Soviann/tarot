@@ -38,4 +38,10 @@ describe("ScoreDisplay", () => {
     renderWithProviders(<ScoreDisplay animated={false} value={-50} />);
     expect(screen.getByText("-50")).toBeInTheDocument();
   });
+
+  it("renders with animation enabled without crashing", () => {
+    const { container } = renderWithProviders(<ScoreDisplay value={150} />);
+    const span = container.querySelector("span.text-score-positive");
+    expect(span).toBeInTheDocument();
+  });
 });
