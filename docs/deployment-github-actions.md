@@ -243,7 +243,8 @@ jobs:
             --exclude 'frontend/src' \
             --exclude 'frontend/__tests__' \
             --exclude 'docs/plans' \
-            --exclude 'CLAUDE.md' \
+            --exclude 'AGENTS.md' \
+            --exclude '.agents' \
             . ${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }}:${{ secrets.DEPLOY_PATH }}
 
       - name: Post-deploy sur le serveur
@@ -382,7 +383,8 @@ jobs:
             --exclude 'frontend/src' \
             --exclude 'frontend/__tests__' \
             --exclude 'docs/plans' \
-            --exclude 'CLAUDE.md' \
+            --exclude 'AGENTS.md' \
+            --exclude '.agents' \
             . ${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }}:${{ secrets.DEPLOY_PATH }}
 
       - name: Post-deploy sur le serveur beta

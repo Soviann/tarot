@@ -326,7 +326,8 @@ frontend/test-setup.ts
 
 # Documentation dev
 docs/plans/
-CLAUDE.md
+AGENTS.md
+.agents/
 CHANGELOG.md
 
 # Fichiers CI
