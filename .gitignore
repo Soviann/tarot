@@ -32,7 +32,8 @@ node_modules/
 
 ###> local ###
 .DS_Store
-.claude/settings.local.json
+.gemini/
+.agents/*.local.*
 .playwright-mcp/
 docs/plans/
 docs/superpowers/
