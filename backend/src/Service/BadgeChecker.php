@@ -446,7 +446,7 @@ final readonly class BadgeChecker
 
             if ($pos !== $currentPosition) {
                 // New game: check if player is last after previous game
-                if ($currentPosition > 0 && [] !== $cumulative) {
+                if ($currentPosition > 0) {
                     $minScore = \min($cumulative);
                     $playerScore = $cumulative[$playerId] ?? null;
                     if (null !== $playerScore && $playerScore === $minScore) {
